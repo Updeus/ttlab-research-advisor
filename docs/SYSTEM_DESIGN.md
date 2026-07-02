@@ -6,7 +6,7 @@ The backend is a FastAPI application under `backend/app`.
 
 - `main.py` creates the app, CORS policy, startup table creation, and health endpoint.
 - `db.py` configures SQLite and SQLModel sessions.
-- `models/` defines `Paper`, `Author`, and `Chunk`.
+- `models/` defines `Paper`, `Author`, `Chunk`, `RAGAnswer`, and `ThesisRecommendation`.
 - `api/papers.py` exposes paper, stats, extraction, chunk, and simple chunk keyword endpoints.
 - `ingestion/ttlab_page.py` discovers TTLAB archive records.
 - `ingestion/manual_import.py` imports seed JSON into SQLite.
@@ -20,8 +20,11 @@ The backend is a FastAPI application under `backend/app`.
 - `intelligence/llm_provider.py` defines the offline extractive provider and optional external-provider adapter boundary.
 - `intelligence/rag_answerer.py` retrieves chunks, drafts an answer, verifies citations, and stores answers.
 - `intelligence/citation_verifier.py` checks citation presence and lightweight lexical support.
+- `intelligence/extension_recommender.py` retrieves chunks, groups candidate papers, scores them, creates deterministic thesis extension suggestions, verifies them, and stores recommendation runs.
+- `intelligence/recommendation_verifier.py` checks recommendation citations, retrieved chunk mappings, gap support status, data warnings, skills gaps, and timeline risk.
 - `evaluation/retrieval_eval.py` calculates Recall@3, Recall@5, and MRR from manually reviewed gold paper IDs.
 - `evaluation/qa_eval.py` runs Ask TTLAB and records citation/grounding outputs against manually reviewed labels.
+- `evaluation/extension_eval.py` measures recommendation count, citation coverage, cited paper count, grounding status, and warnings from manually reviewed cases.
 
 ## Data Flow
 
@@ -41,8 +44,9 @@ TTLAB WordPress archive
   -> keyword index + hashing vector index
   -> retrieval API
   -> Ask TTLAB answerer + citation verifier
+  -> Thesis Extension Finder + recommendation verifier
   -> FastAPI
-  -> React dashboard/browser/detail/search/Ask view
+  -> React dashboard/browser/detail/search/Ask/Thesis Extension Finder views
 ```
 
 ## Discovery Contract
@@ -113,8 +117,55 @@ Grounding status:
 
 The default provider is `offline_extractive`, which works without API keys by extracting relevant sentences from retrieved chunks. Optional external providers must be adapter-based and must not break offline operation.
 
+## Thesis Extension Finder Contract
+
+Extension runs are stored in SQLite as `ThesisRecommendation` records:
+
+```text
+recommendation_id, request_json, student_interests_json,
+student_skills_json, available_time, project_type, data_constraints,
+preferred_difficulty, recommendations_json, provider, model,
+retrieval_mode, top_k, grounding_status, warnings_json, created_at
+```
+
+Each recommendation inside `recommendations_json` includes:
+
+```text
+rank, paper_id, paper_title, authors, year, fit_score,
+paper_focus, source_supported_facts, identified_gap,
+extension_title, extension_summary, why_it_fits_student,
+mvp_scope, stretch_goals, required_skills, skills_gap,
+data_required, data_availability, evaluation_plan,
+difficulty, risk_level, implementation_time, related_papers,
+potential_researcher_fit, citations, warnings
+```
+
+The finder is not a chat system. It is a structured research advisor flow:
+
+1. Build a retrieval query from interests, preferred topics, project type, and data constraints.
+2. Retrieve source chunks through the existing keyword/semantic/hybrid retriever.
+3. Group chunks by `paper_id`.
+4. Score each paper with deterministic weights:
+   - retrieval relevance: 0.30
+   - interest/topic match: 0.20
+   - skill match: 0.15
+   - data feasibility: 0.10
+   - timeline feasibility: 0.10
+   - difficulty match: 0.10
+   - evidence strength: 0.05
+5. Generate an offline template recommendation from title, authors, source facts, and retrieved snippets.
+6. Verify citations and gap support status before persisting.
+
+Grounding status:
+
+- `grounded`: every recommendation has citations, source facts map to retrieved chunks, and gap evidence is explicit.
+- `partial`: citations exist, but a gap is inferred or not found, or some evidence is weak.
+- `unsupported`: no cited retrieved chunks support the recommendations.
+
+Potential researcher fit is based only on paper authorship and is explicitly not a confirmed supervisor claim.
+
 ## Future Extension Points
 
 - `indexing/` can later add production embedding providers and vector-store adapters behind the existing provider interfaces.
-- `intelligence/` can later add production answer providers, summaries, extension recommendations, and podcast scripts behind separate boundaries.
+- `intelligence/` can later add production answer providers, summaries, external recommendation providers, and podcast scripts behind separate boundaries.
 - `evaluation/` will hold retrieval, QA, and summary evaluation modules.

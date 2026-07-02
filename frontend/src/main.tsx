@@ -7,13 +7,14 @@ import { AskPage } from "./pages/AskPage";
 import { PaperBrowser } from "./pages/PaperBrowser";
 import { PaperDetail } from "./pages/PaperDetail";
 import { SearchPage } from "./pages/SearchPage";
+import { ThesisExtensionFinder } from "./pages/ThesisExtensionFinder";
 import type { Paper, Stats } from "./types/paper";
 import "./styles/app.css";
 
 function App() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activePage, setActivePage] = useState<"dashboard" | "papers" | "detail" | "search" | "ask">("dashboard");
+  const [activePage, setActivePage] = useState<"dashboard" | "papers" | "detail" | "search" | "ask" | "extensions">("dashboard");
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,9 @@ function App() {
           <button className={activePage === "ask" ? "active" : ""} onClick={() => setActivePage("ask")}>
             Ask TTLAB
           </button>
+          <button className={activePage === "extensions" ? "active" : ""} onClick={() => setActivePage("extensions")}>
+            Thesis Extension Finder
+          </button>
         </nav>
       </header>
 
@@ -82,6 +86,18 @@ function App() {
       ) : null}
       {!loading && !error && activePage === "ask" ? (
         <AskPage
+          papers={papers}
+          onSelectPaper={(paperId) => {
+            const paper = papers.find((item) => item.paper_id === paperId);
+            if (paper) {
+              setSelectedPaper(paper);
+              setActivePage("detail");
+            }
+          }}
+        />
+      ) : null}
+      {!loading && !error && activePage === "extensions" ? (
+        <ThesisExtensionFinder
           papers={papers}
           onSelectPaper={(paperId) => {
             const paper = papers.find((item) => item.paper_id === paperId);

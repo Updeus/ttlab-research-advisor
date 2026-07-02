@@ -1,6 +1,6 @@
 # Demo Script
 
-## Phase 1/2/3/4 Demo
+## Phase 1/2/3/4/5 Demo
 
 1. Show the project scaffold:
 
@@ -112,21 +112,54 @@
    - citations with paper title and page ranges,
    - retrieved chunk snippets,
    - source/PDF links,
-   - no Thesis Extension Finder, summaries, or podcast features.
+   - no summaries, podcast features, admin review, or auth.
 
-17. Run retrieval evaluation only after filling real gold labels:
+17. Run the Thesis Extension Finder CLI:
+
+   ```bash
+   PYTHONPATH=backend python -m app.intelligence.extension_recommender recommend \
+     --interests "RAG, web apps, education" \
+     --skills Python React FastAPI \
+     --available-time semester \
+     --project-type "software prototype" \
+     --data-constraints "prefer public or synthetic data" \
+     --preferred-difficulty medium \
+     --top-k 5 \
+     --mode hybrid
+   ```
+
+18. Open the Thesis Extension Finder page. Point out:
+
+   - student profile inputs,
+   - generated-content notice,
+   - ranked paper recommendations,
+   - source-supported facts with chunk/page citations,
+   - gap support status,
+   - proposed extension as a suggestion,
+   - MVP scope, stretch goals, required skills, skills gap,
+   - data availability, risk, difficulty, implementation time,
+   - evaluation plan,
+   - potential researcher fit based only on paper authorship.
+
+19. Run extension recommendation evaluation:
+
+   ```bash
+   PYTHONPATH=backend python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
+   ```
+
+20. Run retrieval evaluation only after filling real gold labels:
 
    ```bash
    PYTHONPATH=backend python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
    ```
 
-18. Run QA evaluation only after filling real gold labels:
+21. Run QA evaluation only after filling real gold labels:
 
    ```bash
    PYTHONPATH=backend python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
    ```
 
-19. Run verification:
+22. Run verification:
 
    ```bash
    python -m pytest
@@ -135,4 +168,4 @@
 
 ## Talking Point
 
-This is a discovery, extraction, source-chunking, retrieval, and citation-grounded Q&A milestone. It intentionally stops before summaries, podcast generation, admin review, and extension recommendations so later features remain grounded in auditable paper records and page-aware chunks.
+This is a discovery, extraction, source-chunking, retrieval, citation-grounded Q&A, and Thesis Extension Finder milestone. The key Phase 5 talking point is separation: cited source-paper facts are separate from the generated extension suggestion. The project still intentionally stops before summaries, podcast generation, admin review, authentication, and deployment.

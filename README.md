@@ -2,7 +2,7 @@
 
 Public-facing research discovery foundation for TTLAB publications. This project extends the publication archive system described in **“Automating the Collection, Display, Summarization and Podcasting of Academic Research”** by preparing the data layer needed for full-paper inspection, citation-grounded search, extension recommendations, summaries, podcasts, and evaluation.
 
-This repository is currently through **Phase 4**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, and displays records in a small React dashboard/browser/detail/search/Ask UI. It does not yet implement summaries, podcast generation, Thesis Extension Finder, admin review, or production auth.
+This repository is currently through **Phase 5**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, and adds a Thesis Extension Finder that recommends student project directions from cited source chunks. It does not yet implement summaries, podcast generation, admin review, production auth, or deployment.
 
 ## Repository Layout
 
@@ -146,6 +146,54 @@ PYTHONPATH=backend python -m app.evaluation.qa_eval \
 
 `data/evaluation/qa_questions.sample.jsonl` is only a template and intentionally has empty gold labels.
 
+## Thesis Extension Finder
+
+The Thesis Extension Finder is the Phase 5 differentiating feature. A student provides interests, skills, available time, project type, data constraints, and preferred difficulty. The backend retrieves relevant source chunks, groups them by paper, scores candidates deterministically, and returns ranked recommendations with citations.
+
+Each recommendation separates:
+
+- source-supported paper facts,
+- explicit or inferred limitations/future-work evidence,
+- the system's suggested extension idea,
+- why it fits the student profile,
+- an MVP scope and evaluation plan.
+
+The default provider is `offline_deterministic` and works without external API keys. It uses templates and retrieved chunks; it does not invent paper facts. If no explicit future-work or limitation chunk is found, the gap is marked `not_found` or `inferred_from_paper`, and the run becomes partial rather than fully grounded.
+
+Prepare local data for useful recommendations:
+
+```bash
+PYTHONPATH=backend python -m app.ingestion.pdf_downloader --from-db --limit 25 --download
+PYTHONPATH=backend python -m app.ingestion.pdf_parser extract --limit 25
+PYTHONPATH=backend python -m app.indexing.chunker chunk --limit 25
+PYTHONPATH=backend python -m app.indexing.keyword_search rebuild
+PYTHONPATH=backend python -m app.indexing.embedder index --provider hashing
+```
+
+Run the recommendation CLI:
+
+```bash
+PYTHONPATH=backend python -m app.intelligence.extension_recommender recommend \
+  --interests "RAG, web apps, education" \
+  --skills Python React FastAPI \
+  --available-time semester \
+  --project-type "software prototype" \
+  --data-constraints "prefer public or synthetic data" \
+  --preferred-difficulty medium \
+  --top-k 5 \
+  --mode hybrid
+```
+
+Run extension recommendation evaluation:
+
+```bash
+PYTHONPATH=backend python -m app.evaluation.extension_eval \
+  --cases data/evaluation/extension_eval_cases.jsonl \
+  --top-k 5
+```
+
+The evaluation output records recommendation count, citation count, cited paper count, grounding status, citation coverage, and warning count. Human review scores are intentionally blank until a reviewer fills `data/evaluation/extension_human_review_template.csv`.
+
 ## Run The Backend
 
 ```bash
@@ -166,6 +214,10 @@ Useful endpoints:
 - `GET /api/ask/{answer_id}`
 - `GET /api/ask/history`
 - `GET /api/ask/diagnostics`
+- `POST /api/recommendations/extensions`
+- `GET /api/recommendations/extensions/{recommendation_id}`
+- `GET /api/recommendations/extensions/history`
+- `GET /api/recommendations/extensions/diagnostics`
 - `GET /api/stats`
 
 ## Run The Frontend
@@ -196,5 +248,7 @@ The backend tests use HTML fixtures and temporary SQLite databases, so they do n
 - Semantic search uses local deterministic hashing embeddings by default, not a model download or API.
 - Ask TTLAB uses an offline extractive provider by default; optional external provider support is non-required and does not affect offline mode.
 - Ask TTLAB answers must cite source chunks or be marked unsupported.
-- No LLM summaries, podcast scripts, admin editing, or extension recommendations are implemented yet.
+- Thesis Extension Finder suggestions are generated project ideas, not verified paper claims; paper facts and gap evidence must be checked against citations.
+- External recommendation providers are optional and not required for the MVP; the offline deterministic provider is the supported default.
+- No LLM summaries, podcast scripts, admin editing, authentication, or deployment features are implemented yet.
 - The live TTLAB archive markup may change; fixture tests protect the parser contract, while live discovery should be re-run before demos.

@@ -68,3 +68,51 @@ Minimum grounding review fields:
 - answer usefulness score
 
 Do not claim retrieval or answer quality without evaluation evidence.
+
+## Phase 5 Extension Recommendation Evaluation
+
+Create or edit `data/evaluation/extension_eval_cases.jsonl` before reporting recommendation quality:
+
+```json
+{"case_id":"sample-001","interests":"RAG and web apps","skills":["Python","React","FastAPI"],"available_time":"semester","project_type":"software prototype","data_constraints":"public or synthetic data","preferred_difficulty":"medium","expected_relevant_topics":["RAG","research discovery"],"notes":"Placeholder only; replace with manually reviewed cases."}
+```
+
+Run:
+
+```bash
+PYTHONPATH=backend python -m app.evaluation.extension_eval \
+  --cases data/evaluation/extension_eval_cases.jsonl \
+  --top-k 5
+```
+
+Output:
+
+```text
+data/evaluation/extension_eval_results.json
+```
+
+Automated metrics:
+
+- recommendation_count
+- citation_count
+- cited_paper_count
+- grounding_status
+- percentage_recommendations_with_citations
+- warnings_count
+
+Human review template:
+
+```text
+data/evaluation/extension_human_review_template.csv
+```
+
+Human fields are intentionally blank until reviewed:
+
+- relevance_score
+- feasibility_score
+- usefulness_score
+- grounding_score
+- risk_appropriateness
+- reviewer_notes
+
+The extension evaluator measures citation coverage and grounding signals only. It does not prove that a project is novel, supervisor-approved, or feasible without human review.

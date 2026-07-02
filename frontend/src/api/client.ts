@@ -2,6 +2,9 @@ import type {
   AskDiagnostics,
   AskRequest,
   AskResponse,
+  ExtensionDiagnostics,
+  ExtensionFinderRequest,
+  ExtensionFinderResponse,
   ExtractionDiagnostics,
   Paper,
   PaperChunk,
@@ -60,4 +63,20 @@ export async function askTtlab(request: AskRequest): Promise<AskResponse> {
 
 export function fetchAskDiagnostics(): Promise<AskDiagnostics> {
   return getJson<AskDiagnostics>("/api/ask/diagnostics");
+}
+
+export async function recommendExtensions(request: ExtensionFinderRequest): Promise<ExtensionFinderResponse> {
+  const response = await fetch(`${API_BASE}/api/recommendations/extensions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+  return response.json() as Promise<ExtensionFinderResponse>;
+}
+
+export function fetchExtensionDiagnostics(): Promise<ExtensionDiagnostics> {
+  return getJson<ExtensionDiagnostics>("/api/recommendations/extensions/diagnostics");
 }

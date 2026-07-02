@@ -61,6 +61,7 @@ textarea {
 h1,
 h2,
 h3,
+h4,
 p {
   margin-top: 0;
 }
@@ -84,8 +85,17 @@ h3 {
   letter-spacing: 0;
 }
 
+h4 {
+  margin-bottom: 8px;
+  color: #2c3e45;
+  font-size: 0.86rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .tabs {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 4px;
   border: 1px solid #d8e0e3;
@@ -248,7 +258,9 @@ h3 {
 .search-result,
 .ask-panel,
 .answer-card,
-.citation-card {
+.citation-card,
+.finder-panel,
+.recommendation-card {
   border: 1px solid #d8e0e3;
   border-radius: 8px;
   background: #ffffff;
@@ -322,12 +334,42 @@ h3 {
 }
 
 .ask-panel textarea,
-.ask-controls select {
+.ask-controls select,
+.finder-panel textarea,
+.finder-panel input,
+.finder-panel select {
   width: 100%;
   border: 1px solid #c6d0d4;
   border-radius: 8px;
   padding: 11px 12px;
   background: #ffffff;
+}
+
+.finder-panel {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.finder-panel label {
+  display: grid;
+  gap: 6px;
+}
+
+.finder-panel label span {
+  color: #52656d;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.finder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.finder-panel button {
+  justify-self: start;
 }
 
 .ask-controls {
@@ -336,7 +378,8 @@ h3 {
   gap: 10px;
 }
 
-.ask-controls button {
+.ask-controls button,
+.finder-panel button {
   border: 0;
   border-radius: 8px;
   padding: 11px 18px;
@@ -352,9 +395,50 @@ h3 {
 }
 
 .answer-card p,
-.citation-card p {
+.citation-card p,
+.recommendation-card p {
   color: #42545c;
   line-height: 1.55;
+}
+
+.recommendation-card {
+  display: grid;
+  gap: 16px;
+}
+
+.recommendation-grid,
+.recommendation-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.recommendation-grid section,
+.recommendation-columns section {
+  border: 1px solid #e3e9eb;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfcfc;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-row span {
+  border: 1px solid #d8e0e3;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: #52656d;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.chip-row--compact span {
+  border-radius: 8px;
 }
 
 .grounding {
@@ -470,7 +554,10 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .ask-controls {
+  .ask-controls,
+  .finder-grid,
+  .recommendation-grid,
+  .recommendation-columns {
     grid-template-columns: 1fr;
   }
 

@@ -52,6 +52,14 @@ export function Dashboard({ stats, papers }: DashboardProps) {
           <span className="metric__label">Ask provider</span>
           <strong className="metric__small">{stats?.default_ask_provider?.replaceAll("_", " ") ?? "offline"}</strong>
         </article>
+        <article className="metric">
+          <span className="metric__label">Extension runs</span>
+          <strong>{stats?.total_extension_recommendation_runs ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Extension ideas</span>
+          <strong>{stats?.total_extension_ideas ?? 0}</strong>
+        </article>
       </div>
 
       <div className="section-heading">

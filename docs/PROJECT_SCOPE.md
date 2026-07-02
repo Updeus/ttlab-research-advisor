@@ -16,6 +16,10 @@ Make extracted chunks searchable. This phase adds keyword search, local/offline 
 
 Add Ask TTLAB citation-grounded Q&A over indexed chunks. This phase retrieves source chunks, drafts concise answers with the offline extractive provider, verifies citations, stores answers, exposes Ask APIs/CLI, and adds a frontend Ask page.
 
+## Phase 5 Goal
+
+Add the Thesis Extension Finder. This phase lets a student enter interests, skills, timeline, project type, data constraints, preferred difficulty, and optional topic preferences. It retrieves indexed TTLAB chunks, ranks papers with deterministic scoring, generates structured thesis extension suggestions, cites source chunks, persists recommendation runs, exposes API/CLI/UI access, and adds evaluation scaffolding.
+
 ## In Scope Now
 
 - FastAPI backend scaffold.
@@ -30,19 +34,23 @@ Add Ask TTLAB citation-grounded Q&A over indexed chunks. This phase retrieves so
 - Paper detail view with extraction diagnostics and chunk previews.
 - Search page with keyword, semantic, and hybrid modes.
 - Ask TTLAB page with grounding status, citations, snippets, and retrieved chunks.
+- Thesis Extension Finder page with ranked, citation-grounded paper recommendations and structured project scopes.
+- Extension recommendation APIs, CLI, persisted history, diagnostics, and stats metrics.
 - Retrieval evaluation code for manually reviewed gold paper IDs.
 - QA evaluation code for manually reviewed gold paper IDs.
-- Fixture-based parser/import/API/PDF/chunking/retrieval/Ask tests.
+- Extension recommendation evaluation scaffold for citation coverage and human review templates.
+- Fixture-based parser/import/API/PDF/chunking/retrieval/Ask/extension tests.
 
-## Explicitly Out Of Scope For Phase 1/2/3/4
+## Explicitly Out Of Scope For Phase 1/2/3/4/5
 
 - LLM summaries.
-- Thesis Extension Finder.
 - Podcast script generation.
 - Admin correction UI.
 - Authentication.
 - Production deployment infrastructure.
 - OCR for scanned PDFs.
+- Complex topic/author graph visualization.
+- Production email notifications.
 
 ## Review Principle
 
@@ -53,3 +61,5 @@ Generated chunks are source artifacts, not AI claims. They preserve page ranges 
 Retrieval results are also source artifacts. They show ranked chunks with page references, not synthesized answers.
 
 Ask TTLAB answers are generated drafts, but every answer must cite retrieved chunks or be marked partial/unsupported.
+
+Thesis Extension Finder outputs are generated project suggestions. Paper facts must cite retrieved chunks. Future-work/limitation evidence is labeled `explicit_in_paper`, `inferred_from_paper`, or `not_found`. Suggestions must not be presented as verified facts, and potential researcher fit is based only on source-paper authorship.

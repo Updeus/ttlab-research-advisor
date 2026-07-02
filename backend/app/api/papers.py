@@ -6,7 +6,7 @@ from sqlmodel import Session, func, select
 from app.db import get_session
 from app.indexing.embedder import index_diagnostics
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
-from app.models import Chunk, Paper, RAGAnswer
+from app.models import Chunk, Paper, RAGAnswer, ThesisRecommendation
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
@@ -86,6 +86,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     total = session.exec(select(func.count()).select_from(Paper)).one()
     total_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
     total_answers = session.exec(select(func.count()).select_from(RAGAnswer)).one()
+    recommendation_runs = list(session.exec(select(ThesisRecommendation)).all())
     searchable_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
     keyword = keyword_diagnostics(session)
     semantic = index_diagnostics()
@@ -118,6 +119,11 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "partial_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "partial")).one(),
         "unsupported_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "unsupported")).one(),
         "default_ask_provider": "offline_extractive",
+        "total_extension_recommendation_runs": len(recommendation_runs),
+        "total_extension_ideas": sum(len(record.recommendations_json or []) for record in recommendation_runs),
+        "grounded_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "grounded"),
+        "partial_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "partial"),
+        "unsupported_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "unsupported"),
         "top_topics": sorted(topics.items(), key=lambda item: item[1], reverse=True)[:10],
         "recent_papers": recent,
         "evaluation_status": "not_started",

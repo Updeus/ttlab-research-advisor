@@ -44,6 +44,11 @@ export type Stats = {
   partial_answers: number;
   unsupported_answers: number;
   default_ask_provider: string;
+  total_extension_recommendation_runs: number;
+  total_extension_ideas: number;
+  grounded_extension_runs: number;
+  partial_extension_runs: number;
+  unsupported_extension_runs: number;
   top_topics: [string, number][];
   recent_papers: Paper[];
   evaluation_status: string;
@@ -194,4 +199,111 @@ export type AskDiagnostics = {
   searchable_chunks: number;
   semantic_indexed_chunks: number;
   last_answer_timestamp: string | null;
+};
+
+export type ExtensionFinderRequest = {
+  interests: string;
+  skills: string[];
+  available_time: "2 weeks" | "1 month" | "semester";
+  project_type:
+    | "software prototype"
+    | "data analysis"
+    | "ML experiment"
+    | "literature/systematic review support"
+    | "dashboard/visualization"
+    | "other";
+  data_constraints: string;
+  preferred_difficulty: "easy" | "medium" | "hard";
+  preferred_topics: string[];
+  avoid_topics: string[];
+  top_k: number;
+  retrieval_mode: SearchMode;
+  provider: string;
+};
+
+export type ExtensionSourceFact = {
+  claim: string;
+  chunk_id: string;
+  page_start: number | null;
+  page_end: number | null;
+  snippet: string;
+};
+
+export type ExtensionCitation = {
+  paper_id: string;
+  title: string;
+  chunk_id: string;
+  section: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  snippet: string;
+  score: number;
+  source_url: string | null;
+  pdf_url: string | null;
+};
+
+export type ExtensionRecommendation = {
+  rank: number;
+  paper_id: string;
+  paper_title: string;
+  authors: string[];
+  year: number | null;
+  fit_score: number;
+  score_breakdown: Record<string, number>;
+  paper_focus: string;
+  source_supported_facts: ExtensionSourceFact[];
+  identified_gap: {
+    text: string;
+    support_status: "explicit_in_paper" | "inferred_from_paper" | "not_found";
+    source_chunk_ids: string[];
+  };
+  extension_title: string;
+  extension_summary: string;
+  why_it_fits_student: string;
+  mvp_scope: string;
+  stretch_goals: string[];
+  required_skills: string[];
+  skills_gap: string[];
+  data_required: string;
+  data_availability: "public" | "needs_supervisor" | "private" | "synthetic" | "unknown";
+  evaluation_plan: string;
+  difficulty: "easy" | "medium" | "hard";
+  risk_level: "low" | "medium" | "high";
+  implementation_time: "2 weeks" | "1 month" | "semester" | "unknown";
+  related_papers: {
+    paper_id: string;
+    title: string;
+    reason: string;
+  }[];
+  potential_researcher_fit: {
+    name: string;
+    reason: string;
+  }[];
+  citations: ExtensionCitation[];
+  warnings: string[];
+};
+
+export type ExtensionFinderResponse = {
+  recommendation_id: string;
+  request: ExtensionFinderRequest;
+  grounding_status: "grounded" | "partial" | "unsupported";
+  recommendations: ExtensionRecommendation[];
+  warnings: string[];
+  provider: string;
+  model: string;
+  retrieval_mode: SearchMode;
+  top_k: number;
+  created_at: string;
+};
+
+export type ExtensionDiagnostics = {
+  total_recommendation_runs: number;
+  total_recommendations_generated: number;
+  grounded_runs: number;
+  partial_runs: number;
+  unsupported_runs: number;
+  searchable_chunks: number;
+  searchable_papers: number;
+  default_provider: string;
+  last_recommendation_timestamp: string | null;
 };

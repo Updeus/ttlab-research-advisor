@@ -29,5 +29,6 @@ data/indexes/*
 !data/indexes/.gitkeep
 data/generated/*
 !data/generated/.gitkeep
+data/evaluation/*_results.json
 
 narine-rtsi.pdf

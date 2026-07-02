@@ -8,6 +8,10 @@ Set up a two-week-MVP foundation for the TTLAB Research Intelligence Platform. T
 
 Make the platform inspect full PDFs safely. This phase downloads a limited subset of direct PDF URLs, extracts full text page-by-page, records extraction diagnostics, creates deterministic page-aware chunks, stores chunk metadata in SQLite, and exposes extraction/chunk status in the API and frontend.
 
+## Phase 3 Goal
+
+Make extracted chunks searchable. This phase adds keyword search, local/offline semantic search, hybrid retrieval, retrieval APIs, a frontend Search page, and basic retrieval evaluation scaffolding.
+
 ## In Scope Now
 
 - FastAPI backend scaffold.
@@ -20,12 +24,15 @@ Make the platform inspect full PDFs safely. This phase downloads a limited subse
 - Seed JSON import into SQLite.
 - Minimal React dashboard and paper browser.
 - Paper detail view with extraction diagnostics and chunk previews.
-- Fixture-based parser/import/API/PDF/chunking tests.
+- Search page with keyword, semantic, and hybrid modes.
+- Retrieval evaluation code for manually reviewed gold paper IDs.
+- Fixture-based parser/import/API/PDF/chunking/retrieval tests.
 
-## Explicitly Out Of Scope For Phase 1/2
+## Explicitly Out Of Scope For Phase 1/2/3
 
-- Embeddings and vector search.
-- RAG answers.
+- RAG answer generation.
+- Chatbot UI.
+- LLM calls.
 - LLM summaries.
 - Thesis Extension Finder.
 - Podcast script generation.
@@ -39,3 +46,5 @@ Make the platform inspect full PDFs safely. This phase downloads a limited subse
 Discovered metadata is treated as unreviewed. Unknown or ambiguous fields remain blank/null, and imported records keep `review_status = "needs_review"`.
 
 Generated chunks are source artifacts, not AI claims. They preserve page ranges so later RAG features can cite them.
+
+Retrieval results are also source artifacts. They show ranked chunks with page references, not synthesized answers.

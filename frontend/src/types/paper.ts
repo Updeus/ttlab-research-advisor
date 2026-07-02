@@ -35,6 +35,10 @@ export type Stats = {
   no_text_pdfs: number;
   missing_pdf: number;
   total_chunks: number;
+  searchable_papers: number;
+  searchable_chunks: number;
+  keyword_indexed_chunks: number;
+  semantic_indexed_chunks: number;
   top_topics: [string, number][];
   recent_papers: Paper[];
   evaluation_status: string;
@@ -71,4 +75,49 @@ export type PaperChunk = {
   word_count: number;
   token_count_estimate: number | null;
   source_hash: string | null;
+};
+
+export type SearchMode = "keyword" | "semantic" | "hybrid";
+
+export type SearchResult = {
+  rank: number;
+  paper_id: string;
+  paper_title: string;
+  authors: string[];
+  year: number | null;
+  chunk_id: string;
+  section: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  snippet: string;
+  scores: {
+    keyword: number;
+    semantic: number;
+    combined: number;
+  };
+  source: {
+    pdf_url: string | null;
+    post_url: string | null;
+    local_pdf_path: string | null;
+  };
+};
+
+export type SearchResponse = {
+  query: string;
+  mode: SearchMode;
+  result_count: number;
+  results: SearchResult[];
+  warnings: string[];
+};
+
+export type SearchDiagnostics = {
+  searchable_chunks: number;
+  searchable_papers: number;
+  chunks_indexed_for_keyword_search: number;
+  chunks_indexed_for_semantic_search: number;
+  embedding_provider: string;
+  embedding_dimensions: number;
+  index_path: string;
+  index_status: string;
+  last_indexed_timestamp: string | null;
 };

@@ -12,19 +12,40 @@ Automated checks:
 - Seed JSON imports into SQLite.
 - `/health` and `/api/papers` return expected responses.
 
-## Later MVP Phases
+## Phase 3 Retrieval Evaluation
 
-When search and RAG are implemented, add `data/evaluation/questions.jsonl` with:
+Create a manually reviewed `data/evaluation/questions.jsonl` before reporting retrieval quality:
 
 ```json
-{"question":"Which TTLAB papers discuss RAG?","gold_paper_ids":["..."],"answer_points":["..."]}
+{"question":"Which TTLAB papers discuss RAG?","gold_paper_ids":["..."],"notes":"Manually reviewed gold papers."}
 ```
 
-Minimum retrieval metrics:
+Run:
+
+```bash
+PYTHONPATH=backend python -m app.evaluation.retrieval_eval \
+  --questions data/evaluation/questions.jsonl \
+  --mode hybrid \
+  --top-k 5
+```
+
+The committed `data/evaluation/questions.sample.jsonl` is a template only and intentionally has empty labels. The evaluation CLI fails clearly when gold labels are empty.
+
+Metrics:
 
 - Recall@3
 - Recall@5
 - MRR
+- number of questions
+- per-question retrieved paper IDs
+
+## Later MVP Phases
+
+When RAG answers are implemented, extend the same evaluation set with answer points:
+
+```json
+{"question":"Which TTLAB papers discuss RAG?","gold_paper_ids":["..."],"answer_points":["..."]}
+```
 
 Minimum grounding review fields:
 

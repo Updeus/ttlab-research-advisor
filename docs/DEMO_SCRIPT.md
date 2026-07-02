@@ -1,6 +1,6 @@
 # Demo Script
 
-## Phase 1/2 Demo
+## Phase 1/2/3 Demo
 
 1. Show the project scaffold:
 
@@ -72,7 +72,40 @@
    - review-needed status,
    - source/PDF/TTLAB post links.
 
-11. Run verification:
+11. Rebuild keyword search:
+
+   ```bash
+   PYTHONPATH=backend python -m app.indexing.keyword_search rebuild
+   ```
+
+12. Build local semantic index:
+
+   ```bash
+   PYTHONPATH=backend python -m app.indexing.embedder index --provider hashing --limit 10
+   ```
+
+13. Test hybrid retrieval:
+
+   ```bash
+   PYTHONPATH=backend python -m app.indexing.retriever search "RAG academic research" --mode hybrid --top-k 5
+   ```
+
+14. Open the Search page. Point out:
+
+   - keyword / semantic / hybrid modes,
+   - source chunk snippets,
+   - paper title/authors/year,
+   - section and page range,
+   - source/PDF links,
+   - no generated answer text.
+
+15. Run retrieval evaluation only after filling real gold labels:
+
+   ```bash
+   PYTHONPATH=backend python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
+   ```
+
+16. Run verification:
 
    ```bash
    python -m pytest
@@ -81,4 +114,4 @@
 
 ## Talking Point
 
-This is a discovery, extraction, and source-chunking milestone. It intentionally stops before RAG, summaries, podcast generation, vector search, and extension recommendations so later AI features are grounded in auditable paper records and page-aware chunks.
+This is a discovery, extraction, source-chunking, and retrieval milestone. It intentionally stops before RAG answer generation, summaries, podcast generation, and extension recommendations so later AI features are grounded in auditable paper records and page-aware chunks.

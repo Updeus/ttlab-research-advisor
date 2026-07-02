@@ -36,6 +36,14 @@ export function Dashboard({ stats, papers }: DashboardProps) {
           <span className="metric__label">Chunks</span>
           <strong>{stats?.total_chunks ?? papers.reduce((total, paper) => total + paper.chunk_count, 0)}</strong>
         </article>
+        <article className="metric">
+          <span className="metric__label">Keyword indexed</span>
+          <strong>{stats?.keyword_indexed_chunks ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Semantic indexed</span>
+          <strong>{stats?.semantic_indexed_chunks ?? 0}</strong>
+        </article>
       </div>
 
       <div className="section-heading">

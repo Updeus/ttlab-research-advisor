@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, func, select
 
 from app.db import get_session
+from app.indexing.embedder import index_diagnostics
+from app.indexing.keyword_search import diagnostics as keyword_diagnostics
 from app.models import Chunk, Paper
 
 router = APIRouter(prefix="/api", tags=["papers"])
@@ -83,6 +85,9 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     papers = list(session.exec(select(Paper)).all())
     total = session.exec(select(func.count()).select_from(Paper)).one()
     total_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
+    searchable_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
+    keyword = keyword_diagnostics(session)
+    semantic = index_diagnostics()
     with_pdf = sum(1 for paper in papers if paper.pdf_url)
     downloaded = sum(1 for paper in papers if paper.local_pdf_path)
     extracted = sum(1 for paper in papers if paper.pdf_text_status == "extracted")
@@ -103,6 +108,10 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "no_text_pdfs": no_text,
         "missing_pdf": missing_pdf,
         "total_chunks": total_chunks,
+        "searchable_papers": searchable_papers,
+        "searchable_chunks": total_chunks,
+        "keyword_indexed_chunks": keyword["keyword_indexed_chunks"],
+        "semantic_indexed_chunks": semantic["semantic_indexed_chunks"],
         "top_topics": sorted(topics.items(), key=lambda item: item[1], reverse=True)[:10],
         "recent_papers": recent,
         "evaluation_status": "not_started",

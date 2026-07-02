@@ -2,7 +2,7 @@
 
 Public-facing research discovery foundation for TTLAB publications. This project extends the publication archive system described in **“Automating the Collection, Display, Summarization and Podcasting of Academic Research”** by preparing the data layer needed for full-paper inspection, citation-grounded search, extension recommendations, summaries, podcasts, and evaluation.
 
-This repository is currently through **Phase 2**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, exposes extraction/chunk APIs, and displays records in a small React dashboard/browser/detail UI. It does not yet implement RAG, LLM answers, summaries, podcast generation, vector search, or the Thesis Extension Finder.
+This repository is currently through **Phase 3**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval APIs, and displays records in a small React dashboard/browser/detail/search UI. It does not yet implement chatbot/RAG answer generation, LLM calls, summaries, podcast generation, or the Thesis Extension Finder.
 
 ## Repository Layout
 
@@ -84,6 +84,37 @@ Outputs:
 - `data/chunks/{paper_id}.json`
 - SQLite `chunk` rows with `chunk_id`, `page_start`, `page_end`, `section`, text, counts, and source hash.
 
+## Build Search Indexes
+
+Rebuild the keyword index:
+
+```bash
+PYTHONPATH=backend python -m app.indexing.keyword_search rebuild
+```
+
+Build the local/offline semantic index with deterministic hashing embeddings:
+
+```bash
+PYTHONPATH=backend python -m app.indexing.embedder index --provider hashing --limit 10
+```
+
+Test hybrid retrieval:
+
+```bash
+PYTHONPATH=backend python -m app.indexing.retriever search "RAG academic research" --mode hybrid --top-k 5
+```
+
+Run retrieval evaluation after creating a manually reviewed `data/evaluation/questions.jsonl`:
+
+```bash
+PYTHONPATH=backend python -m app.evaluation.retrieval_eval \
+  --questions data/evaluation/questions.jsonl \
+  --mode hybrid \
+  --top-k 5
+```
+
+`data/evaluation/questions.sample.jsonl` is only a template and intentionally has empty gold labels.
+
 ## Run The Backend
 
 ```bash
@@ -98,6 +129,8 @@ Useful endpoints:
 - `GET /api/papers/{paper_id}/extraction`
 - `GET /api/papers/{paper_id}/chunks`
 - `GET /api/chunks/search?q=...`
+- `GET /api/search?q=...&mode=hybrid&limit=10`
+- `GET /api/search/diagnostics`
 - `GET /api/stats`
 
 ## Run The Frontend
@@ -125,5 +158,7 @@ The backend tests use HTML fixtures and temporary SQLite databases, so they do n
 - Metadata extraction is best-effort and review-first.
 - Only a controlled subset of direct PDFs should be downloaded/extracted/chunked during early demos.
 - PDF extraction uses embedded text only; scanned/image-only PDFs are flagged instead of OCR'd.
-- No semantic search, vector index, RAG Q&A, LLM summaries, podcast scripts, admin editing, or extension recommendations are implemented yet.
+- Semantic search uses local deterministic hashing embeddings by default, not a model download or API.
+- Retrieval returns source chunks only; it does not generate answers.
+- No RAG Q&A, LLM summaries, podcast scripts, admin editing, or extension recommendations are implemented yet.
 - The live TTLAB archive markup may change; fixture tests protect the parser contract, while live discovery should be re-run before demos.

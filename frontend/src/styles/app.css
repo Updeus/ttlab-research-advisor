@@ -28,7 +28,8 @@ a:hover {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -242,7 +243,8 @@ h3 {
 }
 
 .detail-panel,
-.chunk-preview {
+.chunk-preview,
+.search-result {
   border: 1px solid #d8e0e3;
   border-radius: 8px;
   background: #ffffff;
@@ -258,6 +260,53 @@ h3 {
 
 .chunk-preview p {
   margin-bottom: 0;
+  color: #42545c;
+  line-height: 1.55;
+}
+
+.search-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(130px, 160px) minmax(88px, 110px) auto;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.search-toolbar input,
+.search-toolbar select {
+  border: 1px solid #c6d0d4;
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: #ffffff;
+}
+
+.search-toolbar button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: #1e5962;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.search-diagnostics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.search-diagnostics span {
+  border: 1px solid #d8e0e3;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: #52656d;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.search-result p {
   color: #42545c;
   line-height: 1.55;
 }
@@ -331,6 +380,10 @@ h3 {
 
   .detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search-toolbar {
+    grid-template-columns: 1fr;
   }
 
   .tabs {

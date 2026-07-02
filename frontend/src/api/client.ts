@@ -1,4 +1,12 @@
-import type { ExtractionDiagnostics, Paper, PaperChunk, Stats } from "../types/paper";
+import type {
+  ExtractionDiagnostics,
+  Paper,
+  PaperChunk,
+  SearchDiagnostics,
+  SearchMode,
+  SearchResponse,
+  Stats,
+} from "../types/paper";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
@@ -24,4 +32,13 @@ export function fetchExtraction(paperId: string): Promise<ExtractionDiagnostics>
 
 export function fetchPaperChunks(paperId: string): Promise<PaperChunk[]> {
   return getJson<PaperChunk[]>(`/api/papers/${paperId}/chunks`);
+}
+
+export function searchChunks(query: string, mode: SearchMode, limit: number): Promise<SearchResponse> {
+  const params = new URLSearchParams({ q: query, mode, limit: String(limit) });
+  return getJson<SearchResponse>(`/api/search?${params.toString()}`);
+}
+
+export function fetchSearchDiagnostics(): Promise<SearchDiagnostics> {
+  return getJson<SearchDiagnostics>("/api/search/diagnostics");
 }

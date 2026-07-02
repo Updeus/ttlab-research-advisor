@@ -5,13 +5,14 @@ import { fetchPapers, fetchStats } from "./api/client";
 import { Dashboard } from "./pages/Dashboard";
 import { PaperBrowser } from "./pages/PaperBrowser";
 import { PaperDetail } from "./pages/PaperDetail";
+import { SearchPage } from "./pages/SearchPage";
 import type { Paper, Stats } from "./types/paper";
 import "./styles/app.css";
 
 function App() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activePage, setActivePage] = useState<"dashboard" | "papers" | "detail">("dashboard");
+  const [activePage, setActivePage] = useState<"dashboard" | "papers" | "detail" | "search">("dashboard");
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,9 @@ function App() {
           <button className={activePage === "papers" || activePage === "detail" ? "active" : ""} onClick={() => setActivePage("papers")}>
             Papers
           </button>
+          <button className={activePage === "search" ? "active" : ""} onClick={() => setActivePage("search")}>
+            Search
+          </button>
         </nav>
       </header>
 
@@ -59,6 +63,18 @@ function App() {
       ) : null}
       {!loading && !error && activePage === "detail" && selectedPaper ? (
         <PaperDetail paper={selectedPaper} onBack={() => setActivePage("papers")} />
+      ) : null}
+      {!loading && !error && activePage === "search" ? (
+        <SearchPage
+          papers={papers}
+          onSelectPaper={(paperId) => {
+            const paper = papers.find((item) => item.paper_id === paperId);
+            if (paper) {
+              setSelectedPaper(paper);
+              setActivePage("detail");
+            }
+          }}
+        />
       ) : null}
     </main>
   );

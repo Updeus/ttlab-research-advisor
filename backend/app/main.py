@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.papers import router as papers_router
+from app.api.search import router as search_router
 from app.config import get_settings
 from app.db import create_db_and_tables
 
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 app.include_router(papers_router)
+app.include_router(search_router)
 
 @app.get("/health")
 def health() -> dict[str, str]:

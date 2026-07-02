@@ -253,6 +253,21 @@ h4 {
   margin-bottom: 16px;
 }
 
+.action-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: #1e5962;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .detail-panel,
 .chunk-preview,
 .search-result,
@@ -260,7 +275,9 @@ h4 {
 .answer-card,
 .citation-card,
 .finder-panel,
-.recommendation-card {
+.recommendation-card,
+.artifact-panel,
+.artifact-card {
   border: 1px solid #d8e0e3;
   border-radius: 8px;
   background: #ffffff;
@@ -404,6 +421,57 @@ h4 {
 .recommendation-card {
   display: grid;
   gap: 16px;
+}
+
+.artifact-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.artifact-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.artifact-tabs button {
+  border: 1px solid #d8e0e3;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #ffffff;
+  color: #42545c;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.artifact-tabs button.active {
+  border-color: #1e5962;
+  background: #1e5962;
+  color: #ffffff;
+}
+
+.artifact-card {
+  display: grid;
+  gap: 12px;
+}
+
+.artifact-card p {
+  color: #42545c;
+  line-height: 1.55;
+}
+
+.dialogue-list {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #e3e9eb;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfcfc;
+}
+
+.dialogue-list p {
+  margin-bottom: 0;
 }
 
 .recommendation-grid,

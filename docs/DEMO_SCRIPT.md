@@ -1,6 +1,6 @@
 # Demo Script
 
-## Phase 1/2/3/4/5 Demo
+## Phase 1/2/3/4/5/6 Demo
 
 1. Show the project scaffold:
 
@@ -112,7 +112,7 @@
    - citations with paper title and page ranges,
    - retrieved chunk snippets,
    - source/PDF links,
-   - no summaries, podcast features, admin review, or auth.
+   - no admin review, auth, graph visualization, email, or audio generation.
 
 17. Run the Thesis Extension Finder CLI:
 
@@ -147,25 +147,55 @@
    PYTHONPATH=backend python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
    ```
 
-20. Run retrieval evaluation only after filling real gold labels:
+20. Generate Paper Intelligence for five papers:
+
+   ```bash
+   PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator batch \
+     --limit 5 \
+     --types paper_intelligence_bundle podcast_script \
+     --provider auto \
+     --max-chunks 12
+   ```
+
+21. Open a paper with extracted chunks and generated artifacts. Point out:
+
+   - Paper Intelligence section,
+   - generated-content notice,
+   - public summary and technical summary,
+   - contribution and methods,
+   - limitations/future work support status,
+   - possible extensions marked as system suggestions,
+   - required skills and evaluation plan,
+   - text-only podcast script,
+   - citations with section and page ranges,
+   - `needs_review` status,
+   - admin review comes later.
+
+22. Run artifact evaluation after replacing placeholder paper IDs with reviewed cases:
+
+   ```bash
+   PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
+   ```
+
+23. Run retrieval evaluation only after filling real gold labels:
 
    ```bash
    PYTHONPATH=backend python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
    ```
 
-21. Run QA evaluation only after filling real gold labels:
+24. Run QA evaluation only after filling real gold labels:
 
    ```bash
    PYTHONPATH=backend python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
    ```
 
-22. Run verification:
+25. Run verification:
 
    ```bash
-   python -m pytest
+   .venv/bin/python -m pytest
    cd frontend && npm run build
    ```
 
 ## Talking Point
 
-This is a discovery, extraction, source-chunking, retrieval, citation-grounded Q&A, and Thesis Extension Finder milestone. The key Phase 5 talking point is separation: cited source-paper facts are separate from the generated extension suggestion. The project still intentionally stops before summaries, podcast generation, admin review, authentication, and deployment.
+This is a discovery, extraction, source-chunking, retrieval, citation-grounded Q&A, Thesis Extension Finder, and paper-intelligence milestone. The key Phase 6 talking point is separation: cited source-paper facts are separate from system suggestions, and every generated output remains `needs_review`. Podcast generation is script text only; audio/TTS, admin review, authentication, graph visualization, production email, and deployment remain out of scope.

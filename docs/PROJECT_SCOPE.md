@@ -20,6 +20,10 @@ Add Ask TTLAB citation-grounded Q&A over indexed chunks. This phase retrieves so
 
 Add the Thesis Extension Finder. This phase lets a student enter interests, skills, timeline, project type, data constraints, preferred difficulty, and optional topic preferences. It retrieves indexed TTLAB chunks, ranks papers with deterministic scoring, generates structured thesis extension suggestions, cites source chunks, persists recommendation runs, exposes API/CLI/UI access, and adds evaluation scaffolding.
 
+## Phase 6 Goal
+
+Add paper-level intelligence artifacts and text-only podcast script generation. This phase creates public summaries, technical summaries, contribution/methods/limitations/future-work sections, possible extensions, required skills, evaluation plans, and 3-5 minute podcast script drafts from full-paper chunks. Artifacts are persisted in SQLite, written to ignored local JSON, cited back to source chunks, and shown on the paper detail page.
+
 ## In Scope Now
 
 - FastAPI backend scaffold.
@@ -36,21 +40,24 @@ Add the Thesis Extension Finder. This phase lets a student enter interests, skil
 - Ask TTLAB page with grounding status, citations, snippets, and retrieved chunks.
 - Thesis Extension Finder page with ranked, citation-grounded paper recommendations and structured project scopes.
 - Extension recommendation APIs, CLI, persisted history, diagnostics, and stats metrics.
+- Paper intelligence artifact APIs, CLI, persisted records, diagnostics, and stats metrics.
+- Paper detail Paper Intelligence section with generated-content notice, support status, review status, citations, and text-only podcast script display.
 - Retrieval evaluation code for manually reviewed gold paper IDs.
 - QA evaluation code for manually reviewed gold paper IDs.
 - Extension recommendation evaluation scaffold for citation coverage and human review templates.
-- Fixture-based parser/import/API/PDF/chunking/retrieval/Ask/extension tests.
+- Artifact evaluation scaffold for citation coverage and human review templates.
+- Fixture-based parser/import/API/PDF/chunking/retrieval/Ask/extension/artifact tests.
 
-## Explicitly Out Of Scope For Phase 1/2/3/4/5
+## Explicitly Out Of Scope For Phase 1/2/3/4/5/6
 
-- LLM summaries.
-- Podcast script generation.
 - Admin correction UI.
 - Authentication.
 - Production deployment infrastructure.
 - OCR for scanned PDFs.
 - Complex topic/author graph visualization.
 - Production email notifications.
+- Audio generation or TTS.
+- Full role-based review workflows.
 
 ## Review Principle
 
@@ -63,3 +70,5 @@ Retrieval results are also source artifacts. They show ranked chunks with page r
 Ask TTLAB answers are generated drafts, but every answer must cite retrieved chunks or be marked partial/unsupported.
 
 Thesis Extension Finder outputs are generated project suggestions. Paper facts must cite retrieved chunks. Future-work/limitation evidence is labeled `explicit_in_paper`, `inferred_from_paper`, or `not_found`. Suggestions must not be presented as verified facts, and potential researcher fit is based only on source-paper authorship.
+
+Paper intelligence artifacts are AI-assisted and unreviewed by default. They must keep `review_status = "needs_review"` until a later admin/review phase exists. Limitations and future work are labeled `explicit`, `inferred`, or `not_found`; possible extensions are labeled `suggested_by_system`; podcast scripts are text-only drafts with citations.

@@ -49,6 +49,10 @@ export type Stats = {
   grounded_extension_runs: number;
   partial_extension_runs: number;
   unsupported_extension_runs: number;
+  total_paper_artifacts: number;
+  papers_with_artifacts: number;
+  podcast_scripts_generated: number;
+  artifacts_needing_review: number;
   top_topics: [string, number][];
   recent_papers: Paper[];
   evaluation_status: string;
@@ -306,4 +310,98 @@ export type ExtensionDiagnostics = {
   searchable_papers: number;
   default_provider: string;
   last_recommendation_timestamp: string | null;
+};
+
+export type ArtifactCitation = {
+  paper_id: string;
+  title: string;
+  chunk_id: string;
+  section: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  snippet: string;
+};
+
+export type ArtifactSection = {
+  text?: string;
+  support_status?: "explicit" | "inferred" | "not_found" | "suggested_by_system";
+  basis?: "explicit" | "inferred" | "not_found" | "suggested_by_system" | string;
+  citations?: ArtifactCitation[];
+  skills?: string[];
+  items?: ExtensionArtifactItem[];
+};
+
+export type ExtensionArtifactItem = {
+  title: string;
+  summary: string;
+  support_status: "suggested_by_system" | "explicit" | "inferred" | "not_found";
+  source_basis: string[];
+  citations: ArtifactCitation[];
+};
+
+export type PaperIntelligenceBundle = {
+  paper_id: string;
+  paper_title: string;
+  authors: string[];
+  year: number | null;
+  generated_notice: string;
+  public_summary: ArtifactSection;
+  technical_summary: ArtifactSection;
+  contribution: ArtifactSection;
+  methods: ArtifactSection;
+  limitations: ArtifactSection;
+  future_work: ArtifactSection;
+  possible_extensions: ExtensionArtifactItem[];
+  required_skills: ArtifactSection;
+  evaluation_plan: ArtifactSection;
+  warnings: string[];
+  review_status: "needs_review" | "reviewed" | "rejected";
+};
+
+export type PodcastScriptArtifact = {
+  episode_title: string;
+  short_description: string;
+  audience: string;
+  duration_target: "3-5 minutes";
+  speakers: string[];
+  script: {
+    speaker: string;
+    text: string;
+  }[];
+  cited_source_papers: {
+    paper_id: string;
+    title: string;
+  }[];
+  citations: ArtifactCitation[];
+  warnings: string[];
+  review_status: "needs_review" | "reviewed" | "rejected";
+};
+
+export type PaperArtifact = {
+  artifact_id: string;
+  paper_id: string;
+  artifact_type: string;
+  generated_json: PaperIntelligenceBundle | PodcastScriptArtifact | ArtifactSection | Record<string, unknown>;
+  generated_text: string;
+  source_chunk_ids: string[];
+  citations: ArtifactCitation[];
+  provider: string;
+  model: string;
+  generation_status: "generated" | "failed" | "insufficient_sources";
+  grounding_status: "grounded" | "partial" | "unsupported";
+  review_status: "needs_review" | "reviewed" | "rejected";
+  warnings: string[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type GenerateArtifactsResponse = {
+  paper_id: string;
+  paper_title: string;
+  artifacts: PaperArtifact[];
+  grounding_status: "grounded" | "partial" | "unsupported";
+  review_status: "needs_review" | "reviewed" | "rejected";
+  citations: ArtifactCitation[];
+  warnings: string[];
+  saved_json_path: string | null;
 };

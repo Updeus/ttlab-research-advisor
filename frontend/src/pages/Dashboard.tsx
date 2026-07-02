@@ -60,6 +60,22 @@ export function Dashboard({ stats, papers }: DashboardProps) {
           <span className="metric__label">Extension ideas</span>
           <strong>{stats?.total_extension_ideas ?? 0}</strong>
         </article>
+        <article className="metric">
+          <span className="metric__label">Papers with artifacts</span>
+          <strong>{stats?.papers_with_artifacts ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Paper artifacts</span>
+          <strong>{stats?.total_paper_artifacts ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Podcast scripts</span>
+          <strong>{stats?.podcast_scripts_generated ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Artifacts needing review</span>
+          <strong>{stats?.artifacts_needing_review ?? 0}</strong>
+        </article>
       </div>
 
       <div className="section-heading">

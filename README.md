@@ -2,7 +2,7 @@
 
 Public-facing research discovery foundation for TTLAB publications. This project extends the publication archive system described in **“Automating the Collection, Display, Summarization and Podcasting of Academic Research”** by preparing the data layer needed for full-paper inspection, citation-grounded search, extension recommendations, summaries, podcasts, and evaluation.
 
-This repository is currently through **Phase 5**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, and adds a Thesis Extension Finder that recommends student project directions from cited source chunks. It does not yet implement summaries, podcast generation, admin review, production auth, or deployment.
+This repository is currently through **Phase 6**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, adds a Thesis Extension Finder, and generates paper-level intelligence artifacts plus text-only podcast script drafts from cited chunks. It does not yet implement admin review/correction, authentication, audio generation, production email, graph visualization, or deployment.
 
 ## Repository Layout
 
@@ -194,6 +194,65 @@ PYTHONPATH=backend python -m app.evaluation.extension_eval \
 
 The evaluation output records recommendation count, citation count, cited paper count, grounding status, citation coverage, and warning count. Human review scores are intentionally blank until a reviewer fills `data/evaluation/extension_human_review_template.csv`.
 
+## Paper Intelligence Artifacts And Podcast Scripts
+
+Phase 6 generates structured paper-level outputs for indexed papers:
+
+- public summary
+- technical summary
+- contribution
+- methods / approach
+- limitations
+- future work
+- possible extensions
+- required skills
+- evaluation plan
+- 3-5 minute text-only podcast script draft
+
+Outputs are stored in SQLite as `PaperArtifact` rows and written to ignored local JSON under:
+
+```text
+data/generated/paper_artifacts/{paper_id}.json
+```
+
+The default provider is `offline_deterministic`. It works without external API keys by selecting section-aware chunks and filling deterministic templates. Optional external provider requests currently fall back to offline mode. Every generated artifact has `review_status = "needs_review"` and should be treated as AI-assisted, unreviewed draft material.
+
+Generate artifacts for one paper:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator generate \
+  --paper-id <paper_id> \
+  --types paper_intelligence_bundle podcast_script \
+  --provider auto \
+  --max-chunks 12
+```
+
+Generate artifacts for the first five chunked papers:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator batch \
+  --limit 5 \
+  --types paper_intelligence_bundle podcast_script \
+  --provider auto \
+  --max-chunks 12
+```
+
+Show stored artifacts for a paper:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator show \
+  --paper-id <paper_id>
+```
+
+Run artifact evaluation:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval \
+  --cases data/evaluation/artifact_eval_cases.jsonl
+```
+
+Limitations and future work are marked `explicit`, `inferred`, or `not_found`. Possible extensions are marked `suggested_by_system` unless source chunks explicitly support them. Podcast scripts are text only; no audio/TTS is generated.
+
 ## Run The Backend
 
 ```bash
@@ -218,6 +277,11 @@ Useful endpoints:
 - `GET /api/recommendations/extensions/{recommendation_id}`
 - `GET /api/recommendations/extensions/history`
 - `GET /api/recommendations/extensions/diagnostics`
+- `POST /api/papers/{paper_id}/artifacts/generate`
+- `GET /api/papers/{paper_id}/artifacts`
+- `GET /api/papers/{paper_id}/artifacts/{artifact_type}`
+- `POST /api/papers/artifacts/generate-batch`
+- `GET /api/artifacts/diagnostics`
 - `GET /api/stats`
 
 ## Run The Frontend
@@ -250,5 +314,7 @@ The backend tests use HTML fixtures and temporary SQLite databases, so they do n
 - Ask TTLAB answers must cite source chunks or be marked unsupported.
 - Thesis Extension Finder suggestions are generated project ideas, not verified paper claims; paper facts and gap evidence must be checked against citations.
 - External recommendation providers are optional and not required for the MVP; the offline deterministic provider is the supported default.
-- No LLM summaries, podcast scripts, admin editing, authentication, or deployment features are implemented yet.
+- Paper intelligence artifacts and podcast scripts are AI-assisted and unreviewed; citations and support status must be checked before public use.
+- Podcast output is script text only; no audio generation or TTS pipeline is implemented.
+- No admin editing, authentication, graph visualization, production email, or deployment features are implemented yet.
 - The live TTLAB archive markup may change; fixture tests protect the parser contract, while live discovery should be re-run before demos.

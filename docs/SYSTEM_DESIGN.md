@@ -6,7 +6,7 @@ The backend is a FastAPI application under `backend/app`.
 
 - `main.py` creates the app, CORS policy, startup table creation, and health endpoint.
 - `db.py` configures SQLite and SQLModel sessions.
-- `models/` defines `Paper`, `Author`, `Chunk`, `RAGAnswer`, and `ThesisRecommendation`.
+- `models/` defines `Paper`, `Author`, `Chunk`, `RAGAnswer`, `ThesisRecommendation`, and `PaperArtifact`.
 - `api/papers.py` exposes paper, stats, extraction, chunk, and simple chunk keyword endpoints.
 - `ingestion/ttlab_page.py` discovers TTLAB archive records.
 - `ingestion/manual_import.py` imports seed JSON into SQLite.
@@ -22,9 +22,13 @@ The backend is a FastAPI application under `backend/app`.
 - `intelligence/citation_verifier.py` checks citation presence and lightweight lexical support.
 - `intelligence/extension_recommender.py` retrieves chunks, groups candidate papers, scores them, creates deterministic thesis extension suggestions, verifies them, and stores recommendation runs.
 - `intelligence/recommendation_verifier.py` checks recommendation citations, retrieved chunk mappings, gap support status, data warnings, skills gaps, and timeline risk.
+- `intelligence/paper_artifact_generator.py` selects section-aware source chunks, creates deterministic paper intelligence artifacts, stores them, writes local generated JSON, and exposes CLI commands.
+- `intelligence/podcast_script_generator.py` generates text-only podcast script drafts from paper intelligence bundles and cited chunks.
+- `intelligence/artifact_verifier.py` checks artifact citations, support statuses, extraction warnings, source chunk mapping, and grounding status.
 - `evaluation/retrieval_eval.py` calculates Recall@3, Recall@5, and MRR from manually reviewed gold paper IDs.
 - `evaluation/qa_eval.py` runs Ask TTLAB and records citation/grounding outputs against manually reviewed labels.
 - `evaluation/extension_eval.py` measures recommendation count, citation coverage, cited paper count, grounding status, and warnings from manually reviewed cases.
+- `evaluation/artifact_eval.py` measures artifact citation coverage, support statuses, grounding status, and warnings from manually reviewed cases.
 
 ## Data Flow
 
@@ -45,8 +49,9 @@ TTLAB WordPress archive
   -> retrieval API
   -> Ask TTLAB answerer + citation verifier
   -> Thesis Extension Finder + recommendation verifier
+  -> paper artifact generator + artifact verifier
   -> FastAPI
-  -> React dashboard/browser/detail/search/Ask/Thesis Extension Finder views
+  -> React dashboard/browser/detail/search/Ask/Thesis Extension Finder/Paper Intelligence views
 ```
 
 ## Discovery Contract
@@ -164,8 +169,57 @@ Grounding status:
 
 Potential researcher fit is based only on paper authorship and is explicitly not a confirmed supervisor claim.
 
+## Paper Intelligence Artifact Contract
+
+Paper-level intelligence outputs are stored as `PaperArtifact` records:
+
+```text
+artifact_id, paper_id, artifact_type, generated_json, generated_text,
+source_chunk_ids_json, citations_json, provider, model,
+generation_status, grounding_status, review_status, warnings_json,
+created_at, updated_at
+```
+
+Supported `artifact_type` values:
+
+```text
+public_summary, technical_summary, contribution, methods,
+limitations, future_work, possible_extensions, required_skills,
+evaluation_plan, podcast_script, paper_intelligence_bundle
+```
+
+The `paper_intelligence_bundle` payload contains:
+
+```text
+paper_id, paper_title, authors, year, generated_notice,
+public_summary, technical_summary, contribution, methods,
+limitations, future_work, possible_extensions, required_skills,
+evaluation_plan, warnings, review_status
+```
+
+Artifact generation flow:
+
+1. Load paper metadata and chunks.
+2. Prefer chunks whose sections look like Abstract, Introduction, Methodology, Results, Discussion, Limitations, Future Work, or Conclusion.
+3. Fall back to keyword scoring for terms such as contribution, propose, method, approach, result, limitation, future work, evaluation, and dataset.
+4. Generate deterministic extractive/template sections offline.
+5. Mark limitations and future work as `explicit`, `inferred`, or `not_found`.
+6. Mark possible extensions as `suggested_by_system`.
+7. Verify citations against real chunk IDs.
+8. Persist SQLite artifacts and write ignored local JSON under `data/generated/paper_artifacts/`.
+
+Grounding status:
+
+- `grounded`: cited chunks support the generated artifact and no weak/missing section warnings apply.
+- `partial`: some sections are inferred, suggested by the system, or weakly cited.
+- `unsupported`: no usable citations are available.
+
+All artifacts default to `review_status = "needs_review"`. The Phase 6 UI displays artifacts, citations, support status, and review status, but does not allow editing or approval.
+
+Podcast scripts are text-only. The script payload includes episode title, description, target duration, Host and Research Explainer dialogue, cited source papers, citations, warnings, and `review_status = "needs_review"`.
+
 ## Future Extension Points
 
 - `indexing/` can later add production embedding providers and vector-store adapters behind the existing provider interfaces.
-- `intelligence/` can later add production answer providers, summaries, external recommendation providers, and podcast scripts behind separate boundaries.
-- `evaluation/` will hold retrieval, QA, and summary evaluation modules.
+- `intelligence/` can later add production answer providers and external generation providers behind the existing adapter boundaries.
+- `evaluation/` will hold retrieval, QA, artifact, and later human review modules.

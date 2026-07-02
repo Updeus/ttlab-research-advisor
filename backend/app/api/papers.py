@@ -6,7 +6,7 @@ from sqlmodel import Session, func, select
 from app.db import get_session
 from app.indexing.embedder import index_diagnostics
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
-from app.models import Chunk, Paper, RAGAnswer, ThesisRecommendation
+from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ThesisRecommendation
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
@@ -87,6 +87,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     total_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
     total_answers = session.exec(select(func.count()).select_from(RAGAnswer)).one()
     recommendation_runs = list(session.exec(select(ThesisRecommendation)).all())
+    artifacts = list(session.exec(select(PaperArtifact)).all())
     searchable_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
     keyword = keyword_diagnostics(session)
     semantic = index_diagnostics()
@@ -124,6 +125,10 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "grounded_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "grounded"),
         "partial_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "partial"),
         "unsupported_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "unsupported"),
+        "total_paper_artifacts": len(artifacts),
+        "papers_with_artifacts": len({artifact.paper_id for artifact in artifacts if artifact.generation_status == "generated"}),
+        "podcast_scripts_generated": sum(1 for artifact in artifacts if artifact.artifact_type == "podcast_script" and artifact.generation_status == "generated"),
+        "artifacts_needing_review": sum(1 for artifact in artifacts if artifact.review_status == "needs_review"),
         "top_topics": sorted(topics.items(), key=lambda item: item[1], reverse=True)[:10],
         "recent_papers": recent,
         "evaluation_status": "not_started",

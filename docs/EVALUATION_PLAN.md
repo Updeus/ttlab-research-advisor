@@ -116,3 +116,52 @@ Human fields are intentionally blank until reviewed:
 - reviewer_notes
 
 The extension evaluator measures citation coverage and grounding signals only. It does not prove that a project is novel, supervisor-approved, or feasible without human review.
+
+## Phase 6 Paper Artifact Evaluation
+
+Create or edit `data/evaluation/artifact_eval_cases.jsonl` before reporting artifact quality:
+
+```json
+{"case_id":"sample-001","paper_id":"...","artifact_types":["public_summary","technical_summary","limitations","future_work"],"expected_source_chunk_ids":[],"notes":"Placeholder only; replace with manually reviewed cases."}
+```
+
+Run:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval \
+  --cases data/evaluation/artifact_eval_cases.jsonl
+```
+
+Output:
+
+```text
+data/evaluation/artifact_eval_results.json
+```
+
+Automated metrics:
+
+- artifact_count
+- citation_count
+- percentage_artifacts_with_citations
+- grounding_status
+- warnings_count
+- sections_with_explicit_support
+- sections_inferred
+- sections_not_found
+
+Human review template:
+
+```text
+data/evaluation/artifact_human_review_template.csv
+```
+
+Human fields are intentionally blank until reviewed:
+
+- accuracy_score
+- faithfulness_score
+- readability_score
+- usefulness_score
+- citation_correct
+- reviewer_notes
+
+The artifact evaluator measures citation coverage, grounding status, and support-status counts only. It does not prove correctness, readability, public suitability, or podcast readiness without human review.

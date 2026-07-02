@@ -6,7 +6,9 @@ import type {
   ExtensionFinderRequest,
   ExtensionFinderResponse,
   ExtractionDiagnostics,
+  GenerateArtifactsResponse,
   Paper,
+  PaperArtifact,
   PaperChunk,
   SearchDiagnostics,
   SearchMode,
@@ -79,4 +81,25 @@ export async function recommendExtensions(request: ExtensionFinderRequest): Prom
 
 export function fetchExtensionDiagnostics(): Promise<ExtensionDiagnostics> {
   return getJson<ExtensionDiagnostics>("/api/recommendations/extensions/diagnostics");
+}
+
+export function fetchPaperArtifacts(paperId: string): Promise<PaperArtifact[]> {
+  return getJson<PaperArtifact[]>(`/api/papers/${paperId}/artifacts`);
+}
+
+export async function generatePaperArtifacts(paperId: string): Promise<GenerateArtifactsResponse> {
+  const response = await fetch(`${API_BASE}/api/papers/${paperId}/artifacts/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      artifact_types: ["paper_intelligence_bundle", "podcast_script"],
+      provider: "auto",
+      max_chunks: 12,
+      overwrite: false,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+  return response.json() as Promise<GenerateArtifactsResponse>;
 }

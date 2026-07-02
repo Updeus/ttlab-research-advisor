@@ -2,7 +2,7 @@
 
 Public-facing research discovery foundation for TTLAB publications. This project extends the publication archive system described in **“Automating the Collection, Display, Summarization and Podcasting of Academic Research”** by preparing the data layer needed for full-paper inspection, citation-grounded search, extension recommendations, summaries, podcasts, and evaluation.
 
-This repository is currently through **Phase 3**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval APIs, and displays records in a small React dashboard/browser/detail/search UI. It does not yet implement chatbot/RAG answer generation, LLM calls, summaries, podcast generation, or the Thesis Extension Finder.
+This repository is currently through **Phase 4**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, and displays records in a small React dashboard/browser/detail/search/Ask UI. It does not yet implement summaries, podcast generation, Thesis Extension Finder, admin review, or production auth.
 
 ## Repository Layout
 
@@ -115,6 +115,37 @@ PYTHONPATH=backend python -m app.evaluation.retrieval_eval \
 
 `data/evaluation/questions.sample.jsonl` is only a template and intentionally has empty gold labels.
 
+## Ask TTLAB
+
+Ask TTLAB answers questions using retrieved source chunks. The default provider is offline and extractive: it selects relevant sentences from retrieved chunks and cites those chunks. It works without API keys and should be treated as a source-grounded draft, not a verified final research claim.
+
+Build indexes first:
+
+```bash
+PYTHONPATH=backend python -m app.indexing.keyword_search rebuild
+PYTHONPATH=backend python -m app.indexing.embedder index --provider hashing
+```
+
+Ask from the CLI:
+
+```bash
+PYTHONPATH=backend python -m app.intelligence.rag_answerer ask \
+  "Which TTLAB papers discuss RAG?" \
+  --mode hybrid \
+  --top-k 5
+```
+
+Run QA evaluation after creating manually reviewed labels:
+
+```bash
+PYTHONPATH=backend python -m app.evaluation.qa_eval \
+  --questions data/evaluation/qa_questions.jsonl \
+  --mode hybrid \
+  --top-k 5
+```
+
+`data/evaluation/qa_questions.sample.jsonl` is only a template and intentionally has empty gold labels.
+
 ## Run The Backend
 
 ```bash
@@ -131,6 +162,10 @@ Useful endpoints:
 - `GET /api/chunks/search?q=...`
 - `GET /api/search?q=...&mode=hybrid&limit=10`
 - `GET /api/search/diagnostics`
+- `POST /api/ask`
+- `GET /api/ask/{answer_id}`
+- `GET /api/ask/history`
+- `GET /api/ask/diagnostics`
 - `GET /api/stats`
 
 ## Run The Frontend
@@ -159,6 +194,7 @@ The backend tests use HTML fixtures and temporary SQLite databases, so they do n
 - Only a controlled subset of direct PDFs should be downloaded/extracted/chunked during early demos.
 - PDF extraction uses embedded text only; scanned/image-only PDFs are flagged instead of OCR'd.
 - Semantic search uses local deterministic hashing embeddings by default, not a model download or API.
-- Retrieval returns source chunks only; it does not generate answers.
-- No RAG Q&A, LLM summaries, podcast scripts, admin editing, or extension recommendations are implemented yet.
+- Ask TTLAB uses an offline extractive provider by default; optional external provider support is non-required and does not affect offline mode.
+- Ask TTLAB answers must cite source chunks or be marked unsupported.
+- No LLM summaries, podcast scripts, admin editing, or extension recommendations are implemented yet.
 - The live TTLAB archive markup may change; fixture tests protect the parser contract, while live discovery should be re-run before demos.

@@ -12,6 +12,10 @@ Make the platform inspect full PDFs safely. This phase downloads a limited subse
 
 Make extracted chunks searchable. This phase adds keyword search, local/offline semantic search, hybrid retrieval, retrieval APIs, a frontend Search page, and basic retrieval evaluation scaffolding.
 
+## Phase 4 Goal
+
+Add Ask TTLAB citation-grounded Q&A over indexed chunks. This phase retrieves source chunks, drafts concise answers with the offline extractive provider, verifies citations, stores answers, exposes Ask APIs/CLI, and adds a frontend Ask page.
+
 ## In Scope Now
 
 - FastAPI backend scaffold.
@@ -25,14 +29,13 @@ Make extracted chunks searchable. This phase adds keyword search, local/offline 
 - Minimal React dashboard and paper browser.
 - Paper detail view with extraction diagnostics and chunk previews.
 - Search page with keyword, semantic, and hybrid modes.
+- Ask TTLAB page with grounding status, citations, snippets, and retrieved chunks.
 - Retrieval evaluation code for manually reviewed gold paper IDs.
-- Fixture-based parser/import/API/PDF/chunking/retrieval tests.
+- QA evaluation code for manually reviewed gold paper IDs.
+- Fixture-based parser/import/API/PDF/chunking/retrieval/Ask tests.
 
-## Explicitly Out Of Scope For Phase 1/2/3
+## Explicitly Out Of Scope For Phase 1/2/3/4
 
-- RAG answer generation.
-- Chatbot UI.
-- LLM calls.
 - LLM summaries.
 - Thesis Extension Finder.
 - Podcast script generation.
@@ -48,3 +51,5 @@ Discovered metadata is treated as unreviewed. Unknown or ambiguous fields remain
 Generated chunks are source artifacts, not AI claims. They preserve page ranges so later RAG features can cite them.
 
 Retrieval results are also source artifacts. They show ranked chunks with page references, not synthesized answers.
+
+Ask TTLAB answers are generated drafts, but every answer must cite retrieved chunks or be marked partial/unsupported.

@@ -17,7 +17,11 @@ The backend is a FastAPI application under `backend/app`.
 - `indexing/embedder.py` builds local hashing embeddings without API keys or model downloads.
 - `indexing/vector_store.py` loads local embedding JSON and performs cosine search.
 - `indexing/retriever.py` combines keyword and semantic results for hybrid retrieval.
+- `intelligence/llm_provider.py` defines the offline extractive provider and optional external-provider adapter boundary.
+- `intelligence/rag_answerer.py` retrieves chunks, drafts an answer, verifies citations, and stores answers.
+- `intelligence/citation_verifier.py` checks citation presence and lightweight lexical support.
 - `evaluation/retrieval_eval.py` calculates Recall@3, Recall@5, and MRR from manually reviewed gold paper IDs.
+- `evaluation/qa_eval.py` runs Ask TTLAB and records citation/grounding outputs against manually reviewed labels.
 
 ## Data Flow
 
@@ -36,8 +40,9 @@ TTLAB WordPress archive
   -> data/chunks/{paper_id}.json + SQLite chunk rows
   -> keyword index + hashing vector index
   -> retrieval API
+  -> Ask TTLAB answerer + citation verifier
   -> FastAPI
-  -> React dashboard/browser/detail/search view
+  -> React dashboard/browser/detail/search/Ask view
 ```
 
 ## Discovery Contract
@@ -89,10 +94,27 @@ Modes:
 - `semantic`: local hashing embeddings stored under `data/indexes/`.
 - `hybrid`: normalized keyword and semantic score combination.
 
-Phase 3 does not call an LLM and does not generate answers.
+Phase 3 retrieval does not call an LLM and does not generate answers.
+
+## Ask Contract
+
+Ask TTLAB returns stored, source-cited answer drafts:
+
+```text
+answer_id, question, answer, grounding_status, provider, model,
+retrieval_mode, citations[], retrieved_chunks[], warnings[], created_at
+```
+
+Grounding status:
+
+- `grounded`: citations map to retrieved chunks and the answer overlaps with cited snippets.
+- `partial`: some support exists but citations or overlap are weak.
+- `unsupported`: no useful retrieved/cited support exists.
+
+The default provider is `offline_extractive`, which works without API keys by extracting relevant sentences from retrieved chunks. Optional external providers must be adapter-based and must not break offline operation.
 
 ## Future Extension Points
 
 - `indexing/` can later add production embedding providers and vector-store adapters behind the existing provider interfaces.
-- `intelligence/` will hold provider abstractions for grounded answer generation, summaries, extension recommendations, and podcast scripts.
+- `intelligence/` can later add production answer providers, summaries, extension recommendations, and podcast scripts behind separate boundaries.
 - `evaluation/` will hold retrieval, QA, and summary evaluation modules.

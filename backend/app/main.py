@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.ask import router as ask_router
 from app.api.papers import router as papers_router
 from app.api.search import router as search_router
 from app.config import get_settings
@@ -30,6 +31,7 @@ app.add_middleware(
 
 app.include_router(papers_router)
 app.include_router(search_router)
+app.include_router(ask_router)
 
 @app.get("/health")
 def health() -> dict[str, str]:

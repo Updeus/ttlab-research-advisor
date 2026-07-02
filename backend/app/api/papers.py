@@ -6,7 +6,7 @@ from sqlmodel import Session, func, select
 from app.db import get_session
 from app.indexing.embedder import index_diagnostics
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
-from app.models import Chunk, Paper
+from app.models import Chunk, Paper, RAGAnswer
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
@@ -85,6 +85,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     papers = list(session.exec(select(Paper)).all())
     total = session.exec(select(func.count()).select_from(Paper)).one()
     total_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
+    total_answers = session.exec(select(func.count()).select_from(RAGAnswer)).one()
     searchable_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
     keyword = keyword_diagnostics(session)
     semantic = index_diagnostics()
@@ -112,6 +113,11 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "searchable_chunks": total_chunks,
         "keyword_indexed_chunks": keyword["keyword_indexed_chunks"],
         "semantic_indexed_chunks": semantic["semantic_indexed_chunks"],
+        "total_ask_answers": total_answers,
+        "grounded_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "grounded")).one(),
+        "partial_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "partial")).one(),
+        "unsupported_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "unsupported")).one(),
+        "default_ask_provider": "offline_extractive",
         "top_topics": sorted(topics.items(), key=lambda item: item[1], reverse=True)[:10],
         "recent_papers": recent,
         "evaluation_status": "not_started",

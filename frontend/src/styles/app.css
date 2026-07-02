@@ -29,7 +29,8 @@ a:hover {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -244,7 +245,10 @@ h3 {
 
 .detail-panel,
 .chunk-preview,
-.search-result {
+.search-result,
+.ask-panel,
+.answer-card,
+.citation-card {
   border: 1px solid #d8e0e3;
   border-radius: 8px;
   background: #ffffff;
@@ -309,6 +313,86 @@ h3 {
 .search-result p {
   color: #42545c;
   line-height: 1.55;
+}
+
+.ask-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ask-panel textarea,
+.ask-controls select {
+  width: 100%;
+  border: 1px solid #c6d0d4;
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: #ffffff;
+}
+
+.ask-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr)) auto;
+  gap: 10px;
+}
+
+.ask-controls button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 18px;
+  background: #1e5962;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.answer-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.answer-card p,
+.citation-card p {
+  color: #42545c;
+  line-height: 1.55;
+}
+
+.grounding {
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.grounding--grounded {
+  background: #e2f5ee;
+  color: #126145;
+}
+
+.grounding--partial {
+  background: #fff1d7;
+  color: #85570e;
+}
+
+.grounding--unsupported {
+  background: #fff0ed;
+  color: #8f2d1f;
+}
+
+.retrieved-details {
+  border: 1px solid #d8e0e3;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.retrieved-details summary {
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.retrieved-details .paper-list {
+  margin-top: 12px;
 }
 
 .status-badge {
@@ -383,6 +467,10 @@ h3 {
   }
 
   .search-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .ask-controls {
     grid-template-columns: 1fr;
   }
 

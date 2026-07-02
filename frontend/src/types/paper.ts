@@ -39,6 +39,11 @@ export type Stats = {
   searchable_chunks: number;
   keyword_indexed_chunks: number;
   semantic_indexed_chunks: number;
+  total_ask_answers: number;
+  grounded_answers: number;
+  partial_answers: number;
+  unsupported_answers: number;
+  default_ask_provider: string;
   top_topics: [string, number][];
   recent_papers: Paper[];
   evaluation_status: string;
@@ -120,4 +125,73 @@ export type SearchDiagnostics = {
   index_path: string;
   index_status: string;
   last_indexed_timestamp: string | null;
+};
+
+export type AskRequest = {
+  question: string;
+  mode: SearchMode;
+  top_k: number;
+  audience: string;
+  max_words: number;
+  provider: string;
+};
+
+export type AskCitation = {
+  paper_id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  chunk_id: string;
+  section: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  snippet: string;
+  score: number;
+  source_url: string | null;
+  pdf_url: string | null;
+};
+
+export type AskRetrievedChunk = {
+  chunk_id: string;
+  paper_id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  page_start: number | null;
+  page_end: number | null;
+  section: string | null;
+  snippet: string;
+  scores: {
+    keyword?: number;
+    semantic?: number;
+    combined?: number;
+  };
+};
+
+export type AskResponse = {
+  answer_id: string;
+  question: string;
+  answer: string;
+  grounding_status: "grounded" | "partial" | "unsupported";
+  provider: string;
+  model: string;
+  retrieval_mode: SearchMode;
+  top_k: number;
+  citations: AskCitation[];
+  retrieved_chunks: AskRetrievedChunk[];
+  warnings: string[];
+  unsupported_claims: string[];
+  created_at: string;
+};
+
+export type AskDiagnostics = {
+  total_stored_answers: number;
+  grounded_answers: number;
+  partial_answers: number;
+  unsupported_answers: number;
+  default_provider: string;
+  external_provider_available: boolean;
+  searchable_chunks: number;
+  semantic_indexed_chunks: number;
+  last_answer_timestamp: string | null;
 };

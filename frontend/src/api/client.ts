@@ -1,4 +1,7 @@
 import type {
+  AskDiagnostics,
+  AskRequest,
+  AskResponse,
   ExtractionDiagnostics,
   Paper,
   PaperChunk,
@@ -41,4 +44,20 @@ export function searchChunks(query: string, mode: SearchMode, limit: number): Pr
 
 export function fetchSearchDiagnostics(): Promise<SearchDiagnostics> {
   return getJson<SearchDiagnostics>("/api/search/diagnostics");
+}
+
+export async function askTtlab(request: AskRequest): Promise<AskResponse> {
+  const response = await fetch(`${API_BASE}/api/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+  return response.json() as Promise<AskResponse>;
+}
+
+export function fetchAskDiagnostics(): Promise<AskDiagnostics> {
+  return getJson<AskDiagnostics>("/api/ask/diagnostics");
 }

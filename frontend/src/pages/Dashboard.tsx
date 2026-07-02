@@ -44,6 +44,14 @@ export function Dashboard({ stats, papers }: DashboardProps) {
           <span className="metric__label">Semantic indexed</span>
           <strong>{stats?.semantic_indexed_chunks ?? 0}</strong>
         </article>
+        <article className="metric">
+          <span className="metric__label">Ask answers</span>
+          <strong>{stats?.total_ask_answers ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Ask provider</span>
+          <strong className="metric__small">{stats?.default_ask_provider?.replaceAll("_", " ") ?? "offline"}</strong>
+        </article>
       </div>
 
       <div className="section-heading">

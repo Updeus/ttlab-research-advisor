@@ -1,6 +1,6 @@
 # Demo Script
 
-## Phase 1/2/3 Demo
+## Phase 1/2/3/4 Demo
 
 1. Show the project scaffold:
 
@@ -99,13 +99,34 @@
    - source/PDF links,
    - no generated answer text.
 
-15. Run retrieval evaluation only after filling real gold labels:
+15. Ask TTLAB from the CLI:
+
+   ```bash
+   PYTHONPATH=backend python -m app.intelligence.rag_answerer ask "Which TTLAB papers discuss RAG?" --mode hybrid --top-k 5
+   ```
+
+16. Open the Ask TTLAB page. Point out:
+
+   - generated-answer notice,
+   - grounding status,
+   - citations with paper title and page ranges,
+   - retrieved chunk snippets,
+   - source/PDF links,
+   - no Thesis Extension Finder, summaries, or podcast features.
+
+17. Run retrieval evaluation only after filling real gold labels:
 
    ```bash
    PYTHONPATH=backend python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
    ```
 
-16. Run verification:
+18. Run QA evaluation only after filling real gold labels:
+
+   ```bash
+   PYTHONPATH=backend python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
+   ```
+
+19. Run verification:
 
    ```bash
    python -m pytest
@@ -114,4 +135,4 @@
 
 ## Talking Point
 
-This is a discovery, extraction, source-chunking, and retrieval milestone. It intentionally stops before RAG answer generation, summaries, podcast generation, and extension recommendations so later AI features are grounded in auditable paper records and page-aware chunks.
+This is a discovery, extraction, source-chunking, retrieval, and citation-grounded Q&A milestone. It intentionally stops before summaries, podcast generation, admin review, and extension recommendations so later features remain grounded in auditable paper records and page-aware chunks.

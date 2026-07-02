@@ -41,11 +41,24 @@ Metrics:
 
 ## Later MVP Phases
 
-When RAG answers are implemented, extend the same evaluation set with answer points:
+## Phase 4 QA Evaluation
+
+Create a manually reviewed `data/evaluation/qa_questions.jsonl` before reporting answer quality:
 
 ```json
-{"question":"Which TTLAB papers discuss RAG?","gold_paper_ids":["..."],"answer_points":["..."]}
+{"question":"Which indexed papers discuss RAG?","gold_paper_ids":["..."],"required_answer_points":["..."],"notes":"Manually reviewed later."}
 ```
+
+Run:
+
+```bash
+PYTHONPATH=backend python -m app.evaluation.qa_eval \
+  --questions data/evaluation/qa_questions.jsonl \
+  --mode hybrid \
+  --top-k 5
+```
+
+The committed `data/evaluation/qa_questions.sample.jsonl` is a template only and intentionally has empty labels. The QA CLI fails clearly when gold labels are empty.
 
 Minimum grounding review fields:
 

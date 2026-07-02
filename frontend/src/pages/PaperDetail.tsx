@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { fetchExtraction, fetchPaperArtifacts, fetchPaperChunks, generatePaperArtifacts } from "../api/client";
+import { fetchExtraction, fetchPaperArtifacts, fetchPaperChunks, fetchRelatedPapers, generatePaperArtifacts } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import type {
   ArtifactCitation,
@@ -11,11 +11,13 @@ import type {
   PaperChunk,
   PaperIntelligenceBundle,
   PodcastScriptArtifact,
+  RelatedPaper,
 } from "../types/paper";
 
 type PaperDetailProps = {
   paper: Paper;
   onBack: () => void;
+  onSelectPaper?: (paperId: string) => void;
 };
 
 type ArtifactTab =
@@ -43,10 +45,11 @@ const ARTIFACT_TABS: { id: ArtifactTab; label: string }[] = [
   { id: "podcast_script", label: "Podcast Script" },
 ];
 
-export function PaperDetail({ paper, onBack }: PaperDetailProps) {
+export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) {
   const [extraction, setExtraction] = useState<ExtractionDiagnostics | null>(null);
   const [chunks, setChunks] = useState<PaperChunk[]>([]);
   const [artifacts, setArtifacts] = useState<PaperArtifact[]>([]);
+  const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [artifactError, setArtifactError] = useState<string | null>(null);
   const [artifactLoading, setArtifactLoading] = useState(false);
@@ -55,11 +58,17 @@ export function PaperDetail({ paper, onBack }: PaperDetailProps) {
   useEffect(() => {
     setError(null);
     setArtifactError(null);
-    Promise.all([fetchExtraction(paper.paper_id), fetchPaperChunks(paper.paper_id), fetchPaperArtifacts(paper.paper_id)])
-      .then(([extractionData, chunkRows, artifactRows]) => {
+    Promise.all([
+      fetchExtraction(paper.paper_id),
+      fetchPaperChunks(paper.paper_id),
+      fetchPaperArtifacts(paper.paper_id),
+      fetchRelatedPapers(paper.paper_id),
+    ])
+      .then(([extractionData, chunkRows, artifactRows, relatedRows]) => {
         setExtraction(extractionData);
         setChunks(chunkRows);
         setArtifacts(artifactRows);
+        setRelatedPapers(relatedRows);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load paper detail."));
   }, [paper.paper_id]);
@@ -175,6 +184,43 @@ export function PaperDetail({ paper, onBack }: PaperDetailProps) {
       ) : (
         <p className="empty-state">No paper intelligence artifacts have been generated for this paper yet.</p>
       )}
+
+      <div className="section-heading">
+        <h2>Related Papers</h2>
+      </div>
+      <div className="paper-list">
+        {relatedPapers.map((related) => (
+          <article className="paper-row" key={related.paper_id}>
+            <div>
+              <div className="paper-card__meta">
+                <span>{related.year ?? "Year needs review"}</span>
+                <span>Score {related.score.toFixed(2)}</span>
+              </div>
+              <h3>{related.title}</h3>
+              <p>{related.reason || "Related by deterministic metadata and topic scoring."}</p>
+              <div className="chip-row chip-row--compact">
+                {related.shared_topics.map((topic) => (
+                  <span key={topic}>{topic}</span>
+                ))}
+                {related.shared_authors.map((author) => (
+                  <span key={author}>{author}</span>
+                ))}
+              </div>
+              <p className="paper-card__status">Basis: {related.source_basis.join(", ") || "metadata"}</p>
+            </div>
+            {onSelectPaper ? (
+              <button className="action-button" onClick={() => onSelectPaper(related.paper_id)}>
+                Open Paper
+              </button>
+            ) : null}
+          </article>
+        ))}
+        {!relatedPapers.length ? (
+          <p className="empty-state">
+            No related papers found yet. Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
+          </p>
+        ) : null}
+      </div>
 
       <div className="section-heading">
         <h2>Chunk Preview</h2>

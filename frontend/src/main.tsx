@@ -10,6 +10,7 @@ import { PaperBrowser } from "./pages/PaperBrowser";
 import { PaperDetail } from "./pages/PaperDetail";
 import { SearchPage } from "./pages/SearchPage";
 import { ThesisExtensionFinder } from "./pages/ThesisExtensionFinder";
+import { TopicAuthorExplorer } from "./pages/TopicAuthorExplorer";
 import type { Paper, Stats } from "./types/paper";
 import "./styles/app.css";
 
@@ -17,7 +18,7 @@ function App() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [activePage, setActivePage] = useState<
-    "dashboard" | "papers" | "detail" | "search" | "ask" | "extensions" | "admin" | "evaluation"
+    "dashboard" | "papers" | "detail" | "search" | "ask" | "extensions" | "explorer" | "admin" | "evaluation"
   >("dashboard");
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +59,9 @@ function App() {
           <button className={activePage === "extensions" ? "active" : ""} onClick={() => setActivePage("extensions")}>
             Thesis Extension Finder
           </button>
+          <button className={activePage === "explorer" ? "active" : ""} onClick={() => setActivePage("explorer")}>
+            Topic/Author Explorer
+          </button>
           <button className={activePage === "admin" ? "active" : ""} onClick={() => setActivePage("admin")}>
             Admin Review
           </button>
@@ -80,7 +84,17 @@ function App() {
         />
       ) : null}
       {!loading && !error && activePage === "detail" && selectedPaper ? (
-        <PaperDetail paper={selectedPaper} onBack={() => setActivePage("papers")} />
+        <PaperDetail
+          paper={selectedPaper}
+          onBack={() => setActivePage("papers")}
+          onSelectPaper={(paperId) => {
+            const paper = papers.find((item) => item.paper_id === paperId);
+            if (paper) {
+              setSelectedPaper(paper);
+              setActivePage("detail");
+            }
+          }}
+        />
       ) : null}
       {!loading && !error && activePage === "search" ? (
         <SearchPage
@@ -109,6 +123,17 @@ function App() {
       {!loading && !error && activePage === "extensions" ? (
         <ThesisExtensionFinder
           papers={papers}
+          onSelectPaper={(paperId) => {
+            const paper = papers.find((item) => item.paper_id === paperId);
+            if (paper) {
+              setSelectedPaper(paper);
+              setActivePage("detail");
+            }
+          }}
+        />
+      ) : null}
+      {!loading && !error && activePage === "explorer" ? (
+        <TopicAuthorExplorer
           onSelectPaper={(paperId) => {
             const paper = papers.find((item) => item.paper_id === paperId);
             if (paper) {

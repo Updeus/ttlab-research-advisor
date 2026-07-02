@@ -456,12 +456,19 @@ h4 {
   margin-bottom: 18px;
 }
 
+.explorer-tabs {
+  margin-top: 24px;
+  margin-bottom: 18px;
+}
+
 .admin-metrics {
   margin-top: 18px;
 }
 
 .admin-grid,
-.evaluation-grid {
+.evaluation-grid,
+.explorer-columns,
+.explorer-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -469,6 +476,7 @@ h4 {
 }
 
 .admin-card,
+.explorer-card,
 .review-row {
   border: 1px solid #d8e0e3;
   border-radius: 8px;
@@ -486,6 +494,21 @@ h4 {
   align-items: start;
   justify-content: space-between;
   gap: 18px;
+}
+
+.explorer-card {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.explorer-toolbar {
+  grid-template-columns: minmax(220px, 1fr) auto;
+}
+
+.explorer-toolbar--authors {
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
 }
 
 .admin-filter-row,
@@ -637,6 +660,27 @@ h4 {
   border-radius: 8px;
 }
 
+.chip-button {
+  border: 1px solid #d8e0e3;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: #0f6d7a;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.paper-mini-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.paper-mini-link {
+  text-align: left;
+}
+
 .grounding {
   border-radius: 999px;
   padding: 4px 9px;
@@ -730,6 +774,11 @@ h4 {
   text-align: center;
 }
 
+.empty-state--compact {
+  padding: 12px;
+  text-align: left;
+}
+
 @media (max-width: 780px) {
   .app-header,
   .section-heading--with-search,
@@ -757,6 +806,10 @@ h4 {
   .admin-form-grid,
   .admin-grid,
   .evaluation-grid,
+  .explorer-columns,
+  .explorer-layout,
+  .explorer-toolbar,
+  .explorer-toolbar--authors,
   .recommendation-columns {
     grid-template-columns: 1fr;
   }
@@ -774,7 +827,8 @@ h4 {
     min-width: 0;
   }
 
-  .review-row {
+  .review-row,
+  .explorer-card {
     flex-direction: column;
   }
 }

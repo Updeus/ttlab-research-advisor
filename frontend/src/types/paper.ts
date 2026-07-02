@@ -41,6 +41,12 @@ export type Stats = {
   no_text_pdfs: number;
   missing_pdf: number;
   total_chunks: number;
+  topic_count: number;
+  author_count: number;
+  paper_topic_links: number;
+  author_topic_links: number;
+  papers_with_topics: number;
+  authors_with_topics: number;
   searchable_papers: number;
   searchable_chunks: number;
   keyword_indexed_chunks: number;
@@ -532,4 +538,110 @@ export type EvaluationDashboard = {
   human_review_templates: Record<string, boolean>;
   overall_quality: Record<string, number>;
   result_files: Record<string, { path: string; exists: boolean; last_modified: string | null }>;
+};
+
+export type PaperSummary = {
+  paper_id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  venue: string | null;
+  source_url: string | null;
+  pdf_url: string | null;
+};
+
+export type AuthorSummary = {
+  author_id: number;
+  name: string;
+  paper_count: number;
+  score?: number;
+  top_topics?: AuthorTopicSummary[];
+  recent_papers?: PaperSummary[];
+  coauthor_count?: number;
+  review_status?: string;
+};
+
+export type AuthorTopicSummary = {
+  topic_id: string;
+  name: string;
+  paper_count: number;
+  score: number;
+  evidence?: ExplorerEvidence[];
+};
+
+export type TopicSummary = {
+  topic_id: string;
+  name: string;
+  normalized_name: string;
+  description: string | null;
+  paper_count: number;
+  author_count: number;
+  top_authors: AuthorSummary[];
+  sample_papers: PaperSummary[];
+  review_status: string;
+};
+
+export type TopicDetail = TopicSummary & {
+  papers: (PaperSummary & { score: number; evidence: ExplorerEvidence[] })[];
+  authors: AuthorSummary[];
+  related_topics: {
+    topic_id: string;
+    name: string;
+    shared_paper_count: number;
+  }[];
+};
+
+export type AuthorDetail = AuthorSummary & {
+  papers: PaperSummary[];
+  topics: AuthorTopicSummary[];
+  coauthors: { name: string; paper_count: number }[];
+  venues: string[];
+  generated_artifacts_count: number;
+  potential_expertise_summary: string;
+  source_basis: string;
+};
+
+export type ExplorerEvidence = {
+  source?: string;
+  field?: string;
+  text?: string;
+  chunk_id?: string | null;
+  artifact_id?: string | null;
+  score?: number;
+  paper_id?: string;
+  paper_title?: string;
+};
+
+export type ExplorerOverview = {
+  topic_count: number;
+  author_count: number;
+  paper_count: number;
+  linked_paper_topics: number;
+  linked_author_topics: number;
+  top_topics: TopicSummary[];
+  top_authors: AuthorSummary[];
+  recent_papers: PaperSummary[];
+  explorer_index_status: "ready" | "empty" | string;
+};
+
+export type PaginatedTopics = {
+  total: number;
+  limit: number;
+  offset: number;
+  items: TopicSummary[];
+};
+
+export type PaginatedAuthors = {
+  total: number;
+  limit: number;
+  offset: number;
+  items: AuthorSummary[];
+};
+
+export type RelatedPaper = PaperSummary & {
+  score: number;
+  reason: string;
+  shared_topics: string[];
+  shared_authors: string[];
+  source_basis: string[];
 };

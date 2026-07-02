@@ -6,10 +6,11 @@ The backend is a FastAPI application under `backend/app`.
 
 - `main.py` creates the app, CORS policy, startup table creation, and health endpoint.
 - `db.py` configures SQLite and SQLModel sessions.
-- `models/` defines `Paper`, `Author`, `Chunk`, `RAGAnswer`, `ThesisRecommendation`, `PaperArtifact`, and `ReviewEvent`.
+- `models/` defines `Paper`, `Author`, `Chunk`, `RAGAnswer`, `ThesisRecommendation`, `PaperArtifact`, `ReviewEvent`, `Topic`, `PaperTopic`, and `AuthorTopic`.
 - `api/papers.py` exposes paper, stats, extraction, chunk, and simple chunk keyword endpoints.
 - `api/admin.py` exposes local/demo review overview, mixed review queue, review/correction actions, extraction review, and audit events.
 - `api/evaluation.py` exposes the read-only evaluation dashboard.
+- `api/explorer.py` exposes topic, author, explorer overview, and related-paper endpoints.
 - `ingestion/ttlab_page.py` discovers TTLAB archive records.
 - `ingestion/manual_import.py` imports seed JSON into SQLite.
 - `ingestion/pdf_downloader.py` safely downloads direct PDFs only when `--download` is passed.
@@ -27,6 +28,7 @@ The backend is a FastAPI application under `backend/app`.
 - `intelligence/paper_artifact_generator.py` selects section-aware source chunks, creates deterministic paper intelligence artifacts, stores them, writes local generated JSON, and exposes CLI commands.
 - `intelligence/podcast_script_generator.py` generates text-only podcast script drafts from paper intelligence bundles and cited chunks.
 - `intelligence/artifact_verifier.py` checks artifact citations, support statuses, extraction warnings, source chunk mapping, and grounding status.
+- `intelligence/topic_explorer.py` deterministically normalizes topics, creates paper-topic and author-topic links, derives author expertise summaries, and scores related papers.
 - `evaluation/retrieval_eval.py` calculates Recall@3, Recall@5, and MRR from manually reviewed gold paper IDs.
 - `evaluation/qa_eval.py` runs Ask TTLAB and records citation/grounding outputs against manually reviewed labels.
 - `evaluation/extension_eval.py` measures recommendation count, citation coverage, cited paper count, grounding status, and warnings from manually reviewed cases.
@@ -55,8 +57,9 @@ TTLAB WordPress archive
   -> Thesis Extension Finder + recommendation verifier
   -> paper artifact generator + artifact verifier
   -> local admin review events
+  -> deterministic topic/author explorer links
   -> FastAPI
-  -> React dashboard/browser/detail/search/Ask/Thesis Extension Finder/Paper Intelligence/Admin/Evaluation views
+  -> React dashboard/browser/detail/search/Ask/Thesis Extension Finder/Paper Intelligence/Topic-Author Explorer/Admin/Evaluation views
 ```
 
 ## Discovery Contract
@@ -282,6 +285,60 @@ If a result file is absent, the API returns `status = "not_run"`. If present, it
 - artifact: case/artifact count, citation coverage, grounding counts, explicit/inferred/not-found section counts.
 
 The dashboard also reports human review template availability and database quality counts such as indexed chunks, generated artifacts, and items still needing review. It is read-only and must not invent quality claims.
+
+## Topic/Author Explorer Contract
+
+Phase 8 adds normalized topic and author relationship tables:
+
+```text
+Topic(topic_id, name, normalized_name, description, source, review_status, created_at, updated_at)
+PaperTopic(link_id, paper_id, topic_id, score, evidence_json, source, created_at)
+AuthorTopic(link_id, author_id, topic_id, paper_count, score, evidence_json, created_at)
+```
+
+Topic assignment is deterministic. Sources include:
+
+- `paper.topics` and `paper.keywords`,
+- paper title and venue text,
+- chunk section labels and chunk text,
+- generated paper artifacts such as required skills, possible extensions, technical summaries, and contribution fields,
+- reviewed/corrected metadata where available.
+
+Normalization is intentionally small and inspectable. It lowercases and title-cases labels, then merges obvious variants such as:
+
+- `rag` / `retrieval augmented generation`
+- `ai` / `artificial intelligence`
+- `ml` / `machine learning`
+- `iot` / `internet of things`
+- `optimisation` / `optimization`
+
+Reviewed or approved `Paper.topics` are treated as the source of truth for that paper during rebuilds. The rebuild command does not overwrite those reviewed topics; it only recreates explorer link rows. Evidence is preserved on each `PaperTopic` link so the UI can show why a topic was assigned.
+
+Author profiles are aggregated from indexed authorship, linked topics, recent papers, coauthors, venues, and generated artifact counts. The potential expertise summary is deterministic and uses wording such as "potential researcher fit based on authorship and indexed paper topics"; it never claims a person is a confirmed supervisor.
+
+Related papers are scored with simple, explainable signals:
+
+- shared authors,
+- shared normalized topics,
+- shared venue,
+- nearby publication year,
+- shared metadata/title keywords,
+- local hashing semantic retrieval similarity when an index exists.
+
+Explorer APIs:
+
+- `GET /api/explorer/overview`
+- `GET /api/topics`
+- `GET /api/topics/{topic_id}`
+- `GET /api/authors`
+- `GET /api/authors/{author_id}`
+- `GET /api/papers/{paper_id}/related`
+
+The frontend uses card/table layouts rather than a graph library. Empty states tell the user to run:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
+```
 
 ## Future Extension Points
 

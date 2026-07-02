@@ -28,6 +28,10 @@ Add paper-level intelligence artifacts and text-only podcast script generation. 
 
 Add local/demo admin review and an evaluation dashboard. This phase lets a reviewer correct paper metadata, update review status for papers, Ask answers, Thesis Extension Finder runs, extraction status, and paper artifacts, capture reviewer notes and quality scores where appropriate, and preserve every action as a `ReviewEvent`. It also adds a read-only dashboard that summarizes retrieval, QA, extension, and artifact evaluation result files without inventing missing metrics.
 
+## Phase 8 Goal
+
+Add a public-facing Topic/Author Explorer and polish the demo flow. This phase creates deterministic topic links from reviewed metadata, paper text chunks, and generated artifacts; aggregates author profiles from indexed authorship and topics; adds related-paper recommendations with explainable reasons; updates dashboard/stats; and documents a supervisor-ready 7-10 minute demo.
+
 ## In Scope Now
 
 - FastAPI backend scaffold.
@@ -51,13 +55,18 @@ Add local/demo admin review and an evaluation dashboard. This phase lets a revie
 - Review status normalization for papers, Ask answers, thesis recommendations, and paper artifacts.
 - `ReviewEvent` audit trail for review/correction actions.
 - Read-only Evaluation Dashboard API/page that parses existing result JSON and reports `not_run` for missing files.
+- Topic/Author Explorer API/page with overview cards, topic browser/detail, author browser/detail, source-basis evidence, and empty states.
+- Deterministic topic normalization, topic synonym merging, paper-topic links, author-topic links, and author expertise summaries derived from indexed papers.
+- Related-paper scoring based on shared authors, shared topics, venue/year proximity, metadata keywords, and local semantic similarity when available.
+- Optional bounded demo preparation helper that imports seed data if needed, rebuilds indexes, rebuilds topics, and avoids processing all papers by default.
+- Demo status and feature matrix documentation.
 - Retrieval evaluation code for manually reviewed gold paper IDs.
 - QA evaluation code for manually reviewed gold paper IDs.
 - Extension recommendation evaluation scaffold for citation coverage and human review templates.
 - Artifact evaluation scaffold for citation coverage and human review templates.
 - Fixture-based parser/import/API/PDF/chunking/retrieval/Ask/extension/artifact tests.
 
-## Explicitly Out Of Scope For Phase 1/2/3/4/5/6/7
+## Explicitly Out Of Scope For Phase 1/2/3/4/5/6/7/8
 
 - Authentication.
 - Role-based access control.
@@ -91,3 +100,7 @@ Admin review changes the review status and notes for local demo data, but it is 
 - `needs_reprocess`: extraction or generation should be rerun or manually inspected.
 
 The Evaluation Dashboard is evidence-only. If a result file does not exist, it reports `not_run`; it does not create or imply performance metrics.
+
+Topic/Author Explorer relationships are deterministic and review-aware. Reviewed paper topics are not overwritten by inferred topics. Inferred topic links keep evidence JSON so a reviewer can see whether a topic came from metadata, chunks, or generated artifacts. Author expertise summaries are derived only from indexed papers and topics; they do not confirm supervisor availability or current research interests outside the dataset.
+
+Related-paper recommendations are navigation aids, not research novelty claims. They expose their basis, such as shared topic, shared author, shared venue/year, shared keywords, or hashing-index similarity.

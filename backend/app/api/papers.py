@@ -7,7 +7,7 @@ from app.db import get_session
 from app.evaluation.dashboard import evaluation_files_present, latest_evaluation_timestamp
 from app.indexing.embedder import index_diagnostics
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
-from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
+from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, RAGAnswer, ReviewEvent, ThesisRecommendation, Topic
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
@@ -86,6 +86,10 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     papers = list(session.exec(select(Paper)).all())
     total = session.exec(select(func.count()).select_from(Paper)).one()
     total_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
+    total_authors = session.exec(select(func.count()).select_from(Author)).one()
+    total_topics = session.exec(select(func.count()).select_from(Topic)).one()
+    paper_topic_links = session.exec(select(func.count()).select_from(PaperTopic)).one()
+    author_topic_links = session.exec(select(func.count()).select_from(AuthorTopic)).one()
     total_answers = session.exec(select(func.count()).select_from(RAGAnswer)).one()
     recommendation_runs = list(session.exec(select(ThesisRecommendation)).all())
     artifacts = list(session.exec(select(PaperArtifact)).all())
@@ -114,6 +118,12 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "no_text_pdfs": no_text,
         "missing_pdf": missing_pdf,
         "total_chunks": total_chunks,
+        "topic_count": total_topics,
+        "author_count": total_authors,
+        "paper_topic_links": paper_topic_links,
+        "author_topic_links": author_topic_links,
+        "papers_with_topics": session.exec(select(func.count(func.distinct(PaperTopic.paper_id))).select_from(PaperTopic)).one(),
+        "authors_with_topics": session.exec(select(func.count(func.distinct(AuthorTopic.author_id))).select_from(AuthorTopic)).one(),
         "searchable_papers": searchable_papers,
         "searchable_chunks": total_chunks,
         "keyword_indexed_chunks": keyword["keyword_indexed_chunks"],

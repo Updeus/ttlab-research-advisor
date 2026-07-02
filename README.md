@@ -2,7 +2,7 @@
 
 Public-facing research discovery foundation for TTLAB publications. This project extends the publication archive system described in **“Automating the Collection, Display, Summarization and Podcasting of Academic Research”** by preparing the data layer needed for full-paper inspection, citation-grounded search, extension recommendations, summaries, podcasts, and evaluation.
 
-This repository is currently through **Phase 7**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, adds a Thesis Extension Finder, generates paper-level intelligence artifacts plus text-only podcast script drafts from cited chunks, and provides local/demo admin review plus an evaluation dashboard. It does not implement authentication, audio generation, production email, graph visualization, or deployment.
+This repository is currently through **Phase 8**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, adds a Thesis Extension Finder, generates paper-level intelligence artifacts plus text-only podcast script drafts from cited chunks, provides local/demo admin review plus an evaluation dashboard, and now includes a deterministic Topic/Author Explorer with related-paper recommendations. It does not implement authentication, audio generation, production email, complex graph visualization, or deployment.
 
 ## Repository Layout
 
@@ -292,6 +292,34 @@ PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
 
 Human review templates are available under `data/evaluation/` for extension recommendations and paper artifacts. Human scores remain blank until reviewed.
 
+## Topic/Author Explorer
+
+Phase 8 adds a public-facing explorer for TTLAB topics, authors, and related papers. It is deterministic and does not call an LLM.
+
+Topic sources include reviewed paper topics when available, paper metadata, title/venue text, chunk sections and text, and generated paper artifacts such as technical summaries, contributions, possible extensions, and required skills. A small synonym map merges obvious variants such as `rag` / `retrieval augmented generation`, `ai` / `artificial intelligence`, `ml` / `machine learning`, `iot` / `internet of things`, and `optimisation` / `optimization`.
+
+Reviewed paper topics are not overwritten. If a paper has reviewed or approved topics, the explorer uses those as the source of truth for that paper's topic links. Author expertise summaries are derived from indexed authorship and topic links only; they are not supervisor-availability claims.
+
+Rebuild explorer links:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
+```
+
+Inspect a topic:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer show --topic "RAG"
+```
+
+Optional bounded demo prep:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
+```
+
+The demo prep helper imports seed data if needed, downloads/extracts/chunks only up to the requested limit, rebuilds keyword and hashing indexes, rebuilds the explorer, and optionally generates artifacts for the first five chunked papers. Generated PDFs, extracted text, chunks, indexes, artifacts, and SQLite files remain local/ignored.
+
 ## Run The Backend
 
 ```bash
@@ -330,6 +358,12 @@ Useful endpoints:
 - `PATCH /api/admin/extraction/{paper_id}/review`
 - `GET /api/admin/review-events`
 - `GET /api/evaluation/dashboard`
+- `GET /api/explorer/overview`
+- `GET /api/topics`
+- `GET /api/topics/{topic_id}`
+- `GET /api/authors`
+- `GET /api/authors/{author_id}`
+- `GET /api/papers/{paper_id}/related`
 - `GET /api/stats`
 
 ## Run The Frontend
@@ -365,6 +399,9 @@ The backend tests use HTML fixtures and temporary SQLite databases, so they do n
 - Paper intelligence artifacts and podcast scripts are AI-assisted and unreviewed; citations and support status must be checked before public use.
 - Admin review is local/demo tooling only and has no authentication or role-based access control.
 - Evaluation dashboard metrics are file-backed and only as valid as the reviewed test cases used to generate them.
+- Topic and author relationships are deterministic/inferred unless reviewed.
+- Author expertise summaries are derived only from indexed TTLAB papers and topics; they do not confirm supervisor availability.
+- Related-paper scoring is simple and explainable, using shared authors/topics, venue/year proximity, metadata keywords, and local semantic similarity when the hashing index exists.
 - Podcast output is script text only; no audio generation or TTS pipeline is implemented.
-- No authentication, graph visualization, production email, or deployment features are implemented yet.
+- No authentication, complex graph visualization, production email, or deployment features are implemented yet.
 - The live TTLAB archive markup may change; fixture tests protect the parser contract, while live discovery should be re-run before demos.

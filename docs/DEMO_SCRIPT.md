@@ -1,238 +1,103 @@
 # Demo Script
 
-## Phase 1/2/3/4/5/6/7 Demo
+## Goal
 
-1. Show the project scaffold:
+Show, in 7-10 minutes, that the TTLAB Research Intelligence Platform is more than a publication list. It discovers TTLAB papers, inspects full-paper text, retrieves cited evidence, recommends thesis extensions, explains paper intelligence outputs, exposes topics/authors, and supports responsible review/evaluation.
 
-   ```bash
-   find backend frontend data docs -maxdepth 2 -type d | sort
-   ```
+## Optional Demo Prep
 
-2. Discover TTLAB publications:
+Use bounded local prep. Do not process every paper by default.
 
-   ```bash
-   PYTHONPATH=backend python -m app.ingestion.ttlab_page discover \
-     --url https://lab.tt/index.php/category/pub/ \
-     --max-pages 2 \
-     --out data/seed/ttlab_publications_discovered.json
-   ```
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
+```
 
-3. Inspect the seed JSON:
+Manual prep commands, if running step-by-step:
 
-   ```bash
-   python -m json.tool data/seed/ttlab_publications_discovered.json | head -80
-   ```
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_downloader --from-db --limit 25 --download
+PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_parser extract --limit 25
+PYTHONPATH=backend .venv/bin/python -m app.indexing.chunker chunk --limit 25
+PYTHONPATH=backend .venv/bin/python -m app.indexing.keyword_search rebuild
+PYTHONPATH=backend .venv/bin/python -m app.indexing.embedder index --provider hashing
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator batch --limit 5 --types paper_intelligence_bundle podcast_script --provider auto --max-chunks 12
+```
 
-4. Import discovered records:
+Start the app:
 
-   ```bash
-   PYTHONPATH=backend python -m app.ingestion.manual_import \
-     --seed data/seed/ttlab_publications_discovered.json
-   ```
+```bash
+uvicorn app.main:app --reload --app-dir backend
+cd frontend && npm run dev
+```
 
-5. Start the backend:
+## 7-10 Minute Flow
 
-   ```bash
-   uvicorn app.main:app --reload --app-dir backend
-   ```
+1. Dashboard
+   - Show imported papers, PDFs, extracted PDFs, chunks, keyword/semantic indexes, artifacts, admin review queue, evaluation files, topics, authors, and papers with topics.
+   - Talking point: the system is local, bounded, and traceable.
 
-6. Start the frontend:
+2. Papers
+   - Browse TTLAB records.
+   - Open a paper with extracted chunks.
+   - Show metadata, source/PDF links, extraction status, page/word diagnostics, and chunk previews.
 
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+3. Paper Intelligence
+   - In the paper detail page, show public summary, technical summary, contribution, methods, limitations, future work, possible extensions, required skills, evaluation plan, and text-only podcast script.
+   - Point out citations/page ranges, support statuses such as `explicit`, `inferred`, `not_found`, and `suggested_by_system`, and `needs_review`.
 
-7. Download the first 10 direct PDFs:
+4. Search
+   - Run a hybrid search such as `RAG academic research` or `mobile network optimization`.
+   - Show source chunks, page ranges, and paper links.
+   - Talking point: search returns evidence, not unsupported prose.
 
-   ```bash
-   PYTHONPATH=backend python -m app.ingestion.pdf_downloader --from-db --limit 10 --download
-   ```
+5. Ask TTLAB
+   - Ask a question such as "Which TTLAB papers discuss RAG?"
+   - Show the generated-answer notice, grounding status, citations, retrieved chunks, and page references.
 
-8. Extract the first 10 downloaded PDFs:
+6. Thesis Extension Finder
+   - Enter interests, skills, timeline, project type, data constraints, and difficulty.
+   - Show ranked papers, source-supported facts, identified gap support status, suggested extension, MVP scope, stretch goals, skills gap, data availability, risk, implementation time, evaluation plan, citations, and potential researcher fit.
+   - Talking point: this is the platform's differentiating feature for students.
 
-   ```bash
-   PYTHONPATH=backend python -m app.ingestion.pdf_parser extract --limit 10
-   ```
+7. Topic/Author Explorer
+   - Open Topic/Author Explorer.
+   - Show overview cards, top topics, top authors, topic detail, author detail, related topics, source-basis evidence, and paper links.
+   - Open an author and show papers, top topics, coauthors, venues, and the source-derived expertise notice.
+   - Return to a paper detail page and show related papers with reasons such as shared topic, shared author, shared venue, shared keywords, or semantic similarity.
 
-9. Chunk the first 10 extracted papers:
+8. Admin Review
+   - Show the local-demo no-auth notice.
+   - Open the review queue.
+   - Approve/reject one artifact or update notes on an Ask answer or Thesis recommendation.
+   - Edit a paper metadata field if needed.
+   - Show the Review Events audit trail.
 
-   ```bash
-   PYTHONPATH=backend python -m app.indexing.chunker chunk --limit 10
-   ```
+9. Evaluation Dashboard
+   - Show retrieval, QA, extension, and artifact evaluation sections.
+   - Explain `not_run` for missing result files and that metrics are only valid when gold/test cases are reviewed.
+   - Point out human review templates.
 
-10. Open the dashboard, paper browser, and paper detail view. Point out:
+10. Close With Limitations
+   - No authentication, deployment, production email, audio/TTS, or complex graph visualization.
+   - Topics and author expertise are deterministic/inferred unless reviewed.
+   - Scanned PDFs are flagged but not OCR'd.
+   - Generated outputs are AI-assisted drafts and remain review-first.
 
-   - imported paper count,
-   - direct PDF URL count,
-   - downloaded/extracted PDF counts,
-   - total chunks,
-   - extraction diagnostics,
-   - chunk previews with page ranges,
-   - review-needed status,
-   - source/PDF/TTLAB post links.
+## Useful CLI Checks
 
-11. Rebuild keyword search:
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer show --topic "RAG"
+PYTHONPATH=backend .venv/bin/python -m app.intelligence.extension_recommender recommend --interests "RAG, web apps, education" --skills Python React FastAPI --available-time semester --project-type "software prototype" --data-constraints "prefer public or synthetic data" --preferred-difficulty medium --top-k 5 --mode hybrid
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
+```
 
-   ```bash
-   PYTHONPATH=backend python -m app.indexing.keyword_search rebuild
-   ```
+## Verification
 
-12. Build local semantic index:
-
-   ```bash
-   PYTHONPATH=backend python -m app.indexing.embedder index --provider hashing --limit 10
-   ```
-
-13. Test hybrid retrieval:
-
-   ```bash
-   PYTHONPATH=backend python -m app.indexing.retriever search "RAG academic research" --mode hybrid --top-k 5
-   ```
-
-14. Open the Search page. Point out:
-
-   - keyword / semantic / hybrid modes,
-   - source chunk snippets,
-   - paper title/authors/year,
-   - section and page range,
-   - source/PDF links,
-   - no generated answer text.
-
-15. Ask TTLAB from the CLI:
-
-   ```bash
-   PYTHONPATH=backend python -m app.intelligence.rag_answerer ask "Which TTLAB papers discuss RAG?" --mode hybrid --top-k 5
-   ```
-
-16. Open the Ask TTLAB page. Point out:
-
-   - generated-answer notice,
-   - grounding status,
-   - citations with paper title and page ranges,
-   - retrieved chunk snippets,
-   - source/PDF links,
-   - no admin review, auth, graph visualization, email, or audio generation.
-
-17. Run the Thesis Extension Finder CLI:
-
-   ```bash
-   PYTHONPATH=backend python -m app.intelligence.extension_recommender recommend \
-     --interests "RAG, web apps, education" \
-     --skills Python React FastAPI \
-     --available-time semester \
-     --project-type "software prototype" \
-     --data-constraints "prefer public or synthetic data" \
-     --preferred-difficulty medium \
-     --top-k 5 \
-     --mode hybrid
-   ```
-
-18. Open the Thesis Extension Finder page. Point out:
-
-   - student profile inputs,
-   - generated-content notice,
-   - ranked paper recommendations,
-   - source-supported facts with chunk/page citations,
-   - gap support status,
-   - proposed extension as a suggestion,
-   - MVP scope, stretch goals, required skills, skills gap,
-   - data availability, risk, difficulty, implementation time,
-   - evaluation plan,
-   - potential researcher fit based only on paper authorship.
-
-19. Run extension recommendation evaluation:
-
-   ```bash
-   PYTHONPATH=backend python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
-   ```
-
-20. Generate Paper Intelligence for five papers:
-
-   ```bash
-   PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator batch \
-     --limit 5 \
-     --types paper_intelligence_bundle podcast_script \
-     --provider auto \
-     --max-chunks 12
-   ```
-
-21. Open a paper with extracted chunks and generated artifacts. Point out:
-
-   - Paper Intelligence section,
-   - generated-content notice,
-   - public summary and technical summary,
-   - contribution and methods,
-   - limitations/future work support status,
-   - possible extensions marked as system suggestions,
-   - required skills and evaluation plan,
-   - text-only podcast script,
-   - citations with section and page ranges,
-   - `needs_review` status,
-   - generated outputs are source-grounded where possible but unreviewed until approved.
-
-22. Open Admin Review. Point out:
-
-   - visible no-auth local-demo notice,
-   - overview cards for papers, missing PDFs, extraction issues, artifacts, Ask answers, recommendations, and review events,
-   - review queue filters by item type, review status, and grounding status,
-   - paper metadata correction fields,
-   - artifact review with generated text/JSON, citations, notes, approve/reject/needs-review actions,
-   - Ask answer review with citation correctness, faithfulness score, usefulness score, and notes,
-   - Thesis recommendation review with student request, recommendations, citations, and notes,
-   - Review Events audit trail after an action is saved.
-
-23. Approve or reject one generated artifact in the Admin Review page. Then show:
-
-   - review status changed,
-   - reviewer notes persisted,
-   - a ReviewEvent appears in the audit trail.
-
-24. Edit one paper metadata field in Paper Metadata Review, such as venue or topics. Then show:
-
-   - only the provided field changed,
-   - ReviewEvent diff captures the correction,
-   - this is local demo review, not authenticated production publishing.
-
-25. Open Evaluation. Point out:
-
-   - retrieval, QA, extension, and artifact sections,
-   - `not_run` status when result JSON is missing,
-   - human review template availability,
-   - overall quality counts such as indexed chunks and generated artifacts,
-   - the notice that evaluation results depend on reviewed gold/test cases.
-
-26. Run artifact evaluation after replacing placeholder paper IDs with reviewed cases:
-
-   ```bash
-   PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
-   ```
-
-27. Run retrieval evaluation only after filling real gold labels:
-
-   ```bash
-   PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
-   ```
-
-28. Run QA evaluation only after filling real gold labels:
-
-   ```bash
-   PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
-   ```
-
-29. Optional combined evaluation runner:
-
-   ```bash
-   PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
-   ```
-
-30. Run verification:
-
-   ```bash
-   PYTHONPATH=backend .venv/bin/python -m pytest
-   cd frontend && npm run build
-   ```
-
-## Talking Point
-
-This is a discovery, extraction, source-chunking, retrieval, citation-grounded Q&A, Thesis Extension Finder, paper-intelligence, admin-review, and evaluation-dashboard milestone. The key Phase 7 talking point is responsibility: cited source-paper facts are separate from system suggestions, generated outputs start as `needs_review`, review actions leave an audit trail, and evaluation dashboards show only available evidence. Podcast generation is script text only; audio/TTS, authentication, graph visualization, production email, and deployment remain out of scope.
+```bash
+PYTHONPATH=backend .venv/bin/python -m pytest
+cd frontend && npm run build
+```

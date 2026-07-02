@@ -4,6 +4,7 @@ import type {
   AskRequest,
   AskResponse,
   EvaluationDashboard,
+  ExplorerOverview,
   ExtensionDiagnostics,
   ExtensionFinderRequest,
   ExtensionFinderResponse,
@@ -12,6 +13,10 @@ import type {
   Paper,
   PaperArtifact,
   PaperChunk,
+  PaginatedAuthors,
+  PaginatedTopics,
+  AuthorDetail,
+  RelatedPaper,
   ReviewQueueResponse,
   ReviewStatus,
   ReviewEvent,
@@ -19,6 +24,7 @@ import type {
   SearchMode,
   SearchResponse,
   Stats,
+  TopicDetail,
 } from "../types/paper";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
@@ -214,4 +220,42 @@ export function reviewExtraction(
 
 export function fetchEvaluationDashboard(): Promise<EvaluationDashboard> {
   return getJson<EvaluationDashboard>("/api/evaluation/dashboard");
+}
+
+export function fetchExplorerOverview(): Promise<ExplorerOverview> {
+  return getJson<ExplorerOverview>("/api/explorer/overview");
+}
+
+export function fetchTopics(params: { q?: string; min_papers?: number; limit?: number; offset?: number } = {}): Promise<PaginatedTopics> {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") {
+      search.set(key, String(value));
+    }
+  });
+  const query = search.toString();
+  return getJson<PaginatedTopics>(`/api/topics${query ? `?${query}` : ""}`);
+}
+
+export function fetchTopicDetail(topicId: string): Promise<TopicDetail> {
+  return getJson<TopicDetail>(`/api/topics/${encodeURIComponent(topicId)}`);
+}
+
+export function fetchAuthors(params: { q?: string; topic?: string; limit?: number; offset?: number } = {}): Promise<PaginatedAuthors> {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") {
+      search.set(key, String(value));
+    }
+  });
+  const query = search.toString();
+  return getJson<PaginatedAuthors>(`/api/authors${query ? `?${query}` : ""}`);
+}
+
+export function fetchAuthorDetail(authorId: number): Promise<AuthorDetail> {
+  return getJson<AuthorDetail>(`/api/authors/${authorId}`);
+}
+
+export function fetchRelatedPapers(paperId: string, limit = 5): Promise<RelatedPaper[]> {
+  return getJson<RelatedPaper[]>(`/api/papers/${paperId}/related?limit=${limit}`);
 }

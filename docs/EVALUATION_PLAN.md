@@ -219,3 +219,27 @@ The dashboard also displays whether human review templates are available:
 - `data/evaluation/artifact_human_review_template.csv`
 
 Evaluation remains academically responsible only if gold labels and human scores are manually reviewed. Placeholder sample files should never be presented as performance evidence.
+
+## Phase 8 Topic/Author Explorer Evaluation
+
+Phase 8 does not add generated research claims. It adds deterministic relationship data and demo polish, so evaluation focuses on coverage, traceability, and review readiness.
+
+Automated checks:
+
+- topic normalization merges obvious synonyms such as `RAG` and `retrieval augmented generation`;
+- topic rebuild creates topics from paper metadata, chunks, and generated artifacts;
+- reviewed/manual paper topics are not overwritten by inferred topics;
+- author-topic aggregation counts papers and top topics correctly;
+- related-paper scoring returns reasons such as shared topic and shared author;
+- explorer APIs return overview, topic, author, and related-paper data;
+- `/api/stats` includes topic and author metrics.
+
+Manual review questions for demos:
+
+- Are the top topics useful enough for navigation?
+- Does the evidence explain why a topic was assigned?
+- Are author expertise summaries clearly labeled as derived from indexed papers?
+- Do related-paper reasons help a student find nearby work?
+- Are reviewed/corrected topics preserved after rebuild?
+
+There is no claimed precision/recall for topic labels yet. Topic labels are deterministic/inferred unless reviewed, and the explorer intentionally avoids a complex graph visualization in this MVP.

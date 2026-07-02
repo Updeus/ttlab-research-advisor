@@ -165,3 +165,57 @@ Human fields are intentionally blank until reviewed:
 - reviewer_notes
 
 The artifact evaluator measures citation coverage, grounding status, and support-status counts only. It does not prove correctness, readability, public suitability, or podcast readiness without human review.
+
+## Phase 7 Admin Review And Evaluation Dashboard
+
+Phase 7 does not add new quality claims. It adds a local/demo workflow for reviewing the records produced by earlier phases and a read-only dashboard for showing which evaluation evidence exists.
+
+Admin review can capture:
+
+- paper metadata corrections,
+- paper artifact review status and optional corrected text/JSON,
+- Thesis Extension Finder review status and optional corrected recommendation JSON,
+- Ask TTLAB citation correctness,
+- Ask TTLAB faithfulness and usefulness scores from 1-5,
+- extraction review notes such as acceptable, rejected, or needs reprocess.
+
+Every review action creates a `ReviewEvent` with previous/new status, reviewer notes, and optional field diffs. These events are an audit trail for demo review. They are not an authenticated production workflow.
+
+Review statuses:
+
+- `needs_review`: imported or generated item has not been checked.
+- `reviewed`: checked but not formally approved.
+- `approved`: acceptable for demo use.
+- `rejected`: should not be used as-is.
+- `needs_reprocess`: should be rerun or manually inspected.
+
+Run evaluation commands:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
+```
+
+Optional combined runner:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
+```
+
+The Evaluation Dashboard reads these files when present:
+
+- `data/evaluation/retrieval_eval_results.json`
+- `data/evaluation/qa_eval_results.json`
+- `data/evaluation/extension_eval_results.json`
+- `data/evaluation/artifact_eval_results.json`
+
+If a file is missing, the dashboard returns `status = "not_run"` and shows no metric. It does not invent scores from database contents.
+
+The dashboard also displays whether human review templates are available:
+
+- `data/evaluation/extension_human_review_template.csv`
+- `data/evaluation/artifact_human_review_template.csv`
+
+Evaluation remains academically responsible only if gold labels and human scores are manually reviewed. Placeholder sample files should never be presented as performance evidence.

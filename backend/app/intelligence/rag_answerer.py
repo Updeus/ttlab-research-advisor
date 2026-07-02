@@ -168,6 +168,13 @@ def serialize_answer(answer: RAGAnswer) -> dict[str, Any]:
         "retrieved_chunks": answer.retrieved_chunks_json,
         "warnings": answer.warnings_json,
         "unsupported_claims": answer.unsupported_claims_json,
+        "review_status": answer.review_status,
+        "reviewer_notes": answer.reviewer_notes,
+        "reviewed_at": answer.reviewed_at.isoformat() if answer.reviewed_at else None,
+        "reviewed_by": answer.reviewed_by,
+        "citation_correct": answer.citation_correct,
+        "answer_faithfulness_score": answer.answer_faithfulness_score,
+        "usefulness_score": answer.usefulness_score,
         "created_at": answer.created_at.isoformat(),
     }
 

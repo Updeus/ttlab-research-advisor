@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
 
 from sqlalchemy import Column
 from sqlmodel import Field, SQLModel
@@ -24,6 +24,11 @@ class PaperArtifact(SQLModel, table=True):
     generation_status: str = Field(default="generated", index=True)
     grounding_status: str = Field(default="unsupported", index=True)
     review_status: str = Field(default="needs_review", index=True)
+    reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
+    corrected_text: Optional[str] = None
+    corrected_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     warnings_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

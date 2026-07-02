@@ -451,6 +451,134 @@ h4 {
   color: #ffffff;
 }
 
+.admin-tabs {
+  margin-top: 24px;
+  margin-bottom: 18px;
+}
+
+.admin-metrics {
+  margin-top: 18px;
+}
+
+.admin-grid,
+.evaluation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.admin-card,
+.review-row {
+  border: 1px solid #d8e0e3;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 18px;
+}
+
+.admin-card {
+  display: grid;
+  gap: 14px;
+}
+
+.review-row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-filter-row,
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-form-grid--small {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-field {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-field span,
+.admin-filter-row span {
+  color: #52656d;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.admin-field input,
+.admin-field select,
+.admin-field textarea,
+.admin-filter-row select {
+  width: 100%;
+  border: 1px solid #c6d0d4;
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: #ffffff;
+}
+
+.admin-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-button--secondary {
+  background: #52656d;
+}
+
+.action-button--danger {
+  background: #8f2d1f;
+}
+
+.queue-count {
+  color: #52656d;
+  font-weight: 800;
+}
+
+.section-heading--compact {
+  margin-top: 0;
+}
+
+.status-table {
+  display: grid;
+  gap: 8px;
+}
+
+.status-table p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  border-bottom: 1px solid #e3e9eb;
+  padding-bottom: 8px;
+  color: #42545c;
+}
+
+.status-table p:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.json-preview {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #e3e9eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfc;
+  color: #2c3e45;
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+}
+
 .artifact-card {
   display: grid;
   gap: 12px;
@@ -625,6 +753,10 @@ h4 {
   .ask-controls,
   .finder-grid,
   .recommendation-grid,
+  .admin-filter-row,
+  .admin-form-grid,
+  .admin-grid,
+  .evaluation-grid,
   .recommendation-columns {
     grid-template-columns: 1fr;
   }
@@ -640,6 +772,10 @@ h4 {
   .paper-card__badges {
     justify-content: start;
     min-width: 0;
+  }
+
+  .review-row {
+    flex-direction: column;
   }
 }
 

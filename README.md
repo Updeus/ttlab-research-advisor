@@ -2,7 +2,7 @@
 
 Public-facing research discovery foundation for TTLAB publications. This project extends the publication archive system described in **“Automating the Collection, Display, Summarization and Podcasting of Academic Research”** by preparing the data layer needed for full-paper inspection, citation-grounded search, extension recommendations, summaries, podcasts, and evaluation.
 
-This repository is currently through **Phase 6**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, adds a Thesis Extension Finder, and generates paper-level intelligence artifacts plus text-only podcast script drafts from cited chunks. It does not yet implement admin review/correction, authentication, audio generation, production email, graph visualization, or deployment.
+This repository is currently through **Phase 7**. It discovers TTLAB publication metadata and PDF/source URLs, imports reviewed seed JSON into SQLite, downloads a controlled subset of direct PDFs, extracts full text page-by-page, creates deterministic source chunks, builds keyword and local hashing semantic indexes, exposes retrieval and citation-grounded Ask APIs, adds a Thesis Extension Finder, generates paper-level intelligence artifacts plus text-only podcast script drafts from cited chunks, and provides local/demo admin review plus an evaluation dashboard. It does not implement authentication, audio generation, production email, graph visualization, or deployment.
 
 ## Repository Layout
 
@@ -253,6 +253,45 @@ PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval \
 
 Limitations and future work are marked `explicit`, `inferred`, or `not_found`. Possible extensions are marked `suggested_by_system` unless source chunks explicitly support them. Podcast scripts are text only; no audio/TTS is generated.
 
+## Admin Review And Evaluation Dashboard
+
+Phase 7 adds local/demo review tools. There is no login or role-based access control in this MVP; the UI clearly labels the admin area as unauthenticated local tooling.
+
+Reviewable records use these statuses:
+
+- `needs_review`
+- `reviewed`
+- `approved`
+- `rejected`
+- `needs_reprocess`
+
+The Admin Review page can:
+
+- correct paper metadata such as title, authors, year, venue, topics, source URL, PDF URL, abstract, and notes,
+- approve/reject or mark paper artifacts, Ask TTLAB answers, and Thesis Extension Finder runs as needing review,
+- record citation correctness and 1-5 faithfulness/usefulness scores for Ask answers,
+- store corrected artifact text or corrected recommendation JSON when practical,
+- write a `ReviewEvent` audit row for every review/correction action.
+
+The Evaluation page is read-only. It reads existing result JSON under `data/evaluation/` and reports `not_run` when files are missing rather than inventing metrics.
+
+Run evaluation commands:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
+```
+
+Optional combined runner:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
+```
+
+Human review templates are available under `data/evaluation/` for extension recommendations and paper artifacts. Human scores remain blank until reviewed.
+
 ## Run The Backend
 
 ```bash
@@ -282,6 +321,15 @@ Useful endpoints:
 - `GET /api/papers/{paper_id}/artifacts/{artifact_type}`
 - `POST /api/papers/artifacts/generate-batch`
 - `GET /api/artifacts/diagnostics`
+- `GET /api/admin/overview`
+- `GET /api/admin/review-queue`
+- `PATCH /api/admin/papers/{paper_id}`
+- `PATCH /api/admin/artifacts/{artifact_id}/review`
+- `PATCH /api/admin/recommendations/{recommendation_id}/review`
+- `PATCH /api/admin/answers/{answer_id}/review`
+- `PATCH /api/admin/extraction/{paper_id}/review`
+- `GET /api/admin/review-events`
+- `GET /api/evaluation/dashboard`
 - `GET /api/stats`
 
 ## Run The Frontend
@@ -297,7 +345,7 @@ The frontend expects the backend at `http://localhost:8000`. Override with `VITE
 ## Tests And Builds
 
 ```bash
-python -m pytest
+PYTHONPATH=backend .venv/bin/python -m pytest
 cd frontend
 npm run build
 ```
@@ -315,6 +363,8 @@ The backend tests use HTML fixtures and temporary SQLite databases, so they do n
 - Thesis Extension Finder suggestions are generated project ideas, not verified paper claims; paper facts and gap evidence must be checked against citations.
 - External recommendation providers are optional and not required for the MVP; the offline deterministic provider is the supported default.
 - Paper intelligence artifacts and podcast scripts are AI-assisted and unreviewed; citations and support status must be checked before public use.
+- Admin review is local/demo tooling only and has no authentication or role-based access control.
+- Evaluation dashboard metrics are file-backed and only as valid as the reviewed test cases used to generate them.
 - Podcast output is script text only; no audio generation or TTS pipeline is implemented.
-- No admin editing, authentication, graph visualization, production email, or deployment features are implemented yet.
+- No authentication, graph visualization, production email, or deployment features are implemented yet.
 - The live TTLAB archive markup may change; fixture tests protect the parser contract, while live discovery should be re-run before demos.

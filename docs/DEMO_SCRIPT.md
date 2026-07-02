@@ -1,6 +1,6 @@
 # Demo Script
 
-## Phase 1/2/3/4/5/6 Demo
+## Phase 1/2/3/4/5/6/7 Demo
 
 1. Show the project scaffold:
 
@@ -169,33 +169,70 @@
    - text-only podcast script,
    - citations with section and page ranges,
    - `needs_review` status,
-   - admin review comes later.
+   - generated outputs are source-grounded where possible but unreviewed until approved.
 
-22. Run artifact evaluation after replacing placeholder paper IDs with reviewed cases:
+22. Open Admin Review. Point out:
+
+   - visible no-auth local-demo notice,
+   - overview cards for papers, missing PDFs, extraction issues, artifacts, Ask answers, recommendations, and review events,
+   - review queue filters by item type, review status, and grounding status,
+   - paper metadata correction fields,
+   - artifact review with generated text/JSON, citations, notes, approve/reject/needs-review actions,
+   - Ask answer review with citation correctness, faithfulness score, usefulness score, and notes,
+   - Thesis recommendation review with student request, recommendations, citations, and notes,
+   - Review Events audit trail after an action is saved.
+
+23. Approve or reject one generated artifact in the Admin Review page. Then show:
+
+   - review status changed,
+   - reviewer notes persisted,
+   - a ReviewEvent appears in the audit trail.
+
+24. Edit one paper metadata field in Paper Metadata Review, such as venue or topics. Then show:
+
+   - only the provided field changed,
+   - ReviewEvent diff captures the correction,
+   - this is local demo review, not authenticated production publishing.
+
+25. Open Evaluation. Point out:
+
+   - retrieval, QA, extension, and artifact sections,
+   - `not_run` status when result JSON is missing,
+   - human review template availability,
+   - overall quality counts such as indexed chunks and generated artifacts,
+   - the notice that evaluation results depend on reviewed gold/test cases.
+
+26. Run artifact evaluation after replacing placeholder paper IDs with reviewed cases:
 
    ```bash
    PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
    ```
 
-23. Run retrieval evaluation only after filling real gold labels:
+27. Run retrieval evaluation only after filling real gold labels:
 
    ```bash
-   PYTHONPATH=backend python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
+   PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
    ```
 
-24. Run QA evaluation only after filling real gold labels:
+28. Run QA evaluation only after filling real gold labels:
 
    ```bash
-   PYTHONPATH=backend python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
+   PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
    ```
 
-25. Run verification:
+29. Optional combined evaluation runner:
 
    ```bash
-   .venv/bin/python -m pytest
+   PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
+   ```
+
+30. Run verification:
+
+   ```bash
+   PYTHONPATH=backend .venv/bin/python -m pytest
    cd frontend && npm run build
    ```
 
 ## Talking Point
 
-This is a discovery, extraction, source-chunking, retrieval, citation-grounded Q&A, Thesis Extension Finder, and paper-intelligence milestone. The key Phase 6 talking point is separation: cited source-paper facts are separate from system suggestions, and every generated output remains `needs_review`. Podcast generation is script text only; audio/TTS, admin review, authentication, graph visualization, production email, and deployment remain out of scope.
+This is a discovery, extraction, source-chunking, retrieval, citation-grounded Q&A, Thesis Extension Finder, paper-intelligence, admin-review, and evaluation-dashboard milestone. The key Phase 7 talking point is responsibility: cited source-paper facts are separate from system suggestions, generated outputs start as `needs_review`, review actions leave an audit trail, and evaluation dashboards show only available evidence. Podcast generation is script text only; audio/TTS, authentication, graph visualization, production email, and deployment remain out of scope.

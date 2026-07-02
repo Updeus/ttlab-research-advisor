@@ -564,6 +564,11 @@ def serialize_recommendation(record: ThesisRecommendation) -> dict[str, Any]:
         "model": record.model,
         "retrieval_mode": record.retrieval_mode,
         "top_k": record.top_k,
+        "review_status": record.review_status,
+        "reviewer_notes": record.reviewer_notes,
+        "reviewed_at": record.reviewed_at.isoformat() if record.reviewed_at else None,
+        "reviewed_by": record.reviewed_by,
+        "corrected_recommendations_json": record.corrected_recommendations_json,
         "created_at": record.created_at.isoformat(),
     }
 

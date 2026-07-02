@@ -24,6 +24,10 @@ Add the Thesis Extension Finder. This phase lets a student enter interests, skil
 
 Add paper-level intelligence artifacts and text-only podcast script generation. This phase creates public summaries, technical summaries, contribution/methods/limitations/future-work sections, possible extensions, required skills, evaluation plans, and 3-5 minute podcast script drafts from full-paper chunks. Artifacts are persisted in SQLite, written to ignored local JSON, cited back to source chunks, and shown on the paper detail page.
 
+## Phase 7 Goal
+
+Add local/demo admin review and an evaluation dashboard. This phase lets a reviewer correct paper metadata, update review status for papers, Ask answers, Thesis Extension Finder runs, extraction status, and paper artifacts, capture reviewer notes and quality scores where appropriate, and preserve every action as a `ReviewEvent`. It also adds a read-only dashboard that summarizes retrieval, QA, extension, and artifact evaluation result files without inventing missing metrics.
+
 ## In Scope Now
 
 - FastAPI backend scaffold.
@@ -42,16 +46,21 @@ Add paper-level intelligence artifacts and text-only podcast script generation. 
 - Extension recommendation APIs, CLI, persisted history, diagnostics, and stats metrics.
 - Paper intelligence artifact APIs, CLI, persisted records, diagnostics, and stats metrics.
 - Paper detail Paper Intelligence section with generated-content notice, support status, review status, citations, and text-only podcast script display.
+- Local/demo Admin Review page with overview cards, review queue, paper metadata correction, artifact review, Ask answer review, thesis recommendation review, and audit events.
+- Admin Review API for local review/correction actions. No authentication or role-based access control is included in this phase.
+- Review status normalization for papers, Ask answers, thesis recommendations, and paper artifacts.
+- `ReviewEvent` audit trail for review/correction actions.
+- Read-only Evaluation Dashboard API/page that parses existing result JSON and reports `not_run` for missing files.
 - Retrieval evaluation code for manually reviewed gold paper IDs.
 - QA evaluation code for manually reviewed gold paper IDs.
 - Extension recommendation evaluation scaffold for citation coverage and human review templates.
 - Artifact evaluation scaffold for citation coverage and human review templates.
 - Fixture-based parser/import/API/PDF/chunking/retrieval/Ask/extension/artifact tests.
 
-## Explicitly Out Of Scope For Phase 1/2/3/4/5/6
+## Explicitly Out Of Scope For Phase 1/2/3/4/5/6/7
 
-- Admin correction UI.
 - Authentication.
+- Role-based access control.
 - Production deployment infrastructure.
 - OCR for scanned PDFs.
 - Complex topic/author graph visualization.
@@ -71,4 +80,14 @@ Ask TTLAB answers are generated drafts, but every answer must cite retrieved chu
 
 Thesis Extension Finder outputs are generated project suggestions. Paper facts must cite retrieved chunks. Future-work/limitation evidence is labeled `explicit_in_paper`, `inferred_from_paper`, or `not_found`. Suggestions must not be presented as verified facts, and potential researcher fit is based only on source-paper authorship.
 
-Paper intelligence artifacts are AI-assisted and unreviewed by default. They must keep `review_status = "needs_review"` until a later admin/review phase exists. Limitations and future work are labeled `explicit`, `inferred`, or `not_found`; possible extensions are labeled `suggested_by_system`; podcast scripts are text-only drafts with citations.
+Paper intelligence artifacts are AI-assisted and unreviewed by default. They start at `review_status = "needs_review"` and can be approved/rejected in the local Phase 7 admin workflow. Limitations and future work are labeled `explicit`, `inferred`, or `not_found`; possible extensions are labeled `suggested_by_system`; podcast scripts are text-only drafts with citations.
+
+Admin review changes the review status and notes for local demo data, but it is not a production publishing workflow. Every action writes a `ReviewEvent` with item type, item ID, action, previous/new status, reviewer name, notes, and optional diffs. Review statuses mean:
+
+- `needs_review`: generated or imported content has not been checked.
+- `reviewed`: a reviewer has checked the item without formally approving it.
+- `approved`: a reviewer considers it acceptable for demo use.
+- `rejected`: the item should not be used as-is.
+- `needs_reprocess`: extraction or generation should be rerun or manually inspected.
+
+The Evaluation Dashboard is evidence-only. If a result file does not exist, it reports `not_run`; it does not create or imply performance metrics.

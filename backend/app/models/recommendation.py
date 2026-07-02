@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
 
 from sqlalchemy import Column
 from sqlmodel import Field, SQLModel
@@ -27,4 +27,9 @@ class ThesisRecommendation(SQLModel, table=True):
     top_k: int = 5
     grounding_status: str = Field(default="unsupported", index=True)
     warnings_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    review_status: str = Field(default="needs_review", index=True)
+    reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
+    corrected_recommendations_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     created_at: datetime = Field(default_factory=utc_now)

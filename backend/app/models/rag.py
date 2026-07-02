@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
 
 from sqlalchemy import Column
 from sqlmodel import Field, SQLModel
@@ -26,4 +26,11 @@ class RAGAnswer(SQLModel, table=True):
     unsupported_claims_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
     warnings_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
     retrieved_chunks_json: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    review_status: str = Field(default="needs_review", index=True)
+    reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
+    citation_correct: Optional[bool] = None
+    answer_faithfulness_score: Optional[int] = None
+    usefulness_score: Optional[int] = None
     created_at: datetime = Field(default_factory=utc_now)

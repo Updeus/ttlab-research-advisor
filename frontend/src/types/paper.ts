@@ -1,3 +1,5 @@
+export type ReviewStatus = "needs_review" | "reviewed" | "approved" | "rejected" | "needs_reprocess";
+
 export type Paper = {
   paper_id: string;
   title: string;
@@ -5,6 +7,7 @@ export type Paper = {
   year: number | null;
   publication_date_raw: string | null;
   venue: string | null;
+  abstract: string | null;
   source_url: string | null;
   post_url: string | null;
   pdf_url: string | null;
@@ -21,7 +24,10 @@ export type Paper = {
   pages_without_text: number;
   possible_scanned_pdf: boolean;
   chunk_count: number;
-  review_status: string;
+  review_status: ReviewStatus | string;
+  reviewer_notes: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -53,6 +59,14 @@ export type Stats = {
   papers_with_artifacts: number;
   podcast_scripts_generated: number;
   artifacts_needing_review: number;
+  admin_review_queue_count: number;
+  papers_needing_review: number;
+  answers_needing_review: number;
+  recommendations_needing_review: number;
+  total_review_events: number;
+  latest_review_event_at: string | null;
+  evaluation_files_present: Record<string, boolean>;
+  evaluation_last_run_at: string | null;
   top_topics: [string, number][];
   recent_papers: Paper[];
   evaluation_status: string;
@@ -190,6 +204,13 @@ export type AskResponse = {
   retrieved_chunks: AskRetrievedChunk[];
   warnings: string[];
   unsupported_claims: string[];
+  review_status: ReviewStatus;
+  reviewer_notes: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  citation_correct: boolean | null;
+  answer_faithfulness_score: number | null;
+  usefulness_score: number | null;
   created_at: string;
 };
 
@@ -297,6 +318,11 @@ export type ExtensionFinderResponse = {
   model: string;
   retrieval_mode: SearchMode;
   top_k: number;
+  review_status: ReviewStatus;
+  reviewer_notes: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  corrected_recommendations_json: Record<string, unknown>;
   created_at: string;
 };
 
@@ -355,7 +381,7 @@ export type PaperIntelligenceBundle = {
   required_skills: ArtifactSection;
   evaluation_plan: ArtifactSection;
   warnings: string[];
-  review_status: "needs_review" | "reviewed" | "rejected";
+  review_status: ReviewStatus;
 };
 
 export type PodcastScriptArtifact = {
@@ -374,7 +400,7 @@ export type PodcastScriptArtifact = {
   }[];
   citations: ArtifactCitation[];
   warnings: string[];
-  review_status: "needs_review" | "reviewed" | "rejected";
+  review_status: ReviewStatus;
 };
 
 export type PaperArtifact = {
@@ -389,7 +415,12 @@ export type PaperArtifact = {
   model: string;
   generation_status: "generated" | "failed" | "insufficient_sources";
   grounding_status: "grounded" | "partial" | "unsupported";
-  review_status: "needs_review" | "reviewed" | "rejected";
+  review_status: ReviewStatus;
+  reviewer_notes: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  corrected_text: string | null;
+  corrected_json: Record<string, unknown>;
   warnings: string[];
   created_at: string;
   updated_at: string;
@@ -400,8 +431,105 @@ export type GenerateArtifactsResponse = {
   paper_title: string;
   artifacts: PaperArtifact[];
   grounding_status: "grounded" | "partial" | "unsupported";
-  review_status: "needs_review" | "reviewed" | "rejected";
+  review_status: ReviewStatus;
   citations: ArtifactCitation[];
   warnings: string[];
   saved_json_path: string | null;
+};
+
+export type ReviewEvent = {
+  review_event_id: string;
+  item_type: string;
+  item_id: string;
+  action: string;
+  previous_status: string | null;
+  new_status: string | null;
+  reviewer_name: string;
+  reviewer_notes: string | null;
+  diff: Record<string, unknown>;
+  created_at: string;
+};
+
+export type AdminOverview = {
+  papers_total: number;
+  papers_needing_metadata_review: number;
+  papers_missing_pdfs: number;
+  papers_with_extraction_failures: number;
+  possible_scanned_pdfs: number;
+  total_chunks: number;
+  rag_answers: Record<string, number>;
+  rag_answers_by_grounding: Record<string, number>;
+  thesis_recommendations: Record<string, number>;
+  thesis_recommendations_by_grounding: Record<string, number>;
+  paper_artifacts: Record<string, number>;
+  paper_artifacts_by_grounding: Record<string, number>;
+  paper_artifacts_by_type: Record<string, number>;
+  artifacts_needing_review: number;
+  total_review_events: number;
+  recent_review_events: ReviewEvent[];
+};
+
+export type ReviewQueueItem = {
+  item_type: "paper" | "rag_answer" | "thesis_recommendation" | "paper_artifact";
+  item_id: string;
+  title: string;
+  label: string;
+  status: ReviewStatus | string;
+  grounding_status: "grounded" | "partial" | "unsupported" | null;
+  warnings: string[];
+  created_at: string | null;
+  updated_at: string | null;
+  frontend_link: string;
+  details: Record<string, unknown>;
+};
+
+export type ReviewQueueResponse = {
+  total: number;
+  limit: number;
+  offset: number;
+  items: ReviewQueueItem[];
+};
+
+export type EvaluationSectionStatus = {
+  status: "not_run" | "available" | "invalid";
+  result_file_exists: boolean;
+  path: string;
+  last_run_timestamp: string | null;
+  [key: string]: unknown;
+};
+
+export type EvaluationDashboard = {
+  retrieval: EvaluationSectionStatus & {
+    question_count: number;
+    recall_at_3: number | null;
+    recall_at_5: number | null;
+    mrr: number | null;
+  };
+  qa: EvaluationSectionStatus & {
+    question_count: number;
+    answer_count: number;
+    cited_gold_paper_count: number;
+    citation_count: number;
+    grounding_counts: Record<string, number>;
+  };
+  extension: EvaluationSectionStatus & {
+    case_count: number;
+    recommendation_count: number;
+    citation_coverage: number | null;
+    grounding_counts: Record<string, number>;
+    warnings_count: number;
+  };
+  artifact: EvaluationSectionStatus & {
+    case_count: number;
+    artifact_count: number;
+    citation_coverage: number | null;
+    grounding_counts: Record<string, number>;
+    warnings_count: number;
+    sections_with_explicit_support: number;
+    sections_inferred: number;
+    sections_not_found: number;
+  };
+  human_review_templates: Record<string, boolean>;
+  overall_quality: Record<string, number>;
+  result_files: Record<string, { path: string; exists: boolean; last_modified: string | null }>;
 };

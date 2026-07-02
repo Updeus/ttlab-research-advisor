@@ -2,7 +2,9 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import { fetchPapers, fetchStats } from "./api/client";
+import { AdminReviewPage } from "./pages/AdminReviewPage";
 import { Dashboard } from "./pages/Dashboard";
+import { EvaluationDashboardPage } from "./pages/EvaluationDashboardPage";
 import { AskPage } from "./pages/AskPage";
 import { PaperBrowser } from "./pages/PaperBrowser";
 import { PaperDetail } from "./pages/PaperDetail";
@@ -14,7 +16,9 @@ import "./styles/app.css";
 function App() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activePage, setActivePage] = useState<"dashboard" | "papers" | "detail" | "search" | "ask" | "extensions">("dashboard");
+  const [activePage, setActivePage] = useState<
+    "dashboard" | "papers" | "detail" | "search" | "ask" | "extensions" | "admin" | "evaluation"
+  >("dashboard");
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +57,12 @@ function App() {
           </button>
           <button className={activePage === "extensions" ? "active" : ""} onClick={() => setActivePage("extensions")}>
             Thesis Extension Finder
+          </button>
+          <button className={activePage === "admin" ? "active" : ""} onClick={() => setActivePage("admin")}>
+            Admin Review
+          </button>
+          <button className={activePage === "evaluation" ? "active" : ""} onClick={() => setActivePage("evaluation")}>
+            Evaluation
           </button>
         </nav>
       </header>
@@ -108,6 +118,19 @@ function App() {
           }}
         />
       ) : null}
+      {!loading && !error && activePage === "admin" ? (
+        <AdminReviewPage
+          papers={papers}
+          onSelectPaper={(paperId) => {
+            const paper = papers.find((item) => item.paper_id === paperId);
+            if (paper) {
+              setSelectedPaper(paper);
+              setActivePage("detail");
+            }
+          }}
+        />
+      ) : null}
+      {!loading && !error && activePage === "evaluation" ? <EvaluationDashboardPage /> : null}
     </main>
   );
 }

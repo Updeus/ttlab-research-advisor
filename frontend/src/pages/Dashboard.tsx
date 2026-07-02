@@ -76,6 +76,18 @@ export function Dashboard({ stats, papers }: DashboardProps) {
           <span className="metric__label">Artifacts needing review</span>
           <strong>{stats?.artifacts_needing_review ?? 0}</strong>
         </article>
+        <article className="metric">
+          <span className="metric__label">Admin review queue</span>
+          <strong>{stats?.admin_review_queue_count ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Review events</span>
+          <strong>{stats?.total_review_events ?? 0}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Evaluation files</span>
+          <strong>{Object.values(stats?.evaluation_files_present ?? {}).filter(Boolean).length}</strong>
+        </article>
       </div>
 
       <div className="section-heading">

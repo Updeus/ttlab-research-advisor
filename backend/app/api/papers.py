@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, func, select
 
 from app.db import get_session
+from app.evaluation.dashboard import evaluation_files_present, latest_evaluation_timestamp
 from app.indexing.embedder import index_diagnostics
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
-from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ThesisRecommendation
+from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
@@ -88,6 +89,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     total_answers = session.exec(select(func.count()).select_from(RAGAnswer)).one()
     recommendation_runs = list(session.exec(select(ThesisRecommendation)).all())
     artifacts = list(session.exec(select(PaperArtifact)).all())
+    review_events = list(session.exec(select(ReviewEvent)).all())
     searchable_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
     keyword = keyword_diagnostics(session)
     semantic = index_diagnostics()
@@ -102,6 +104,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         for topic in paper.topics:
             topics[topic] = topics.get(topic, 0) + 1
     recent = sorted(papers, key=lambda item: (item.year or 0, item.created_at), reverse=True)[:5]
+    eval_files = evaluation_files_present()
     return {
         "papers": total,
         "with_pdf_url": with_pdf,
@@ -129,9 +132,26 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "papers_with_artifacts": len({artifact.paper_id for artifact in artifacts if artifact.generation_status == "generated"}),
         "podcast_scripts_generated": sum(1 for artifact in artifacts if artifact.artifact_type == "podcast_script" and artifact.generation_status == "generated"),
         "artifacts_needing_review": sum(1 for artifact in artifacts if artifact.review_status == "needs_review"),
+        "admin_review_queue_count": (
+            sum(1 for paper in papers if paper.review_status == "needs_review")
+            + sum(1 for answer in session.exec(select(RAGAnswer)).all() if answer.review_status == "needs_review")
+            + sum(1 for recommendation in recommendation_runs if recommendation.review_status == "needs_review")
+            + sum(1 for artifact in artifacts if artifact.review_status == "needs_review")
+        ),
+        "papers_needing_review": sum(1 for paper in papers if paper.review_status == "needs_review"),
+        "answers_needing_review": session.exec(
+            select(func.count()).select_from(RAGAnswer).where(RAGAnswer.review_status == "needs_review")
+        ).one(),
+        "recommendations_needing_review": sum(1 for record in recommendation_runs if record.review_status == "needs_review"),
+        "total_review_events": len(review_events),
+        "latest_review_event_at": max((event.created_at for event in review_events), default=None).isoformat()
+        if review_events
+        else None,
+        "evaluation_files_present": eval_files,
+        "evaluation_last_run_at": latest_evaluation_timestamp(),
         "top_topics": sorted(topics.items(), key=lambda item: item[1], reverse=True)[:10],
         "recent_papers": recent,
-        "evaluation_status": "not_started",
+        "evaluation_status": "available" if any(eval_files.values()) else "not_started",
     }
 
 

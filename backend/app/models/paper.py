@@ -58,5 +58,8 @@ class Paper(SQLModel, table=True):
     possible_scanned_pdf: bool = False
     chunk_count: int = 0
     review_status: str = "needs_review"
+    reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

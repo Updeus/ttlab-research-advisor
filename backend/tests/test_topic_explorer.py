@@ -8,6 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine, func, select
 
 from app.db import get_session
 from app.demo import prepare_demo as prepare_demo_module
+from app.demo.smoke_check import run_smoke_check
 from app.intelligence.topic_explorer import get_related_papers, normalize_topic, rebuild_topic_index
 from app.main import app
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, Topic
@@ -192,4 +193,26 @@ def test_demo_prepare_helper_is_idempotent_in_skip_mode(monkeypatch) -> None:
 
     assert first["download"]["skipped"] == "skip_downloads requested"
     assert second["download"]["skipped"] == "skip_downloads requested"
+    assert first["demo_summary"]["papers_imported"] == 3
+    assert second["demo_summary"]["topics"] >= 1
+    assert "frontend" in first["routes"]
     assert topic_count >= 1
+
+
+def test_smoke_check_returns_structured_status_without_network() -> None:
+    engine = build_explorer_engine()
+    with Session(engine) as session:
+        rebuild_topic_index(session)
+
+    app.dependency_overrides[get_session] = make_override(engine)
+    try:
+        client = TestClient(app)
+        result = run_smoke_check(client)
+    finally:
+        app.dependency_overrides.clear()
+
+    assert result["overall_status"] in {"PASS", "WARN"}
+    assert result["counts"]["fail"] == 0
+    assert any(check["name"] == "stats" and check["level"] == "PASS" for check in result["checks"])
+    assert result["summary"]["papers"] == 3
+    assert result["summary"]["topics"] >= 1

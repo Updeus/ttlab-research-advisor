@@ -243,3 +243,17 @@ Manual review questions for demos:
 - Are reviewed/corrected topics preserved after rebuild?
 
 There is no claimed precision/recall for topic labels yet. Topic labels are deterministic/inferred unless reviewed, and the explorer intentionally avoids a complex graph visualization in this MVP.
+
+## Placeholder File Clarity
+
+Files ending in `.sample.jsonl` are templates only. Existing extension and artifact case files are demo scaffolds unless their notes and expected values have been manually reviewed.
+
+Do not invent gold labels, expected source chunks, or human scores. For thesis evaluation, add supervisor/manual review where time allows:
+
+- fill `gold_paper_ids` for retrieval and QA cases;
+- fill required answer points for QA;
+- replace placeholder extension cases with reviewed student-profile cases;
+- replace placeholder artifact cases with reviewed expected chunks;
+- fill human review CSV templates only after a reviewer scores the outputs.
+
+Automatic metrics measure only against the files provided. They are useful for reproducibility and regression checks, but they are not a claim of research quality without reviewed test cases.

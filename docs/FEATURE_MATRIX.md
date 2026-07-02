@@ -1,21 +1,23 @@
 # Feature Matrix
 
-| Feature | Status | Evidence | Demo route | Limitation |
-| --- | --- | --- | --- | --- |
-| TTLAB discovery | Implemented | `app.ingestion.ttlab_page discover` writes seed JSON | Dashboard, Papers | TTLAB markup can change; re-run before demos |
-| Seed import | Implemented | `app.ingestion.manual_import` upserts papers/authors | Dashboard, Papers | Imported metadata stays `needs_review` |
-| PDF download | Implemented | Direct-PDF downloader with dry-run default | Paper detail | Does not follow publisher pages |
-| PDF extraction | Implemented | PyMuPDF extraction diagnostics and status fields | Paper detail | Scanned PDFs are flagged, not OCR'd |
-| Chunking | Implemented | Page-aware chunks in SQLite and local JSON | Paper detail, Search | Deterministic heading detection is simple |
-| Keyword search | Implemented | SQLite FTS5/fallback keyword index | Search | Depends on extracted text quality |
-| Semantic search | Implemented | Local hashing embeddings | Search | Offline hashing is lightweight, not a model embedding |
-| Hybrid retrieval | Implemented | Combined keyword and semantic retriever | Search, Ask TTLAB | Ranking is simple and explainable |
-| Ask TTLAB | Implemented | Stored RAG answers with citations and grounding | Ask TTLAB | Offline extractive provider, not a full LLM answerer |
-| Thesis Extension Finder | Implemented | Ranked cited recommendations stored in SQLite | Thesis Extension Finder | Suggestions require supervisor review |
-| Paper Intelligence | Implemented | PaperArtifact records and local generated JSON | Paper detail | AI-assisted drafts; review required |
-| Podcast script | Implemented | Text-only two-speaker script artifact | Paper detail | No audio/TTS |
-| Admin Review | Implemented | Review status updates and ReviewEvent audit trail | Admin Review | Local/demo no-auth workflow |
-| Evaluation Dashboard | Implemented | Reads evaluation result JSON and templates | Evaluation | Missing files show `not_run`; metrics need reviewed cases |
-| Topic/Author Explorer | Implemented | Topic, PaperTopic, AuthorTopic links and explorer APIs | Topic/Author Explorer | Deterministic/inferred unless reviewed; no graph library |
-| Related papers | Implemented | Shared author/topic/venue/year/keyword/semantic scoring | Paper detail | Navigation aid, not novelty evidence |
-| Demo prep helper | Implemented | Bounded `app.demo.prepare_demo --limit 25` command | CLI | Processes only limited local data by default |
+| Feature | Implemented? | Evidence in app | Backend/API | Frontend route | Test coverage | Limitation |
+| --- | --- | --- | --- | --- | --- | --- |
+| TTLAB publication discovery | Yes | Seed records and Papers page | `app.ingestion.ttlab_page`, `data/seed/*.json` | Papers | Parser fixture tests | Live TTLAB markup can change |
+| PDF download | Yes | PDF/local path status | `app.ingestion.pdf_downloader` | Paper Detail | Downloader tests | Direct PDF URLs only |
+| Full-paper extraction | Yes | Extraction diagnostics, page/word counts | `app.ingestion.pdf_parser`, `/api/papers/{id}/extraction` | Paper Detail | Parser tests | No OCR for scanned PDFs |
+| Chunking | Yes | Page-aware chunk previews | `app.indexing.chunker`, `/api/papers/{id}/chunks` | Paper Detail | Chunker tests | Deterministic section detection is simple |
+| Keyword search | Yes | Keyword results and snippets | `/api/search`, `app.indexing.keyword_search` | Search | Retrieval tests | Depends on extracted text quality |
+| Semantic search | Yes | Semantic mode and diagnostics | `/api/search`, `app.indexing.embedder` | Search | Retrieval tests | Uses local hashing embeddings |
+| Hybrid retrieval | Yes | Hybrid search results | `/api/search?mode=hybrid`, `app.indexing.retriever` | Search, Ask TTLAB, Thesis Extension Finder | Retrieval tests | Simple weighted merge |
+| Ask TTLAB | Yes | Answer, citations, grounding status | `/api/ask`, `/api/ask/diagnostics` | Ask TTLAB | Ask tests | Offline extractive by default |
+| Thesis Extension Finder | Yes | Ranked recommendations with citations | `/api/recommendations/extensions` | Thesis Extension Finder | Recommendation tests | Suggestions need supervisor review |
+| Paper Intelligence | Yes | Summary/limitations/future work/skills/evaluation tabs | `/api/papers/{id}/artifacts/*` | Paper Detail | Artifact tests | AI-assisted, unreviewed by default |
+| Podcast script generation | Yes | Text-only dialogue script with citations | `app.intelligence.podcast_script_generator` | Paper Detail | Artifact/podcast tests | No audio/TTS |
+| Topic Explorer | Yes | Topic cards, topic detail, evidence snippets | `/api/topics`, `/api/topics/{id}` | Topic/Author Explorer | Topic explorer tests | Deterministic/inferred unless reviewed |
+| Author Explorer | Yes | Author profiles, topics, papers, coauthors | `/api/authors`, `/api/authors/{id}` | Topic/Author Explorer | Topic explorer tests | Author identity normalization is basic |
+| Related papers | Yes | Related paper cards and reasons | `/api/papers/{id}/related` | Paper Detail | Topic explorer tests | Navigation aid, not novelty evidence |
+| Admin Review | Yes | Review queue, status updates, notes | `/api/admin/*` | Admin Review | Admin tests | Local/demo no-auth workflow |
+| Review audit trail | Yes | Review Events table | `/api/admin/review-events` | Admin Review | Admin tests | Not a production compliance system |
+| Evaluation Dashboard | Yes | Retrieval/QA/extension/artifact status cards | `/api/evaluation/dashboard` | Evaluation | Evaluation dashboard tests | Missing files show `not_run` |
+| Offline/mock provider support | Yes | Works without API keys | `llm_provider`, offline answer/artifact/recommendation providers | Ask, Thesis Extension Finder, Paper Detail | Ask/recommendation/artifact tests | Outputs still need review |
+| Optional external provider boundary | Yes | Provider parameter and fallback behavior | Provider abstractions in `intelligence/` | Ask, Thesis Extension Finder, Paper Detail | Fallback behavior covered indirectly | No production external provider integration required |

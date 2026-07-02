@@ -8,7 +8,6 @@ type DashboardProps = {
 
 export function Dashboard({ stats, papers }: DashboardProps) {
   const withPdf = stats?.with_pdf_url ?? papers.filter((paper) => paper.pdf_url).length;
-  const missingPdf = stats?.missing_pdf ?? papers.filter((paper) => paper.pdf_text_status === "missing_pdf").length;
 
   return (
     <section className="page-section">
@@ -22,12 +21,20 @@ export function Dashboard({ stats, papers }: DashboardProps) {
           <strong>{withPdf}</strong>
         </article>
         <article className="metric">
-          <span className="metric__label">Missing PDFs</span>
-          <strong>{missingPdf}</strong>
+          <span className="metric__label">Downloaded PDFs</span>
+          <strong>{stats?.downloaded_pdfs ?? papers.filter((paper) => paper.local_pdf_path).length}</strong>
         </article>
         <article className="metric">
-          <span className="metric__label">Evaluation</span>
-          <strong>{stats?.evaluation_status?.replaceAll("_", " ") ?? "not started"}</strong>
+          <span className="metric__label">Extracted PDFs</span>
+          <strong>{stats?.extracted_pdfs ?? papers.filter((paper) => paper.pdf_text_status === "extracted").length}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Failed or no text</span>
+          <strong>{(stats?.extraction_failed ?? 0) + (stats?.no_text_pdfs ?? 0)}</strong>
+        </article>
+        <article className="metric">
+          <span className="metric__label">Chunks</span>
+          <strong>{stats?.total_chunks ?? papers.reduce((total, paper) => total + paper.chunk_count, 0)}</strong>
         </article>
       </div>
 

@@ -6,7 +6,7 @@ from sqlmodel import Session, SQLModel, create_engine
 
 from app.db import get_session
 from app.main import app
-from app.models import Paper
+from app.models import Chunk, Paper
 
 
 def test_health_works() -> None:
@@ -31,8 +31,29 @@ def test_api_papers_returns_imported_records() -> None:
                 title="API Paper",
                 authors=["Asha Singh"],
                 year=2026,
+                local_pdf_path="data/pdfs/api-paper.pdf",
                 pdf_text_status="missing_pdf",
+                page_count=2,
+                total_word_count=120,
+                pages_with_text=2,
+                pages_without_text=0,
+                chunk_count=1,
                 review_status="needs_review",
+            )
+        )
+        session.add(
+            Chunk(
+                chunk_id="api-paper-chunk-0001",
+                paper_id="api-paper",
+                chunk_index=0,
+                page_start=1,
+                page_end=2,
+                section="Introduction",
+                text="This chunk describes the API paper and its extracted source text.",
+                char_count=66,
+                word_count=11,
+                token_count_estimate=14,
+                source_hash="abc123",
             )
         )
         session.commit()
@@ -45,10 +66,22 @@ def test_api_papers_returns_imported_records() -> None:
     try:
         client = TestClient(app)
         response = client.get("/api/papers")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert len(body) == 1
+        assert body[0]["paper_id"] == "api-paper"
+
+        extraction = client.get("/api/papers/api-paper/extraction")
+        assert extraction.status_code == 200
+        assert extraction.json()["page_count"] == 2
+
+        chunks = client.get("/api/papers/api-paper/chunks")
+        assert chunks.status_code == 200
+        assert chunks.json()[0]["chunk_index"] == 0
+
+        stats = client.get("/api/stats")
+        assert stats.status_code == 200
+        assert stats.json()["total_chunks"] == 1
     finally:
         app.dependency_overrides.clear()
-
-    assert response.status_code == 200
-    body = response.json()
-    assert len(body) == 1
-    assert body[0]["paper_id"] == "api-paper"

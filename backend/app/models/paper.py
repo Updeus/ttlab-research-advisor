@@ -47,6 +47,16 @@ class Paper(SQLModel, table=True):
     raw_record: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     ingestion_status: str = "discovered"
     pdf_text_status: str = "missing_pdf"
+    extracted_json_path: Optional[str] = None
+    extracted_text_path: Optional[str] = None
+    extraction_diagnostics: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    page_count: Optional[int] = None
+    total_char_count: int = 0
+    total_word_count: int = 0
+    pages_with_text: int = 0
+    pages_without_text: int = 0
+    possible_scanned_pdf: bool = False
+    chunk_count: int = 0
     review_status: str = "needs_review"
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

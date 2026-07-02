@@ -4,6 +4,10 @@
 
 Set up a two-week-MVP foundation for the TTLAB Research Intelligence Platform. This phase discovers publication metadata from the TTLAB WordPress publications archive, stores it in seed JSON, imports it into SQLite, exposes minimal read APIs, and displays a dashboard/browser.
 
+## Phase 2 Goal
+
+Make the platform inspect full PDFs safely. This phase downloads a limited subset of direct PDF URLs, extracts full text page-by-page, records extraction diagnostics, creates deterministic page-aware chunks, stores chunk metadata in SQLite, and exposes extraction/chunk status in the API and frontend.
+
 ## In Scope Now
 
 - FastAPI backend scaffold.
@@ -15,11 +19,11 @@ Set up a two-week-MVP foundation for the TTLAB Research Intelligence Platform. T
 - Dry-run-safe direct PDF downloader.
 - Seed JSON import into SQLite.
 - Minimal React dashboard and paper browser.
-- Fixture-based parser/import/API tests.
+- Paper detail view with extraction diagnostics and chunk previews.
+- Fixture-based parser/import/API/PDF/chunking tests.
 
-## Explicitly Out Of Scope For Phase 1
+## Explicitly Out Of Scope For Phase 1/2
 
-- Full-paper PDF parsing.
 - Embeddings and vector search.
 - RAG answers.
 - LLM summaries.
@@ -28,7 +32,10 @@ Set up a two-week-MVP foundation for the TTLAB Research Intelligence Platform. T
 - Admin correction UI.
 - Authentication.
 - Production deployment infrastructure.
+- OCR for scanned PDFs.
 
 ## Review Principle
 
 Discovered metadata is treated as unreviewed. Unknown or ambiguous fields remain blank/null, and imported records keep `review_status = "needs_review"`.
+
+Generated chunks are source artifacts, not AI claims. They preserve page ranges so later RAG features can cite them.

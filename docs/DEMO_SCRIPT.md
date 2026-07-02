@@ -1,6 +1,6 @@
 # Demo Script
 
-## Phase 1 Demo
+## Phase 1/2 Demo
 
 1. Show the project scaffold:
 
@@ -33,7 +33,7 @@
 5. Start the backend:
 
    ```bash
-   PYTHONPATH=backend uvicorn app.main:app --reload
+   uvicorn app.main:app --reload --app-dir backend
    ```
 
 6. Start the frontend:
@@ -43,14 +43,42 @@
    npm run dev
    ```
 
-7. Open the dashboard and paper browser. Point out:
+7. Download the first 10 direct PDFs:
+
+   ```bash
+   PYTHONPATH=backend python -m app.ingestion.pdf_downloader --from-db --limit 10 --download
+   ```
+
+8. Extract the first 10 downloaded PDFs:
+
+   ```bash
+   PYTHONPATH=backend python -m app.ingestion.pdf_parser extract --limit 10
+   ```
+
+9. Chunk the first 10 extracted papers:
+
+   ```bash
+   PYTHONPATH=backend python -m app.indexing.chunker chunk --limit 10
+   ```
+
+10. Open the dashboard, paper browser, and paper detail view. Point out:
 
    - imported paper count,
    - direct PDF URL count,
-   - missing PDF count,
+   - downloaded/extracted PDF counts,
+   - total chunks,
+   - extraction diagnostics,
+   - chunk previews with page ranges,
    - review-needed status,
    - source/PDF/TTLAB post links.
 
+11. Run verification:
+
+   ```bash
+   python -m pytest
+   cd frontend && npm run build
+   ```
+
 ## Talking Point
 
-This is a discovery and data-foundation milestone. It intentionally stops before RAG, summaries, podcast generation, and extension recommendations so the later AI features are grounded in auditable paper records.
+This is a discovery, extraction, and source-chunking milestone. It intentionally stops before RAG, summaries, podcast generation, vector search, and extension recommendations so later AI features are grounded in auditable paper records and page-aware chunks.

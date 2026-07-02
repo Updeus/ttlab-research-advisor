@@ -5,9 +5,10 @@ import type { Paper } from "../types/paper";
 
 type PaperBrowserProps = {
   papers: Paper[];
+  onSelectPaper: (paper: Paper) => void;
 };
 
-export function PaperBrowser({ papers }: PaperBrowserProps) {
+export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -44,6 +45,10 @@ export function PaperBrowser({ papers }: PaperBrowserProps) {
               </div>
               <h3>{paper.title}</h3>
               <p>{paper.authors.join(", ") || "Authors need review"}</p>
+              <p className="paper-card__status">
+                {paper.local_pdf_path ? "Downloaded" : "Not downloaded"} · {paper.page_count ?? 0} pages ·{" "}
+                {paper.chunk_count} chunks
+              </p>
               <div className="paper-card__links">
                 {paper.source_url ? (
                   <a href={paper.source_url} target="_blank" rel="noreferrer">
@@ -60,6 +65,9 @@ export function PaperBrowser({ papers }: PaperBrowserProps) {
                     TTLAB post
                   </a>
                 ) : null}
+                <button className="link-button" onClick={() => onSelectPaper(paper)}>
+                  Details
+                </button>
               </div>
             </div>
             <div className="paper-card__badges">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { StatusBadge } from "../components/StatusBadge";
+import { EmptyState } from "../components/UiPrimitives";
 import type { Paper } from "../types/paper";
 
 type PaperBrowserProps = {
@@ -27,7 +28,10 @@ export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
   return (
     <section className="page-section">
       <div className="section-heading section-heading--with-search">
-        <h2>Paper Browser</h2>
+        <div>
+          <h2>Paper Browser</h2>
+          <p className="section-kicker">{filtered.length} of {papers.length} papers shown</p>
+        </div>
         <input
           aria-label="Search papers"
           placeholder="Search title, author, venue"
@@ -71,15 +75,17 @@ export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
               </div>
             </div>
             <div className="paper-card__badges">
-              <StatusBadge
-                label={paper.pdf_text_status}
-                tone={paper.pdf_text_status === "missing_pdf" ? "warn" : "good"}
-              />
-              <StatusBadge label={paper.review_status} tone="neutral" />
+              <StatusBadge label={paper.pdf_text_status} />
+              <StatusBadge label={paper.review_status} />
             </div>
           </article>
         ))}
-        {filtered.length === 0 ? <p className="empty-state">No papers match this search.</p> : null}
+        {filtered.length === 0 ? (
+          <EmptyState
+            title="No papers match this search"
+            body="Search by title, author, venue, year, or a broader phrase from the publication metadata."
+          />
+        ) : null}
       </div>
     </section>
   );

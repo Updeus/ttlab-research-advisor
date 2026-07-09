@@ -20,7 +20,7 @@ The backend is a FastAPI application under `backend/app`.
 - `indexing/embedder.py` builds local hashing embeddings without API keys or model downloads.
 - `indexing/vector_store.py` loads local embedding JSON and performs cosine search.
 - `indexing/retriever.py` combines keyword and semantic results for hybrid retrieval.
-- `intelligence/llm_provider.py` defines the offline extractive provider and optional external-provider adapter boundary.
+- `intelligence/llm_provider.py` defines the offline extractive provider, local Ollama provider, and optional external-provider adapter boundary.
 - `intelligence/rag_answerer.py` retrieves chunks, drafts an answer, verifies citations, and stores answers.
 - `intelligence/citation_verifier.py` checks citation presence and lightweight lexical support.
 - `intelligence/extension_recommender.py` retrieves chunks, groups candidate papers, scores them, creates deterministic thesis extension suggestions, verifies them, and stores recommendation runs.
@@ -119,7 +119,8 @@ Ask TTLAB returns stored, source-cited answer drafts:
 
 ```text
 answer_id, question, answer, grounding_status, provider, model,
-retrieval_mode, citations[], retrieved_chunks[], warnings[], created_at
+retrieval_mode, optional paper_id, citations[], retrieved_chunks[],
+retrieval_metadata, generation_metadata, warnings[], created_at
 ```
 
 Grounding status:
@@ -128,7 +129,9 @@ Grounding status:
 - `partial`: some support exists but citations or overlap are weak.
 - `unsupported`: no useful retrieved/cited support exists.
 
-The default provider is `offline_extractive`, which works without API keys by extracting relevant sentences from retrieved chunks. Optional external providers must be adapter-based and must not break offline operation.
+Ask TTLAB can use local Ollama models as answer composers while keeping retrieved chunks and citations as the source of truth. If Ollama is unavailable or a model fails, the system falls back to `offline_extractive`, which works without API keys by extracting relevant sentences from retrieved chunks. Optional external providers must be adapter-based and must not break offline operation.
+
+The retriever uses deterministic query expansion, metadata-aware scoring, section boosts, and light diversity ranking before the answer provider sees context. This improves common short queries such as `RAG`, `AI`, `ML`, and optimization/optimisation while preserving the original keyword/semantic/hybrid modes.
 
 ## Thesis Extension Finder Contract
 

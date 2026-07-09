@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { fetchExtensionDiagnostics, recommendExtensions } from "../api/client";
+import { EmptyState, GenerateButton, InlineProgress, ListSkeleton } from "../components/UiPrimitives";
+import type { ToastTone } from "../components/UiPrimitives";
 import type {
   ExtensionDiagnostics,
   ExtensionFinderRequest,
@@ -13,6 +15,7 @@ import type {
 type ThesisExtensionFinderProps = {
   papers: Paper[];
   onSelectPaper: (paperId: string) => void;
+  onNotify?: (message: string, tone?: ToastTone) => void;
 };
 
 const DEFAULT_REQUEST: ExtensionFinderRequest = {
@@ -29,7 +32,7 @@ const DEFAULT_REQUEST: ExtensionFinderRequest = {
   provider: "auto",
 };
 
-export function ThesisExtensionFinder({ papers, onSelectPaper }: ThesisExtensionFinderProps) {
+export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: ThesisExtensionFinderProps) {
   const [request, setRequest] = useState<ExtensionFinderRequest>(DEFAULT_REQUEST);
   const [skillsText, setSkillsText] = useState(DEFAULT_REQUEST.skills.join(", "));
   const [preferredTopicsText, setPreferredTopicsText] = useState(DEFAULT_REQUEST.preferred_topics.join(", "));
@@ -65,9 +68,14 @@ export function ThesisExtensionFinder({ papers, onSelectPaper }: ThesisExtension
     recommendExtensions(payload)
       .then((result) => {
         setResponse(result);
+        onNotify?.(`Generated ${result.recommendations.length} thesis recommendations.`, result.grounding_status === "unsupported" ? "warning" : "success");
         return fetchExtensionDiagnostics().then(setDiagnostics).catch(() => undefined);
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Recommendation failed."))
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Recommendation failed.";
+        setError(message);
+        onNotify?.(message, "error");
+      })
       .finally(() => setLoading(false));
   }
 
@@ -81,85 +89,102 @@ export function ThesisExtensionFinder({ papers, onSelectPaper }: ThesisExtension
         These are AI-assisted thesis extension suggestions. Paper facts are cited; extension ideas are suggestions and should be reviewed with a supervisor.
       </p>
 
-      <div className="finder-panel">
-        <label>
-          <span>Interests</span>
-          <textarea
-            value={request.interests}
-            onChange={(event) => updateRequest({ interests: event.target.value })}
-            rows={4}
-          />
-        </label>
-        <div className="finder-grid">
-          <label>
-            <span>Skills</span>
-            <input value={skillsText} onChange={(event) => setSkillsText(event.target.value)} />
-          </label>
-          <label>
-            <span>Available time</span>
-            <select value={request.available_time} onChange={(event) => updateRequest({ available_time: event.target.value as ExtensionFinderRequest["available_time"] })}>
-              <option value="2 weeks">2 weeks</option>
-              <option value="1 month">1 month</option>
-              <option value="semester">semester</option>
-            </select>
-          </label>
-          <label>
-            <span>Project type</span>
-            <select value={request.project_type} onChange={(event) => updateRequest({ project_type: event.target.value as ExtensionFinderRequest["project_type"] })}>
-              <option value="software prototype">software prototype</option>
-              <option value="data analysis">data analysis</option>
-              <option value="ML experiment">ML experiment</option>
-              <option value="literature/systematic review support">literature/systematic review support</option>
-              <option value="dashboard/visualization">dashboard/visualization</option>
-              <option value="other">other</option>
-            </select>
-          </label>
-          <label>
-            <span>Data constraints</span>
-            <select value={request.data_constraints} onChange={(event) => updateRequest({ data_constraints: event.target.value })}>
-              <option value="public data preferred">public data preferred</option>
-              <option value="synthetic data acceptable">synthetic data acceptable</option>
-              <option value="needs supervisor data">needs supervisor data</option>
-              <option value="no external data">no external data</option>
-              <option value="prefer public or synthetic data">prefer public or synthetic data</option>
-            </select>
-          </label>
-          <label>
-            <span>Preferred difficulty</span>
-            <select value={request.preferred_difficulty} onChange={(event) => updateRequest({ preferred_difficulty: event.target.value as ExtensionFinderRequest["preferred_difficulty"] })}>
-              <option value="easy">easy</option>
-              <option value="medium">medium</option>
-              <option value="hard">hard</option>
-            </select>
-          </label>
-          <label>
-            <span>Recommendations</span>
-            <select value={request.top_k} onChange={(event) => updateRequest({ top_k: Number(event.target.value) })}>
-              <option value={3}>3</option>
-              <option value={5}>5</option>
-              <option value={8}>8</option>
-            </select>
-          </label>
-          <label>
-            <span>Preferred topics</span>
-            <input value={preferredTopicsText} onChange={(event) => setPreferredTopicsText(event.target.value)} />
-          </label>
-          <label>
-            <span>Avoid topics</span>
-            <input value={avoidTopicsText} onChange={(event) => setAvoidTopicsText(event.target.value)} />
-          </label>
-          <label>
-            <span>Retrieval mode</span>
-            <select value={request.retrieval_mode} onChange={(event) => updateRequest({ retrieval_mode: event.target.value as SearchMode })}>
-              <option value="keyword">keyword</option>
-              <option value="semantic">semantic</option>
-              <option value="hybrid">hybrid</option>
-            </select>
-          </label>
+      <div className="finder-panel finder-panel--advisor" aria-busy={loading}>
+        <div className="finder-sections">
+          <section className="finder-section">
+            <h3>Student Profile</h3>
+            <label>
+              <span>Interests</span>
+              <textarea
+                value={request.interests}
+                onChange={(event) => updateRequest({ interests: event.target.value })}
+                rows={4}
+              />
+            </label>
+            <label>
+              <span>Skills</span>
+              <input value={skillsText} onChange={(event) => setSkillsText(event.target.value)} />
+            </label>
+          </section>
+
+          <section className="finder-section">
+            <h3>Project Constraints</h3>
+            <div className="finder-grid finder-grid--compact">
+              <label>
+                <span>Available time</span>
+                <select value={request.available_time} onChange={(event) => updateRequest({ available_time: event.target.value as ExtensionFinderRequest["available_time"] })}>
+                  <option value="2 weeks">2 weeks</option>
+                  <option value="1 month">1 month</option>
+                  <option value="semester">semester</option>
+                </select>
+              </label>
+              <label>
+                <span>Project type</span>
+                <select value={request.project_type} onChange={(event) => updateRequest({ project_type: event.target.value as ExtensionFinderRequest["project_type"] })}>
+                  <option value="software prototype">software prototype</option>
+                  <option value="data analysis">data analysis</option>
+                  <option value="ML experiment">ML experiment</option>
+                  <option value="literature/systematic review support">literature/systematic review support</option>
+                  <option value="dashboard/visualization">dashboard/visualization</option>
+                  <option value="other">other</option>
+                </select>
+              </label>
+              <label>
+                <span>Data constraints</span>
+                <select value={request.data_constraints} onChange={(event) => updateRequest({ data_constraints: event.target.value })}>
+                  <option value="public data preferred">public data preferred</option>
+                  <option value="synthetic data acceptable">synthetic data acceptable</option>
+                  <option value="needs supervisor data">needs supervisor data</option>
+                  <option value="no external data">no external data</option>
+                  <option value="prefer public or synthetic data">prefer public or synthetic data</option>
+                </select>
+              </label>
+              <label>
+                <span>Preferred difficulty</span>
+                <select value={request.preferred_difficulty} onChange={(event) => updateRequest({ preferred_difficulty: event.target.value as ExtensionFinderRequest["preferred_difficulty"] })}>
+                  <option value="easy">easy</option>
+                  <option value="medium">medium</option>
+                  <option value="hard">hard</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section className="finder-section">
+            <h3>Retrieval Focus</h3>
+            <div className="finder-grid finder-grid--compact">
+              <label>
+                <span>Recommendations</span>
+                <select value={request.top_k} onChange={(event) => updateRequest({ top_k: Number(event.target.value) })}>
+                  <option value={3}>3</option>
+                  <option value={5}>5</option>
+                  <option value={8}>8</option>
+                </select>
+              </label>
+              <label>
+                <span>Preferred topics</span>
+                <input value={preferredTopicsText} onChange={(event) => setPreferredTopicsText(event.target.value)} />
+              </label>
+              <label>
+                <span>Avoid topics</span>
+                <input value={avoidTopicsText} onChange={(event) => setAvoidTopicsText(event.target.value)} />
+              </label>
+              <label>
+                <span>Retrieval mode</span>
+                <select value={request.retrieval_mode} onChange={(event) => updateRequest({ retrieval_mode: event.target.value as SearchMode })}>
+                  <option value="keyword">keyword</option>
+                  <option value="semantic">semantic</option>
+                  <option value="hybrid">hybrid</option>
+                </select>
+              </label>
+            </div>
+          </section>
         </div>
-        <button onClick={submit} disabled={loading}>
-          {loading ? "Finding..." : "Find Thesis Extensions"}
-        </button>
+        <div className="finder-action-bar">
+          <GenerateButton busy={loading} busyLabel="Finding..." onClick={submit} disabled={!request.interests.trim()}>
+            Find Thesis Extensions
+          </GenerateButton>
+        </div>
       </div>
 
       {diagnostics ? (
@@ -171,8 +196,9 @@ export function ThesisExtensionFinder({ papers, onSelectPaper }: ThesisExtension
         </div>
       ) : null}
 
-      {loading ? <p className="notice">Ranking candidate papers and checking citations...</p> : null}
+      {loading && response ? <InlineProgress label="Refreshing ranked recommendations and citation checks..." /> : null}
       {error ? <p className="notice notice--error">{error}</p> : null}
+      {loading && !response ? <ListSkeleton count={Number(request.top_k) || 3} lines={5} /> : null}
 
       {response ? (
         <div className="answer-layout">
@@ -200,7 +226,10 @@ export function ThesisExtensionFinder({ papers, onSelectPaper }: ThesisExtension
               />
             ))}
             {response.recommendations.length === 0 ? (
-              <p className="empty-state">No cited recommendation could be generated from the indexed chunks.</p>
+              <EmptyState
+                title="No cited recommendation could be generated"
+                body="Try broader interests or rebuild the search indexes so more chunks are available."
+              />
             ) : null}
           </div>
         </div>

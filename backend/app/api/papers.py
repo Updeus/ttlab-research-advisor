@@ -132,7 +132,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "grounded_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "grounded")).one(),
         "partial_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "partial")).one(),
         "unsupported_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "unsupported")).one(),
-        "default_ask_provider": "offline_extractive",
+        "default_ask_provider": "ollama",
         "total_extension_recommendation_runs": len(recommendation_runs),
         "total_extension_ideas": sum(len(record.recommendations_json or []) for record in recommendation_runs),
         "grounded_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "grounded"),

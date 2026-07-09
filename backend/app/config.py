@@ -7,8 +7,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "TTLAB Research Intelligence Platform"
     database_url: str = "sqlite:///./data/papers.db"
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     ttlab_publications_url: str = "https://lab.tt/index.php/category/pub/"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_default_model: str = "qwen3:4b-instruct-2507-q4_K_M"
+    ollama_timeout_seconds: float = 20.0
+    ollama_num_ctx: int = 4096
+    ollama_keep_alive: str = "10m"
 
     model_config = SettingsConfigDict(env_prefix="TTLAB_", env_file=".env")
 

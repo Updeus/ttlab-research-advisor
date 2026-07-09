@@ -10,6 +10,7 @@ import type {
   ExtensionFinderResponse,
   ExtractionDiagnostics,
   GenerateArtifactsResponse,
+  LocalLlmStatus,
   Paper,
   PaperArtifact,
   PaperChunk,
@@ -27,7 +28,7 @@ import type {
   TopicDetail,
 } from "../types/paper";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`);
@@ -88,6 +89,14 @@ export async function askTtlab(request: AskRequest): Promise<AskResponse> {
 
 export function fetchAskDiagnostics(): Promise<AskDiagnostics> {
   return getJson<AskDiagnostics>("/api/ask/diagnostics");
+}
+
+export function fetchLocalLlms(): Promise<LocalLlmStatus> {
+  return getJson<LocalLlmStatus>("/api/llms/local");
+}
+
+export function fetchLatestLlmBenchmark(): Promise<Record<string, unknown>> {
+  return getJson<Record<string, unknown>>("/api/llms/benchmark/latest");
 }
 
 export async function recommendExtensions(request: ExtensionFinderRequest): Promise<ExtensionFinderResponse> {

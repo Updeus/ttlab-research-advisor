@@ -9,7 +9,7 @@ from app.db import get_session
 from app.evaluation.retrieval_eval import calculate_metrics, evaluate_retrieval
 from app.indexing.embedder import HashingEmbeddingProvider, index_chunks
 from app.indexing.keyword_search import rebuild_keyword_index, search_keyword
-from app.indexing.retriever import retrieve
+from app.indexing.retriever import diversify_ranked_entries, expand_query, retrieve
 from app.indexing.vector_store import search_vector_store
 from app.main import app
 from app.models import Chunk, Paper
@@ -110,6 +110,40 @@ def test_hybrid_retrieval_combines_scores_and_returns_pages(tmp_path: Path) -> N
     assert response["results"][0]["paper_id"] == "rag-paper"
     assert response["results"][0]["page_start"] == 1
     assert response["results"][0]["scores"]["combined"] > 0
+
+
+def test_query_expansion_adds_rag_ai_and_optimization_synonyms() -> None:
+    expanded, additions = expand_query("RAG and AI optimization")
+
+    assert "retrieval augmented generation" in expanded
+    assert "artificial intelligence" in expanded
+    assert "optimisation" in additions
+
+
+def test_retrieval_respects_paper_filter(tmp_path: Path) -> None:
+    session, _engine = build_test_session()
+    index_path = tmp_path / "embeddings.json"
+    try:
+        rebuild_keyword_index(session)
+        index_chunks(session, output_path=index_path)
+        response = retrieve(session, "retrieval traffic academic", mode="hybrid", top_k=3, paper_id="traffic-paper", index_path=index_path)
+    finally:
+        session.close()
+
+    assert response["results"]
+    assert {result["paper_id"] for result in response["results"]} == {"traffic-paper"}
+
+
+def test_diversity_prefers_a_second_paper_when_scores_are_close() -> None:
+    entries = [
+        {"base": {"paper_id": "rag-paper", "chunk_index": 0}, "base_combined": 0.99},
+        {"base": {"paper_id": "rag-paper", "chunk_index": 1}, "base_combined": 0.98},
+        {"base": {"paper_id": "traffic-paper", "chunk_index": 0}, "base_combined": 0.95},
+    ]
+
+    selected = diversify_ranked_entries(entries, top_k=2)
+
+    assert [entry["base"]["paper_id"] for entry in selected] == ["rag-paper", "traffic-paper"]
 
 
 def test_api_search_and_diagnostics_work() -> None:

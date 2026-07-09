@@ -8,7 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.db import get_session
 from app.indexing.keyword_search import rebuild_keyword_index
 from app.intelligence.citation_verifier import verify_citations
-from app.intelligence.llm_provider import OfflineExtractiveProvider
+from app.intelligence.llm_provider import LLMAnswerDraft, OfflineExtractiveProvider, OllamaProvider
 from app.intelligence.rag_answerer import ask_question
 from app.main import app
 from app.models import Chunk, Paper, RAGAnswer
@@ -53,6 +53,52 @@ def test_offline_provider_returns_answer_from_chunks() -> None:
     assert "Retrieval augmented generation" in draft.answer_text
 
 
+def test_ollama_provider_parses_mocked_response(monkeypatch) -> None:
+    def fake_post(*_args, **_kwargs):
+        import httpx
+
+        return httpx.Response(
+            200,
+            request=httpx.Request("POST", "http://localhost:11434/api/generate"),
+            json={
+                "model": "mock-model",
+                "response": "The paper discusses retrieval augmented generation [rag-chunk].",
+                "total_duration": 2_000_000_000,
+                "eval_count": 40,
+                "eval_duration": 1_000_000_000,
+                "prompt_eval_count": 25,
+                "prompt_eval_duration": 500_000_000,
+                "load_duration": 100_000_000,
+            },
+        )
+
+    monkeypatch.setattr("app.intelligence.llm_provider.httpx.post", fake_post)
+    provider = OllamaProvider(model_name="mock-model")
+    draft = provider.generate_answer(
+        "Which papers discuss retrieval augmented generation?",
+        [{"chunk_id": "rag-chunk", "title": "RAG Paper", "snippet": "Retrieval augmented generation grounds answers."}],
+    )
+
+    assert draft.provider == "ollama"
+    assert draft.model == "mock-model"
+    assert draft.prompt_metadata["ollama_metrics"]["tokens_per_second"] == 40.0
+
+
+def test_ollama_provider_falls_back_when_unavailable(monkeypatch) -> None:
+    def fake_post(*_args, **_kwargs):
+        raise RuntimeError("ollama unavailable")
+
+    monkeypatch.setattr("app.intelligence.llm_provider.httpx.post", fake_post)
+    provider = OllamaProvider(model_name="mock-model")
+    draft = provider.generate_answer(
+        "Which papers discuss retrieval augmented generation?",
+        [{"chunk_id": "rag-chunk", "title": "RAG Paper", "snippet": "Retrieval augmented generation grounds answers."}],
+    )
+
+    assert draft.provider == "offline_extractive"
+    assert any("Ollama model mock-model" in warning for warning in draft.warnings)
+
+
 def test_citation_verifier_marks_grounded_and_missing_citations() -> None:
     retrieved = [{"chunk_id": "c1", "snippet": "Retrieval augmented generation grounds answers with citations."}]
     citations = [{"chunk_id": "c1", "paper_id": "p1", "title": "Paper", "page_start": 1, "page_end": 2, "snippet": retrieved[0]["snippet"]}]
@@ -76,6 +122,40 @@ def test_rag_answerer_returns_citations_and_persists() -> None:
     assert response["citations"][0]["paper_id"] == "rag-paper"
     assert response["grounding_status"] in {"grounded", "partial"}
     assert stored is not None
+
+
+def test_rag_answerer_supports_paper_specific_scope() -> None:
+    session, _engine = build_ask_session()
+    try:
+        session.add(Paper(paper_id="other-paper", title="Other Paper", authors=["Ben Lee"], year=2024))
+        session.add(
+            Chunk(
+                chunk_id="other-chunk",
+                paper_id="other-paper",
+                chunk_index=0,
+                page_start=4,
+                page_end=5,
+                section="Results",
+                text="Traffic simulations describe congestion but not retrieval augmented generation.",
+                word_count=8,
+                source_hash="other-hash",
+            )
+        )
+        session.commit()
+        rebuild_keyword_index(session)
+        response = ask_question(
+            session,
+            "Which papers discuss retrieval augmented generation?",
+            mode="keyword",
+            top_k=3,
+            provider_name="offline_extractive",
+            paper_id="rag-paper",
+        )
+    finally:
+        session.close()
+
+    assert response["paper_id"] == "rag-paper"
+    assert {citation["paper_id"] for citation in response["citations"]} == {"rag-paper"}
 
 
 def test_rag_answerer_returns_unsupported_when_no_chunks() -> None:
@@ -102,7 +182,13 @@ def test_ask_api_endpoints_work() -> None:
         client = TestClient(app)
         posted = client.post(
             "/api/ask",
-            json={"question": "Which papers discuss retrieval augmented generation?", "mode": "keyword", "top_k": 3},
+            json={
+                "question": "Which papers discuss retrieval augmented generation?",
+                "mode": "keyword",
+                "top_k": 3,
+                "provider": "offline_extractive",
+                "paper_id": "rag-paper",
+            },
         )
         answer_id = posted.json()["answer_id"]
         fetched = client.get(f"/api/ask/{answer_id}")
@@ -118,3 +204,20 @@ def test_ask_api_endpoints_work() -> None:
     assert history.json()[0]["answer_id"] == answer_id
     assert diagnostics.status_code == 200
     assert diagnostics.json()["total_stored_answers"] == 1
+
+
+def test_llm_api_lists_local_models(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.intelligence.local_llms.list_ollama_models",
+        lambda **_kwargs: (
+            [{"name": "qwen3:4b-instruct-2507-q4_K_M", "installed": True, "source": "ollama"}],
+            [],
+            True,
+        ),
+    )
+    client = TestClient(app)
+    response = client.get("/api/llms/local")
+
+    assert response.status_code == 200
+    assert response.json()["model_count"] == 1
+    assert response.json()["models"][0]["color"] == "green"

@@ -69,9 +69,12 @@ def build_semantic_result(chunk: Chunk, paper: Paper | None, score: float) -> di
     return {
         "chunk_id": chunk.chunk_id,
         "paper_id": chunk.paper_id,
+        "chunk_index": chunk.chunk_index,
         "paper_title": paper.title if paper else "",
         "authors": paper.authors if paper else [],
         "year": paper.year if paper else None,
+        "venue": paper.venue if paper else None,
+        "topics": paper.topics if paper else [],
         "section": chunk.section,
         "page_start": chunk.page_start,
         "page_end": chunk.page_end,

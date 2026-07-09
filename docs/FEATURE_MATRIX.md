@@ -8,8 +8,10 @@
 | Chunking | Yes | Page-aware chunk previews | `app.indexing.chunker`, `/api/papers/{id}/chunks` | Paper Detail | Chunker tests | Deterministic section detection is simple |
 | Keyword search | Yes | Keyword results and snippets | `/api/search`, `app.indexing.keyword_search` | Search | Retrieval tests | Depends on extracted text quality |
 | Semantic search | Yes | Semantic mode and diagnostics | `/api/search`, `app.indexing.embedder` | Search | Retrieval tests | Uses local hashing embeddings |
-| Hybrid retrieval | Yes | Hybrid search results | `/api/search?mode=hybrid`, `app.indexing.retriever` | Search, Ask TTLAB, Thesis Extension Finder | Retrieval tests | Simple weighted merge |
-| Ask TTLAB | Yes | Answer, citations, grounding status | `/api/ask`, `/api/ask/diagnostics` | Ask TTLAB | Ask tests | Offline extractive by default |
+| Hybrid retrieval | Yes | Hybrid search results with smarter ranking | `/api/search?mode=hybrid`, `app.indexing.retriever` | Search, Ask TTLAB, Thesis Extension Finder | Retrieval tests | Deterministic scoring, not a learned reranker |
+| Ask TTLAB | Yes | Answer, citations, grounding status, model selector | `/api/ask`, `/api/ask/diagnostics` | Ask TTLAB | Ask tests | Local model answers still need citation review |
+| Local Ollama models | Yes | Red/yellow/green model selector and fallback warnings | `/api/llms/local`, `app.intelligence.llm_provider` | Ask TTLAB | Ask/provider tests | Requires local Ollama for model answers |
+| Ollama benchmark baseline | Yes | Generated local benchmark JSON/CSV | `app.evaluation.ollama_benchmark` | Ask TTLAB model strip after results | Benchmark tests | Machine-specific, not thesis quality evidence alone |
 | Thesis Extension Finder | Yes | Ranked recommendations with citations | `/api/recommendations/extensions` | Thesis Extension Finder | Recommendation tests | Suggestions need supervisor review |
 | Paper Intelligence | Yes | Summary/limitations/future work/skills/evaluation tabs | `/api/papers/{id}/artifacts/*` | Paper Detail | Artifact tests | AI-assisted, unreviewed by default |
 | Podcast script generation | Yes | Text-only dialogue script with citations | `app.intelligence.podcast_script_generator` | Paper Detail | Artifact/podcast tests | No audio/TTS |

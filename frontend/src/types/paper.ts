@@ -163,6 +163,8 @@ export type AskRequest = {
   audience: string;
   max_words: number;
   provider: string;
+  model?: string | null;
+  paper_id?: string | null;
 };
 
 export type AskCitation = {
@@ -206,8 +208,15 @@ export type AskResponse = {
   model: string;
   retrieval_mode: SearchMode;
   top_k: number;
+  paper_id?: string | null;
   citations: AskCitation[];
   retrieved_chunks: AskRetrievedChunk[];
+  retrieval_metadata?: {
+    expanded_query?: string | null;
+    query_expansions?: string[];
+    retrieval_strategy?: string;
+  };
+  generation_metadata?: Record<string, unknown>;
   warnings: string[];
   unsupported_claims: string[];
   review_status: ReviewStatus;
@@ -230,6 +239,44 @@ export type AskDiagnostics = {
   searchable_chunks: number;
   semantic_indexed_chunks: number;
   last_answer_timestamp: string | null;
+};
+
+export type LocalLlmBenchmarkSummary = {
+  runs: number;
+  average_total_seconds: number;
+  average_tokens_per_second: number;
+  citation_compliance_rate: number;
+  average_quality_score: number;
+};
+
+export type LocalLlmModel = {
+  name: string;
+  installed: boolean;
+  source: string;
+  size?: number | null;
+  digest?: string | null;
+  modified_at?: string | null;
+  details?: Record<string, unknown>;
+  color: "green" | "light_green" | "yellow" | "red" | string;
+  quality_tier: string;
+  rationale: string;
+  benchmark?: LocalLlmBenchmarkSummary | null;
+  is_default: boolean;
+};
+
+export type LocalLlmStatus = {
+  available: boolean;
+  base_url: string;
+  default_model: string;
+  model_count: number;
+  models: LocalLlmModel[];
+  recommended_pulls: {
+    name: string;
+    purpose: string;
+    fit: string;
+  }[];
+  benchmark: Record<string, unknown> | null;
+  warnings: string[];
 };
 
 export type ExtensionFinderRequest = {

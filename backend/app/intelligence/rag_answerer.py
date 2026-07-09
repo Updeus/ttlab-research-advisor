@@ -27,18 +27,20 @@ def ask_question(
     audience: str = "general",
     max_words: int = 250,
     provider_name: str = "auto",
+    model_name: str | None = None,
+    paper_id: str | None = None,
     persist: bool = True,
 ) -> dict[str, Any]:
-    retrieval = retrieve(session, question, mode=mode, top_k=top_k)
+    retrieval = retrieve(session, question, mode=mode, top_k=top_k, paper_id=paper_id)
     retrieved_chunks = [format_retrieved_chunk(result) for result in retrieval["results"]]
     warnings = list(retrieval.get("warnings", []))
     if not retrieved_chunks:
-        answer = build_unsupported_answer(question, mode, top_k, provider_name, warnings)
+        answer = build_unsupported_answer(question, mode, top_k, provider_name, warnings, model_name=model_name, paper_id=paper_id)
         if persist:
             store_answer(session, answer)
         return answer
 
-    provider = get_provider(provider_name)
+    provider = get_provider(provider_name, model_name=model_name)
     draft = provider.generate_answer(question, retrieved_chunks, audience=audience, max_words=max_words)
     citations = build_citations(retrieval["results"][: min(len(retrieval["results"]), top_k)])
     verification = verify_citations(draft.answer_text, retrieved_chunks, citations)
@@ -52,8 +54,15 @@ def ask_question(
         "model": draft.model,
         "retrieval_mode": mode,
         "top_k": top_k,
+        "paper_id": paper_id,
         "citations": citations,
         "retrieved_chunks": retrieved_chunks,
+        "retrieval_metadata": {
+            "expanded_query": retrieval.get("expanded_query"),
+            "query_expansions": retrieval.get("query_expansions", []),
+            "retrieval_strategy": retrieval.get("retrieval_strategy", "standard"),
+        },
+        "generation_metadata": draft.prompt_metadata,
         "warnings": warnings + draft.warnings + verification["warnings"],
         "unsupported_claims": verification["unsupported_claims"],
         "created_at": created_at.isoformat(),
@@ -69,9 +78,12 @@ def build_unsupported_answer(
     top_k: int,
     provider_name: str,
     warnings: list[str],
+    *,
+    model_name: str | None = None,
+    paper_id: str | None = None,
 ) -> dict[str, Any]:
     created_at = utc_now()
-    provider = get_provider(provider_name)
+    provider = get_provider(provider_name, model_name=model_name)
     return {
         "answer_id": str(uuid.uuid4()),
         "question": question,
@@ -81,8 +93,11 @@ def build_unsupported_answer(
         "model": getattr(provider, "model", "sentence-overlap-v1"),
         "retrieval_mode": mode,
         "top_k": top_k,
+        "paper_id": paper_id,
         "citations": [],
         "retrieved_chunks": [],
+        "retrieval_metadata": {"expanded_query": None, "query_expansions": [], "retrieval_strategy": "standard"},
+        "generation_metadata": {},
         "warnings": warnings + ["No relevant indexed TTLAB chunks were retrieved."],
         "unsupported_claims": ["No source chunks support an answer."],
         "created_at": created_at.isoformat(),
@@ -164,8 +179,11 @@ def serialize_answer(answer: RAGAnswer) -> dict[str, Any]:
         "model": answer.model,
         "retrieval_mode": answer.retrieval_mode,
         "top_k": answer.top_k,
+        "paper_id": None,
         "citations": answer.citations_json,
         "retrieved_chunks": answer.retrieved_chunks_json,
+        "retrieval_metadata": {},
+        "generation_metadata": {},
         "warnings": answer.warnings_json,
         "unsupported_claims": answer.unsupported_claims_json,
         "review_status": answer.review_status,
@@ -187,7 +205,7 @@ def ask_diagnostics(session: Session) -> dict[str, Any]:
         "grounded_answers": sum(1 for answer in answers if answer.grounding_status == "grounded"),
         "partial_answers": sum(1 for answer in answers if answer.grounding_status == "partial"),
         "unsupported_answers": sum(1 for answer in answers if answer.grounding_status == "unsupported"),
-        "default_provider": "offline_extractive",
+        "default_provider": "ollama",
         "external_provider_available": external_provider_available(),
         "last_answer_timestamp": last_answer.isoformat() if last_answer else None,
     }
@@ -201,6 +219,8 @@ def build_parser() -> argparse.ArgumentParser:
     ask.add_argument("--mode", choices=["keyword", "semantic", "hybrid"], default="hybrid")
     ask.add_argument("--top-k", type=int, default=5)
     ask.add_argument("--provider", default="auto")
+    ask.add_argument("--model", default=None)
+    ask.add_argument("--paper-id", default=None)
     ask.add_argument("--audience", default="general")
     ask.add_argument("--max-words", type=int, default=250)
     return parser
@@ -219,6 +239,8 @@ def main() -> None:
             mode=args.mode,
             top_k=args.top_k,
             provider_name=args.provider,
+            model_name=args.model,
+            paper_id=args.paper_id,
             audience=args.audience,
             max_words=args.max_words,
         )

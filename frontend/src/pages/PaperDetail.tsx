@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { fetchExtraction, fetchPaperArtifacts, fetchPaperChunks, fetchRelatedPapers, generatePaperArtifacts } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
+import { EmptyState, GenerateButton, InlineProgress, ListSkeleton, MetricSkeletonGrid } from "../components/UiPrimitives";
+import type { ToastTone } from "../components/UiPrimitives";
 import type {
   ArtifactCitation,
   ArtifactSection,
@@ -18,6 +20,8 @@ type PaperDetailProps = {
   paper: Paper;
   onBack: () => void;
   onSelectPaper?: (paperId: string) => void;
+  onAskPaper?: (paperId: string) => void;
+  onNotify?: (message: string, tone?: ToastTone) => void;
 };
 
 type ArtifactTab =
@@ -45,19 +49,25 @@ const ARTIFACT_TABS: { id: ArtifactTab; label: string }[] = [
   { id: "podcast_script", label: "Podcast Script" },
 ];
 
-export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) {
+export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify }: PaperDetailProps) {
   const [extraction, setExtraction] = useState<ExtractionDiagnostics | null>(null);
   const [chunks, setChunks] = useState<PaperChunk[]>([]);
   const [artifacts, setArtifacts] = useState<PaperArtifact[]>([]);
   const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [artifactError, setArtifactError] = useState<string | null>(null);
+  const [detailLoading, setDetailLoading] = useState(true);
   const [artifactLoading, setArtifactLoading] = useState(false);
   const [activeArtifactTab, setActiveArtifactTab] = useState<ArtifactTab>("public_summary");
 
   useEffect(() => {
     setError(null);
     setArtifactError(null);
+    setDetailLoading(true);
+    setExtraction(null);
+    setChunks([]);
+    setArtifacts([]);
+    setRelatedPapers([]);
     Promise.all([
       fetchExtraction(paper.paper_id),
       fetchPaperChunks(paper.paper_id),
@@ -70,7 +80,8 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
         setArtifacts(artifactRows);
         setRelatedPapers(relatedRows);
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load paper detail."));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load paper detail."))
+      .finally(() => setDetailLoading(false));
   }, [paper.paper_id]);
 
   const warning =
@@ -92,8 +103,15 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
     setArtifactLoading(true);
     setArtifactError(null);
     generatePaperArtifacts(paper.paper_id)
-      .then((response) => setArtifacts(response.artifacts))
-      .catch((err: unknown) => setArtifactError(err instanceof Error ? err.message : "Unable to generate paper intelligence."))
+      .then((response) => {
+        setArtifacts(response.artifacts);
+        onNotify?.(`Generated ${response.artifacts.length} paper intelligence artifacts.`, response.grounding_status === "unsupported" ? "warning" : "success");
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Unable to generate paper intelligence.";
+        setArtifactError(message);
+        onNotify?.(message, "error");
+      })
       .finally(() => setArtifactLoading(false));
   }
 
@@ -115,6 +133,11 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
           <StatusBadge label={paper.review_status} />
         </div>
         <div className="paper-card__links">
+          {onAskPaper ? (
+            <button className="link-button" onClick={() => onAskPaper(paper.paper_id)}>
+              Ask about this paper
+            </button>
+          ) : null}
           {paper.source_url ? (
             <a href={paper.source_url} target="_blank" rel="noreferrer">
               Source
@@ -131,34 +154,44 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
       {error ? <p className="notice notice--error">{error}</p> : null}
       {warning ? <p className="notice notice--warning">{warning}</p> : null}
 
-      <div className="detail-grid">
-        <article className="metric">
-          <span className="metric__label">Pages</span>
-          <strong>{extraction?.page_count ?? paper.page_count ?? 0}</strong>
-        </article>
-        <article className="metric">
-          <span className="metric__label">Words</span>
-          <strong>{extraction?.total_word_count ?? paper.total_word_count ?? 0}</strong>
-        </article>
-        <article className="metric">
-          <span className="metric__label">Pages with text</span>
-          <strong>{extraction?.pages_with_text ?? paper.pages_with_text ?? 0}</strong>
-        </article>
-        <article className="metric">
-          <span className="metric__label">Chunks</span>
-          <strong>{chunks.length}</strong>
-        </article>
-      </div>
+      {detailLoading ? (
+        <MetricSkeletonGrid count={4} compact />
+      ) : (
+        <div className="detail-grid">
+          <article className="metric">
+            <span className="metric__label">Pages</span>
+            <strong>{extraction?.page_count ?? paper.page_count ?? 0}</strong>
+          </article>
+          <article className="metric">
+            <span className="metric__label">Words</span>
+            <strong>{extraction?.total_word_count ?? paper.total_word_count ?? 0}</strong>
+          </article>
+          <article className="metric">
+            <span className="metric__label">Pages with text</span>
+            <strong>{extraction?.pages_with_text ?? paper.pages_with_text ?? 0}</strong>
+          </article>
+          <article className="metric">
+            <span className="metric__label">Chunks</span>
+            <strong>{chunks.length}</strong>
+          </article>
+        </div>
+      )}
 
       <div className="section-heading">
         <h2>Paper Intelligence</h2>
-        <button className="action-button" onClick={generateArtifacts} disabled={artifactLoading || chunks.length === 0}>
-          {artifactLoading ? "Generating..." : artifacts.length ? "Refresh Artifacts" : "Generate Artifacts"}
-        </button>
+        <GenerateButton
+          busy={artifactLoading}
+          onClick={generateArtifacts}
+          disabled={detailLoading || chunks.length === 0}
+          busyLabel={artifacts.length ? "Refreshing..." : "Generating..."}
+        >
+          {artifacts.length ? "Refresh Artifacts" : "Generate Artifacts"}
+        </GenerateButton>
       </div>
       <p className="notice notice--warning">
         These outputs are AI-assisted and source-grounded where possible. They are not reviewed yet.
       </p>
+      {artifactLoading && (bundle || podcast) ? <InlineProgress label="Refreshing paper intelligence while keeping the current artifacts visible..." /> : null}
       {artifactError ? <p className="notice notice--error">{artifactError}</p> : null}
       {latestArtifact ? (
         <div className="paper-card__badges paper-card__badges--left">
@@ -166,7 +199,9 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
           <StatusBadge label={latestArtifact.grounding_status} tone={latestArtifact.grounding_status === "grounded" ? "good" : "warn"} />
         </div>
       ) : null}
-      {bundle || podcast ? (
+      {detailLoading || (artifactLoading && !bundle && !podcast) ? (
+        <ListSkeleton count={1} lines={5} />
+      ) : bundle || podcast ? (
         <div className="artifact-panel">
           <div className="artifact-tabs" aria-label="Paper intelligence sections">
             {ARTIFACT_TABS.map((tab) => (
@@ -182,14 +217,18 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
           {renderArtifactTab(activeArtifactTab, bundle, podcast)}
         </div>
       ) : (
-        <p className="empty-state">No paper intelligence artifacts have been generated for this paper yet.</p>
+        <EmptyState
+          title="No paper intelligence artifacts yet"
+          body="Generate artifacts after chunks are available to show summaries, limitations, extensions, skills, evaluation plans, and podcast script text."
+        />
       )}
 
       <div className="section-heading">
         <h2>Related Papers</h2>
       </div>
       <div className="paper-list">
-        {relatedPapers.map((related) => (
+        {detailLoading ? <ListSkeleton count={2} lines={2} /> : null}
+        {!detailLoading && relatedPapers.map((related) => (
           <article className="paper-row" key={related.paper_id}>
             <div>
               <div className="paper-card__meta">
@@ -215,10 +254,11 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
             ) : null}
           </article>
         ))}
-        {!relatedPapers.length ? (
-          <p className="empty-state">
-            No related papers found yet. Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
-          </p>
+        {!detailLoading && !relatedPapers.length ? (
+          <EmptyState
+            title="No related papers found yet"
+            body="Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild"
+          />
         ) : null}
       </div>
 
@@ -226,7 +266,8 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
         <h2>Chunk Preview</h2>
       </div>
       <div className="paper-list">
-        {chunks.map((chunk) => (
+        {detailLoading ? <ListSkeleton count={3} lines={3} /> : null}
+        {!detailLoading && chunks.map((chunk) => (
           <article className="chunk-preview" key={chunk.chunk_id}>
             <div className="paper-card__meta">
               <span>Chunk {chunk.chunk_index + 1}</span>
@@ -238,7 +279,12 @@ export function PaperDetail({ paper, onBack, onSelectPaper }: PaperDetailProps) 
             <p>{chunk.snippet}</p>
           </article>
         ))}
-        {chunks.length === 0 ? <p className="empty-state">No chunks have been generated for this paper yet.</p> : null}
+        {!detailLoading && chunks.length === 0 ? (
+          <EmptyState
+            title="No chunks have been generated"
+            body="Extract and chunk this PDF before search, Ask TTLAB, and paper intelligence can use full-paper text."
+          />
+        ) : null}
       </div>
     </section>
   );
@@ -250,7 +296,7 @@ function renderArtifactTab(
   podcast: PodcastScriptArtifact | null,
 ) {
   if (!bundle && activeTab !== "podcast_script") {
-    return <p className="empty-state">Generate the paper intelligence bundle to view this section.</p>;
+    return <EmptyState title="Generate the paper intelligence bundle" body="This section appears after source-grounded artifacts are generated for the paper." />;
   }
   if (activeTab === "public_summary") {
     return <SectionArtifact title="Public Summary" section={bundle?.public_summary} />;
@@ -279,18 +325,18 @@ function renderArtifactTab(
   if (activeTab === "evaluation_plan") {
     return <SectionArtifact title="Evaluation Plan" section={bundle?.evaluation_plan} />;
   }
-  return podcast ? <PodcastArtifact podcast={podcast} /> : <p className="empty-state">Generate the podcast script artifact to view this section.</p>;
+  return podcast ? <PodcastArtifact podcast={podcast} /> : <EmptyState title="Generate the podcast script" body="Podcast scripts are text only and appear after paper artifacts are generated." />;
 }
 
 function SectionArtifact({ title, section }: { title: string; section: ArtifactSection | undefined }) {
   if (!section) {
-    return <p className="empty-state">This artifact section is not available yet.</p>;
+    return <EmptyState title="Artifact section unavailable" body="Refresh or generate paper intelligence artifacts to populate this section." />;
   }
   const supportStatus = section.support_status ?? section.basis;
   return (
     <article className="artifact-card">
       <div className="paper-card__meta">
-        {supportStatus ? <span className="grounding grounding--partial">{String(supportStatus).replaceAll("_", " ")}</span> : null}
+        {supportStatus ? <StatusBadge label={String(supportStatus)} /> : null}
       </div>
       <h3>{title}</h3>
       <p>{section.text}</p>
@@ -301,14 +347,14 @@ function SectionArtifact({ title, section }: { title: string; section: ArtifactS
 
 function ExtensionsArtifact({ extensions }: { extensions: PaperIntelligenceBundle["possible_extensions"] }) {
   if (!extensions.length) {
-    return <p className="empty-state">No extension suggestions are available yet.</p>;
+    return <EmptyState title="No extension suggestions available" body="Generate or refresh paper intelligence artifacts to create source-based extension ideas." />;
   }
   return (
     <div className="paper-list">
       {extensions.map((extension) => (
         <article className="artifact-card" key={extension.title}>
           <div className="paper-card__meta">
-            <span className="grounding grounding--partial">{extension.support_status.replaceAll("_", " ")}</span>
+            <StatusBadge label={extension.support_status} />
           </div>
           <h3>{extension.title}</h3>
           <p>{extension.summary}</p>
@@ -321,7 +367,7 @@ function ExtensionsArtifact({ extensions }: { extensions: PaperIntelligenceBundl
 
 function SkillsArtifact({ section }: { section: ArtifactSection | undefined }) {
   if (!section) {
-    return <p className="empty-state">Required skills are not available yet.</p>;
+    return <EmptyState title="Required skills unavailable" body="Generate paper intelligence artifacts to infer skills from methods and implementation details." />;
   }
   return (
     <article className="artifact-card">
@@ -342,7 +388,7 @@ function PodcastArtifact({ podcast }: { podcast: PodcastScriptArtifact }) {
     <article className="artifact-card">
       <div className="paper-card__meta">
         <span>{podcast.duration_target}</span>
-        <span>{podcast.review_status}</span>
+        <StatusBadge label={podcast.review_status} />
       </div>
       <h3>{podcast.episode_title}</h3>
       <p>{podcast.short_description}</p>
@@ -361,7 +407,7 @@ function PodcastArtifact({ podcast }: { podcast: PodcastScriptArtifact }) {
 
 function CitationList({ citations }: { citations: ArtifactCitation[] }) {
   if (!citations.length) {
-    return <p className="empty-state">No citations available for this section.</p>;
+    return <EmptyState title="No citations available" body="Treat this section as weakly grounded until source chunks are available." />;
   }
   return (
     <details className="retrieved-details" open>

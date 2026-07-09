@@ -177,6 +177,7 @@ def build_keyword_result(chunk: Chunk, score: float, terms: list[str]) -> dict[s
     return {
         "chunk_id": chunk.chunk_id,
         "paper_id": chunk.paper_id,
+        "chunk_index": chunk.chunk_index,
         "section": chunk.section,
         "page_start": chunk.page_start,
         "page_end": chunk.page_end,
@@ -203,6 +204,8 @@ def enrich_keyword_results(
                 "paper_title": paper.title if paper else "",
                 "authors": paper.authors if paper else [],
                 "year": paper.year if paper else None,
+                "venue": paper.venue if paper else None,
+                "topics": paper.topics if paper else [],
                 "source": {
                     "pdf_url": paper.pdf_url if paper else None,
                     "post_url": paper.post_url if paper else None,

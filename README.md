@@ -33,6 +33,7 @@ Backend storage is SQLite. Search uses keyword FTS/fallback matching plus local 
 - Page-aware chunking
 - Keyword, semantic, and hybrid retrieval
 - Ask TTLAB citation-grounded Q&A
+- Local Ollama model support for Ask TTLAB with red/yellow/green model recommendations
 - Thesis Extension Finder with cited recommendations
 - Paper Intelligence artifacts: public summary, technical summary, contribution, methods, limitations, future work, extensions, required skills, evaluation plan
 - Text-only podcast script generation
@@ -41,7 +42,28 @@ Backend storage is SQLite. Search uses keyword FTS/fallback matching plus local 
 - Evaluation Dashboard for retrieval, QA, extension, and artifact result files
 - Offline/mock provider support and optional external provider boundary
 
+See [docs/LOCAL_LLM_RAG_README.md](docs/LOCAL_LLM_RAG_README.md) for the local Ollama model selector, benchmark workflow, smarter RAG changes, and hardware notes.
+
 ## Quickstart
+
+One-command local demo:
+
+```bash
+./scripts/run_everything.sh
+```
+
+The one-command script checks `http://127.0.0.1:11434/api/tags` and starts `ollama serve` when Ollama is installed but not already running. It then starts/reuses the backend and frontend.
+
+Useful variants:
+
+```bash
+./scripts/run_everything.sh --skip-downloads
+./scripts/run_everything.sh --serve-only
+./scripts/run_everything.sh --serve-only --no-ollama
+./scripts/run_everything.sh --verify-only
+```
+
+Manual setup:
 
 ```bash
 python -m venv .venv
@@ -73,6 +95,32 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:5173`.
+
+## Local Ollama Q&A
+
+Ask TTLAB can use local Ollama models as answer composers while keeping retrieval, citations, page ranges, and grounding checks mandatory.
+
+Check installed models:
+
+```bash
+ollama list
+```
+
+Run a local benchmark across installed models:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.ollama_benchmark --models installed
+```
+
+List model status through the backend:
+
+```bash
+curl http://127.0.0.1:8000/api/llms/local
+```
+
+The default local model is `qwen3:4b-instruct-2507-q4_K_M`. If Ollama is unavailable, Ask TTLAB falls back to the offline extractive provider and shows a warning.
+
+When using the one-command demo launcher, Ollama is started automatically unless you pass `--no-ollama`.
 
 ## Manual Data Commands
 

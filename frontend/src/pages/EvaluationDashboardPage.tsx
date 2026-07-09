@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import { fetchEvaluationDashboard } from "../api/client";
+import { EmptyState, ListSkeleton } from "../components/UiPrimitives";
 import type { EvaluationDashboard, EvaluationSectionStatus } from "../types/paper";
 
 export function EvaluationDashboardPage() {
@@ -25,7 +26,10 @@ export function EvaluationDashboardPage() {
   if (!dashboard) {
     return (
       <section className="page-section">
-        <p className="notice">Loading evaluation dashboard...</p>
+        <div className="evaluation-grid" aria-label="Loading evaluation dashboard" aria-busy="true">
+          <ListSkeleton count={2} lines={4} />
+          <ListSkeleton count={2} lines={4} />
+        </div>
       </section>
     );
   }
@@ -117,7 +121,14 @@ function EvaluationCard({
         <span>{section.last_run_timestamp ? `Last run ${new Date(section.last_run_timestamp).toLocaleString()}` : "No run timestamp"}</span>
       </div>
       <h2>{title}</h2>
-      {section.status === "available" ? <div className="status-table">{children}</div> : <p className="empty-state">Result file not run yet.</p>}
+      {section.status === "available" ? (
+        <div className="status-table">{children}</div>
+      ) : (
+        <EmptyState
+          title="Result file not run yet"
+          body="Run the matching evaluation CLI command when you have reviewed gold/test cases for this section."
+        />
+      )}
     </article>
   );
 }

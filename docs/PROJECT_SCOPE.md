@@ -14,7 +14,7 @@ Make extracted chunks searchable. This phase adds keyword search, local/offline 
 
 ## Phase 4 Goal
 
-Add Ask TTLAB citation-grounded Q&A over indexed chunks. This phase retrieves source chunks, drafts concise answers with the offline extractive provider, verifies citations, stores answers, exposes Ask APIs/CLI, and adds a frontend Ask page.
+Add Ask TTLAB citation-grounded Q&A over indexed chunks. This phase retrieves source chunks, drafts concise answers with the offline extractive provider or local Ollama fallback path, verifies citations, stores answers, exposes Ask APIs/CLI, and adds a frontend Ask page.
 
 ## Phase 5 Goal
 

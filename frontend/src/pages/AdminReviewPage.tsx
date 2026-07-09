@@ -11,6 +11,8 @@ import {
   reviewRecommendation,
 } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
+import { BusyButton, EmptyState, ListSkeleton, MetricSkeletonGrid } from "../components/UiPrimitives";
+import type { ToastTone } from "../components/UiPrimitives";
 import type { AdminOverview, Paper, ReviewEvent, ReviewQueueItem, ReviewStatus } from "../types/paper";
 
 type AdminTab = "overview" | "queue" | "paper" | "artifacts" | "answers" | "recommendations" | "events";
@@ -18,6 +20,7 @@ type AdminTab = "overview" | "queue" | "paper" | "artifacts" | "answers" | "reco
 type AdminReviewPageProps = {
   papers: Paper[];
   onSelectPaper: (paperId: string) => void;
+  onNotify?: (message: string, tone?: ToastTone) => void;
 };
 
 const ADMIN_TABS: { id: AdminTab; label: string }[] = [
@@ -32,7 +35,7 @@ const ADMIN_TABS: { id: AdminTab; label: string }[] = [
 
 const REVIEW_STATUSES: ReviewStatus[] = ["needs_review", "reviewed", "approved", "rejected", "needs_reprocess"];
 
-export function AdminReviewPage({ papers, onSelectPaper }: AdminReviewPageProps) {
+export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReviewPageProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [queue, setQueue] = useState<ReviewQueueItem[]>([]);
@@ -43,7 +46,6 @@ export function AdminReviewPage({ papers, onSelectPaper }: AdminReviewPageProps)
   const [reviewStatus, setReviewStatus] = useState("needs_review");
   const [groundingStatus, setGroundingStatus] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function refresh() {
@@ -84,15 +86,20 @@ export function AdminReviewPage({ papers, onSelectPaper }: AdminReviewPageProps)
   }
 
   function completeAction(text: string) {
-    setMessage(text);
+    onNotify?.(text, "success");
     refresh();
+  }
+
+  function failAction(err: unknown) {
+    const text = err instanceof Error ? err.message : "Admin review action failed.";
+    setError(text);
+    onNotify?.(text, "error");
   }
 
   return (
     <section className="page-section">
       <p className="notice notice--warning">Local demo admin tools. No authentication is implemented in this MVP.</p>
       {error ? <p className="notice notice--error">{error}</p> : null}
-      {message ? <p className="notice">{message}</p> : null}
 
       <div className="artifact-tabs admin-tabs" aria-label="Admin review sections">
         {ADMIN_TABS.map((tab) => (
@@ -110,6 +117,7 @@ export function AdminReviewPage({ papers, onSelectPaper }: AdminReviewPageProps)
           itemType={itemType}
           reviewStatus={reviewStatus}
           groundingStatus={groundingStatus}
+          loading={loading}
           onItemTypeChange={setItemType}
           onReviewStatusChange={setReviewStatus}
           onGroundingStatusChange={setGroundingStatus}
@@ -121,6 +129,7 @@ export function AdminReviewPage({ papers, onSelectPaper }: AdminReviewPageProps)
           papers={papers}
           selectedItem={selectedItem?.item_type === "paper" ? selectedItem : null}
           onSaved={() => completeAction("Paper metadata review saved.")}
+          onError={failAction}
           onSelectPaper={onSelectPaper}
         />
       ) : null}
@@ -128,18 +137,21 @@ export function AdminReviewPage({ papers, onSelectPaper }: AdminReviewPageProps)
         <GeneratedArtifactReview
           item={firstItemOfType(selectedItem, queue, "paper_artifact")}
           onSaved={() => completeAction("Artifact review saved.")}
+          onError={failAction}
         />
       ) : null}
       {activeTab === "answers" ? (
         <AskAnswerReview
           item={firstItemOfType(selectedItem, queue, "rag_answer")}
           onSaved={() => completeAction("Ask answer review saved.")}
+          onError={failAction}
         />
       ) : null}
       {activeTab === "recommendations" ? (
         <ThesisRecommendationReview
           item={firstItemOfType(selectedItem, queue, "thesis_recommendation")}
           onSaved={() => completeAction("Thesis recommendation review saved.")}
+          onError={failAction}
         />
       ) : null}
       {activeTab === "events" ? <ReviewEventsPanel events={events} /> : null}
@@ -149,10 +161,18 @@ export function AdminReviewPage({ papers, onSelectPaper }: AdminReviewPageProps)
 
 function AdminOverviewPanel({ overview, loading }: { overview: AdminOverview | null; loading: boolean }) {
   if (loading && !overview) {
-    return <p className="notice">Loading admin overview...</p>;
+    return (
+      <>
+        <MetricSkeletonGrid count={8} />
+        <div className="admin-grid">
+          <ListSkeleton count={2} lines={2} />
+          <ListSkeleton count={2} lines={2} />
+        </div>
+      </>
+    );
   }
   if (!overview) {
-    return <p className="empty-state">Admin overview is not available yet.</p>;
+    return <EmptyState title="Admin overview is not available yet" body="Start the backend and refresh this local demo page." />;
   }
   return (
     <>
@@ -183,6 +203,7 @@ function ReviewQueuePanel({
   itemType,
   reviewStatus,
   groundingStatus,
+  loading,
   onItemTypeChange,
   onReviewStatusChange,
   onGroundingStatusChange,
@@ -193,6 +214,7 @@ function ReviewQueuePanel({
   itemType: string;
   reviewStatus: string;
   groundingStatus: string;
+  loading: boolean;
   onItemTypeChange: (value: string) => void;
   onReviewStatusChange: (value: string) => void;
   onGroundingStatusChange: (value: string) => void;
@@ -238,6 +260,7 @@ function ReviewQueuePanel({
         <span className="queue-count">{total} items</span>
       </div>
       <div className="paper-list">
+        {loading && !queue.length ? <ListSkeleton count={4} lines={2} /> : null}
         {queue.map((item) => (
           <article className="review-row" key={`${item.item_type}-${item.item_id}`}>
             <div>
@@ -249,9 +272,9 @@ function ReviewQueuePanel({
               {item.warnings.length ? <p>{item.warnings.join(" ")}</p> : <p>No warnings recorded.</p>}
             </div>
             <div className="paper-card__badges">
-              <StatusBadge label={item.status} tone={item.status === "approved" ? "good" : "warn"} />
+              <StatusBadge label={item.status} />
               {item.grounding_status ? (
-                <StatusBadge label={item.grounding_status} tone={item.grounding_status === "grounded" ? "good" : "warn"} />
+                <StatusBadge label={item.grounding_status} />
               ) : null}
               <button className="action-button" onClick={() => onChooseItem(item)}>
                 Open
@@ -259,7 +282,7 @@ function ReviewQueuePanel({
             </div>
           </article>
         ))}
-        {!queue.length ? <p className="empty-state">No items match this review queue filter.</p> : null}
+        {!loading && !queue.length ? <EmptyState title="No items match this review queue filter" body="Change the item type, status, or grounding filter to broaden the queue." /> : null}
       </div>
     </>
   );
@@ -269,11 +292,13 @@ function PaperMetadataReview({
   papers,
   selectedItem,
   onSaved,
+  onError,
   onSelectPaper,
 }: {
   papers: Paper[];
   selectedItem: ReviewQueueItem | null;
   onSaved: () => void;
+  onError: (err: unknown) => void;
   onSelectPaper: (paperId: string) => void;
 }) {
   const initialPaperId = selectedItem?.item_id ?? papers[0]?.paper_id ?? "";
@@ -281,6 +306,7 @@ function PaperMetadataReview({
   const paper = useMemo(() => papers.find((item) => item.paper_id === paperId), [paperId, papers]);
   const selectedDetails = selectedItem?.item_id === paperId ? selectedItem.details : {};
   const [form, setForm] = useState(() => paperFormFrom(paper, selectedDetails));
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (selectedItem?.item_id && selectedItem.item_id !== paperId) {
@@ -294,7 +320,7 @@ function PaperMetadataReview({
   }, [paperId, papers, selectedItem]);
 
   if (!paper && !selectedItem) {
-    return <p className="empty-state">No paper is available for metadata review.</p>;
+    return <EmptyState title="No paper is available for metadata review" body="Import seed data before using metadata review." />;
   }
 
   function updateField(field: string, value: string) {
@@ -305,6 +331,7 @@ function PaperMetadataReview({
     if (!paperId) {
       return;
     }
+    setSaving(true);
     patchAdminPaper(paperId, {
       title: form.title,
       authors: splitCsv(form.authors),
@@ -317,7 +344,10 @@ function PaperMetadataReview({
       abstract: form.abstract || null,
       review_status: form.review_status as ReviewStatus,
       reviewer_notes: form.reviewer_notes || null,
-    }).then(onSaved);
+    })
+      .then(onSaved)
+      .catch(onError)
+      .finally(() => setSaving(false));
   }
 
   return (
@@ -365,14 +395,14 @@ function PaperMetadataReview({
         </label>
         <TextField label="Reviewer notes" value={form.reviewer_notes} onChange={(value) => updateField("reviewer_notes", value)} />
       </div>
-      <button className="action-button" onClick={save}>
+      <BusyButton busy={saving} busyLabel="Saving..." onClick={save}>
         Save Metadata Review
-      </button>
+      </BusyButton>
     </article>
   );
 }
 
-function GeneratedArtifactReview({ item, onSaved }: { item: ReviewQueueItem | null; onSaved: () => void }) {
+function GeneratedArtifactReview({ item, onSaved, onError }: { item: ReviewQueueItem | null; onSaved: () => void; onError: (err: unknown) => void }) {
   const [notes, setNotes] = useState("");
   const [correctedText, setCorrectedText] = useState("");
 
@@ -382,12 +412,12 @@ function GeneratedArtifactReview({ item, onSaved }: { item: ReviewQueueItem | nu
   }, [item]);
 
   if (!item) {
-    return <p className="empty-state">No paper artifact is selected for review.</p>;
+    return <EmptyState title="No paper artifact selected" body="Open an artifact from the review queue to inspect generated content and citations." />;
   }
   const activeItem = item;
 
   function save(status: ReviewStatus) {
-    reviewArtifact(activeItem.item_id, {
+    return reviewArtifact(activeItem.item_id, {
       review_status: status,
       reviewer_notes: notes,
       corrected_text: correctedText || undefined,
@@ -401,6 +431,7 @@ function GeneratedArtifactReview({ item, onSaved }: { item: ReviewQueueItem | nu
       groundingStatus={activeItem.grounding_status}
       warnings={activeItem.warnings}
       onSave={save}
+      onError={onError}
       notes={notes}
       onNotesChange={setNotes}
     >
@@ -415,7 +446,7 @@ function GeneratedArtifactReview({ item, onSaved }: { item: ReviewQueueItem | nu
   );
 }
 
-function AskAnswerReview({ item, onSaved }: { item: ReviewQueueItem | null; onSaved: () => void }) {
+function AskAnswerReview({ item, onSaved, onError }: { item: ReviewQueueItem | null; onSaved: () => void; onError: (err: unknown) => void }) {
   const [notes, setNotes] = useState("");
   const [citationCorrect, setCitationCorrect] = useState("");
   const [faithfulness, setFaithfulness] = useState("");
@@ -429,12 +460,12 @@ function AskAnswerReview({ item, onSaved }: { item: ReviewQueueItem | null; onSa
   }, [item]);
 
   if (!item) {
-    return <p className="empty-state">No Ask TTLAB answer is selected for review.</p>;
+    return <EmptyState title="No Ask TTLAB answer selected" body="Open an answer from the review queue to check faithfulness, usefulness, and citations." />;
   }
   const activeItem = item;
 
   function save(status: ReviewStatus) {
-    reviewAnswer(activeItem.item_id, {
+    return reviewAnswer(activeItem.item_id, {
       review_status: status,
       reviewer_notes: notes,
       citation_correct: selectToBool(citationCorrect),
@@ -450,6 +481,7 @@ function AskAnswerReview({ item, onSaved }: { item: ReviewQueueItem | null; onSa
       groundingStatus={activeItem.grounding_status}
       warnings={activeItem.warnings}
       onSave={save}
+      onError={onError}
       notes={notes}
       onNotesChange={setNotes}
     >
@@ -471,7 +503,7 @@ function AskAnswerReview({ item, onSaved }: { item: ReviewQueueItem | null; onSa
   );
 }
 
-function ThesisRecommendationReview({ item, onSaved }: { item: ReviewQueueItem | null; onSaved: () => void }) {
+function ThesisRecommendationReview({ item, onSaved, onError }: { item: ReviewQueueItem | null; onSaved: () => void; onError: (err: unknown) => void }) {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -479,12 +511,12 @@ function ThesisRecommendationReview({ item, onSaved }: { item: ReviewQueueItem |
   }, [item]);
 
   if (!item) {
-    return <p className="empty-state">No thesis recommendation run is selected for review.</p>;
+    return <EmptyState title="No thesis recommendation selected" body="Open a recommendation run from the review queue to inspect suggestions and citations." />;
   }
   const activeItem = item;
 
   function save(status: ReviewStatus) {
-    reviewRecommendation(activeItem.item_id, {
+    return reviewRecommendation(activeItem.item_id, {
       review_status: status,
       reviewer_notes: notes,
     }).then(onSaved);
@@ -498,6 +530,7 @@ function ThesisRecommendationReview({ item, onSaved }: { item: ReviewQueueItem |
       groundingStatus={activeItem.grounding_status}
       warnings={activeItem.warnings}
       onSave={save}
+      onError={onError}
       notes={notes}
       onNotesChange={setNotes}
     >
@@ -539,7 +572,7 @@ function ReviewEventsPanel({ events }: { events: ReviewEvent[] }) {
           </div>
         </article>
       ))}
-      {!events.length ? <p className="empty-state">No review events have been recorded yet.</p> : null}
+      {!events.length ? <EmptyState title="No review events yet" body="Approve, reject, correct, or mark an item to start the local audit trail." /> : null}
     </div>
   );
 }
@@ -552,6 +585,7 @@ function ReviewCard({
   notes,
   onNotesChange,
   onSave,
+  onError,
   children,
 }: {
   title: string;
@@ -560,14 +594,24 @@ function ReviewCard({
   warnings: string[];
   notes: string;
   onNotesChange: (value: string) => void;
-  onSave: (status: ReviewStatus) => void;
+  onSave: (status: ReviewStatus) => Promise<unknown> | void;
+  onError: (err: unknown) => void;
   children: ReactNode;
 }) {
+  const [savingStatus, setSavingStatus] = useState<ReviewStatus | null>(null);
+
+  function save(status: ReviewStatus) {
+    setSavingStatus(status);
+    Promise.resolve(onSave(status))
+      .catch(onError)
+      .finally(() => setSavingStatus(null));
+  }
+
   return (
     <article className="admin-card">
       <div className="paper-card__badges paper-card__badges--left">
-        <StatusBadge label={status} tone={status === "approved" ? "good" : "warn"} />
-        {groundingStatus ? <StatusBadge label={groundingStatus} tone={groundingStatus === "grounded" ? "good" : "warn"} /> : null}
+        <StatusBadge label={status} />
+        {groundingStatus ? <StatusBadge label={groundingStatus} /> : null}
       </div>
       <h2>{title}</h2>
       {warnings.length ? <p className="notice notice--warning">{warnings.join(" ")}</p> : null}
@@ -577,15 +621,15 @@ function ReviewCard({
         <textarea value={notes} onChange={(event) => onNotesChange(event.target.value)} rows={4} />
       </label>
       <div className="admin-action-row">
-        <button className="action-button" onClick={() => onSave("approved")}>
+        <BusyButton busy={savingStatus === "approved"} busyLabel="Approving..." onClick={() => save("approved")}>
           Approve
-        </button>
-        <button className="action-button action-button--secondary" onClick={() => onSave("needs_review")}>
+        </BusyButton>
+        <BusyButton variant="secondary" busy={savingStatus === "needs_review"} busyLabel="Marking..." onClick={() => save("needs_review")}>
           Needs Review
-        </button>
-        <button className="action-button action-button--danger" onClick={() => onSave("rejected")}>
+        </BusyButton>
+        <BusyButton variant="danger" busy={savingStatus === "rejected"} busyLabel="Rejecting..." onClick={() => save("rejected")}>
           Reject
-        </button>
+        </BusyButton>
       </div>
     </article>
   );
@@ -644,7 +688,7 @@ function ScoreSelect({ label, value, onChange }: { label: string; value: string;
 function CitationPreview({ details }: { details: Record<string, unknown> }) {
   const citations = getArray(details, "citations").map(asRecord).filter((item) => getString(item, "chunk_id"));
   if (!citations.length) {
-    return <p className="empty-state">No citations recorded for this item.</p>;
+    return <EmptyState title="No citations recorded" body="This item should be reviewed carefully before approval." />;
   }
   return (
     <details className="retrieved-details" open>

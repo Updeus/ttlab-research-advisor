@@ -129,7 +129,7 @@ PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 - Keyword index missing: run `PYTHONPATH=backend .venv/bin/python -m app.indexing.keyword_search rebuild`.
 - Topic explorer empty: run `PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild`.
 - Evaluation files not run: the Evaluation Dashboard will show `not_run`; this is expected until evaluators are run with reviewed cases.
-- CORS/API base URL issue: frontend defaults to `http://localhost:8000`; set `VITE_API_BASE=http://127.0.0.1:8000` if needed.
+- CORS/API base URL issue: frontend defaults to `http://127.0.0.1:8000`; the backend allows both `http://localhost:5173` and `http://127.0.0.1:5173`.
 
 ## 9. Git Hygiene
 

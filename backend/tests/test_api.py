@@ -17,6 +17,18 @@ def test_health_works() -> None:
     assert response.json()["status"] == "ok"
 
 
+def test_root_and_favicon_are_demo_friendly() -> None:
+    client = TestClient(app)
+
+    root = client.get("/")
+    assert root.status_code == 200
+    assert root.json()["api_docs"] == "/docs"
+    assert root.json()["frontend"] == "http://127.0.0.1:5173"
+
+    favicon = client.get("/favicon.ico")
+    assert favicon.status_code == 204
+
+
 def test_api_papers_returns_imported_records() -> None:
     engine = create_engine(
         "sqlite:///:memory:",

@@ -257,3 +257,20 @@ Do not invent gold labels, expected source chunks, or human scores. For thesis e
 - fill human review CSV templates only after a reviewer scores the outputs.
 
 Automatic metrics measure only against the files provided. They are useful for reproducibility and regression checks, but they are not a claim of research quality without reviewed test cases.
+
+## Local Ollama Benchmarking
+
+Local model benchmarking is machine-specific and should be treated as an optimization baseline, not a research-quality claim.
+
+Run:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.ollama_benchmark --models installed
+```
+
+Outputs:
+
+- `data/evaluation/ollama_benchmark_results.json`
+- `data/evaluation/ollama_benchmark_results.csv`
+
+The benchmark records first/warm response time, tokens per second when Ollama reports it, citation compliance, refusal behavior, and a simple heuristic answer-quality score. Human review is still required before claiming that one model is academically better than another.

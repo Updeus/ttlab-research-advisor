@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 
 import { fetchSearchDiagnostics, searchChunks } from "../api/client";
+import { EmptyState, InlineProgress, ListSkeleton, SearchActionButton } from "../components/UiPrimitives";
+import type { ToastTone } from "../components/UiPrimitives";
 import type { Paper, SearchDiagnostics, SearchMode, SearchResponse } from "../types/paper";
 
 type SearchPageProps = {
   papers: Paper[];
   onSelectPaper: (paperId: string) => void;
+  onNotify?: (message: string, tone?: ToastTone) => void;
 };
 
-export function SearchPage({ papers, onSelectPaper }: SearchPageProps) {
+export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps) {
   const [query, setQuery] = useState("RAG academic research");
   const [mode, setMode] = useState<SearchMode>("hybrid");
   const [limit, setLimit] = useState(10);
@@ -31,8 +34,15 @@ export function SearchPage({ papers, onSelectPaper }: SearchPageProps) {
     setLoading(true);
     setError(null);
     searchChunks(trimmed, mode, limit)
-      .then(setResponse)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Search failed."))
+      .then((result) => {
+        setResponse(result);
+        onNotify?.(`Search returned ${result.result_count} source chunks.`, "success");
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : "Search failed.";
+        setError(message);
+        onNotify?.(message, "error");
+      })
       .finally(() => setLoading(false));
   }
 
@@ -42,7 +52,7 @@ export function SearchPage({ papers, onSelectPaper }: SearchPageProps) {
         <h2>Search Source Chunks</h2>
       </div>
 
-      <div className="search-toolbar">
+      <div className="search-toolbar" aria-busy={loading}>
         <input
           aria-label="Search source chunks"
           value={query}
@@ -63,7 +73,7 @@ export function SearchPage({ papers, onSelectPaper }: SearchPageProps) {
           <option value={10}>10</option>
           <option value={20}>20</option>
         </select>
-        <button onClick={runSearch}>Search</button>
+        <SearchActionButton busy={loading} onClick={runSearch} disabled={!query.trim()} />
       </div>
 
       {diagnostics ? (
@@ -75,12 +85,13 @@ export function SearchPage({ papers, onSelectPaper }: SearchPageProps) {
         </div>
       ) : null}
 
-      {loading ? <p className="notice">Searching chunks...</p> : null}
+      {loading && response ? <InlineProgress label="Updating results from indexed chunks..." /> : null}
       {error ? <p className="notice notice--error">{error}</p> : null}
       {response?.warnings.length ? (
         <p className="notice notice--warning">{response.warnings.join(" ")}</p>
       ) : null}
 
+      {loading && !response ? <ListSkeleton count={limit > 10 ? 5 : 3} lines={3} /> : null}
       <div className="paper-list">
         {response?.results.map((result) => {
           const paper = papers.find((item) => item.paper_id === result.paper_id);
@@ -115,7 +126,12 @@ export function SearchPage({ papers, onSelectPaper }: SearchPageProps) {
             </article>
           );
         })}
-        {response && response.results.length === 0 ? <p className="empty-state">No source chunks matched this search.</p> : null}
+        {response && response.results.length === 0 ? (
+          <EmptyState
+            title="No source chunks matched this search"
+            body="Try a broader phrase, fewer exact terms, or switch between keyword, semantic, and hybrid modes."
+          />
+        ) : null}
       </div>
     </section>
   );

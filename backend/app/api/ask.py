@@ -19,6 +19,8 @@ class AskRequest(BaseModel):
     audience: str = "general"
     max_words: int = Field(default=250, ge=50, le=600)
     provider: str = "auto"
+    model: str | None = None
+    paper_id: str | None = None
 
 
 @router.post("/ask")
@@ -31,6 +33,8 @@ def ask(request: AskRequest, session: Annotated[Session, Depends(get_session)]) 
         audience=request.audience,
         max_words=request.max_words,
         provider_name=request.provider,
+        model_name=request.model,
+        paper_id=request.paper_id,
     )
 
 

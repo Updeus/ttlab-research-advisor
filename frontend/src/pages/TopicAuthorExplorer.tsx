@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { fetchAuthorDetail, fetchAuthors, fetchExplorerOverview, fetchTopicDetail, fetchTopics } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
+import { EmptyState, InlineProgress, ListSkeleton, MetricSkeletonGrid, SearchActionButton } from "../components/UiPrimitives";
 import type { AuthorDetail, AuthorSummary, ExplorerOverview, PaperSummary, TopicDetail, TopicSummary } from "../types/paper";
 
 type ExplorerTab = "overview" | "topics" | "authors";
@@ -22,6 +23,8 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
   const [authorTopicFilter, setAuthorTopicFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [listLoading, setListLoading] = useState<"topics" | "authors" | null>(null);
+  const [detailLoading, setDetailLoading] = useState<"topic" | "author" | null>(null);
 
   function loadOverview() {
     setLoading(true);
@@ -41,33 +44,45 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
   }, []);
 
   function searchTopics() {
+    setListLoading("topics");
+    setError(null);
     fetchTopics({ q: topicQuery, limit: 50 })
       .then((rows) => setTopics(rows.items))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to search topics."));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to search topics."))
+      .finally(() => setListLoading(null));
   }
 
   function searchAuthors() {
+    setListLoading("authors");
+    setError(null);
     fetchAuthors({ q: authorQuery, topic: authorTopicFilter, limit: 50 })
       .then((rows) => setAuthors(rows.items))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to search authors."));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to search authors."))
+      .finally(() => setListLoading(null));
   }
 
   function openTopic(topicId: string) {
+    setDetailLoading("topic");
+    setError(null);
     fetchTopicDetail(topicId)
       .then((detail) => {
         setSelectedTopic(detail);
         setActiveTab("topics");
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load topic detail."));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load topic detail."))
+      .finally(() => setDetailLoading(null));
   }
 
   function openAuthor(authorId: number) {
+    setDetailLoading("author");
+    setError(null);
     fetchAuthorDetail(authorId)
       .then((detail) => {
         setSelectedAuthor(detail);
         setActiveTab("authors");
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load author detail."));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load author detail."))
+      .finally(() => setDetailLoading(null));
   }
 
   return (
@@ -76,7 +91,7 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
         Topic and author relationships are deterministic and source-derived from indexed papers, chunks, and artifacts. They are not manually verified unless reviewed.
       </p>
       {error ? <p className="notice notice--error">{error}</p> : null}
-      {loading ? <p className="notice">Loading explorer data...</p> : null}
+      {loading && !overview ? <InlineProgress label="Loading explorer overview, topics, and authors..." /> : null}
 
       <div className="artifact-tabs explorer-tabs" aria-label="Explorer sections">
         <button className={activeTab === "overview" ? "active" : ""} onClick={() => setActiveTab("overview")}>
@@ -90,6 +105,7 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
         </button>
       </div>
 
+      {activeTab === "overview" && loading && !overview ? <ExplorerOverviewSkeleton /> : null}
       {activeTab === "overview" && overview ? (
         <ExplorerOverviewPanel overview={overview} onOpenTopic={openTopic} onOpenAuthor={openAuthor} onSelectPaper={onSelectPaper} />
       ) : null}
@@ -98,6 +114,8 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
           topics={topics}
           query={topicQuery}
           selectedTopic={selectedTopic}
+          loading={loading || listLoading === "topics"}
+          detailLoading={detailLoading === "topic"}
           onQueryChange={setTopicQuery}
           onSearch={searchTopics}
           onOpenTopic={openTopic}
@@ -110,6 +128,8 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
           query={authorQuery}
           topicFilter={authorTopicFilter}
           selectedAuthor={selectedAuthor}
+          loading={loading || listLoading === "authors"}
+          detailLoading={detailLoading === "author"}
           onQueryChange={setAuthorQuery}
           onTopicFilterChange={setAuthorTopicFilter}
           onSearch={searchAuthors}
@@ -118,6 +138,18 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
         />
       ) : null}
     </section>
+  );
+}
+
+function ExplorerOverviewSkeleton() {
+  return (
+    <>
+      <MetricSkeletonGrid count={6} />
+      <div className="explorer-columns">
+        <ListSkeleton count={3} lines={2} />
+        <ListSkeleton count={3} lines={2} />
+      </div>
+    </>
   );
 }
 
@@ -146,9 +178,10 @@ function ExplorerOverviewPanel({
         </article>
       </div>
       {overview.explorer_index_status !== "ready" ? (
-        <p className="empty-state">
-          No topics have been built yet. Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
-        </p>
+        <EmptyState
+          title="No topics have been built yet"
+          body="Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild"
+        />
       ) : null}
       <div className="explorer-columns">
         <section>
@@ -176,6 +209,8 @@ function TopicBrowser({
   topics,
   query,
   selectedTopic,
+  loading,
+  detailLoading,
   onQueryChange,
   onSearch,
   onOpenTopic,
@@ -184,6 +219,8 @@ function TopicBrowser({
   topics: TopicSummary[];
   query: string;
   selectedTopic: TopicDetail | null;
+  loading: boolean;
+  detailLoading: boolean;
   onQueryChange: (value: string) => void;
   onSearch: () => void;
   onOpenTopic: (topicId: string) => void;
@@ -192,26 +229,28 @@ function TopicBrowser({
   return (
     <div className="explorer-layout">
       <section>
-        <div className="search-toolbar explorer-toolbar">
+        <div className="search-toolbar explorer-toolbar" aria-busy={loading}>
           <input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Search topics" />
-          <button onClick={onSearch}>Search</button>
+          <SearchActionButton busy={loading} onClick={onSearch} />
         </div>
         <div className="paper-list">
-          {topics.map((topic) => (
+          {loading ? <ListSkeleton count={4} lines={2} /> : null}
+          {!loading && topics.map((topic) => (
             <TopicCard key={topic.topic_id} topic={topic} onOpenTopic={onOpenTopic} onSelectPaper={onSelectPaper} />
           ))}
-          {!topics.length ? (
-            <p className="empty-state">
-              No topics found. Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
-            </p>
+          {!loading && !topics.length ? (
+            <EmptyState
+              title="No topics found"
+              body="Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild"
+            />
           ) : null}
         </div>
       </section>
       <section>
-        {selectedTopic ? (
+        {detailLoading ? <ListSkeleton count={1} lines={5} /> : selectedTopic ? (
           <TopicDetailPanel topic={selectedTopic} onOpenTopic={onOpenTopic} onSelectPaper={onSelectPaper} />
         ) : (
-          <p className="empty-state">Open a topic to inspect papers, authors, related topics, and evidence.</p>
+          <EmptyState title="Open a topic" body="Inspect papers, authors, related topics, and source evidence for the selected topic." />
         )}
       </section>
     </div>
@@ -223,6 +262,8 @@ function AuthorBrowser({
   query,
   topicFilter,
   selectedAuthor,
+  loading,
+  detailLoading,
   onQueryChange,
   onTopicFilterChange,
   onSearch,
@@ -233,6 +274,8 @@ function AuthorBrowser({
   query: string;
   topicFilter: string;
   selectedAuthor: AuthorDetail | null;
+  loading: boolean;
+  detailLoading: boolean;
   onQueryChange: (value: string) => void;
   onTopicFilterChange: (value: string) => void;
   onSearch: () => void;
@@ -242,23 +285,24 @@ function AuthorBrowser({
   return (
     <div className="explorer-layout">
       <section>
-        <div className="search-toolbar explorer-toolbar explorer-toolbar--authors">
+        <div className="search-toolbar explorer-toolbar explorer-toolbar--authors" aria-busy={loading}>
           <input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Search authors" />
           <input value={topicFilter} onChange={(event) => onTopicFilterChange(event.target.value)} placeholder="Filter by topic" />
-          <button onClick={onSearch}>Search</button>
+          <SearchActionButton busy={loading} onClick={onSearch} />
         </div>
         <div className="paper-list">
-          {authors.map((author) => (
+          {loading ? <ListSkeleton count={4} lines={2} /> : null}
+          {!loading && authors.map((author) => (
             <AuthorCard key={author.author_id} author={author} onOpenAuthor={onOpenAuthor} onSelectPaper={onSelectPaper} />
           ))}
-          {!authors.length ? <p className="empty-state">No authors found for this search.</p> : null}
+          {!loading && !authors.length ? <EmptyState title="No authors found" body="Try clearing the topic filter or searching a broader name fragment." /> : null}
         </div>
       </section>
       <section>
-        {selectedAuthor ? (
+        {detailLoading ? <ListSkeleton count={1} lines={5} /> : selectedAuthor ? (
           <AuthorDetailPanel author={selectedAuthor} onSelectPaper={onSelectPaper} />
         ) : (
-          <p className="empty-state">Open an author to inspect papers, topics, coauthors, venues, and source-derived expertise.</p>
+          <EmptyState title="Open an author" body="Inspect indexed papers, topics, coauthors, venues, and source-derived expertise." />
         )}
       </section>
     </div>
@@ -428,7 +472,7 @@ function AuthorDetailPanel({ author, onSelectPaper }: { author: AuthorDetail; on
 
 function SmallPaperLinks({ papers, onSelectPaper }: { papers: PaperSummary[]; onSelectPaper: (paperId: string) => void }) {
   if (!papers.length) {
-    return <p className="empty-state empty-state--compact">No papers linked yet.</p>;
+    return <EmptyState title="No papers linked yet" />;
   }
   return (
     <div className="paper-mini-list">

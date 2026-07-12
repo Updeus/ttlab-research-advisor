@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Updeus/ttlab-research-advisor/data/evaluation/retrieval_silver_create_v1.schema.json",
+  "title": "TTLAB AI-reviewed silver retrieval judgment, creation pass",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id",
+    "question",
+    "category",
+    "answerability",
+    "relevant_paper_ids",
+    "supporting_evidence",
+    "distractor_paper_ids",
+    "rationale",
+    "split",
+    "reviewer_id",
+    "reviewer_type",
+    "label_quality",
+    "pass",
+    "timestamp",
+    "annotation_uncertainty",
+    "second_pass_note"
+  ],
+  "properties": {
+    "case_id": {"type": "string", "pattern": "^ret-create-[0-9]{3}$"},
+    "question": {"type": "string", "minLength": 10},
+    "category": {
+      "enum": [
+        "exact_factual_lookup",
+        "methods",
+        "results",
+        "limitations_future_work",
+        "title_author_venue",
+        "topic_application",
+        "comparison",
+        "broad_intent",
+        "multi_paper_synthesis",
+        "hard_negative",
+        "unanswerable_out_of_corpus"
+      ]
+    },
+    "answerability": {"enum": ["answerable", "unanswerable"]},
+    "relevant_paper_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "supporting_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paper_id", "chunk_id", "page_start", "page_end", "section", "evidence_summary"],
+        "properties": {
+          "paper_id": {"type": "string", "minLength": 1},
+          "chunk_id": {"type": "string", "minLength": 1},
+          "page_start": {"type": ["integer", "null"], "minimum": 1},
+          "page_end": {"type": ["integer", "null"], "minimum": 1},
+          "section": {"type": ["string", "null"]},
+          "evidence_summary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "metadata_assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paper_id", "title", "authors", "year", "venue"],
+        "properties": {
+          "paper_id": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "authors": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "year": {"type": ["integer", "null"]},
+          "venue": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "distractor_paper_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "corpus_absence_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["terms", "matching_chunk_count"],
+      "properties": {
+        "terms": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 2}},
+        "matching_chunk_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "rationale": {"type": "string", "minLength": 10},
+    "split": {"enum": ["dev", "test"]},
+    "reviewer_id": {"const": "codex-ai-review"},
+    "reviewer_type": {"const": "ai"},
+    "label_quality": {"const": "silver"},
+    "pass": {"const": "create"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "annotation_uncertainty": {"enum": ["low", "medium", "high"]},
+    "second_pass_note": {"type": "string", "minLength": 10}
+  }
+}

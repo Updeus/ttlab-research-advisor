@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     ollama_timeout_seconds: float = 20.0
     ollama_num_ctx: int = 4096
     ollama_keep_alive: str = "10m"
+    dense_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    dense_embedding_revision: str = "826711e54e001c83835913827a843d8dd0a1def9"
+    dense_embedding_device: str = "cpu"
 
     model_config = SettingsConfigDict(env_prefix="TTLAB_", env_file=".env")
 

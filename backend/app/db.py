@@ -34,9 +34,23 @@ def ensure_sqlite_schema() -> None:
     if not settings.database_url.startswith("sqlite"):
         return
     paper_columns = {
+        "pdf_unavailability_reason": "VARCHAR",
+        "pdf_unavailability_detail": "VARCHAR",
         "extracted_json_path": "VARCHAR",
         "extracted_text_path": "VARCHAR",
         "extraction_diagnostics": "VARCHAR",
+        "extraction_content_type": "VARCHAR DEFAULT 'unknown' NOT NULL",
+        "ocr_status": "VARCHAR DEFAULT 'not_requested' NOT NULL",
+        "ocr_provider": "VARCHAR",
+        "ocr_provider_version": "VARCHAR",
+        "ocr_pages_count": "INTEGER DEFAULT 0 NOT NULL",
+        "ocr_review_required": "BOOLEAN DEFAULT 0 NOT NULL",
+        "metadata_provenance": "VARCHAR",
+        "metadata_field_reviews": "VARCHAR",
+        "corpus_eligibility_status": "VARCHAR DEFAULT 'needs_review' NOT NULL",
+        "corpus_exclusion_reason": "VARCHAR",
+        "pdf_title_match_status": "VARCHAR DEFAULT 'not_assessed' NOT NULL",
+        "pdf_title_match_score": "FLOAT",
         "page_count": "INTEGER",
         "total_char_count": "INTEGER DEFAULT 0 NOT NULL",
         "total_word_count": "INTEGER DEFAULT 0 NOT NULL",
@@ -47,6 +61,16 @@ def ensure_sqlite_schema() -> None:
         "reviewer_notes": "VARCHAR",
         "reviewed_at": "DATETIME",
         "reviewed_by": "VARCHAR",
+    }
+    author_columns = {
+        "canonical_name": "VARCHAR",
+        "normalized_name": "VARCHAR",
+        "identity_status": "VARCHAR DEFAULT 'unresolved' NOT NULL",
+        "identity_review_status": "VARCHAR DEFAULT 'needs_review' NOT NULL",
+        "identity_review_notes": "VARCHAR",
+        "merged_into_author_id": "INTEGER",
+        "persistent_identifier": "VARCHAR",
+        "persistent_identifier_source": "VARCHAR",
     }
     chunk_columns = {
         "chunk_index": "INTEGER DEFAULT 0 NOT NULL",
@@ -79,6 +103,7 @@ def ensure_sqlite_schema() -> None:
     }
     with engine.begin() as connection:
         add_missing_columns(connection, "paper", paper_columns)
+        add_missing_columns(connection, "author", author_columns)
         add_missing_columns(connection, "chunk", chunk_columns)
         add_missing_columns(connection, "raganswer", rag_answer_columns)
         add_missing_columns(connection, "thesisrecommendation", recommendation_columns)
@@ -87,6 +112,24 @@ def ensure_sqlite_schema() -> None:
             text(
                 "UPDATE paper SET extraction_diagnostics = '{}' "
                 "WHERE extraction_diagnostics IS NULL OR extraction_diagnostics = '[]'"
+            )
+        )
+        connection.execute(
+            text(
+                "UPDATE paper SET metadata_provenance = '{}' "
+                "WHERE metadata_provenance IS NULL OR metadata_provenance = '[]'"
+            )
+        )
+        connection.execute(
+            text(
+                "UPDATE paper SET metadata_field_reviews = '{}' "
+                "WHERE metadata_field_reviews IS NULL OR metadata_field_reviews = '[]'"
+            )
+        )
+        connection.execute(
+            text(
+                "UPDATE author SET canonical_name = name "
+                "WHERE canonical_name IS NULL OR TRIM(canonical_name) = ''"
             )
         )
         connection.execute(

@@ -8,7 +8,7 @@ from sqlmodel import Session, func, select
 
 from app.db import create_db_and_tables, engine
 from app.indexing.chunker import chunk_from_db
-from app.indexing.embedder import index_chunks
+from app.indexing.embedder import DEMO_INDEX_PATH, FEATURE_HASHING_PROVIDER, index_chunks
 from app.indexing.keyword_search import rebuild_keyword_index
 from app.ingestion.manual_import import load_seed, upsert_papers
 from app.ingestion.pdf_downloader import download_pdfs, filter_records, load_records_from_db
@@ -63,7 +63,18 @@ def prepare_demo_with_session(
     summary["extract"] = extract_from_db(session, limit=limit)
     summary["chunk"] = chunk_from_db(session, limit=limit)
     summary["keyword_index"] = rebuild_keyword_index(session)
-    summary["semantic_index"] = index_chunks(session, provider_name="hashing", limit=limit)
+    # A bounded demo index is deliberately isolated from the authoritative
+    # full-corpus index and never updates authoritative DB embedding statuses.
+    summary["feature_hashing_demo_index"] = index_chunks(
+        session,
+        provider_name=FEATURE_HASHING_PROVIDER,
+        limit=limit,
+        output_path=DEMO_INDEX_PATH,
+        allow_partial=True,
+        update_db_status=False,
+        index_role="bounded_demo",
+    )
+    summary["semantic_index"] = summary["feature_hashing_demo_index"]  # legacy summary key
     summary["topic_explorer"] = rebuild_topic_index(session)
 
     chunked_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
@@ -104,7 +115,7 @@ def demo_summary(session: Session) -> dict[str, Any]:
     from app.indexing.keyword_search import diagnostics as keyword_diagnostics
 
     keyword = keyword_diagnostics(session)
-    semantic = index_diagnostics()
+    semantic = index_diagnostics(session)
     return {
         "papers_imported": session.exec(select(func.count()).select_from(Paper)).one(),
         "pdfs_downloaded": session.exec(

@@ -1,0 +1,48 @@
+{
+  "dataset_id": "ttlab-retrieval-silver-create-v1",
+  "dataset_path": "data/evaluation/retrieval_silver_create_v1.jsonl",
+  "schema_path": "data/evaluation/retrieval_silver_create_v1.schema.json",
+  "validator_path": "data/evaluation/validate_retrieval_silver_create_v1.py",
+  "created_at": "2026-07-12T22:10:35Z",
+  "source_git_commit_at_validation": "616e88469144726c5137202b07f58adf90a17405",
+  "source_database_path": "data/papers.db",
+  "source_database_sha256": "3823858062edfa0559997e66c3708685ad0b1fc95dd4b60ee2c4ee5389849f91",
+  "source_inventory": {
+    "papers": 134,
+    "papers_with_chunks": 98,
+    "chunks": 756
+  },
+  "dataset_sha256": "c450ea84da13fac1e822d82619ae7ed4b4d6d0a58ca7969223d30f35b1b00199",
+  "schema_sha256": "1c113ec280f99875cf2e231211044a7c129f2d71a2d247bdb337c62cbf08a7db",
+  "validator_sha256": "658dc34c2ea37d878841bc2944f4d3e0f0c03e26310f934d8aa15d1c99de3fbb",
+  "case_count": 50,
+  "split_counts": {"dev": 30, "test": 20},
+  "category_counts": {
+    "exact_factual_lookup": 5,
+    "methods": 5,
+    "results": 5,
+    "limitations_future_work": 5,
+    "title_author_venue": 5,
+    "topic_application": 5,
+    "comparison": 4,
+    "broad_intent": 4,
+    "multi_paper_synthesis": 4,
+    "hard_negative": 4,
+    "unanswerable_out_of_corpus": 4
+  },
+  "uncertainty_counts": {"low": 41, "medium": 7, "high": 2},
+  "annotation": {
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai",
+    "label_quality": "silver",
+    "pass": "create",
+    "procedure": "Questions and relevance evidence were prepared from direct paper metadata and SQLite chunk/page inspection. Retrieval functions, search endpoints, result rankings, and system scores were not inspected while labeling.",
+    "second_pass_status": "pending shuffled verification and adjudication"
+  },
+  "excluded_known_title_pdf_mismatches": [
+    "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+    "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f"
+  ],
+  "redistribution_note": "The JSONL stores identifiers, page ranges, and paraphrased evidence summaries; it does not embed paper PDFs or full chunk text.",
+  "validation_command": ".venv/bin/python data/evaluation/validate_retrieval_silver_create_v1.py"
+}

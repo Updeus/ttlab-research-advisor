@@ -33,6 +33,8 @@ class PaperPatchRequest(BaseModel):
     source_url: Optional[str] = None
     pdf_url: Optional[str] = None
     abstract: Optional[str] = None
+    doi: Optional[str] = None
+    keywords: Optional[list[str]] = None
     review_status: Optional[ReviewStatus] = None
     reviewer_notes: Optional[str] = None
 
@@ -79,9 +81,21 @@ def admin_overview(session: Annotated[Session, Depends(get_session)]) -> dict[st
         "papers_with_extraction_failures": sum(
             1
             for paper in papers
-            if paper.pdf_text_status in {"extraction_failed", "download_failed", "invalid_pdf", "no_text"}
+            if paper.pdf_text_status in {
+                "extraction_failed",
+                "download_failed",
+                "invalid_pdf",
+                "no_text",
+                "scanned_pdf",
+                "blank_pdf",
+            }
         ),
         "possible_scanned_pdfs": sum(1 for paper in papers if paper.possible_scanned_pdf),
+        "ocr_review_required": sum(1 for paper in papers if paper.ocr_review_required),
+        "pdf_unavailability_reasons": count_by_attr(
+            [paper for paper in papers if paper.pdf_unavailability_reason],
+            "pdf_unavailability_reason",
+        ),
         "total_chunks": session.exec(select(func.count()).select_from(Chunk)).one(),
         "rag_answers": status_breakdown(answers),
         "rag_answers_by_grounding": grounding_breakdown(answers),
@@ -143,6 +157,24 @@ def patch_paper(
         if old_value != new_value:
             diff[field_name] = {"before": old_value, "after": new_value}
             setattr(paper, field_name, new_value)
+    corrected_metadata_fields = {
+        field_name
+        for field_name in diff
+        if field_name not in {"review_status", "reviewer_notes"}
+    }
+    if corrected_metadata_fields:
+        provenance = dict(paper.metadata_provenance or {})
+        field_reviews = dict(paper.metadata_field_reviews or {})
+        for field_name in corrected_metadata_fields:
+            provenance[field_name] = {
+                "source": "admin_review",
+                "reviewer": "local_admin",
+                "recorded_at": utc_now().isoformat(),
+                "status": request.review_status or "reviewed",
+            }
+            field_reviews[field_name] = request.review_status or "reviewed"
+        paper.metadata_provenance = provenance
+        paper.metadata_field_reviews = field_reviews
     if "review_status" in updates or "reviewer_notes" in updates:
         apply_review_metadata(paper, paper.review_status, request.reviewer_notes)
     paper.updated_at = utc_now()
@@ -506,8 +538,24 @@ def serialize_paper_for_admin(paper: Paper) -> dict[str, Any]:
         "source_url": paper.source_url,
         "pdf_url": paper.pdf_url,
         "abstract": paper.abstract,
+        "doi": paper.doi,
+        "keywords": paper.keywords,
+        "metadata_provenance": paper.metadata_provenance,
+        "metadata_field_reviews": paper.metadata_field_reviews,
         "pdf_text_status": paper.pdf_text_status,
+        "pdf_unavailability_reason": paper.pdf_unavailability_reason,
+        "pdf_unavailability_detail": paper.pdf_unavailability_detail,
         "possible_scanned_pdf": paper.possible_scanned_pdf,
+        "extraction_content_type": paper.extraction_content_type,
+        "ocr_status": paper.ocr_status,
+        "ocr_provider": paper.ocr_provider,
+        "ocr_provider_version": paper.ocr_provider_version,
+        "ocr_pages_count": paper.ocr_pages_count,
+        "ocr_review_required": paper.ocr_review_required,
+        "pdf_title_match_status": paper.pdf_title_match_status,
+        "pdf_title_match_score": paper.pdf_title_match_score,
+        "corpus_eligibility_status": paper.corpus_eligibility_status,
+        "corpus_exclusion_reason": paper.corpus_exclusion_reason,
         "review_status": paper.review_status,
         "reviewer_notes": paper.reviewer_notes,
         "reviewed_at": format_dt(paper.reviewed_at),
@@ -594,10 +642,19 @@ def paper_warnings(paper: Paper) -> list[str]:
     warnings: list[str] = []
     if paper.pdf_text_status == "missing_pdf":
         warnings.append("Missing direct PDF.")
-    if paper.pdf_text_status in {"extraction_failed", "download_failed", "invalid_pdf", "no_text"}:
+    if paper.pdf_text_status in {
+        "extraction_failed",
+        "download_failed",
+        "invalid_pdf",
+        "no_text",
+        "scanned_pdf",
+        "blank_pdf",
+    }:
         warnings.append(f"Extraction status is {paper.pdf_text_status}.")
     if paper.possible_scanned_pdf:
         warnings.append("Possible scanned or image-heavy PDF.")
+    if paper.ocr_review_required:
+        warnings.append(f"OCR/extraction review required (OCR status: {paper.ocr_status}).")
     if not paper.authors:
         warnings.append("Authors need review.")
     if not paper.venue:

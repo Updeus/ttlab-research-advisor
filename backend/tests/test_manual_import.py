@@ -35,4 +35,7 @@ def test_manual_import_upserts_papers_and_authors() -> None:
     assert paper is not None
     assert paper.review_status == "needs_review"
     assert paper.authors == ["Asha Singh", "Patrick Hosein"]
+    assert paper.pdf_unavailability_reason == "no_pdf_url"
+    assert paper.metadata_provenance["title"]["source"] == "manual_seed"
+    assert paper.metadata_field_reviews["venue"] == "needs_review"
     assert {author.name for author in authors} == {"Asha Singh", "Patrick Hosein"}

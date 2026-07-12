@@ -4,10 +4,20 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.db import create_db_and_tables, engine
-from app.indexing.embedder import DEFAULT_INDEX_PATH, cosine_similarity, get_provider, load_embedding_index
+from app.indexing.embedder import (
+    DEFAULT_PROVIDER,
+    DenseProviderUnavailable,
+    IndexIntegrityError,
+    canonical_provider_name,
+    cosine_similarity,
+    default_index_path,
+    get_provider,
+    load_validated_index,
+    manifest_path_for,
+)
 from app.models import Chunk, Paper
 
 
@@ -16,20 +26,32 @@ def search_vector_store(
     query: str,
     *,
     top_k: int = 10,
-    provider_name: str = "hashing",
-    index_path: Path = DEFAULT_INDEX_PATH,
+    provider_name: str = DEFAULT_PROVIDER,
+    index_path: Path | None = None,
     paper_id: str | None = None,
     author: str | None = None,
     year: int | None = None,
     section: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    payload = load_embedding_index(index_path)
-    if payload is None:
-        return [], [f"Semantic index missing at {index_path}. Run embedder index first."]
-    if payload.get("provider") != provider_name:
-        return [], [f"Semantic index provider is {payload.get('provider')}, not {provider_name}."]
+    canonical = canonical_provider_name(provider_name)
+    resolved_path = index_path or default_index_path(canonical)
+    if not resolved_path.exists() or not manifest_path_for(resolved_path).exists():
+        return [], [
+            f"{canonical} index is unavailable at {resolved_path}. Build and validate the complete index first."
+        ]
 
-    provider = get_provider(provider_name, dimensions=int(payload.get("dimensions") or 256))
+    # A present-but-inconsistent index is a data-integrity defect, not a normal
+    # provider outage. Raise so startup/evaluation callers cannot use it.
+    payload, _report = load_validated_index(
+        session,
+        index_path=resolved_path,
+        provider_name=canonical,
+    )
+    try:
+        provider = get_provider(canonical, dimensions=int(payload.get("dimensions") or 0) or None)
+    except DenseProviderUnavailable as exc:
+        return [], [str(exc)]
+
     query_vector = provider.embed(query)
     scored: list[tuple[float, dict[str, Any]]] = []
     for record in payload.get("records", []):
@@ -42,7 +64,7 @@ def search_vector_store(
         paper = session.get(Paper, chunk.paper_id)
         if not paper_matches(paper, author=author, year=year):
             continue
-        scored.append((score, build_semantic_result(chunk, paper, score)))
+        scored.append((score, build_vector_result(chunk, paper, score, canonical)))
     scored.sort(key=lambda item: item[0], reverse=True)
     return [result for _score, result in scored[:top_k]], []
 
@@ -65,7 +87,7 @@ def paper_matches(paper: Paper | None, *, author: str | None, year: int | None) 
     return True
 
 
-def build_semantic_result(chunk: Chunk, paper: Paper | None, score: float) -> dict[str, Any]:
+def build_vector_result(chunk: Chunk, paper: Paper | None, score: float, provider_name: str) -> dict[str, Any]:
     return {
         "chunk_id": chunk.chunk_id,
         "paper_id": chunk.paper_id,
@@ -81,7 +103,8 @@ def build_semantic_result(chunk: Chunk, paper: Paper | None, score: float) -> di
         "snippet": chunk.text[:500],
         "text": chunk.text,
         "score": round(float(score), 6),
-        "match_type": "semantic",
+        "match_type": provider_name,
+        "vector_provider": provider_name,
         "source": {
             "pdf_url": paper.pdf_url if paper else None,
             "post_url": paper.post_url if paper else None,
@@ -90,14 +113,18 @@ def build_semantic_result(chunk: Chunk, paper: Paper | None, score: float) -> di
     }
 
 
+# Backward-compatible import name. New code should use build_vector_result.
+build_semantic_result = build_vector_result
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Search local vector indexes.")
+    parser = argparse.ArgumentParser(description="Search a validated local feature-hashing or learned-dense index.")
     subparsers = parser.add_subparsers(dest="command")
     search = subparsers.add_parser("search")
     search.add_argument("query")
     search.add_argument("--top-k", type=int, default=5)
-    search.add_argument("--provider", default="hashing")
-    search.add_argument("--index", default=str(DEFAULT_INDEX_PATH))
+    search.add_argument("--provider", choices=["feature_hashing", "hashing", "dense"], default=DEFAULT_PROVIDER)
+    search.add_argument("--index", default=None)
     return parser
 
 
@@ -107,20 +134,25 @@ def main() -> None:
         build_parser().print_help()
         return
     create_db_and_tables()
-    with Session(engine) as session:
-        results, warnings = search_vector_store(
-            session,
-            args.query,
-            top_k=args.top_k,
-            provider_name=args.provider,
-            index_path=Path(args.index),
-        )
+    try:
+        with Session(engine) as session:
+            results, warnings = search_vector_store(
+                session,
+                args.query,
+                top_k=args.top_k,
+                provider_name=args.provider,
+                index_path=Path(args.index) if args.index else None,
+            )
+    except IndexIntegrityError as exc:
+        print(f"error=index_integrity_failure detail={exc}")
+        raise SystemExit(1) from exc
     for warning in warnings:
         print(f"warning={warning}")
     for index, result in enumerate(results, start=1):
         print(
-            f"{index}. score={result['score']:.4f} paper={result['paper_title']} "
-            f"pages={result['page_start']}-{result['page_end']} snippet={result['snippet']}"
+            f"{index}. score={result['score']:.4f} provider={result['vector_provider']} "
+            f"paper={result['paper_title']} pages={result['page_start']}-{result['page_end']} "
+            f"snippet={result['snippet']}"
         )
 
 

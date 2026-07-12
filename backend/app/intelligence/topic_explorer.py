@@ -11,7 +11,8 @@ from sqlmodel import Session, desc, func, select
 
 from app.db import create_db_and_tables, engine
 from app.indexing.retriever import retrieve
-from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, Topic
+from app.ingestion.metadata_cleaner import active_author_for_name, ensure_author_identity, normalize_author_key
+from app.models import Author, AuthorAlias, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, Topic
 
 REVIEWED_STATUSES = {"reviewed", "approved"}
 EXPLORER_SOURCE = "deterministic_explorer"
@@ -359,21 +360,26 @@ def update_topic_descriptions(session: Session) -> None:
 
 def rebuild_author_topics(session: Session) -> int:
     papers = list(session.exec(select(Paper)).all())
-    author_by_name = {author.name: author for author in session.exec(select(Author)).all()}
     paper_topics = list(session.exec(select(PaperTopic)).all())
     links_by_paper: dict[str, list[PaperTopic]] = {}
     for link in paper_topics:
         links_by_paper.setdefault(link.paper_id, []).append(link)
 
     link_count = 0
-    for author_name, authored_papers in group_papers_by_author(papers).items():
-        author = author_by_name.get(author_name)
+    canonical_groups: dict[int, tuple[Author, list[Paper]]] = {}
+    for author_name, raw_authored_papers in group_papers_by_author(papers).items():
+        author = active_author_for_name(session, author_name)
         if author is None:
-            author = Author(name=author_name, review_status="needs_review", created_at=utc_now(), updated_at=utc_now())
-            session.add(author)
-            session.commit()
-            session.refresh(author)
-            author_by_name[author_name] = author
+            author, _created = ensure_author_identity(session, author_name, source="topic_rebuild")
+            session.flush()
+        if author.id is None:
+            continue
+        grouped_author, grouped_papers = canonical_groups.setdefault(author.id, (author, []))
+        existing_ids = {paper.paper_id for paper in grouped_papers}
+        grouped_papers.extend(paper for paper in raw_authored_papers if paper.paper_id not in existing_ids)
+        canonical_groups[author.id] = (grouped_author, grouped_papers)
+
+    for author, authored_papers in canonical_groups.values():
         topic_scores: dict[str, dict[str, Any]] = {}
         for paper in authored_papers:
             for link in links_by_paper.get(paper.paper_id, []):
@@ -431,7 +437,11 @@ def display_topic_name(session: Session, topic_id: str) -> str:
 
 def explorer_overview(session: Session) -> dict[str, Any]:
     topics = list(session.exec(select(Topic).order_by(Topic.name)).all())
-    authors = list(session.exec(select(Author).order_by(Author.name)).all())
+    authors = list(
+        session.exec(
+            select(Author).where(Author.identity_status.notin_(["merged", "invalid"])).order_by(Author.name)
+        ).all()
+    )
     papers = list(session.exec(select(Paper).order_by(Paper.year.desc(), Paper.title)).all())
     paper_topic_count = session.exec(select(func.count()).select_from(PaperTopic)).one()
     author_topic_count = session.exec(select(func.count()).select_from(AuthorTopic)).one()
@@ -546,10 +556,22 @@ def list_authors(
     limit: int = 50,
     offset: int = 0,
 ) -> dict[str, Any]:
-    authors = list(session.exec(select(Author).order_by(Author.name)).all())
+    authors = list(
+        session.exec(
+            select(Author).where(Author.identity_status.notin_(["merged", "invalid"])).order_by(Author.name)
+        ).all()
+    )
     if q:
-        needle = q.lower()
-        authors = [author for author in authors if needle in author.name.lower()]
+        needle = q.casefold()
+        aliases_by_author: dict[int, list[str]] = {}
+        for alias in session.exec(select(AuthorAlias)).all():
+            aliases_by_author.setdefault(alias.canonical_author_id, []).append(alias.alias)
+        authors = [
+            author
+            for author in authors
+            if needle in (author.canonical_name or author.name).casefold()
+            or any(needle in alias.casefold() for alias in aliases_by_author.get(author.id or -1, []))
+        ]
     if topic:
         topic_record = topic_by_query(session, topic)
         if topic_record:
@@ -569,9 +591,9 @@ def author_detail(session: Session, author_id: int) -> dict[str, Any] | None:
     author = session.get(Author, author_id)
     if author is None:
         return None
-    papers = authored_papers(session, author.name)
+    papers = authored_papers(session, author)
     topics = top_topics_for_author(session, author)
-    coauthors = coauthors_for(author.name, papers)
+    coauthors = coauthors_for(author.canonical_name or author.name, papers)
     venues = sorted({paper.venue for paper in papers if paper.venue})
     artifacts_count = session.exec(
         select(func.count())
@@ -586,23 +608,29 @@ def author_detail(session: Session, author_id: int) -> dict[str, Any] | None:
         "venues": venues,
         "generated_artifacts_count": artifacts_count,
         "potential_expertise_summary": expertise_summary(author, topics, papers),
-        "source_basis": "Potential researcher fit based on authorship and indexed paper topics. Derived from indexed papers and topics; not manually verified unless reviewed.",
+        "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus.",
         "review_status": author.review_status,
+        "identity_review_status": author.identity_review_status,
+        "identity_status": author.identity_status,
+        "aliases": author_aliases(session, author),
     }
 
 
 def author_card(session: Session, author: Author) -> dict[str, Any]:
-    papers = authored_papers(session, author.name)
+    papers = authored_papers(session, author)
     topics = top_topics_for_author(session, author)[:5]
     recent = sorted(papers, key=lambda item: (item.year or 0, item.title), reverse=True)[:3]
     return {
         "author_id": author.id,
-        "name": author.name,
+        "name": author.canonical_name or author.name,
         "paper_count": len(papers),
         "top_topics": topics,
         "recent_papers": [paper_summary(paper) for paper in recent],
-        "coauthor_count": len(coauthors_for(author.name, papers)),
+        "coauthor_count": len(coauthors_for(author.canonical_name or author.name, papers)),
         "review_status": author.review_status,
+        "identity_review_status": author.identity_review_status,
+        "identity_status": author.identity_status,
+        "source_basis": "Publication-derived evidence only; not an endorsement or statement of researcher availability.",
     }
 
 
@@ -610,14 +638,37 @@ def author_card_from_link(session: Session, link: AuthorTopic) -> dict[str, Any]
     author = session.get(Author, link.author_id)
     return {
         "author_id": author.id if author else link.author_id,
-        "name": author.name if author else "Unknown author",
+        "name": (author.canonical_name or author.name) if author else "Unknown author",
         "paper_count": link.paper_count,
         "score": link.score,
     }
 
 
-def authored_papers(session: Session, author_name: str) -> list[Paper]:
-    return [paper for paper in session.exec(select(Paper)).all() if author_name in paper.authors]
+def authored_papers(session: Session, author: Author) -> list[Paper]:
+    names = {normalize_author_key(author.canonical_name or author.name), normalize_author_key(author.name)}
+    names.update(alias["normalized_alias"] for alias in author_aliases(session, author))
+    return [
+        paper
+        for paper in session.exec(select(Paper)).all()
+        if any(normalize_author_key(name) in names for name in paper.authors)
+    ]
+
+
+def author_aliases(session: Session, author: Author) -> list[dict[str, Any]]:
+    if author.id is None:
+        return []
+    aliases = session.exec(
+        select(AuthorAlias).where(AuthorAlias.canonical_author_id == author.id).order_by(AuthorAlias.alias)
+    ).all()
+    return [
+        {
+            "alias": alias.alias,
+            "normalized_alias": alias.normalized_alias,
+            "source": alias.source,
+            "review_status": alias.review_status,
+        }
+        for alias in aliases
+    ]
 
 
 def top_topics_for_author(session: Session, author: Author) -> list[dict[str, Any]]:
@@ -652,7 +703,7 @@ def coauthors_for(author_name: str, papers: list[Paper]) -> list[dict[str, Any]]
 def expertise_summary(author: Author, topics: list[dict[str, Any]], papers: list[Paper]) -> str:
     topic_text = ", ".join(topic["name"] for topic in topics[:4]) or "topics needing review"
     return (
-        f"Potential researcher fit based on authorship and indexed paper topics: {author.name} has "
+        f"Potential researcher fit based on authorship and indexed paper topics: {author.canonical_name or author.name} has "
         f"{len(papers)} indexed TTLAB paper(s), with recurring topics including {topic_text}. "
         "This is derived from indexed records, not verified supervisor availability."
     )

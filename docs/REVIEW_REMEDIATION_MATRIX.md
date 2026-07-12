@@ -45,6 +45,8 @@ each phase is completed.
 | DATA-08 | Critical | `Click to View` was parsed as an author on 12 papers; Patrick Hosein appeared under three variants. | Reject navigation text, add canonical author identities/aliases and idempotent repair migration. | Parser fixtures, migration rerun test, and zero invalid author names. | confirmed / pending | Unverified names are not silently merged. |
 | DATA-09 | High | All 134 papers lacked DOI, abstract, and keyword metadata; provenance/review fields were absent or incomplete. | Add field-level provenance/review state and populate only verified values. | Schema/migration tests and manifest missingness table. | confirmed / pending | Missing source metadata remains empty and `needs_review`. |
 | DATA-10 | Medium | Expertise links used raw author strings and could imply availability or endorsement. | Use canonical identities and label expertise as evidence from indexed publications only. | API/UI tests and disclaimer text. | confirmed / pending | Publication evidence is not proof of current availability or endorsement. |
+| DATA-11 | Critical | The PDF stored for `vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8` is a different paper titled “Soft-Churn: Optimal Switching between Prepaid Data Subscriptions on E-SIM support Smartphones”; all eight derived chunks are misattributed. | Add title/content mismatch diagnostics, mark the document and chunks ineligible until corrected, and exclude them from authoritative indexes/evaluation. | Mismatch fixture, corpus-manifest exclusion, and zero excluded chunk IDs in index manifests. | confirmed / pending | The intended paper remains unavailable until a verified permitted PDF source is supplied. |
+| DATA-12 | Critical | The PDF stored for `pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f` is “A Consumer Focused Open Data Platform”; all eight derived chunks are misattributed. | Apply the same source-title validation, exclusion, and correction workflow as DATA-11. | Full-corpus mismatch scan, exclusion manifest, and zero excluded chunk IDs in indexes/evaluation labels. | confirmed / pending | The intended eSIM paper remains unavailable until a verified permitted PDF source is supplied. |
 
 ## B. Retrieval, RAG, recommendation, and review evaluation
 
@@ -148,8 +150,9 @@ eligible only for `external-only` closure.
 
 ## Baseline classification summary
 
-At the end of Phase 0, 80 findings remain `confirmed / pending`, two baseline
-capture/backup items are `closed`, and one earlier author-metadata issue is
-`already_fixed`. No finding was classified `not_reproducible` or silently
-dropped. These are issue states, not claims that later remediation phases have
-been completed.
+The Phase 0 re-audit initially recorded 80 findings as `confirmed / pending`,
+two baseline capture/backup items as `closed`, and one earlier author-metadata
+issue as `already_fixed`. Phase 1 source review then exposed `DATA-11` and
+`DATA-12`, two mismatched PDFs, raising the pending count to 82. No finding was
+classified `not_reproducible` or silently dropped. These are issue states, not
+claims that later remediation phases have been completed.

@@ -5,7 +5,14 @@ from pydantic import BaseModel, Field
 from sqlmodel import Session, desc, func, select
 
 from app.db import get_session
-from app.indexing.embedder import index_diagnostics
+from app.indexing.embedder import (
+    DEFAULT_INDEX_PATH,
+    DENSE_INDEX_PATH,
+    DENSE_PROVIDER,
+    FEATURE_HASHING_PROVIDER,
+    eligible_chunks,
+    index_diagnostics,
+)
 from app.intelligence.rag_answerer import ask_diagnostics, ask_question, serialize_answer
 from app.models import Chunk, RAGAnswer
 
@@ -14,7 +21,7 @@ router = APIRouter(prefix="/api", tags=["ask"])
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1)
-    mode: Literal["keyword", "semantic", "hybrid"] = "hybrid"
+    mode: Literal["keyword", "feature_hashing", "dense", "hybrid", "semantic"] = "hybrid"
     top_k: int = Field(default=5, ge=1, le=20)
     audience: str = "general"
     max_words: int = Field(default=250, ge=50, le=600)
@@ -50,12 +57,17 @@ def ask_history(
 @router.get("/ask/diagnostics")
 def diagnostics(session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
     base = ask_diagnostics(session)
-    semantic = index_diagnostics()
-    searchable_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
+    feature_hashing = index_diagnostics(session, DEFAULT_INDEX_PATH, FEATURE_HASHING_PROVIDER)
+    dense = index_diagnostics(session, DENSE_INDEX_PATH, DENSE_PROVIDER)
+    raw_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
+    searchable_chunks = len(eligible_chunks(session))
     return {
         **base,
         "searchable_chunks": searchable_chunks,
-        "semantic_indexed_chunks": semantic["semantic_indexed_chunks"],
+        "raw_chunks": raw_chunks,
+        "semantic_indexed_chunks": feature_hashing["indexed_chunks"],  # legacy field
+        "feature_hashing_index": feature_hashing,
+        "dense_index": dense,
     }
 
 

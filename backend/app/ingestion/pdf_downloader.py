@@ -15,6 +15,17 @@ from app.db import create_db_and_tables, engine
 from app.models import Paper
 
 USER_AGENT = "TTLABResearchIntelligence/0.1 (+https://lab.tt)"
+PDF_UNAVAILABILITY_REASONS = {
+    "no_pdf_url",
+    "forbidden",
+    "not_found",
+    "timeout",
+    "invalid_pdf",
+    "scanned_pdf",
+    "extraction_failure",
+    "permission_restricted",
+    "network_error",
+}
 
 
 @dataclass
@@ -113,6 +124,9 @@ def update_paper_download_status(
     local_pdf_path: str | None = None,
     ingestion_status: str | None = None,
     pdf_text_status: str | None = None,
+    unavailability_reason: str | None = None,
+    unavailability_detail: str | None = None,
+    clear_unavailability: bool = False,
 ) -> None:
     if session is None:
         return
@@ -125,6 +139,14 @@ def update_paper_download_status(
         paper.ingestion_status = ingestion_status
     if pdf_text_status is not None:
         paper.pdf_text_status = pdf_text_status
+    if clear_unavailability:
+        paper.pdf_unavailability_reason = None
+        paper.pdf_unavailability_detail = None
+    elif unavailability_reason is not None:
+        if unavailability_reason not in PDF_UNAVAILABILITY_REASONS:
+            raise ValueError(f"Unsupported PDF unavailability reason: {unavailability_reason}")
+        paper.pdf_unavailability_reason = unavailability_reason
+        paper.pdf_unavailability_detail = unavailability_detail
     paper.updated_at = utc_now()
     session.add(paper)
 
@@ -138,6 +160,7 @@ def download_pdfs(
     overwrite: bool = False,
     timeout: float = 30.0,
     session: Session | None = None,
+    client: httpx.Client | None = None,
 ) -> dict[str, int]:
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = {
@@ -147,12 +170,19 @@ def download_pdfs(
         "failed": 0,
         "invalid_pdf": 0,
         "missing_pdf_url": 0,
+        "forbidden": 0,
+        "not_found": 0,
+        "timeout": 0,
+        "permission_restricted": 0,
+        "network_error": 0,
     }
-    client = httpx.Client(
-        headers={"User-Agent": USER_AGENT, "Accept": "application/pdf,*/*"},
-        timeout=timeout,
-        follow_redirects=True,
-    )
+    owns_client = client is None
+    if client is None:
+        client = httpx.Client(
+            headers={"User-Agent": USER_AGENT, "Accept": "application/pdf,*/*"},
+            timeout=timeout,
+            follow_redirects=True,
+        )
     try:
         for record in records:
             if limit is not None and summary["attempted"] >= limit:
@@ -164,6 +194,8 @@ def download_pdfs(
                     record.paper_id,
                     ingestion_status="missing_pdf",
                     pdf_text_status="missing_pdf",
+                    unavailability_reason="no_pdf_url",
+                    unavailability_detail="No permitted direct PDF URL was available.",
                 )
                 continue
 
@@ -176,6 +208,7 @@ def download_pdfs(
                     local_pdf_path=str(target),
                     ingestion_status="pdf_downloaded",
                     pdf_text_status="downloaded",
+                    clear_unavailability=True,
                 )
                 continue
 
@@ -187,7 +220,37 @@ def download_pdfs(
             try:
                 response = client.get(str(record.pdf_url))
                 response.raise_for_status()
-            except httpx.HTTPError as exc:
+            except httpx.TimeoutException as exc:
+                reason = "timeout"
+                summary[reason] += 1
+                summary["failed"] += 1
+                print(f"failed paper_id={record.paper_id} reason={reason} detail={exc}")
+                update_paper_download_status(
+                    session,
+                    record.paper_id,
+                    ingestion_status="download_failed",
+                    pdf_text_status="download_failed",
+                    unavailability_reason=reason,
+                    unavailability_detail=str(exc),
+                )
+                continue
+            except httpx.HTTPStatusError as exc:
+                reason = classify_http_unavailability(exc.response.status_code)
+                summary[reason] += 1
+                summary["failed"] += 1
+                print(f"failed paper_id={record.paper_id} reason={reason} status={exc.response.status_code}")
+                update_paper_download_status(
+                    session,
+                    record.paper_id,
+                    ingestion_status="download_failed",
+                    pdf_text_status="download_failed",
+                    unavailability_reason=reason,
+                    unavailability_detail=f"HTTP {exc.response.status_code}",
+                )
+                continue
+            except httpx.RequestError as exc:
+                reason = "network_error"
+                summary[reason] += 1
                 print(f"failed paper_id={record.paper_id} reason={exc}")
                 summary["failed"] += 1
                 update_paper_download_status(
@@ -195,6 +258,8 @@ def download_pdfs(
                     record.paper_id,
                     ingestion_status="download_failed",
                     pdf_text_status="download_failed",
+                    unavailability_reason=reason,
+                    unavailability_detail=str(exc),
                 )
                 continue
 
@@ -206,6 +271,8 @@ def download_pdfs(
                     record.paper_id,
                     ingestion_status="invalid_pdf",
                     pdf_text_status="invalid_pdf",
+                    unavailability_reason="invalid_pdf",
+                    unavailability_detail="Response content type or PDF signature was invalid.",
                 )
                 continue
 
@@ -216,14 +283,26 @@ def download_pdfs(
                 local_pdf_path=str(target),
                 ingestion_status="pdf_downloaded",
                 pdf_text_status="downloaded",
+                clear_unavailability=True,
             )
             print(f"downloaded paper_id={record.paper_id} target={target}")
             summary["downloaded"] += 1
     finally:
-        client.close()
+        if owns_client:
+            client.close()
     if session is not None:
         session.commit()
     return summary
+
+
+def classify_http_unavailability(status_code: int) -> str:
+    if status_code == 403:
+        return "forbidden"
+    if status_code in {404, 410}:
+        return "not_found"
+    if status_code in {401, 451}:
+        return "permission_restricted"
+    return "network_error"
 
 
 def build_parser() -> argparse.ArgumentParser:

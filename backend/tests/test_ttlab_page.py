@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.ingestion.ttlab_page import parse_publications_from_html, parse_year
+from app.ingestion.ttlab_page import looks_like_author_line, parse_publications_from_html, parse_year, split_authors
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "ttlab_archive.html"
@@ -48,3 +48,8 @@ def test_parser_preserves_audit_urls() -> None:
     assert malformed["publication_date_raw"] == "March, 202 6"
     assert "https://publisher.example/paper" in malformed["all_urls"]
     assert malformed["review_status"] == "needs_review"
+
+
+def test_action_link_text_is_never_treated_as_an_author() -> None:
+    assert looks_like_author_line("Click to View") is False
+    assert split_authors("Click to View") == []

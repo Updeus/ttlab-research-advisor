@@ -1,0 +1,5 @@
+# Optional learned dense-retrieval dependency. The core application remains
+# usable offline without this extra. Model acquisition is a separate explicit
+# CLI action; ordinary search never downloads weights.
+-r requirements.txt
+sentence-transformers==5.6.0

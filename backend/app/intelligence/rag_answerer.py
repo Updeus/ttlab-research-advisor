@@ -217,7 +217,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     ask = subparsers.add_parser("ask")
     ask.add_argument("question")
-    ask.add_argument("--mode", choices=["keyword", "semantic", "hybrid"], default="hybrid")
+    ask.add_argument("--mode", choices=["keyword", "feature_hashing", "dense", "hybrid", "semantic"], default="hybrid")
     ask.add_argument("--top-k", type=int, default=5)
     ask.add_argument("--provider", default="auto")
     ask.add_argument("--model", default=None)

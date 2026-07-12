@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -10,6 +12,7 @@ from sqlalchemy import text
 from sqlmodel import Session, select
 
 from app.db import create_db_and_tables, engine
+from app.indexing.embedder import corpus_descriptor, eligible_chunks
 from app.models import Chunk, Paper
 
 STOPWORDS = {
@@ -45,6 +48,18 @@ STOPWORDS = {
     "with",
 }
 
+KEYWORD_PROVIDER = "sqlite_fts5_bm25"
+KEYWORD_CONFIG = {
+    "provider": KEYWORD_PROVIDER,
+    "tokenizer": "sqlite_fts5_default_unicode61",
+    "query_operator": "OR",
+    "ranker": "bm25",
+}
+
+
+class KeywordIndexIntegrityError(RuntimeError):
+    """Raised when persisted FTS rows do not match their corpus snapshot."""
+
 
 @dataclass
 class SearchFilters:
@@ -78,7 +93,8 @@ def supports_fts5(session: Session) -> bool:
 
 
 def rebuild_keyword_index(session: Session) -> dict[str, Any]:
-    chunks = list(session.exec(select(Chunk)).all())
+    chunks = eligible_chunks(session)
+    corpus = corpus_descriptor(chunks)
     fts_available = supports_fts5(session)
     if fts_available:
         session.exec(
@@ -93,10 +109,38 @@ def rebuild_keyword_index(session: Session) -> dict[str, Any]:
                 text("INSERT INTO chunk_fts(chunk_id, paper_id, text) VALUES (:chunk_id, :paper_id, :text)"),
                 params={"chunk_id": chunk.chunk_id, "paper_id": chunk.paper_id, "text": chunk.text},
             )
+        session.exec(
+            text(
+                "CREATE TABLE IF NOT EXISTS chunk_fts_metadata "
+                "(key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+            )
+        )
+        session.exec(text("DELETE FROM chunk_fts_metadata"))
+        metadata = {
+            "provider": KEYWORD_PROVIDER,
+            "configuration": KEYWORD_CONFIG,
+            "configuration_hash": hashlib.sha256(
+                json.dumps(KEYWORD_CONFIG, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "corpus": corpus,
+            "indexed_chunk_count": len(chunks),
+            "completeness_status": "complete",
+            "created_at": utc_now_iso(),
+        }
+        for key, value in metadata.items():
+            session.execute(
+                text("INSERT INTO chunk_fts_metadata(key, value) VALUES (:key, :value)"),
+                params={"key": key, "value": json.dumps(value, sort_keys=True)},
+            )
     session.commit()
     return {
         "fts_available": fts_available,
         "indexed_chunks": len(chunks),
+        "eligible_chunks": len(chunks),
+        "eligible_papers": corpus["eligible_paper_count"],
+        "corpus_snapshot_id": corpus["snapshot_id"],
+        "corpus_snapshot_hash": corpus["snapshot_hash"],
+        "completeness_status": "complete" if fts_available else "fallback_only",
         "last_indexed_at": utc_now_iso(),
     }
 
@@ -108,6 +152,21 @@ def keyword_index_count(session: Session) -> int:
         return int(session.execute(text("SELECT count(*) FROM chunk_fts")).scalar_one())
     except Exception:
         return 0
+
+
+def keyword_index_metadata(session: Session) -> dict[str, Any] | None:
+    try:
+        rows = session.execute(text("SELECT key, value FROM chunk_fts_metadata")).all()
+    except Exception:
+        session.rollback()
+        return None
+    metadata: dict[str, Any] = {}
+    try:
+        for key, value in rows:
+            metadata[str(key)] = json.loads(str(value))
+    except (TypeError, json.JSONDecodeError):
+        return None
+    return metadata or None
 
 
 def search_keyword(
@@ -122,6 +181,14 @@ def search_keyword(
     if not terms:
         return []
     if supports_fts5(session):
+        metadata = keyword_index_metadata(session)
+        health = diagnostics(session)
+        if health["status"] == "invalid":
+            raise KeywordIndexIntegrityError("; ".join(health["errors"]))
+        if metadata is None:
+            # No FTS index has been built in this database; use the explicit
+            # eligible-corpus fallback rather than treating it as indexed.
+            return search_fallback(session, terms, top_k=top_k, filters=filters)
         try:
             results = search_fts(session, terms, top_k=max(top_k * 3, top_k), filters=filters)
             if results:
@@ -162,7 +229,7 @@ def search_fallback(
     top_k: int,
     filters: SearchFilters,
 ) -> list[dict[str, Any]]:
-    chunks = list(session.exec(select(Chunk)).all())
+    chunks = eligible_chunks(session)
     scored: list[tuple[float, Chunk]] = []
     for chunk in chunks:
         if not matches_filters(chunk, filters):
@@ -280,13 +347,45 @@ def make_snippet(text_value: str, terms: list[str], window: int = 240) -> str:
 
 
 def diagnostics(session: Session) -> dict[str, Any]:
-    total_chunks = session.exec(select(Chunk)).all().__len__()
+    current_chunks = eligible_chunks(session)
+    current_corpus = corpus_descriptor(current_chunks)
+    total_chunks = len(current_chunks)
     indexed = keyword_index_count(session)
+    metadata = keyword_index_metadata(session)
+    errors: list[str] = []
+    if metadata is None:
+        status = "not_built" if indexed == 0 else "invalid"
+        if indexed:
+            errors.append("FTS rows exist without authoritative chunk_fts_metadata.")
+    else:
+        stored_corpus = metadata.get("corpus") or {}
+        if metadata.get("provider") != KEYWORD_PROVIDER:
+            errors.append("FTS provider metadata is missing or incorrect.")
+        if metadata.get("configuration_hash") != hashlib.sha256(
+            json.dumps(KEYWORD_CONFIG, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest():
+            errors.append("FTS configuration hash does not match runtime configuration.")
+        if stored_corpus.get("snapshot_hash") != current_corpus["snapshot_hash"]:
+            errors.append("FTS corpus snapshot does not match the current eligible corpus.")
+        if int(metadata.get("indexed_chunk_count") or -1) != indexed:
+            errors.append("FTS metadata count does not match persisted rows.")
+        if indexed != total_chunks:
+            errors.append("FTS row count does not equal eligible chunk count.")
+        status = "invalid" if errors else "ready"
     return {
         "fts_available": supports_fts5(session),
         "keyword_indexed_chunks": indexed,
+        "eligible_chunks": total_chunks,
+        "eligible_papers": current_corpus["eligible_paper_count"],
+        "coverage_ratio": round(indexed / total_chunks, 6) if total_chunks else 1.0,
+        "corpus_snapshot_id": current_corpus["snapshot_id"],
+        "corpus_snapshot_hash": current_corpus["snapshot_hash"],
+        "stored_corpus_snapshot_hash": (metadata or {}).get("corpus", {}).get("snapshot_hash"),
+        "completeness_status": (metadata or {}).get("completeness_status", "missing"),
+        "provider": KEYWORD_PROVIDER,
+        "errors": errors,
         "total_chunks": total_chunks,
-        "status": "ready" if indexed else "not_built",
+        "status": status,
     }
 
 

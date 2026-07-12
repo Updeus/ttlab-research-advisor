@@ -5,7 +5,14 @@ from sqlmodel import Session, func, select
 
 from app.db import get_session
 from app.evaluation.dashboard import evaluation_files_present, latest_evaluation_timestamp
-from app.indexing.embedder import index_diagnostics
+from app.indexing.embedder import (
+    DEFAULT_INDEX_PATH,
+    DENSE_INDEX_PATH,
+    DENSE_PROVIDER,
+    FEATURE_HASHING_PROVIDER,
+    eligible_chunks,
+    index_diagnostics,
+)
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, RAGAnswer, ReviewEvent, ThesisRecommendation, Topic
 
@@ -36,12 +43,24 @@ def get_extraction(paper_id: str, session: Annotated[Session, Depends(get_sessio
         "pdf_url": paper.pdf_url,
         "local_pdf_path": paper.local_pdf_path,
         "pdf_text_status": paper.pdf_text_status,
+        "pdf_unavailability_reason": paper.pdf_unavailability_reason,
+        "pdf_unavailability_detail": paper.pdf_unavailability_detail,
         "page_count": paper.page_count,
         "total_char_count": paper.total_char_count,
         "total_word_count": paper.total_word_count,
         "pages_with_text": paper.pages_with_text,
         "pages_without_text": paper.pages_without_text,
         "possible_scanned_pdf": paper.possible_scanned_pdf,
+        "extraction_content_type": paper.extraction_content_type,
+        "ocr_status": paper.ocr_status,
+        "ocr_provider": paper.ocr_provider,
+        "ocr_provider_version": paper.ocr_provider_version,
+        "ocr_pages_count": paper.ocr_pages_count,
+        "ocr_review_required": paper.ocr_review_required,
+        "pdf_title_match_status": paper.pdf_title_match_status,
+        "pdf_title_match_score": paper.pdf_title_match_score,
+        "corpus_eligibility_status": paper.corpus_eligibility_status,
+        "corpus_exclusion_reason": paper.corpus_exclusion_reason,
         "warnings": diagnostics.get("warnings", []),
         "extraction_error": diagnostics.get("extraction_error"),
         "diagnostics": diagnostics,
@@ -86,7 +105,11 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     papers = list(session.exec(select(Paper)).all())
     total = session.exec(select(func.count()).select_from(Paper)).one()
     total_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
-    total_authors = session.exec(select(func.count()).select_from(Author)).one()
+    total_authors = session.exec(
+        select(func.count())
+        .select_from(Author)
+        .where(Author.identity_status.notin_(["merged", "invalid"]))
+    ).one()
     total_topics = session.exec(select(func.count()).select_from(Topic)).one()
     paper_topic_links = session.exec(select(func.count()).select_from(PaperTopic)).one()
     author_topic_links = session.exec(select(func.count()).select_from(AuthorTopic)).one()
@@ -94,15 +117,24 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
     recommendation_runs = list(session.exec(select(ThesisRecommendation)).all())
     artifacts = list(session.exec(select(PaperArtifact)).all())
     review_events = list(session.exec(select(ReviewEvent)).all())
-    searchable_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
+    eligible = eligible_chunks(session)
+    searchable_papers = len({chunk.paper_id for chunk in eligible})
+    searchable_chunks = len(eligible)
     keyword = keyword_diagnostics(session)
-    semantic = index_diagnostics()
+    feature_hashing = index_diagnostics(session, DEFAULT_INDEX_PATH, FEATURE_HASHING_PROVIDER)
+    dense = index_diagnostics(session, DENSE_INDEX_PATH, DENSE_PROVIDER)
     with_pdf = sum(1 for paper in papers if paper.pdf_url)
     downloaded = sum(1 for paper in papers if paper.local_pdf_path)
     extracted = sum(1 for paper in papers if paper.pdf_text_status == "extracted")
     extraction_failed = sum(1 for paper in papers if paper.pdf_text_status in {"extraction_failed", "download_failed", "invalid_pdf"})
     no_text = sum(1 for paper in papers if paper.pdf_text_status == "no_text" or paper.possible_scanned_pdf)
     missing_pdf = sum(1 for paper in papers if paper.pdf_text_status == "missing_pdf")
+    pdf_unavailability_reasons: dict[str, int] = {}
+    for paper in papers:
+        if paper.pdf_unavailability_reason:
+            pdf_unavailability_reasons[paper.pdf_unavailability_reason] = (
+                pdf_unavailability_reasons.get(paper.pdf_unavailability_reason, 0) + 1
+            )
     topics: dict[str, int] = {}
     for paper in papers:
         for topic in paper.topics:
@@ -117,6 +149,10 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "extraction_failed": extraction_failed,
         "no_text_pdfs": no_text,
         "missing_pdf": missing_pdf,
+        "pdf_unavailability_reasons": pdf_unavailability_reasons,
+        "ocr_status_counts": count_values([paper.ocr_status for paper in papers]),
+        "extraction_content_type_counts": count_values([paper.extraction_content_type for paper in papers]),
+        "corpus_eligibility_status_counts": count_values([paper.corpus_eligibility_status for paper in papers]),
         "total_chunks": total_chunks,
         "topic_count": total_topics,
         "author_count": total_authors,
@@ -125,9 +161,15 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "papers_with_topics": session.exec(select(func.count(func.distinct(PaperTopic.paper_id))).select_from(PaperTopic)).one(),
         "authors_with_topics": session.exec(select(func.count(func.distinct(AuthorTopic.author_id))).select_from(AuthorTopic)).one(),
         "searchable_papers": searchable_papers,
-        "searchable_chunks": total_chunks,
+        "searchable_chunks": searchable_chunks,
+        "eligible_chunks": searchable_chunks,
+        "raw_chunks": total_chunks,
         "keyword_indexed_chunks": keyword["keyword_indexed_chunks"],
-        "semantic_indexed_chunks": semantic["semantic_indexed_chunks"],
+        "semantic_indexed_chunks": feature_hashing["indexed_chunks"],  # legacy field
+        "feature_hashing_indexed_chunks": feature_hashing["indexed_chunks"],
+        "dense_indexed_chunks": dense["indexed_chunks"],
+        "feature_hashing_index_status": feature_hashing["status"],
+        "dense_index_status": dense["status"],
         "total_ask_answers": total_answers,
         "grounded_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "grounded")).one(),
         "partial_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "partial")).one(),
@@ -181,3 +223,10 @@ def serialize_chunk(chunk: Chunk, *, full: bool) -> dict[str, object]:
         "token_count_estimate": chunk.token_count_estimate,
         "source_hash": chunk.source_hash,
     }
+
+
+def count_values(values: list[str]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    return counts

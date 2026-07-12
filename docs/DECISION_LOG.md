@@ -117,3 +117,32 @@ results may refine a choice, but an earlier entry is not silently rewritten.
   restrictions.
 - **Consequence:** Full local-corpus reproduction may require separately
   authorized inputs and is described honestly.
+
+## 2026-07-12 Phase 1 decisions
+
+### D-012 — Exclude verified record/PDF mismatches from the corpus
+
+- **Decision:** A paper is eligible for chunk indexing and evaluation only when
+  its extraction is usable and its expected title is not contradicted by the
+  first-page document title. Two current records are excluded:
+  `vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8`
+  and `pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f`.
+- **Rationale:** Their downloaded PDFs are respectively “Soft-Churn: Optimal
+  Switching between Prepaid Data Subscriptions on E-SIM support Smartphones”
+  and “A Consumer Focused Open Data Platform”. Treating their sixteen chunks as
+  source evidence would misattribute another work to the catalogue record.
+- **Consequence:** The records remain visible with an explicit exclusion reason,
+  but their chunks are absent from authoritative indexes, silver labels, and
+  experiments until a verified permitted PDF is supplied and reprocessed.
+
+### D-013 — Preserve uncertainty rather than force section or OCR claims
+
+- **Decision:** Section propagation and title matching use conservative
+  thresholds. Ambiguous section labels remain `Unknown`; OCR is optional and
+  every page records native/OCR method, status, confidence availability, and
+  warnings.
+- **Rationale:** A lower unknown count is not useful if labels are fabricated,
+  and OCR dependency availability is not evidence of OCR accuracy.
+- **Consequence:** Section-label performance is measured on an AI-reviewed silver
+  sample, while the current corpus may legitimately report zero OCR-processed
+  pages.

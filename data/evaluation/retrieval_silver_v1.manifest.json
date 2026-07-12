@@ -1,0 +1,102 @@
+{
+  "dataset_id": "ttlab-retrieval-silver-v1",
+  "dataset_path": "data/evaluation/retrieval_silver_v1.jsonl",
+  "schema_path": "data/evaluation/retrieval_silver_v1.schema.json",
+  "validator_path": "data/evaluation/validate_retrieval_silver_v1.py",
+  "builder_path": "data/evaluation/build_retrieval_silver_v1.py",
+  "creation_pass_path": "data/evaluation/retrieval_silver_create_v1.jsonl",
+  "verified_at": "2026-07-12T22:23:17Z",
+  "source_git_commit_at_validation": "616e88469144726c5137202b07f58adf90a17405",
+  "source_database_path": "data/papers.db",
+  "source_database_sha256": "3823858062edfa0559997e66c3708685ad0b1fc95dd4b60ee2c4ee5389849f91",
+  "source_inventory": {
+    "papers": 134,
+    "papers_with_chunks": 98,
+    "chunks": 756
+  },
+  "dataset_sha256": "2efa62a4ee76a745044646a02fcaabf328184275b4b66e33fc37e5ba1e252eb3",
+  "creation_pass_sha256": "c450ea84da13fac1e822d82619ae7ed4b4d6d0a58ca7969223d30f35b1b00199",
+  "schema_sha256": "f538443937f4e011e465103976ca2b4495d215999c01595f9e40ff19e74e33a5",
+  "validator_sha256": "9b81b42814781f133eca945c12af60a2d45b4e24674812adf778101a334172fc",
+  "builder_sha256": "2a0defad1267ca46bc63bb443aec524ef993727bc8152490d5ca0424f9b0f963",
+  "case_count": 50,
+  "split_counts": {"dev": 30, "test": 20},
+  "category_counts": {
+    "exact_factual_lookup": 5,
+    "methods": 5,
+    "results": 5,
+    "limitations_future_work": 5,
+    "title_author_venue": 5,
+    "topic_application": 5,
+    "comparison": 4,
+    "broad_intent": 4,
+    "multi_paper_synthesis": 4,
+    "hard_negative": 4,
+    "unanswerable_out_of_corpus": 4
+  },
+  "uncertainty_counts": {"low": 44, "medium": 6, "high": 0},
+  "decision_counts": {"agree": 44, "revise": 6},
+  "annotation": {
+    "creator_id": "codex-ai-review",
+    "verifier_id": "codex-ai-review",
+    "reviewer_type": "ai",
+    "label_quality": "silver",
+    "passes": ["create", "verify"],
+    "verification_order": "Fixed-seed shuffle of all 50 creation-pass cases.",
+    "shuffle_seed": 20260712,
+    "procedure": "The verification pass reopened cited SQLite chunks, page ranges, paper metadata, and direct corpus inventory in fixed-seed shuffled order. It rechecked question phrasing, category, relevant-paper set, evidence support, answerability, distractors, uncertainty, and split. Retrieval functions, search endpoints, result rankings, and system scores were not inspected while labeling or verifying.",
+    "remaining_uncertainty": "Six cases remain medium uncertainty because broad-intent or multi-paper set completeness is less determinate than exact factual lookup; no case is marked high uncertainty."
+  },
+  "revisions": [
+    {
+      "source_case_id": "ret-create-006",
+      "fields": ["annotation_uncertainty", "supporting_evidence"],
+      "resolution": "Added the page-3 SkillNER implementation passage."
+    },
+    {
+      "source_case_id": "ret-create-009",
+      "fields": ["annotation_uncertainty", "supporting_evidence"],
+      "resolution": "Separated implemented medication-management safeguards from planned OCR and backend-security work."
+    },
+    {
+      "source_case_id": "ret-create-031",
+      "fields": ["annotation_uncertainty", "supporting_evidence"],
+      "resolution": "Added the complete ten-crop result table and discussion passage."
+    },
+    {
+      "source_case_id": "ret-create-037",
+      "fields": ["annotation_uncertainty", "relevant_paper_ids", "supporting_evidence"],
+      "resolution": "Added an omitted directly relevant weed-and-water-stress paper."
+    },
+    {
+      "source_case_id": "ret-create-038",
+      "fields": ["annotation_uncertainty", "relevant_paper_ids", "supporting_evidence"],
+      "resolution": "Added omitted load-forecasting and AMR grid-fault papers."
+    },
+    {
+      "source_case_id": "ret-create-041",
+      "fields": ["question", "supporting_evidence"],
+      "resolution": "Narrowed the podcast wording to avoid implying an unsupported fully automated academic-audio pipeline."
+    }
+  ],
+  "annotation_consistency": {
+    "metric_label": "AI two-pass annotation consistency; not human inter-rater reliability",
+    "case_exact_agreement": 0.88,
+    "candidate_relevance_judgments": 70,
+    "observed_agreement": 0.957143,
+    "expected_agreement": 0.854286,
+    "cohen_style_kappa": 0.705882,
+    "definition": "For each case, the candidate universe is the union of papers explicitly judged relevant or hard-negative in either pass. A paper newly added as relevant during verification is treated as nonrelevant in the creation pass. The binary relevant/nonrelevant labels are compared across those 70 candidate judgments. This measures one AI review process's two-pass consistency and must not be reported as independent human agreement."
+  },
+  "unanswerable_verification": {
+    "method": "Expanded direct title and chunk-text checks were run for each requested absent domain. Incidental bibliography/reference terms were not treated as a relevant study.",
+    "result": "All four out-of-corpus cases remained unanswerable from the indexed papers."
+  },
+  "excluded_known_title_pdf_mismatches": [
+    "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+    "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f"
+  ],
+  "redistribution_note": "The JSONL stores identifiers, page ranges, and paraphrased evidence summaries; it does not embed paper PDFs or full chunk text.",
+  "build_command": ".venv/bin/python data/evaluation/build_retrieval_silver_v1.py",
+  "validation_command": ".venv/bin/python data/evaluation/validate_retrieval_silver_v1.py"
+}

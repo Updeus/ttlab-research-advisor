@@ -14,7 +14,7 @@ from app.indexing.retriever import retrieve
 from app.intelligence.recommendation_verifier import verify_recommendations
 from app.models import Chunk, Paper, ThesisRecommendation
 
-RetrievalMode = Literal["keyword", "semantic", "hybrid"]
+RetrievalMode = Literal["keyword", "feature_hashing", "dense", "hybrid", "semantic"]
 GroundingStatus = Literal["grounded", "partial", "unsupported"]
 Difficulty = Literal["easy", "medium", "hard"]
 
@@ -789,7 +789,7 @@ def build_parser() -> argparse.ArgumentParser:
     recommend.add_argument("--preferred-topics", nargs="*", default=[])
     recommend.add_argument("--avoid-topics", nargs="*", default=[])
     recommend.add_argument("--top-k", type=int, default=5)
-    recommend.add_argument("--mode", default="hybrid", choices=["keyword", "semantic", "hybrid"])
+    recommend.add_argument("--mode", default="hybrid", choices=["keyword", "feature_hashing", "dense", "hybrid", "semantic"])
     recommend.add_argument("--provider", default="auto")
     return parser
 

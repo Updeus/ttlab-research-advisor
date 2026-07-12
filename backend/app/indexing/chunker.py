@@ -13,16 +13,39 @@ from sqlmodel import Session, delete, select
 from app.db import create_db_and_tables, engine
 from app.models import Chunk, Paper
 
-SECTION_PATTERNS = [
-    ("Abstract", re.compile(r"\babstract\b", re.IGNORECASE)),
-    ("Introduction", re.compile(r"\b(1\.?\s*)?introduction\b", re.IGNORECASE)),
-    ("Literature Review", re.compile(r"\bliterature review|related work\b", re.IGNORECASE)),
-    ("Methodology", re.compile(r"\bmethodology|methods?|approach\b", re.IGNORECASE)),
-    ("Results", re.compile(r"\bresults?|findings\b", re.IGNORECASE)),
-    ("Discussion", re.compile(r"\bdiscussion\b", re.IGNORECASE)),
-    ("Conclusion", re.compile(r"\bconclusions?|future work\b", re.IGNORECASE)),
-    ("References", re.compile(r"\breferences\b", re.IGNORECASE)),
-]
+SECTION_ALIASES = {
+    "abstract": "Abstract",
+    "introduction": "Introduction",
+    "background": "Literature Review",
+    "literature review": "Literature Review",
+    "related work": "Literature Review",
+    "method": "Methodology",
+    "methods": "Methodology",
+    "methodology": "Methodology",
+    "materials and methods": "Methodology",
+    "experimental setup": "Methodology",
+    "results": "Results",
+    "findings": "Results",
+    "results and discussion": "Results",
+    "discussion": "Discussion",
+    "limitations": "Discussion",
+    "conclusion": "Conclusion",
+    "conclusions": "Conclusion",
+    "conclusion and future work": "Conclusion",
+    "limitations and future work": "Conclusion",
+    "future work": "Conclusion",
+    "references": "References",
+    "bibliography": "References",
+}
+SECTION_HEADING_RE = re.compile(
+    r"^\s*(?:(?:[IVXLCDM]+|\d+(?:\.\d+)*)[.)]?\s+)?"
+    r"(?P<heading>abstract|introduction|background|literature review|related work|"
+    r"methods?|methodology|materials and methods|experimental setup|results?|findings|"
+    r"results and discussion|discussion|limitations|conclusions?|conclusion and future work|"
+    r"limitations and future work|future work|references|bibliography)"
+    r"\s*(?P<suffix>[:.\-—]?)(?P<rest>.*)$",
+    re.IGNORECASE,
+)
 
 
 def utc_now() -> datetime:
@@ -50,20 +73,62 @@ def split_sentences(text: str) -> list[str]:
     return [piece.strip() for piece in pieces if piece.strip()]
 
 
+def detect_section_heading(line: str) -> str | None:
+    compact = re.sub(r"\s+", " ", line).strip()
+    if not compact or len(compact) > 240:
+        return None
+    match = SECTION_HEADING_RE.match(compact)
+    if not match:
+        return None
+    heading = re.sub(r"\s+", " ", match.group("heading").casefold()).strip()
+    rest = match.group("rest").strip()
+    suffix = match.group("suffix")
+    # A heading embedded in ordinary prose is deliberately left Unknown. Abstract
+    # commonly starts its body on the same extracted line; numbered/uppercase
+    # headings and punctuation-delimited headings are also accepted.
+    heading_token = match.group("heading")
+    prefix = compact[: match.start("heading")]
+    defensible_prefix = bool(prefix.strip()) or heading_token.isupper() or bool(suffix)
+    if rest and heading != "abstract" and not defensible_prefix:
+        return None
+    return SECTION_ALIASES.get(heading)
+
+
 def infer_section(text: str) -> str:
     head = text[:1200]
-    for section, pattern in SECTION_PATTERNS:
-        if pattern.search(head):
+    for line in head.splitlines() or [head]:
+        section = detect_section_heading(line)
+        if section:
             return section
+    # Chunk assembly normalizes line breaks. Permit only a heading at the very
+    # beginning, never a keyword appearing later in prose.
+    section = detect_section_heading(head[:240])
+    if section:
+        return section
     return "Unknown"
 
 
 def page_sentence_units(extracted: dict[str, Any]) -> list[dict[str, Any]]:
     units: list[dict[str, Any]] = []
+    current_section: str | None = None
     for page in extracted.get("pages", []):
         page_number = int(page.get("page_number") or 0)
-        for sentence in split_sentences(str(page.get("text") or "")):
-            units.append({"text": sentence, "page_number": page_number, "word_count": count_words(sentence)})
+        page_text = str(page.get("text") or "")
+        lines = [line.strip() for line in page_text.splitlines() if line.strip()] or [page_text]
+        for line in lines:
+            detected = detect_section_heading(line)
+            if detected:
+                current_section = detected
+            for sentence in split_sentences(line):
+                units.append(
+                    {
+                        "text": sentence,
+                        "page_number": page_number,
+                        "word_count": count_words(sentence),
+                        "section_hint": current_section,
+                        "section_heading_detected": detected,
+                    }
+                )
     return units
 
 
@@ -112,11 +177,21 @@ def build_chunks_from_extraction(
         final = chunks.pop()
         previous = chunks.pop()
         merged_units = [
-            {"text": sentence, "page_number": previous["page_start"], "word_count": count_words(sentence)}
+            {
+                "text": sentence,
+                "page_number": previous["page_start"],
+                "word_count": count_words(sentence),
+                "section_hint": previous.get("section"),
+            }
             for sentence in split_sentences(previous["text"])
         ]
         merged_units.extend(
-            {"text": sentence, "page_number": final["page_start"], "word_count": count_words(sentence)}
+            {
+                "text": sentence,
+                "page_number": final["page_start"],
+                "word_count": count_words(sentence),
+                "section_hint": final.get("section"),
+            }
             for sentence in split_sentences(final["text"])
         )
         chunks.append(make_chunk_record(paper_id, len(chunks), merged_units))
@@ -138,13 +213,19 @@ def make_chunk_record(paper_id: str, chunk_index: int, units: list[dict[str, Any
     pages = [int(unit["page_number"]) for unit in units if int(unit["page_number"]) > 0]
     words = count_words(text)
     chunk_hash = source_hash(text)
+    section_weights: dict[str, int] = {}
+    for unit in units:
+        hint = unit.get("section_hint")
+        if hint:
+            section_weights[str(hint)] = section_weights.get(str(hint), 0) + int(unit.get("word_count") or 0)
+    section = max(section_weights.items(), key=lambda item: item[1])[0] if section_weights else infer_section(text)
     return {
         "chunk_id": stable_chunk_id(paper_id, chunk_index, min(pages) if pages else None, max(pages) if pages else None, chunk_hash),
         "paper_id": paper_id,
         "chunk_index": chunk_index,
         "page_start": min(pages) if pages else None,
         "page_end": max(pages) if pages else None,
-        "section": infer_section(text),
+        "section": section,
         "text": text,
         "char_count": len(text),
         "word_count": words,

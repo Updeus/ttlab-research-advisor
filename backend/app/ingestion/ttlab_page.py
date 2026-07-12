@@ -15,6 +15,15 @@ from bs4 import BeautifulSoup, Tag
 
 DEFAULT_URL = "https://lab.tt/index.php/category/pub/"
 USER_AGENT = "TTLABResearchIntelligence/0.1 (+https://lab.tt)"
+NON_AUTHOR_ACTION_LABELS = {
+    "click to view",
+    "click here",
+    "download",
+    "download pdf",
+    "read more",
+    "view article",
+    "view paper",
+}
 
 
 @dataclass
@@ -98,7 +107,13 @@ def split_authors(raw_authors: str | None) -> list[str]:
     if not cleaned:
         return []
     parts = re.split(r"\s*,\s*|\s+\band\b\s+|\s*&\s*", cleaned)
-    return [part.strip(" ,;") for part in parts if part.strip(" ,;")]
+    authors = [part.strip(" ,;") for part in parts if part.strip(" ,;")]
+    return [author for author in authors if not is_action_label(author)]
+
+
+def is_action_label(text: str) -> bool:
+    normalized = re.sub(r"[^a-z0-9]+", " ", text.casefold()).strip()
+    return normalized in NON_AUTHOR_ACTION_LABELS or normalized.startswith("click to ")
 
 
 def is_internal_lab_url(url: str) -> bool:
@@ -238,7 +253,11 @@ def extract_title(article: Tag, content: Tag, paragraphs: list[str]) -> str | No
 
 
 def extract_bibliographic_fields(paragraphs: list[str], title: str) -> tuple[str | None, str | None, str | None]:
-    useful = [text for text in paragraphs if normalize_title(text) != normalize_title(title)]
+    useful = [
+        text
+        for text in paragraphs
+        if normalize_title(text) != normalize_title(title) and not is_action_label(text)
+    ]
     authors_raw: str | None = None
     venue: str | None = None
     publication_date_raw: str | None = None
@@ -258,6 +277,8 @@ def extract_bibliographic_fields(paragraphs: list[str], title: str) -> tuple[str
 
 
 def looks_like_author_line(text: str) -> bool:
+    if is_action_label(text):
+        return False
     if parse_year(text):
         return False
     lowered = text.lower()

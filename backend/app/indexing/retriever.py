@@ -8,11 +8,18 @@ from typing import Any, Literal
 from sqlmodel import Session
 
 from app.db import create_db_and_tables, engine
-from app.indexing.embedder import DEFAULT_INDEX_PATH
+from app.indexing.embedder import (
+    DEFAULT_INDEX_PATH,
+    DENSE_INDEX_PATH,
+    DENSE_PROVIDER,
+    FEATURE_HASHING_PROVIDER,
+    canonical_provider_name,
+    index_diagnostics,
+)
 from app.indexing.keyword_search import SearchFilters, enrich_keyword_results, search_keyword
 from app.indexing.vector_store import search_vector_store
 
-RetrievalMode = Literal["keyword", "semantic", "hybrid"]
+RetrievalMode = Literal["keyword", "feature_hashing", "dense", "hybrid", "semantic"]
 
 STOPWORDS = {
     "about",
@@ -78,8 +85,8 @@ def retrieve(
     author: str | None = None,
     year: int | None = None,
     section: str | None = None,
-    provider: str = "hashing",
-    index_path: Path = DEFAULT_INDEX_PATH,
+    provider: str = "auto",
+    index_path: Path | None = None,
     include_text: bool = False,
 ) -> dict[str, Any]:
     warnings: list[str] = []
@@ -87,24 +94,31 @@ def retrieve(
     expanded_query, query_expansions = expand_query(query)
 
     keyword_results: list[dict[str, Any]] = []
-    semantic_results: list[dict[str, Any]] = []
+    vector_results: list[dict[str, Any]] = []
+    vector_provider, vector_index_path, provider_warnings = resolve_vector_backend(
+        session,
+        mode=mode,
+        provider=provider,
+        index_path=index_path,
+    )
+    warnings.extend(provider_warnings)
 
     if mode in {"keyword", "hybrid"}:
         raw_keyword = search_keyword(session, expanded_query, top_k=max(top_k * 3, top_k), filters=filters)
         keyword_results = enrich_keyword_results(session, raw_keyword, filters=filters)
-    if mode in {"semantic", "hybrid"}:
-        semantic_results, semantic_warnings = search_vector_store(
+    if mode in {"feature_hashing", "dense", "semantic", "hybrid"}:
+        vector_results, vector_warnings = search_vector_store(
             session,
             expanded_query,
             top_k=max(top_k * 3, top_k),
-            provider_name=provider,
-            index_path=index_path,
+            provider_name=vector_provider,
+            index_path=vector_index_path,
             paper_id=paper_id,
             author=author,
             year=year,
             section=section,
         )
-        warnings.extend(semantic_warnings)
+        warnings.extend(vector_warnings)
 
     selection_k = max(top_k * 3, top_k) if has_strong_topical_constraint(expanded_query) else top_k
 
@@ -113,13 +127,28 @@ def retrieve(
             format_result(result, rank, keyword=result["score"], semantic=0.0, query=expanded_query, include_text=include_text)
             for rank, result in enumerate(keyword_results[:selection_k], start=1)
         ]
-    elif mode == "semantic":
+    elif mode in {"feature_hashing", "dense", "semantic"}:
         results = [
-            format_result(result, rank, keyword=0.0, semantic=result["score"], query=expanded_query, include_text=include_text)
-            for rank, result in enumerate(semantic_results[:selection_k], start=1)
+            format_result(
+                result,
+                rank,
+                keyword=0.0,
+                semantic=result["score"],
+                vector_provider=vector_provider,
+                query=expanded_query,
+                include_text=include_text,
+            )
+            for rank, result in enumerate(vector_results[:selection_k], start=1)
         ]
     else:
-        results = combine_hybrid(keyword_results, semantic_results, top_k=selection_k, query=expanded_query, include_text=include_text)
+        results = combine_hybrid(
+            keyword_results,
+            vector_results,
+            top_k=selection_k,
+            query=expanded_query,
+            vector_provider=vector_provider,
+            include_text=include_text,
+        )
     results = apply_topical_constraints(results, expanded_query, top_k=top_k)
 
     return {
@@ -130,8 +159,42 @@ def retrieve(
         "result_count": len(results),
         "results": results,
         "warnings": warnings,
+        "vector_provider": vector_provider if mode != "keyword" else None,
         "retrieval_strategy": "expanded_metadata_section_diverse" if query_expansions else "metadata_section_diverse",
     }
+
+
+def resolve_vector_backend(
+    session: Session,
+    *,
+    mode: RetrievalMode,
+    provider: str,
+    index_path: Path | None,
+) -> tuple[str, Path | None, list[str]]:
+    if mode == "semantic":
+        return (
+            FEATURE_HASHING_PROVIDER,
+            index_path or DEFAULT_INDEX_PATH,
+            ["Retrieval mode 'semantic' is a deprecated alias for the lexical feature-hashing baseline; use 'feature_hashing'."],
+        )
+    if mode == "feature_hashing":
+        return FEATURE_HASHING_PROVIDER, index_path or DEFAULT_INDEX_PATH, []
+    if mode == "dense":
+        return DENSE_PROVIDER, index_path or DENSE_INDEX_PATH, []
+    if provider != "auto":
+        canonical = canonical_provider_name(provider)
+        return canonical, index_path, []
+    if index_path is not None:
+        # A caller-supplied legacy path is assumed to be the hashing baseline.
+        return FEATURE_HASHING_PROVIDER, index_path, []
+    dense_health = index_diagnostics(session, DENSE_INDEX_PATH, DENSE_PROVIDER)
+    if dense_health["status"] == "ready":
+        return DENSE_PROVIDER, DENSE_INDEX_PATH, []
+    return (
+        FEATURE_HASHING_PROVIDER,
+        DEFAULT_INDEX_PATH,
+        ["Complete learned-dense index unavailable; hybrid retrieval explicitly fell back to feature hashing."],
+    )
 
 
 def combine_hybrid(
@@ -140,6 +203,7 @@ def combine_hybrid(
     *,
     top_k: int,
     query: str,
+    vector_provider: str = FEATURE_HASHING_PROVIDER,
     include_text: bool = False,
 ) -> list[dict[str, Any]]:
     combined: dict[str, dict[str, Any]] = {}
@@ -179,6 +243,7 @@ def combine_hybrid(
             rank,
             keyword=entry["keyword"],
             semantic=entry["semantic"],
+            vector_provider=vector_provider,
             metadata=entry["metadata"],
             section=entry["section_boost"],
             combined_override=entry["diversified_score"],
@@ -199,6 +264,7 @@ def format_result(
     *,
     keyword: float,
     semantic: float,
+    vector_provider: str | None = None,
     query: str = "",
     metadata: float | None = None,
     section: float | None = None,
@@ -242,6 +308,8 @@ def format_result(
         "scores": {
             "keyword": round(keyword, 6),
             "semantic": round(semantic, 6),
+            "vector": round(semantic, 6),
+            "vector_provider": vector_provider,
             "metadata": round(metadata_score_value, 6),
             "section_boost": round(section_boost_value, 6),
             "evidence_quality": round(evidence_quality_value, 6),
@@ -442,13 +510,13 @@ def diversity_penalty(entry: dict[str, Any], selected: list[dict[str, Any]]) -> 
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Retrieve source chunks by keyword, semantic, or hybrid mode.")
+    parser = argparse.ArgumentParser(description="Retrieve source chunks by keyword, feature hashing, learned dense, or hybrid mode.")
     subparsers = parser.add_subparsers(dest="command")
     search = subparsers.add_parser("search")
     search.add_argument("query")
-    search.add_argument("--mode", choices=["keyword", "semantic", "hybrid"], default="hybrid")
+    search.add_argument("--mode", choices=["keyword", "feature_hashing", "dense", "hybrid", "semantic"], default="hybrid")
     search.add_argument("--top-k", type=int, default=5)
-    search.add_argument("--provider", default="hashing")
+    search.add_argument("--provider", choices=["auto", "feature_hashing", "hashing", "dense"], default="auto")
     return parser
 
 

@@ -2,7 +2,12 @@ from pathlib import Path
 
 import httpx
 
-from app.ingestion.pdf_downloader import DownloadRecord, download_pdfs, verify_pdf_response
+from app.ingestion.pdf_downloader import (
+    DownloadRecord,
+    classify_http_unavailability,
+    download_pdfs,
+    verify_pdf_response,
+)
 
 
 def test_pdf_downloader_dry_run_does_not_save_files(tmp_path: Path) -> None:
@@ -21,3 +26,48 @@ def test_pdf_downloader_verifies_pdf_signature() -> None:
 
     assert verify_pdf_response(valid) is True
     assert verify_pdf_response(invalid) is False
+
+
+def test_pdf_unavailability_http_taxonomy_is_deterministic() -> None:
+    assert classify_http_unavailability(403) == "forbidden"
+    assert classify_http_unavailability(404) == "not_found"
+    assert classify_http_unavailability(410) == "not_found"
+    assert classify_http_unavailability(401) == "permission_restricted"
+    assert classify_http_unavailability(451) == "permission_restricted"
+    assert classify_http_unavailability(503) == "network_error"
+
+
+def test_pdf_downloader_counts_forbidden_and_invalid_pdf(tmp_path: Path) -> None:
+    forbidden_client = httpx.Client(
+        transport=httpx.MockTransport(lambda request: httpx.Response(403, request=request)),
+    )
+    invalid_client = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                headers={"content-type": "application/pdf"},
+                content=b"not-pdf",
+                request=request,
+            )
+        )
+    )
+    try:
+        forbidden = download_pdfs(
+            [DownloadRecord(paper_id="forbidden", pdf_url="https://example.test/forbidden.pdf")],
+            tmp_path,
+            download=True,
+            client=forbidden_client,
+        )
+        invalid = download_pdfs(
+            [DownloadRecord(paper_id="invalid", pdf_url="https://example.test/invalid.pdf")],
+            tmp_path,
+            download=True,
+            client=invalid_client,
+        )
+    finally:
+        forbidden_client.close()
+        invalid_client.close()
+
+    assert forbidden["forbidden"] == 1
+    assert forbidden["failed"] == 1
+    assert invalid["invalid_pdf"] == 1

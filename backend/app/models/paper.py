@@ -40,6 +40,8 @@ class Paper(SQLModel, table=True):
     post_url: Optional[str] = Field(default=None, index=True)
     pdf_url: Optional[str] = None
     local_pdf_path: Optional[str] = None
+    pdf_unavailability_reason: Optional[str] = Field(default=None, index=True)
+    pdf_unavailability_detail: Optional[str] = None
     doi: Optional[str] = None
     keywords: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
     topics: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
@@ -50,6 +52,18 @@ class Paper(SQLModel, table=True):
     extracted_json_path: Optional[str] = None
     extracted_text_path: Optional[str] = None
     extraction_diagnostics: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    extraction_content_type: str = Field(default="unknown", index=True)
+    ocr_status: str = Field(default="not_requested", index=True)
+    ocr_provider: Optional[str] = None
+    ocr_provider_version: Optional[str] = None
+    ocr_pages_count: int = 0
+    ocr_review_required: bool = False
+    metadata_provenance: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    metadata_field_reviews: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    corpus_eligibility_status: str = Field(default="needs_review", index=True)
+    corpus_exclusion_reason: Optional[str] = None
+    pdf_title_match_status: str = Field(default="not_assessed", index=True)
+    pdf_title_match_score: Optional[float] = None
     page_count: Optional[int] = None
     total_char_count: int = 0
     total_word_count: int = 0

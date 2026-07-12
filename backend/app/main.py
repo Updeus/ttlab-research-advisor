@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import Session
 
 from app.api.admin import router as admin_router
 from app.api.artifacts import router as artifacts_router
@@ -14,7 +15,8 @@ from app.api.papers import router as papers_router
 from app.api.recommendations import router as recommendations_router
 from app.api.search import router as search_router
 from app.config import get_settings
-from app.db import create_db_and_tables
+from app.db import create_db_and_tables, engine
+from app.indexing.embedder import validate_present_authoritative_indexes
 
 settings = get_settings()
 
@@ -22,6 +24,8 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     create_db_and_tables()
+    with Session(engine) as session:
+        validate_present_authoritative_indexes(session)
     yield
 
 

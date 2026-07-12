@@ -1,0 +1,5 @@
+# Optional OCR dependencies. Core ingestion works without this file.
+# The system executable is also required and is recorded with `tesseract --version`.
+# Validated system executable in the remediation environment: tesseract 5.3.4.
+pytesseract==0.3.13
+Pillow==12.3.0

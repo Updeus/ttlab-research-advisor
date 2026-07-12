@@ -1,0 +1,34 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+\section{From archive to inspectable advice}
+
+The artefact advances beyond a publication list in a concrete sense: 98 papers are represented as page-aware evidence, retrieval outputs expose chunk/page provenance, recommendations separate retrieved gaps from generated proposals, and review status follows generated items. This integration makes the reasoning path more inspectable than an abstract-only or answer-only interface.
+
+That same evidence reveals why the system should not yet be presented as a validated advisor. A user can see a citation but still receive an incomplete or topically diffuse answer. A student can see an attractive extension plan whose novelty and feasibility have never been reviewed. An industry user can see an author-topic link produced from a malformed identity. Traceability reduces the cost of checking; it does not perform the check.
+
+\section{RQ1: coverage is useful but incomplete}
+
+The ingestion pipeline demonstrates reproducible full-text processing for 73.13\% of the catalogue. One-to-one derived files and successful database integrity checks support a bounded conclusion about internal consistency. Missing PDFs, absent OCR, heuristic sentence boundaries, and 32.94\% unknown sections limit any stronger claim about corpus completeness or extraction quality. The platform should expose both paper-level availability and chunk-level diagnostics to users and evaluators.
+
+\section{RQ2: provenance survives, semantic coverage does not}
+
+Paper, page, chunk, provider, warning, and review fields survive the retrieval-to-display path. This is the strongest implementation result. However, the active hashing index covers only three papers and its algorithm is lexical feature hashing, not learned semantic representation. Hybrid retrieval can still return results via FTS, but UI language and database status can overstate semantic coverage. A single transactional index manifest or rebuild procedure should make vector state authoritative.
+
+The broad-intent failure also validates the project preference for representative questions rather than tests alone. Automated tests establish contractual behaviour; they cannot establish that a composed answer ``makes sense'' across heterogeneous evidence.
+
+\section{RQ3: recommendation structure is safer than recommendation quality}
+
+The recommendation schema is a useful design contribution because it records source evidence, explicit/inferred/missing gap status, generated scope, skills, risk, data assumptions, and evaluation suggestions separately. All observed runs being partial is arguably preferable to false certainty. Yet the weights and templates are design choices, not learned or empirically calibrated decisions. Supervisor/student review is necessary before any recommendation is used as thesis advice.
+
+\section{RQ4: reviewability is necessary but not sufficient}
+
+The normalized topic links, author-topic aggregation, review queue, and field-diff events support correction in principle. Zero review events show that the governance loop is open. Moreover, unauthenticated actions and a fixed reviewer name are unsuitable for public operation. Data cleaning should precede expertise claims, and review evidence should be versioned alongside generated outputs.
+
+\section{RQ5: reproducibility is stronger than evaluation maturity}
+
+The repository can be rebuilt, tested, probed, inspected, and compiled from documented commands. Hashes identify the data snapshot, while a disposable probe avoids modifying the source database. This supports reproducibility of the reported implementation state. It does not provide a stable experimental benchmark because gold labels, model benchmark outputs, hardware timings, repetitions, and reviewer judgments are absent.
+
+\section{Implications for research-intelligence systems}
+
+Three broader lessons follow. First, product labels should match algorithms: a hashing vector should not be silently equated with a learned semantic encoder. Second, the system of record for an index must include corpus and model identity, coverage, and status invalidation. Third, evaluation state should be a first-class interface output. The dashboard's honest \texttt{not run} states are more scientifically useful than a fabricated score.

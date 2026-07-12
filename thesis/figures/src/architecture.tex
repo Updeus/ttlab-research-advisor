@@ -1,0 +1,10 @@
+\begin{tikzpicture}[node distance=5mm]
+  \node[layerbox] (ui) {\textbf{Presentation layer} \hfill React 19 + Vite + TypeScript\\Dashboard; Paper Browser; Search; Ask TTLAB; Thesis Extension Finder; Explorer; Admin; Evaluation};
+  \node[layerbox, below=of ui, fill=PaleTeal, draw=Teal!80!black] (api) {\textbf{API layer} \hfill FastAPI\\Papers, search, Ask, recommendations, artifacts, topics/authors, review, evaluation, local-model status};
+  \node[layerbox, below=of api, fill=PaleGold, draw=Gold!80!black] (logic) {\textbf{Application layer}\\Discovery and PDF parsing; chunking; FTS and hashing-vector retrieval; answer composition; deterministic recommendations; artifacts; topic rules; evaluation};
+  \node[layerbox, below=of logic, fill=gray!8, draw=Slate] (data) {\textbf{Persistence and evidence layer} \hfill SQLite + local files\\Paper/Author/Chunk/RAGAnswer/Recommendation/Artifact/Topic/ReviewEvent tables; PDFs; extracted text; chunk JSON; hashing index; evaluation results};
+  \draw[arrow] (ui) -- node[right,font=\scriptsize]{JSON/HTTP} (api);
+  \draw[arrow] (api) -- (logic);
+  \draw[arrow] (logic) -- node[right,font=\scriptsize]{SQLModel + files} (data);
+  \draw[dashedarrow] (data.west) .. controls +(-16mm,0) and +(-16mm,0) .. node[left,font=\scriptsize,align=center]{citations, page spans,\\status and warnings} (ui.west);
+\end{tikzpicture}

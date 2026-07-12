@@ -31,7 +31,7 @@ def ask_question(
     paper_id: str | None = None,
     persist: bool = True,
 ) -> dict[str, Any]:
-    retrieval = retrieve(session, question, mode=mode, top_k=top_k, paper_id=paper_id)
+    retrieval = retrieve(session, question, mode=mode, top_k=top_k, paper_id=paper_id, include_text=True)
     retrieved_chunks = [format_retrieved_chunk(result) for result in retrieval["results"]]
     warnings = list(retrieval.get("warnings", []))
     if not retrieved_chunks:
@@ -115,6 +115,7 @@ def format_retrieved_chunk(result: dict[str, Any]) -> dict[str, Any]:
         "page_end": result.get("page_end"),
         "section": result.get("section"),
         "snippet": result.get("snippet", ""),
+        "text": result.get("text", ""),
         "scores": result.get("scores", {}),
         "source": result.get("source", {}),
     }

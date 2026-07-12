@@ -79,6 +79,7 @@ def build_semantic_result(chunk: Chunk, paper: Paper | None, score: float) -> di
         "page_start": chunk.page_start,
         "page_end": chunk.page_end,
         "snippet": chunk.text[:500],
+        "text": chunk.text,
         "score": round(float(score), 6),
         "match_type": "semantic",
         "source": {

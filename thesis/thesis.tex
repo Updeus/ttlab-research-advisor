@@ -1,0 +1,88 @@
+\documentclass[12pt,oneside,openany]{book}
+\input{preamble}
+\input{metadata}
+
+\begin{document}
+
+\frontmatter
+\begin{titlepage}
+  \centering
+  \vspace*{18mm}
+  {\Large\bfseries\color{Navy} \universityname\par}
+  \vspace{8mm}
+  {\large \facultyname\par}
+  \vfill
+  {\Huge\bfseries\color{Navy} \thesistitle\par}
+  \vspace{6mm}
+  {\Large\color{Slate} \thesissubtitle\par}
+  \vfill
+  {\large A thesis submitted in partial fulfilment of the requirements for the degree of\par}
+  \vspace{3mm}
+  {\Large\bfseries \programmename\par}
+  \vspace{12mm}
+  \begin{tabular}{rl}
+    Candidate: & \studentname \\
+    Student ID: & \studentid \\
+    Email: & \href{mailto:\studentemail}{\studentemail} \\
+    Country: & \studentcountry \\
+    Supervisor: & \supervisorname \\
+    Submission: & \submissiondate
+  \end{tabular}
+  \vfill
+  {\small Repository evidence snapshot: HEAD \texttt{713ea5c} plus seven enumerated pre-existing working-tree changes, audited 11 July 2026.\par}
+\end{titlepage}
+
+\include{chapters/00_abstract}
+
+\chapter*{Declaration and Acknowledgements}
+\addcontentsline{toc}{chapter}{Declaration and Acknowledgements}
+\authorinput{Insert the university-approved authorship declaration, disclosure of AI-assisted tools, copyright statement, and acknowledgements.}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\chapter*{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\begin{description}[style=nextline,leftmargin=30mm]
+  \item[API] Application Programming Interface
+  \item[BM25] Best Matching 25 probabilistic retrieval function
+  \item[DOI] Digital Object Identifier
+  \item[FTS] Full-Text Search
+  \item[LLM] Large Language Model
+  \item[MRR] Mean Reciprocal Rank
+  \item[MVP] Minimum Viable Product
+  \item[PDF] Portable Document Format
+  \item[QA] Question Answering
+  \item[RAG] Retrieval-Augmented Generation
+  \item[RQ] Research Question
+  \item[TTLAB] \authorinput{official expansion of TTLAB}
+  \item[UI] User Interface
+\end{description}
+
+\mainmatter
+\include{chapters/01_introduction}
+\include{chapters/02_problem_statement}
+\include{chapters/03_research_questions_objectives}
+\include{chapters/04_literature_review}
+\include{chapters/05_methodology}
+\include{chapters/06_architecture_design}
+\include{chapters/07_data_collection_processing}
+\include{chapters/08_implementation}
+\include{chapters/09_experimental_design}
+\include{chapters/10_results}
+\include{chapters/11_discussion}
+\include{chapters/12_limitations_ethics_validity}
+\include{chapters/13_conclusion_future_work}
+
+\appendix
+\include{chapters/A_traceability}
+\include{chapters/B_reproducibility}
+\include{chapters/C_schema_api}
+\include{chapters/D_review_instruments}
+
+\backmatter
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

@@ -1,0 +1,47 @@
+\chapter{Schema and API Summary}
+\label{app:schema-api}
+
+\section{Principal persisted contracts}
+
+\begin{longtable}{P{35mm}P{105mm}}
+\caption{Principal persisted entities and traceability fields.}\label{tab:schema-summary}\\
+\toprule
+Entity & Principal fields \\
+\midrule
+\endfirsthead
+\toprule
+Entity & Principal fields \\
+\midrule
+\endhead
+Paper & identifier; title; author JSON; year/date/venue; abstract; source/PDF paths; DOI; keyword/topic JSON; ingestion, extraction, and review statuses; timestamps \\
+Chunk & identifier; paper foreign key; page start/end; inferred section; text; word/token count; source hash; embedding status; timestamp \\
+RAGAnswer & question; answer; retrieved chunk and paper JSON; citation JSON; provider/model; grounding status; unsupported-claim/warning JSON; human review fields; timestamp \\
+Thesis\allowbreak Recommendation & student request JSON; recommendation JSON; citation JSON; grounding and review state; timestamp \\
+Paper\allowbreak Artifact & paper foreign key; artefact type; generated text/JSON; citation and source-section JSON; provider/model; grounding and review state \\
+Topic / Paper\allowbreak Topic / Author\allowbreak Topic & normalized topic; paper/author links; score; source and evidence JSON; review state \\
+ReviewEvent & item type/ID; previous/new state; reviewer; notes; changed-field JSON; timestamp \\
+\bottomrule
+\end{longtable}
+
+\section{Principal API surfaces}
+
+\begin{table}[htbp]
+\centering
+\caption{User-facing API groups and implemented purpose.}
+\begin{tabularx}{\textwidth}{P{34mm}Y}
+\toprule
+Group & Purpose \\
+\midrule
+papers & statistics, list/detail, extracted status and paper artefacts \\
+search & keyword, hashing-vector, or hybrid chunk retrieval with diagnostics \\
+ask & retrieve, compose, cite, structurally verify, persist, and return answers \\
+recommendations & profile-driven ranked paper/extension structures \\
+topics/authors & topic list/detail, author list/detail, related papers, rebuild \\
+admin & overview and review/update actions for metadata and generated items \\
+evaluation & evaluation-state dashboard and available result files \\
+local model & Ollama availability/model status used by the UI \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Exact paths and schemas should be generated from the running FastAPI OpenAPI document for a release; this appendix intentionally avoids asserting a frozen public API version.

@@ -1,0 +1,23 @@
+\begin{tikzpicture}[node distance=9mm and 11mm]
+  \node[entity] (paper) {\textbf{Paper}\\\underline{paper\_id}\\title, authors JSON\\year, venue, URLs\\extraction/review status};
+  \node[entity, right=of paper] (chunk) {\textbf{Chunk}\\\underline{chunk\_id}\\paper\_id (FK)\\pages, section, text\\hash, embedding status};
+  \node[entity, right=of chunk] (answer) {\textbf{RAGAnswer}\\\underline{answer\_id}\\question, answer\\chunk/paper/citation JSON\\provider, grounding, review};
+
+  \node[entity, below=of paper] (artifact) {\textbf{PaperArtifact}\\\underline{artifact\_id}\\paper\_id (FK)\\generated/citation JSON\\grounding/review status};
+  \node[entity, below=of chunk] (recommendation) {\textbf{ThesisRecommendation}\\\underline{recommendation\_id}\\student request JSON\\recommendations/citations\\grounding/review status};
+  \node[entity, below=of answer] (review) {\textbf{ReviewEvent}\\\underline{review\_event\_id}\\item\_type + item\_id\\previous/new status\\notes and diff JSON};
+
+  \node[entity, below=12mm of artifact] (topic) {\textbf{Topic}\\\underline{topic\_id}\\normalized name\\source, review status};
+  \node[entity, right=of topic] (papertopic) {\textbf{PaperTopic}\\\underline{link\_id}\\paper\_id + topic\_id\\score, evidence JSON};
+  \node[entity, right=of papertopic] (authortopic) {\textbf{Author / AuthorTopic}\\raw name identity\\topic link, paper count\\score, evidence JSON};
+
+  \draw[arrow] (paper) -- node[above,font=\scriptsize]{1:N} (chunk);
+  \draw[dashedarrow] (chunk) -- node[above,font=\scriptsize]{IDs in JSON} (answer);
+  \draw[arrow] (paper) -- node[left,font=\scriptsize]{1:N} (artifact);
+  \draw[dashedarrow] (chunk) -- node[right,font=\scriptsize]{retrieved evidence} (recommendation);
+  \draw[dashedarrow] (answer) -- node[right,font=\scriptsize]{polymorphic item} (review);
+  \draw[arrow] (paper) |- (papertopic);
+  \draw[arrow] (topic) -- (papertopic);
+  \draw[arrow] (topic) -| (authortopic);
+  \draw[dashedarrow] (artifact) -- node[left,font=\scriptsize]{may supply inferred topic text} (topic);
+\end{tikzpicture}

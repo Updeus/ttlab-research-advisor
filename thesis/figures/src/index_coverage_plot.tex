@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+\begin{axis}[
+  xbar,
+  width=0.96\linewidth,
+  height=58mm,
+  xmin=0,
+  xmax=820,
+  symbolic y coords={Active hashing,DB-marked hashing,Keyword FTS},
+  ytick=data,
+  xlabel={Chunk records},
+  nodes near coords,
+  axis line style={draw=Slate},
+  tick label style={font=\small},
+  label style={font=\small},
+  enlarge y limits=0.22,
+  grid=major,
+  grid style={gray!15}
+]
+\addplot[fill=Blue!60,draw=Blue!90!black] coordinates {(25,Active hashing) (300,DB-marked hashing) (756,Keyword FTS)};
+\end{axis}
+\end{tikzpicture}

@@ -1,0 +1,122 @@
+% Shared thesis formatting. No university template was present in the audited repository.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage[a4paper,margin=28mm,headheight=15pt]{geometry}
+\usepackage{microtype}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,shapes.multipart,matrix,backgrounds}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{cite}
+\usepackage{url}
+\usepackage[hidelinks,bookmarksnumbered=true,bookmarksopen=true]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\definecolor{Navy}{HTML}{16324F}
+\definecolor{Blue}{HTML}{2266A5}
+\definecolor{Teal}{HTML}{168C86}
+\definecolor{Gold}{HTML}{C98B2E}
+\definecolor{Slate}{HTML}{526273}
+\definecolor{PaleBlue}{HTML}{EAF2F8}
+\definecolor{PaleTeal}{HTML}{E7F5F2}
+\definecolor{PaleGold}{HTML}{FBF3E3}
+\definecolor{Warn}{HTML}{A33A2B}
+\definecolor{CodeBg}{HTML}{F5F7F9}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=Navy,
+  citecolor=Blue,
+  urlcolor=Blue,
+  pdftitle={From Publication Archive to Research Advisor},
+  pdfsubject={TTLAB Research Intelligence Platform MSc thesis}
+}
+
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlength{\emergencystretch}{3em}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+\urlstyle{same}
+
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\color{Navy}}
+  {\filleft\Large\chaptertitlename\ \thechapter}
+  {0.6ex}
+  {\titlerule\vspace{1.2ex}\Huge}
+\titleformat{\section}{\Large\bfseries\color{Navy}}{\thesection}{0.75em}{}
+\titleformat{\subsection}{\large\bfseries\color{Slate}}{\thesubsection}{0.75em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{TTLAB Research Intelligence Platform}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\captionsetup{font=small,labelfont=bf,justification=centering}
+\crefname{figure}{Fig.}{Figs.}
+\Crefname{figure}{Figure}{Figures}
+\crefname{table}{Table}{Tables}
+\crefname{equation}{Eq.}{Eqs.}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\lstdefinestyle{projectcode}{
+  backgroundcolor=\color{CodeBg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{Slate!35},
+  keywordstyle=\color{Blue}\bfseries,
+  commentstyle=\color{Teal!80!black},
+  stringstyle=\color{Warn},
+  showstringspaces=false,
+  columns=fullflexible
+}
+\lstset{style=projectcode}
+
+\tikzset{
+  flowbox/.style={draw=Navy, rounded corners=2pt, very thick, fill=PaleBlue, align=center, minimum height=9mm, text width=31mm, font=\small},
+  datastore/.style={draw=Teal!80!black, cylinder, shape border rotate=90, aspect=0.25, very thick, fill=PaleTeal, align=center, minimum height=13mm, text width=25mm, font=\small},
+  decision/.style={draw=Gold!80!black, diamond, aspect=2.2, very thick, fill=PaleGold, align=center, font=\small, inner sep=1.5pt},
+  layerbox/.style={draw=Navy, rounded corners=3pt, very thick, fill=PaleBlue, align=left, text width=145mm, minimum height=14mm, font=\small},
+  entity/.style={draw=Navy, rounded corners=2pt, thick, fill=white, align=left, font=\scriptsize, inner sep=3pt},
+  arrow/.style={-{Latex[length=2.4mm]}, thick, draw=Slate},
+  dashedarrow/.style={-{Latex[length=2.4mm]}, thick, dashed, draw=Slate}
+}
+
+\newcommand{\authorinput}[1]{\textcolor{Warn}{\textbf{AUTHOR INPUT REQUIRED: #1}}}
+\newcommand{\implemented}{\textcolor{Teal!75!black}{\textbf{Implemented}}}
+\newcommand{\proposed}{\textcolor{Gold!75!black}{\textbf{Proposed}}}
+\newcommand{\notvalidated}{\textcolor{Warn}{\textbf{Not validated}}}
+\newcommand{\codepath}[1]{\nolinkurl{#1}}
+\newcommand{\projectScreenshot}[2]{%
+  \IfFileExists{#1}{\includegraphics[width=#2]{#1}}{%
+    \fbox{\parbox[c][55mm][c]{0.9\linewidth}{\centering Screenshot unavailable at build time:\\[1ex]\texttt{\detokenize{#1}}}}%
+  }%
+}
+
+\newenvironment{evidencebox}
+  {\begin{center}\begin{minipage}{0.94\linewidth}\color{Navy}\hrule\vspace{0.6em}\small\textbf{Evidence note.} }
+  {\vspace{0.6em}\hrule\end{minipage}\end{center}}

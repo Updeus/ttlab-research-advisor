@@ -1,0 +1,50 @@
+\chapter{System Architecture and Design}
+\label{ch:architecture}
+
+\section{Architectural overview}
+
+The system follows a four-layer local architecture (\cref{fig:architecture}). The React presentation layer calls a FastAPI interface. Application services implement ingestion, retrieval, generation, recommendation, exploration, review, and evaluation. SQLite and local files retain structured records, source documents, derived text, indexes, and evaluation artefacts.
+
+\begin{figure}[htbp]
+\centering
+\begingroup\hfuzz=100pt\resizebox{0.96\textwidth}{!}{\input{figures/src/architecture}}\endgroup
+\caption{Implemented system architecture and evidence return path. Dashed flow emphasizes provenance and status returned to the interface.}
+\label{fig:architecture}
+\end{figure}
+
+This organization supports local reproducibility and failure inspection. It also creates consistency risks because derived state is split between SQLite and JSON files. The active hashing index and the database embedding-status field illustrate that risk in \cref{ch:results}.
+
+\section{Entity and provenance design}
+
+\Cref{fig:entities} shows the central entities. A chunk retains paper, page span, section label, text, hash, and embedding state. Answers, recommendations, and artefacts retain JSON-encoded citations and generated structures. Review events refer polymorphically to reviewed items and record a status transition and field diff.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{\input{figures/src/entity_model}}
+\caption{Simplified entity and provenance model reconstructed from the SQLModel classes. JSON fields are summarized rather than expanded.}
+\label{fig:entities}
+\end{figure}
+
+JSON-encoded columns simplify a local prototype but weaken relational constraints over citation membership and nested recommendation structures. Application verifiers consequently check relationships that a normalized schema might otherwise enforce.
+
+\section{Traceability as a cross-cutting requirement}
+
+Traceability is carried through four identifiers: paper ID, chunk ID, page span, and generated-item ID. Generation outputs additionally store provider/model metadata, status, warnings, timestamp, and review status. The design separates:
+
+\begin{itemize}
+  \item \emph{source facts}: extracted text and metadata;
+  \item \emph{retrieval decisions}: ranked chunks and scores;
+  \item \emph{system interpretation}: extractive answers, inferred gaps, topics, or summaries;
+  \item \emph{system suggestions}: extension scope, skills, risk, or evaluation plan; and
+  \item \emph{human decision}: review status, notes, and field changes.
+\end{itemize}
+
+The distinction exists in the data contracts, but the current database contains no completed human review events. Traceability infrastructure must therefore not be confused with actual governance.
+
+\section{Operational architecture}
+
+Configuration is environment-driven. A shell orchestrator can prepare a bounded demo, verify dependencies, and start FastAPI and Vite; the local model is optional and errors fall back to offline extraction. There is no production deployment manifest, reverse proxy, authentication, role-based authorization, or versioned schema-migration framework. The operational architecture is a development/demo architecture.
+
+\section{Design decisions and alternatives}
+
+SQLite and local files were chosen for a short, curated project rather than a distributed database and vector service. Deterministic IDs and hashing improve repeatability. Page-aware chunks improve inspectability compared with abstract-only records. The trade-offs are limited concurrency, split derived state, heuristic structure inference, and lexical rather than learned vector similarity. Learned encoders such as Sentence-BERT or SPECTER are relevant alternatives \cite{reimers2019sentencebert,cohan2020specter}, but the corresponding provider branches are not operational in this snapshot.

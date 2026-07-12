@@ -1,0 +1,28 @@
+\begingroup\hfuzz=100pt
+\begin{tikzpicture}[node distance=8mm and 9mm]
+  \node[flowbox] (profile) {Student profile\\interests, skills, time, type,\\data, difficulty, avoid topics};
+  \node[flowbox, right=of profile] (query) {Build retrieval query +\\future-work terms};
+  \node[flowbox, right=of query] (retrieve) {Retrieve up to\\$6\times k$ chunks};
+  \node[flowbox, right=of retrieve] (group) {Group evidence by paper};
+
+  \node[flowbox, below=15mm of group] (score) {Weighted score: relevance .30;\\interest .20; skill .15;\\data/time/difficulty .10 each;\\evidence .05; avoid $-.20$};
+  \node[flowbox, left=of score] (gap) {Detect explicit, inferred,\\or missing gap evidence};
+  \node[flowbox, left=of gap] (draft) {Template suggestion, MVP,\\stretch goals, skills, risk,\\data and evaluation plan};
+  \node[flowbox, left=of draft] (verify) {Check citation membership,\\gap status and warnings};
+
+  \node[datastore, text width=28mm, below=15mm of verify] (persist) {Thesis\\Recommendation\\partial, grounded,\\unsupported; needs review};
+  \node[flowbox, right=of persist] (ui) {Ranked, cited output with\\facts separated from suggestions};
+  \node[flowbox, right=of ui, fill=PaleGold, draw=Gold!80!black] (human) {Supervisor/student review\\relevance, novelty, feasibility};
+
+  \draw[arrow] (profile) -- (query);
+  \draw[arrow] (query) -- (retrieve);
+  \draw[arrow] (retrieve) -- (group);
+  \draw[arrow] (group) -- (score);
+  \draw[arrow] (score) -- (gap);
+  \draw[arrow] (gap) -- (draft);
+  \draw[arrow] (draft) -- (verify);
+  \draw[arrow] (verify) -- (persist);
+  \draw[arrow] (persist) -- (ui);
+  \draw[dashedarrow] (ui) -- node[above,font=\scriptsize]{not yet executed} (human);
+\end{tikzpicture}
+\endgroup

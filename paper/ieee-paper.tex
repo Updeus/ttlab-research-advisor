@@ -1,0 +1,125 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{cite}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,shapes.multipart,matrix,backgrounds}
+
+\definecolor{Navy}{HTML}{16324F}
+\definecolor{Blue}{HTML}{2266A5}
+\definecolor{Teal}{HTML}{168C86}
+\definecolor{Gold}{HTML}{C98B2E}
+\definecolor{Slate}{HTML}{526273}
+\definecolor{PaleBlue}{HTML}{EAF2F8}
+\definecolor{PaleTeal}{HTML}{E7F5F2}
+\definecolor{PaleGold}{HTML}{FBF3E3}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setlength{\emergencystretch}{2em}
+\newcommand{\authorinput}[1]{\textcolor{red!70!black}{\textbf{AUTHOR INPUT REQUIRED: #1}}}
+\tikzset{
+ flowbox/.style={draw=Navy,rounded corners=1pt,thick,fill=PaleBlue,align=center,text width=17mm,minimum height=7mm,font=\scriptsize},
+ datastore/.style={draw=Teal!80!black,cylinder,shape border rotate=90,aspect=0.25,thick,fill=PaleTeal,align=center,text width=15mm,minimum height=8mm,font=\scriptsize},
+ decision/.style={draw=Gold!80!black,diamond,aspect=2,thick,fill=PaleGold,align=center,font=\scriptsize,inner sep=1pt},
+ arrow/.style={-{Latex[length=1.8mm]},thick,draw=Slate},
+ dashedarrow/.style={-{Latex[length=1.8mm]},thick,dashed,draw=Slate}
+}
+
+\title{From Publication Archive to Research Advisor:\\A Source-Traceable RAG Prototype for a Laboratory Corpus}
+
+\author{\IEEEauthorblockN{Jarod Esareesingh}
+\IEEEauthorblockA{Department of Computing \& Information Technology\\
+The University of the West Indies\\
+Trinidad and Tobago\\
+jarod.esareesingh@my.uwi.edu}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Publication archives expose research outputs but do not directly support full-text discovery, evidence-linked questions, or feasible student-project formulation. This paper presents and audits a local research-intelligence prototype for TTLAB publications. The snapshot contains 134 publication records, 98 extracted PDFs, 698 pages, and 756 page-aware chunks. The system implements keyword, feature-hashing-vector, and hybrid retrieval; citation-returning question answering; deterministic thesis-extension recommendations; topic/author exploration; generated paper artefacts; and administrative review. Evidence comes from repository/schema inspection, hashes, database integrity checks, 71 passing backend tests, runtime probes, frontend build/browser inspection, and reproducible document sources. The audit identifies an active vector index of only 25 chunks, 32.94\% unknown section labels, author-identity defects, zero completed review events, and no valid gold retrieval, QA, or human recommendation study. Thus, the contribution is an inspectable engineering artefact and evidence protocol, not demonstrated retrieval or advisory effectiveness.
+\end{abstract}
+
+\begin{IEEEkeywords}
+research intelligence, information retrieval, retrieval-augmented generation, scholarly recommendation, reproducibility
+\end{IEEEkeywords}
+
+\section{Introduction}
+Digital libraries and scholarly graphs have long supported publication and expert discovery \cite{giles1998citeseer,tang2008arnetminer,ammar2018literaturegraph,priem2022openalex}. The precursor TTLAB work automated publication collection, display, lay summarisation, notifications, and podcast preparation and identified RAG as future work \cite{narine2025automating}. This project investigates a narrower, full-text setting: can a small laboratory archive support inspectable research questions and student extension advice without hiding the boundary between source facts and generated suggestions?
+
+The paper reports five characterization questions: corpus conversion coverage; retrieval/answer traceability; recommendation evidence separation; topic/author/output reviewability; and reproducibility. It deliberately does not claim algorithmic novelty, retrieval superiority, factual accuracy, or user benefit.
+
+\section{Related Work}
+Scholarly recommendation combines content, citations, and user profiles, while realistic evaluation remains difficult \cite{beel2016researchpaper,sugiyama2010scholarly}. Expert finding ranks candidates from document evidence \cite{balog2006formal,balog2009language}. BM25 is a strong lexical baseline \cite{robertson2009bm25}; learned representations such as Sentence-BERT, DPR, and SPECTER support semantic similarity \cite{reimers2019sentencebert,karpukhin2020dpr,cohan2020specter}. BEIR cautions that performance varies by task \cite{thakur2021beir}.
+
+RAG conditions generation on retrieved evidence \cite{lewis2020rag}, but citation return does not ensure faithfulness. RAGAS, ARES, and FActScore illustrate complementary automatic evaluation approaches \cite{es2024ragas,saadfalcon2024ares,min2023factscore}; human judgments remain necessary. The prototype also differs from probabilistic or embedding-based topic models \cite{blei2003lda,grootendorst2022bertopic}: its taxonomy is fixed and lexical.
+
+\section{System and Methods}
+The React/Vite interface calls FastAPI services backed by SQLite and local files. Discovery and manual import create paper/author records. PyMuPDF extracts per-page text and diagnostics. A heuristic chunker targets 850 words, caps text at 5,000 characters, and overlaps 125 words. Derived records retain paper, page, section, hash, and review state.
+
+SQLite FTS provides lexical rank $r$, transformed as $K=1/(1+|r|)$. The vector path uses a deterministic signed, 256-dimensional feature hash \cite{weinberger2009featurehashing} and cosine similarity $V$. Current hybrid retrieval computes
+\begin{equation}
+H=\operatorname{clip}_{[0,1]}(0.42K+0.48V+M+S+E+T),
+\end{equation}
+where the remaining terms are hand-authored metadata, section, evidence, and topic adjustments. A diversity penalty reduces adjacent/repeated chunks from one paper. No tuning or ablation supports these weights.
+
+The answerer uses offline extraction or optional local Ollama, attaches citations, and verifies fields, chunk membership, and 0.08 lexical overlap. \texttt{Grounded} therefore denotes structural/lexical checks, not entailment. The OpenAI provider is not implemented.
+
+The extension finder retrieves evidence, groups by paper, and scores retrieval (0.30), interest (0.20), skills (0.15), data/time/difficulty (0.10 each), evidence (0.05), and avoided topics ($-0.20$). It labels gaps as explicit, inferred, or not found, then generates a separate suggestion, MVP, skills, risks, and evaluation plan.
+
+\begin{figure}[t]
+\centering
+\begingroup\hfuzz=100pt\resizebox{\columnwidth}{!}{\input{../thesis/figures/src/search_rag_workflow}}\endgroup
+\caption{Search and citation-returning answer workflow.}
+\label{fig:paper-rag}
+\end{figure}
+
+The audit records Git state, hashes, corpus/file/database consistency, code paths, tests, disposable API probes, frontend compilation, and browser screenshots. Commit subjects establish chronology only. Quality claims require gold or human evidence.
+
+\section{Results}
+\begin{table}[t]
+\caption{Audited snapshot counts.}
+\label{tab:paper-counts}
+\centering
+\begin{tabular}{lr@{\quad}lr}
+\toprule
+Seed papers & 134 & Extracted papers & 98 \\
+Pages & 698 & Chunks & 756 \\
+Missing PDFs & 35 & Failed PDF & 1 \\
+Topics & 39 & Paper-topic links & 767 \\
+RAG answers & 27 & Review events & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The extracted share is 73.13\%. Database/file mappings are one-to-one for 98 processed papers, and SQLite integrity checks pass. However, 249/756 chunks (32.94\%) have unknown inferred sections; no OCR is implemented. Metadata contains unmerged author strings and a ``Click to View'' parsing artefact linked to 12 papers.
+
+FTS covers all 756 chunks. The active hashing JSON covers 25 chunks from three papers (3.31\%), although 300 database rows retain an indexed-hashing status. A bounded demo rebuild overwrites the JSON without clearing omitted statuses. Consequently, the active file---not database status---is authoritative.
+
+Disposable probes returned search and answer responses with paper/chunk/page provenance. A broad agriculture-or-AI query mixed strongly relevant evidence with unrelated AI/RAG material, showing that structural grounding can coexist with weak intent coherence. All 27 historical answers require review and have no human scores.
+
+Seven recommendation runs contain 29 items and 67 citations; gap labels are 3 explicit, 16 inferred, and 10 not found. All are partial/unreviewed. Thirty-nine topics produce 767 paper and 1,105 author-topic links, but identity quality is not validated. Fourteen generated artefacts and 182 total review-queue items exist; no review event exists.
+
+Backend verification produced 71 passing tests with five deprecation warnings in 8.01 s against an isolated database. The frontend built and eight main browser surfaces were exercised without console/request errors. Retrieval and QA evaluation states are \texttt{not run}; extension and artefact files each contain one explicit placeholder case. No effectiveness metric is reported.
+
+\section{Discussion}
+The strongest result is provenance continuity: IDs, pages, citations, provider metadata, warnings, and review state survive from retrieval to the interface. The recommendation contract also avoids silently attributing a system suggestion to a paper. These mechanisms reduce verification effort, but do not validate content.
+
+Three engineering lessons follow. First, product terminology should match the representation: feature hashing is not a learned semantic encoder. Second, derived indexes require an authoritative manifest and transactional status invalidation. Third, absent evaluation should remain visible; a \texttt{not run} state is preferable to a proxy presented as accuracy.
+
+\section{Limitations and Responsible Use}
+The corpus is incomplete; metadata, authors, section labels, and vector state contain known defects. There is no authentication, production deployment, OCR, learned topic model, complete semantic index, user study, gold retrieval/QA evaluation, or live reproduced model benchmark. The system may misattribute expertise or recommend infeasible work. Public use requires document permissions, student-input privacy controls, verified identities, authenticated review, correction mechanisms, and accessibility/security testing. Responsible-AI documentation should record data and model limitations \cite{gebru2021datasheets,mitchell2019modelcards,tabassi2023airmf}.
+
+\section{Conclusion}
+The project is a reproducible, source-traceable prototype over 134 TTLAB records, not a validated advisor. Immediate work is to repair and rebuild the full index, resolve metadata identities, create approved gold cases, review claim--citation entailment, evaluate recommendations with students/supervisors, and implement accountable public governance. \authorinput{confirm methodology, ethics status, corpus authorization, and AI-use disclosure before submission}.
+
+\bibliographystyle{IEEEtran}
+\bibliography{../thesis/references}
+\end{document}

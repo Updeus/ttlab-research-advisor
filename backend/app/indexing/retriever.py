@@ -14,13 +14,53 @@ from app.indexing.vector_store import search_vector_store
 
 RetrievalMode = Literal["keyword", "semantic", "hybrid"]
 
+STOPWORDS = {
+    "about",
+    "also",
+    "and",
+    "are",
+    "can",
+    "could",
+    "discuss",
+    "does",
+    "for",
+    "from",
+    "have",
+    "how",
+    "into",
+    "main",
+    "papers",
+    "paper",
+    "read",
+    "relate",
+    "relates",
+    "research",
+    "show",
+    "that",
+    "the",
+    "this",
+    "to",
+    "want",
+    "what",
+    "which",
+    "who",
+    "with",
+}
+
 QUERY_EXPANSIONS: dict[str, tuple[str, ...]] = {
     "rag": ("retrieval augmented generation", "retrieval-augmented generation", "grounded generation"),
     "retrieval augmented generation": ("rag", "retrieval-augmented generation", "grounded generation"),
-    "ai": ("artificial intelligence", "machine intelligence"),
+    "ai": ("artificial intelligence", "machine learning", "generative ai", "language model"),
     "artificial intelligence": ("ai",),
     "ml": ("machine learning",),
     "machine learning": ("ml",),
+    "agriculture": ("crops", "crop", "cocoa", "plantation", "biomass", "deforestation", "drone", "farming"),
+    "agricultural": ("agriculture", "crops", "crop", "cocoa", "plantation", "biomass", "deforestation", "drone"),
+    "crop": ("agriculture", "crops", "cocoa", "plantation", "farming"),
+    "crops": ("agriculture", "crop", "cocoa", "plantation", "farming"),
+    "research discovery": ("publication archive", "academic research", "paper collection", "summarization", "podcasting"),
+    "web app": ("web application", "dashboard", "platform"),
+    "web application": ("web app", "dashboard", "platform"),
     "optimization": ("optimisation", "optimize", "optimise"),
     "optimisation": ("optimization", "optimize", "optimise"),
     "llm": ("large language model", "language model"),
@@ -40,6 +80,7 @@ def retrieve(
     section: str | None = None,
     provider: str = "hashing",
     index_path: Path = DEFAULT_INDEX_PATH,
+    include_text: bool = False,
 ) -> dict[str, Any]:
     warnings: list[str] = []
     filters = SearchFilters(paper_id=paper_id, author=author, year=year, section=section)
@@ -65,18 +106,21 @@ def retrieve(
         )
         warnings.extend(semantic_warnings)
 
+    selection_k = max(top_k * 3, top_k) if has_strong_topical_constraint(expanded_query) else top_k
+
     if mode == "keyword":
         results = [
-            format_result(result, rank, keyword=result["score"], semantic=0.0, query=expanded_query)
-            for rank, result in enumerate(keyword_results[:top_k], start=1)
+            format_result(result, rank, keyword=result["score"], semantic=0.0, query=expanded_query, include_text=include_text)
+            for rank, result in enumerate(keyword_results[:selection_k], start=1)
         ]
     elif mode == "semantic":
         results = [
-            format_result(result, rank, keyword=0.0, semantic=result["score"], query=expanded_query)
-            for rank, result in enumerate(semantic_results[:top_k], start=1)
+            format_result(result, rank, keyword=0.0, semantic=result["score"], query=expanded_query, include_text=include_text)
+            for rank, result in enumerate(semantic_results[:selection_k], start=1)
         ]
     else:
-        results = combine_hybrid(keyword_results, semantic_results, top_k=top_k, query=expanded_query)
+        results = combine_hybrid(keyword_results, semantic_results, top_k=selection_k, query=expanded_query, include_text=include_text)
+    results = apply_topical_constraints(results, expanded_query, top_k=top_k)
 
     return {
         "query": query,
@@ -96,6 +140,7 @@ def combine_hybrid(
     *,
     top_k: int,
     query: str,
+    include_text: bool = False,
 ) -> list[dict[str, Any]]:
     combined: dict[str, dict[str, Any]] = {}
     for result in keyword_results:
@@ -112,7 +157,19 @@ def combine_hybrid(
         base_score = entry["keyword"] * 0.42 + entry["semantic"] * 0.48
         entry["metadata"] = metadata_score(base, query)
         entry["section_boost"] = section_boost(str(base.get("section") or ""), query)
-        entry["base_combined"] = min(1.0, base_score + entry["metadata"] + entry["section_boost"])
+        entry["evidence_quality"] = evidence_quality_score(base)
+        entry["topical_alignment"] = topical_alignment_score(base, query)
+        entry["base_combined"] = min(
+            1.0,
+            max(
+                0.0,
+                base_score
+                + entry["metadata"]
+                + entry["section_boost"]
+                + entry["evidence_quality"]
+                + entry["topical_alignment"],
+            ),
+        )
 
     ranked = sorted(combined.values(), key=lambda entry: entry["base_combined"], reverse=True)
     diversified = diversify_ranked_entries(ranked, top_k=top_k)
@@ -126,6 +183,7 @@ def combine_hybrid(
             section=entry["section_boost"],
             combined_override=entry["diversified_score"],
             query=query,
+            include_text=include_text,
         )
         for rank, entry in enumerate(diversified, start=1)
     ]
@@ -145,11 +203,29 @@ def format_result(
     metadata: float | None = None,
     section: float | None = None,
     combined_override: float | None = None,
+    include_text: bool = False,
 ) -> dict[str, Any]:
     metadata_score_value = metadata if metadata is not None else metadata_score(result, query)
     section_boost_value = section if section is not None else section_boost(str(result.get("section") or ""), query)
-    combined = combined_override if combined_override is not None else min(1.0, keyword * 0.42 + semantic * 0.48 + metadata_score_value + section_boost_value)
-    return {
+    evidence_quality_value = evidence_quality_score(result)
+    topical_alignment_value = topical_alignment_score(result, query)
+    combined = (
+        combined_override
+        if combined_override is not None
+        else min(
+            1.0,
+            max(
+                0.0,
+                keyword * 0.42
+                + semantic * 0.48
+                + metadata_score_value
+                + section_boost_value
+                + evidence_quality_value
+                + topical_alignment_value,
+            ),
+        )
+    )
+    formatted = {
         "rank": rank,
         "paper_id": result["paper_id"],
         "paper_title": result.get("paper_title", ""),
@@ -168,10 +244,15 @@ def format_result(
             "semantic": round(semantic, 6),
             "metadata": round(metadata_score_value, 6),
             "section_boost": round(section_boost_value, 6),
+            "evidence_quality": round(evidence_quality_value, 6),
+            "topical_alignment": round(topical_alignment_value, 6),
             "combined": round(combined if combined else normalize_score(result.get("score", 0.0)), 6),
         },
         "source": result.get("source", {"pdf_url": None, "post_url": None, "local_pdf_path": None}),
     }
+    if include_text:
+        formatted["text"] = result.get("text", "")
+    return formatted
 
 
 def expand_query(query: str) -> tuple[str, list[str]]:
@@ -188,7 +269,11 @@ def expand_query(query: str) -> tuple[str, list[str]]:
 
 
 def query_tokens(query: str) -> set[str]:
-    return {token.lower() for token in re.findall(r"[a-zA-Z0-9]+", query) if len(token) > 1}
+    return {
+        token.lower()
+        for token in re.findall(r"[a-zA-Z0-9]+", query)
+        if len(token) > 1 and token.lower() not in STOPWORDS
+    }
 
 
 def metadata_score(result: dict[str, Any], query: str) -> float:
@@ -232,6 +317,93 @@ def section_boost(section_name: str, query: str) -> float:
     if any(term in section for term in ("abstract", "introduction", "conclusion")):
         return 0.035
     return 0.0
+
+
+def evidence_quality_score(result: dict[str, Any]) -> float:
+    text = str(result.get("text") or result.get("snippet") or "")
+    if not text:
+        return -0.04
+    lowered = text.lower()
+    section = str(result.get("section") or "").lower()
+    penalty = 0.0
+    if "@" in text:
+        penalty += 0.035
+    if any(marker in lowered for marker in ("proceedings of", "annual conference", "conference on", " arxiv", " doi", " et al")):
+        penalty += 0.085
+    if any(marker in lowered[:160] for marker in ("master's thesis", "master’s thesis", "references", "funding no funds", "declarations conflict")):
+        penalty += 0.12
+    if any(marker in section for marker in ("reference", "bibliography")):
+        penalty += 0.09
+    if any(marker in lowered for marker in ("abstract—", "abstract-", "department of", "university of")):
+        penalty += 0.025
+    if len(re.findall(r"\[[0-9]+\]", text)) >= 2:
+        penalty += 0.09
+    if len(text.split()) < 18:
+        penalty += 0.025
+    bonus = 0.0
+    if any(marker in lowered for marker in ("we ", "this paper", "this research", "results", "demonstrates", "proposes", "evaluat")):
+        bonus += 0.025
+    if any(marker in lowered for marker in ("limitations and future work", "future work", "limitations", "future research")):
+        bonus += 0.12
+    return max(-0.22, min(0.08, bonus - penalty))
+
+
+def topical_alignment_score(result: dict[str, Any], query: str) -> float:
+    lowered_query = query.lower()
+    text = " ".join(
+        [
+            str(result.get("paper_title") or ""),
+            str(result.get("venue") or ""),
+            " ".join(str(topic) for topic in result.get("topics", [])),
+            str(result.get("snippet") or ""),
+            str(result.get("text") or "")[:1200],
+        ]
+    ).lower()
+    score = 0.0
+    if "rag" in lowered_query or "retrieval augmented generation" in lowered_query or "retrieval-augmented generation" in lowered_query:
+        has_rag_signal = any(term in text for term in ("rag", "retrieval augmented", "retrieval-augmented"))
+        score += 0.055 if has_rag_signal else -0.18
+    if "agriculture" in lowered_query or "agricultural" in lowered_query:
+        agriculture_terms = ("agriculture", "agricultural", "crop", "crops", "cocoa", "plantation", "biomass", "deforestation", "drone", "weed", "water stress")
+        if any(term in text for term in agriculture_terms):
+            score += 0.15
+        elif " or " not in f" {lowered_query} ":
+            score -= 0.08
+    if any(term in lowered_query for term in ("web app", "web application", "research discovery", "publication archive")):
+        if any(term in text for term in ("web application", "platform", "publication", "research", "summarization", "podcasting", "dashboard")):
+            score += 0.06
+    if any(term in lowered_query for term in ("limitation", "future work", "future research", "challenge", "extend")):
+        if any(term in text for term in ("limitation", "limitations", "future work", "future research", "challenge", "improve", "extend", "not one-size")):
+            score += 0.09
+    return max(-0.22, min(0.1, score))
+
+
+def apply_topical_constraints(results: list[dict[str, Any]], query: str, *, top_k: int) -> list[dict[str, Any]]:
+    lowered_query = query.lower()
+    if not has_strong_topical_constraint(query):
+        return results
+    filtered = [result for result in results if has_rag_signal(result)]
+    if len(filtered) < min(2, top_k):
+        return results
+    for index, result in enumerate(filtered[:top_k], start=1):
+        result["rank"] = index
+    return filtered[:top_k]
+
+
+def has_strong_topical_constraint(query: str) -> bool:
+    lowered_query = query.lower()
+    return "rag" in lowered_query or "retrieval augmented generation" in lowered_query or "retrieval-augmented generation" in lowered_query
+
+
+def has_rag_signal(result: dict[str, Any]) -> bool:
+    text = " ".join(
+        [
+            str(result.get("paper_title") or ""),
+            str(result.get("snippet") or ""),
+            str(result.get("text") or "")[:1200],
+        ]
+    ).lower()
+    return bool(re.search(r"(?<![a-z0-9])rag(?![a-z0-9])", text)) or "retrieval augmented" in text or "retrieval-augmented" in text
 
 
 def diversify_ranked_entries(entries: list[dict[str, Any]], *, top_k: int) -> list[dict[str, Any]]:

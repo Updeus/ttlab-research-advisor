@@ -1,0 +1,23 @@
+\begin{tikzpicture}
+\begin{axis}[
+  ybar,
+  width=0.92\linewidth,
+  height=58mm,
+  ymin=0,
+  ymax=145,
+  bar width=14pt,
+  symbolic x coords={Extracted,Missing,Failed},
+  xtick=data,
+  ylabel={Papers},
+  nodes near coords,
+  nodes near coords align={vertical},
+  axis line style={draw=Slate},
+  tick label style={font=\small},
+  label style={font=\small},
+  enlarge x limits=0.25,
+  grid=major,
+  grid style={gray!15}
+]
+\addplot[fill=Teal!65,draw=Teal!80!black] coordinates {(Extracted,98) (Missing,35) (Failed,1)};
+\end{axis}
+\end{tikzpicture}

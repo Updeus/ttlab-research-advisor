@@ -1,0 +1,52 @@
+\chapter{Experimental Design}
+\label{ch:experiments}
+
+\section{Completed technical verification}
+
+Completed verification comprises source/schema audit, file and database consistency checks, automated tests against an isolated database, representative API probes against a disposable database copy, a clean frontend dependency/build run, browser inspection of eight main surfaces, and LaTeX build/render inspection. These procedures answer whether the snapshot is internally reproducible and demonstrable; they do not answer whether users receive relevant or faithful advice.
+
+\section{Implemented retrieval metrics}
+
+For query $q$, with retrieved paper list $L_q$ and gold set $G_q$, the code reports a binary hit indicator called Recall@$k$:
+\begin{equation}
+\operatorname{Hit@}k(q)=\mathbb{I}\!\left[G_q\cap L_q[1{:}k]\neq\varnothing\right].
+\label{eq:hitk}
+\end{equation}
+The implementation averages this indicator over queries. It is therefore a hit rate, not set recall $|G_q\cap L_q[1{:}k]|/|G_q|$. Mean reciprocal rank is
+\begin{equation}
+\operatorname{MRR}=\frac{1}{|Q|}\sum_{q\in Q}\frac{1}{\operatorname{rank}_q},
+\label{eq:mrr}
+\end{equation}
+with zero when no gold paper is retrieved. The sample retrieval and QA files contain empty gold labels and intentionally fail validation, so neither metric has a current result.
+
+\section{Proposed retrieval experiment}
+
+A versioned test set should stratify questions by exact fact, method, result, limitation/future work, topic, author, comparison, and broad intent. Keyword, hashing-vector, and hybrid modes should use the same corpus, cut-offs, and paper filtering. Primary outcomes should include set Recall@3/5, hit rate, MRR, nDCG where graded judgments are available, and per-intent error analysis. Query-expansion and reranking terms should be ablated. The active vector index must first be rebuilt for all 756 chunks and status consistency verified.
+
+\section{Proposed QA evaluation}
+
+Each answer should be decomposed into checkable claims. Reviewers should label whether each claim is entailed by its cited snippet, whether the citation points to the right paper/page, whether important answer points are covered, and whether unsupported general knowledge appears. Automatic RAG measures may supplement but not replace these labels \cite{es2024ragas,saadfalcon2024ares,min2023factscore}. Provider, model hash/tag, prompt, temperature, retrieval list, and fallback state must be stored.
+
+\section{Proposed recommendation evaluation}
+
+Students and supervisors should independently rate paper relevance, gap fidelity, novelty, feasibility for the stated time/skills/data, usefulness of the MVP, risk calibration, and appropriateness of the evaluation plan. Reviewers must separately judge source claims and system suggestions. A comparison baseline could present retrieved papers without generated extension advice. \authorinput{approve participant groups, sample size, rating scales, compensation, consent, and analysis}.
+
+\section{Proposed topic/author and summary evaluation}
+
+Topic evaluation should measure label precision/coverage and reviewer agreement against the fixed taxonomy, including multi-label cases and an ``other'' outcome. Author evaluation should first resolve identities, then assess expertise links. Public and technical summaries should be reviewed for correctness, relevance, coherence, and readability, drawing on human-centred evaluation lessons from SummEval \cite{fabbri2021summeval}.
+
+\section{Evaluation workflow and current state}
+
+\begin{figure}[htbp]
+\centering
+\begingroup\hfuzz=100pt\resizebox{\textwidth}{!}{\input{figures/src/evaluation_workflow}}\endgroup
+\caption{Implemented and proposed evaluation workflow. Gold retrieval/QA labels and human reviews are absent in the audited snapshot.}
+\label{fig:evaluation-workflow}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\projectScreenshot{figures/screenshots/evaluation.png}{0.96\textwidth}
+\caption{Evaluation dashboard correctly displaying not-run and placeholder states rather than inferred performance.}
+\label{fig:evaluation-shot}
+\end{figure}

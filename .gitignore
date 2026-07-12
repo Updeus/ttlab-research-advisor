@@ -33,3 +33,8 @@ data/evaluation/*_results.json
 data/evaluation/*_results.csv
 
 narine-rtsi.pdf
+
+# Keep final thesis artefacts while excluding LaTeX compiler intermediates.
+build/*
+!build/thesis.pdf
+!build/ieee-paper.pdf

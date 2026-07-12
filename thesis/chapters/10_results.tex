@@ -1,0 +1,55 @@
+\chapter{Results}
+\label{ch:results}
+
+\section{Corpus and ingestion results (RQ1)}
+
+The pipeline represents all 134 seed records in SQLite and has extracted 98 PDFs into 698 pages and 756 chunks. Thirty-five papers lack PDFs and one is marked download failed (\cref{fig:corpus-status}). PDF, extracted JSON/text, and chunk-file paths are one-to-one for the 98 extracted papers. SQLite integrity checks pass. The observed coverage is therefore 98/134 papers (73.13\%), with the remaining 26.87\% unavailable to full-text retrieval. There is no OCR fallback, and section inference leaves 32.94\% of chunks unknown.
+
+\section{Retrieval and answer traceability (RQ2)}
+
+Keyword FTS contains all 756 chunks. By contrast, the active hashing-vector JSON index contains 25 chunks from three papers (3.31\% of chunks), while 300 SQLite rows retain an indexed-hashing status. \Cref{fig:index-coverage} visualizes this discrepancy.
+
+\begin{figure}[htbp]
+\centering
+\begingroup\hfuzz=100pt\resizebox{0.90\textwidth}{!}{\input{figures/src/index_coverage_plot}}\endgroup
+\caption{Keyword and hashing-index coverage. Database-marked hashing status overstates the 25-record active index.}
+\label{fig:index-coverage}
+\end{figure}
+
+The cause is reproducible in code: a bounded demo rebuild overwrites the JSON vector store but does not clear the status of omitted chunks. The API's active semantic count reads the JSON and correctly reports 25; database status alone is not trustworthy coverage evidence.
+
+Representative disposable probes returned HTTP 200 for keyword, hashing-vector, and hybrid search and for three offline Ask requests. Returned answers included paper/chunk/page citations, retrieved chunks, provider/model metadata, warnings, and review state. All 27 persisted historical answers are structurally \texttt{grounded} and require review; 16 use the offline provider, ten record a qwen3 model, and one records qwen2.5. No human faithfulness, usefulness, or citation-correctness scores exist.
+
+A broad probe about agriculture or AI began with relevant agriculture/machine-learning evidence but then included unrelated general AI/RAG material. This is direct failure evidence: structural grounding can coexist with a poorly bounded multi-intent answer.
+
+\section{Recommendation traceability (RQ3)}
+
+Seven persisted runs contain 29 recommendation items and 67 citations. Gap labels comprise three explicit, 16 inferred, and ten not found. Every run is partial and needs review. A disposable request returned three ranked recommendations with scores 0.5176, 0.5169, and 0.5002; only the first found an explicit gap in retrieved text. The implemented structures visibly separate source evidence and gap status from generated extension content (\cref{fig:extension-shot}). No result demonstrates relevance, novelty, educational benefit, or feasibility.
+
+\section{Discovery, artefacts, and review (RQ4)}
+
+The explorer contains 39 fixed topics, 767 paper-topic links, and 1,105 author-topic links; 132 of 134 papers have a topic link. It also exposes unresolved identities and the ``Click to View'' parsing artefact. Fourteen persisted generated artefacts cover five papers, including five text-only podcast scripts; all require review. The database contains 182 items in the review queue and zero review events. Thus, inspectability and review mechanisms are implemented, while corrected data and completed human governance are not.
+
+\section{Reproducibility and verification (RQ5)}
+
+Backend tests executed against an isolated SQLite database: 71 passed with five PyMuPDF/SWIG deprecation warnings in 8.01 seconds. The test suite is not entirely filesystem-hermetic because one artefact test writes to the default generated-data path. A clean frontend install/build completed with 72 packages, zero reported vulnerabilities, and 1,796 transformed modules; produced asset sizes are documented in the evidence log. Browser inspection exercised all eight main views without console or request errors. Final document-build and visual-QA results are recorded in \codepath{thesis/PROJECT_EVIDENCE.md}.
+
+\begin{table}[htbp]
+\centering
+\caption{Current evaluation results and what they do not establish.}
+\label{tab:evaluation-results}
+\begin{tabularx}{\textwidth}{P{30mm}P{31mm}Y}
+\toprule
+Evaluation & Observed state & Prohibited inference \\
+\midrule
+Retrieval & not run; gold paper IDs absent & no Recall@3/5 or MRR claim \\
+QA & not run; answer points/gold citations absent & no faithfulness or usefulness claim \\
+Extension & one explicit placeholder case, citation coverage 1.0 & no relevance or feasibility claim \\
+Artefact & one explicit placeholder case, citation coverage 1.0 & no correctness or readability claim \\
+Human review & templates and mechanism; zero events & no reviewer agreement or quality improvement claim \\
+Ollama benchmark & absent; service unavailable during audit & no local-model comparison or latency claim \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The primary result is therefore a working and auditable prototype with quantified coverage and identifiable failure modes, not validated retrieval or recommendation effectiveness.

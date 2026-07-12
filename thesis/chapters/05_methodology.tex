@@ -1,0 +1,44 @@
+\chapter{Methodology}
+\label{ch:methodology}
+
+\section{Study design}
+
+This work is reported as an artefact-oriented engineering case study with design-science characteristics: a problem-motivated software artefact is built, demonstrated, and evaluated through repository and runtime evidence. \authorinput{confirm that this methodological designation matches the approved MSc proposal and university terminology}. The present thesis evaluation is a technical characterization, not a completed user study.
+
+\section{Evidence protocol}
+
+The audit used six evidence classes, ordered by what each can establish:
+
+\begin{enumerate}
+  \item source and schema inspection establishes implemented logic and data contracts;
+  \item file and database manifests establish snapshot coverage and consistency;
+  \item isolated tests establish tested behaviour under test assumptions;
+  \item disposable runtime probes establish endpoint behaviour without contaminating the project database;
+  \item frontend builds and browser inspection establish client compilation and visible integration; and
+  \item literature records establish externally verifiable context, not project performance.
+\end{enumerate}
+
+Claims were rejected or labelled as requiring author input when no corresponding evidence existed. Commit subjects were used as chronology, never as sole proof of functionality. The ignored runtime database was hashed before probing, and API probes operated on a temporary copy.
+
+\section{Reproducible snapshot collection}
+
+The script \codepath{thesis/scripts/collect_evidence.py} records Git state, file hashes, corpus manifests, SQLite integrity, table counts, chunk sections, semantic-index coverage, and evaluation artefacts. It emits JSON and CSV files consumed by the thesis figures. The script is read-only with respect to the project database. \codepath{thesis/scripts/runtime_probe.py} copies that database to a temporary location, sets an isolated database URL, and issues representative requests through FastAPI's test client.
+
+\section{Analytical boundaries}
+
+The reported counts are descriptive statistics over one dated repository snapshot. No sampling uncertainty is attached to counts such as PDFs or chunks. Retrieval scores from illustrative requests are not aggregated effectiveness metrics. A structurally grounded answer is not counted as factually correct. Placeholder evaluation cases are not treated as experiments. These boundaries are essential because an evaluation dashboard can exist while evaluation data do not.
+
+\section{Proposed empirical methodology}
+
+The implemented evaluator supports binary paper-relevance labels and reciprocal rank. A defensible follow-up study should:
+
+\begin{enumerate}
+  \item freeze a versioned corpus and index manifest;
+  \item have at least two domain-informed assessors label relevant papers and answer points for a stratified set of fact, method, limitation, comparison, topic, author, and broad-intent questions;
+  \item compare keyword, hashing-vector, and hybrid retrieval under identical cut-offs;
+  \item review answer claims and citations for entailment, completeness, and usefulness;
+  \item evaluate recommendation relevance, feasibility, novelty, source fidelity, and calibration with students and/or supervisors; and
+  \item report agreement, uncertainty, failures, latency, hardware, model version, prompts, repetitions, and statistical tests appropriate to the final design.
+\end{enumerate}
+
+Until that protocol is approved and executed, the thesis reports only implementation and reproducibility results. \authorinput{provide ethics approval/exemption status, assessor recruitment plan, consent procedure, sample-size rationale, and approved statistical analysis}.

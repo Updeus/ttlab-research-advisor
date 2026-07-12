@@ -1,0 +1,593 @@
+{
+  "snapshot_generated_at_utc": "2026-07-11T18:07:09.357926+00:00",
+  "repository": {
+    "root": "/mnt/c/Users/jarod/Desktop/Projects/Advisor",
+    "head_commit": "713ea5c8e321200eb5a17655481e091cab13ccb4",
+    "head_short": "713ea5c",
+    "head_subject": "Add local Ollama RAG improvements and demo polish",
+    "head_timestamp": "2026-07-09T14:25:33-04:00",
+    "branch": "main",
+    "dirty": true,
+    "status_short": [
+      "M backend/app/indexing/keyword_search.py",
+      " M backend/app/indexing/retriever.py",
+      " M backend/app/indexing/vector_store.py",
+      " M backend/app/intelligence/llm_provider.py",
+      " M backend/app/intelligence/rag_answerer.py",
+      " M backend/tests/test_ask.py",
+      " M backend/tests/test_retrieval.py",
+      "?? thesis/"
+    ],
+    "commits": [
+      {
+        "commit": "5ec1169",
+        "timestamp": "2026-07-01T21:36:54-04:00",
+        "subject": "Initialize TTLAB research advisor repo"
+      },
+      {
+        "commit": "dfd86b8",
+        "timestamp": "2026-07-01T22:12:11-04:00",
+        "subject": "Add Phase 1 research advisor scaffold"
+      },
+      {
+        "commit": "47fca92",
+        "timestamp": "2026-07-01T23:43:24-04:00",
+        "subject": "Add Phase 2 PDF extraction and chunking"
+      },
+      {
+        "commit": "77d5f90",
+        "timestamp": "2026-07-02T00:02:14-04:00",
+        "subject": "Add Phase 3 retrieval search"
+      },
+      {
+        "commit": "261646e",
+        "timestamp": "2026-07-02T00:12:13-04:00",
+        "subject": "Add Phase 4 Ask TTLAB Q&A"
+      },
+      {
+        "commit": "fa50eb5",
+        "timestamp": "2026-07-02T01:02:55-04:00",
+        "subject": "Add Phase 5 thesis extension finder"
+      },
+      {
+        "commit": "cb07dbe",
+        "timestamp": "2026-07-02T01:25:22-04:00",
+        "subject": "Add Phase 6 paper intelligence artifacts"
+      },
+      {
+        "commit": "cda6274",
+        "timestamp": "2026-07-02T12:21:09-04:00",
+        "subject": "Add Phase 7 admin review dashboard"
+      },
+      {
+        "commit": "8f89d97",
+        "timestamp": "2026-07-02T13:32:13-04:00",
+        "subject": "Add Phase 8 topic author explorer"
+      },
+      {
+        "commit": "682ba6a",
+        "timestamp": "2026-07-02T15:01:26-04:00",
+        "subject": "Harden final demo documentation"
+      },
+      {
+        "commit": "713ea5c",
+        "timestamp": "2026-07-09T14:25:33-04:00",
+        "subject": "Add local Ollama RAG improvements and demo polish"
+      }
+    ]
+  },
+  "seed": {
+    "available": true,
+    "path": "data/seed/papers.json",
+    "bytes": 339255,
+    "sha256": "d542403eee240fdae831af31f105ab1cc39f36a4b90eaa19f07b84f211b27b16",
+    "records": 134,
+    "years": {
+      "2014": 2,
+      "2015": 6,
+      "2016": 15,
+      "2017": 8,
+      "2018": 5,
+      "2019": 15,
+      "2020": 11,
+      "2021": 15,
+      "2022": 11,
+      "2023": 11,
+      "2024": 4,
+      "2025": 30,
+      "2026": 1
+    },
+    "records_with_pdf_url": 100,
+    "records_with_source_url": 41
+  },
+  "database": {
+    "available": true,
+    "path": "data/papers.db",
+    "bytes": 17256448,
+    "sha256": "d9474b25b224306c6cf8d5a3769e1483acf512e94b0c077040503c9c1693a9e2",
+    "entity_counts": {
+      "paper": 134,
+      "author": 126,
+      "chunk": 756,
+      "raganswer": 27,
+      "thesisrecommendation": 7,
+      "paperartifact": 14,
+      "topic": 39,
+      "reviewevent": 0,
+      "papertopic": 767,
+      "authortopic": 1105
+    },
+    "paper_status": [
+      {
+        "ingestion_status": "text_extracted",
+        "pdf_text_status": "extracted",
+        "review_status": "needs_review",
+        "count": 98
+      },
+      {
+        "ingestion_status": "missing_pdf",
+        "pdf_text_status": "missing_pdf",
+        "review_status": "needs_review",
+        "count": 35
+      },
+      {
+        "ingestion_status": "download_failed",
+        "pdf_text_status": "download_failed",
+        "review_status": "needs_review",
+        "count": 1
+      }
+    ],
+    "years": [
+      {
+        "year": 2014,
+        "count": 2
+      },
+      {
+        "year": 2015,
+        "count": 6
+      },
+      {
+        "year": 2016,
+        "count": 15
+      },
+      {
+        "year": 2017,
+        "count": 8
+      },
+      {
+        "year": 2018,
+        "count": 5
+      },
+      {
+        "year": 2019,
+        "count": 15
+      },
+      {
+        "year": 2020,
+        "count": 11
+      },
+      {
+        "year": 2021,
+        "count": 15
+      },
+      {
+        "year": 2022,
+        "count": 11
+      },
+      {
+        "year": 2023,
+        "count": 11
+      },
+      {
+        "year": 2024,
+        "count": 4
+      },
+      {
+        "year": 2025,
+        "count": 30
+      },
+      {
+        "year": 2026,
+        "count": 1
+      }
+    ],
+    "chunk_embedding_status": [
+      {
+        "embedding_status": "not_indexed",
+        "count": 456,
+        "average_estimated_tokens": 967.4
+      },
+      {
+        "embedding_status": "indexed:hashing",
+        "count": 300,
+        "average_estimated_tokens": 901.4
+      }
+    ],
+    "chunk_sections": [
+      {
+        "section": "Unknown",
+        "count": 249,
+        "percentage": 32.94
+      },
+      {
+        "section": "Methodology",
+        "count": 242,
+        "percentage": 32.01
+      },
+      {
+        "section": "Results",
+        "count": 102,
+        "percentage": 13.49
+      },
+      {
+        "section": "Abstract",
+        "count": 98,
+        "percentage": 12.96
+      },
+      {
+        "section": "Literature Review",
+        "count": 32,
+        "percentage": 4.23
+      },
+      {
+        "section": "Conclusion",
+        "count": 17,
+        "percentage": 2.25
+      },
+      {
+        "section": "Discussion",
+        "count": 7,
+        "percentage": 0.93
+      },
+      {
+        "section": "References",
+        "count": 5,
+        "percentage": 0.66
+      },
+      {
+        "section": "Introduction",
+        "count": 4,
+        "percentage": 0.53
+      }
+    ],
+    "corpus_totals": {
+      "words": 455601,
+      "characters": 2927326,
+      "pages": 698,
+      "chunks_reported": 756,
+      "average_chunks_per_extracted_paper": 7.71,
+      "chunk_words_with_overlap": 547628,
+      "chunk_to_source_word_ratio": 1.202
+    },
+    "metadata_completeness": {
+      "with_doi": 0,
+      "with_abstract": 0,
+      "with_pdf_url": 100,
+      "with_reviewed_status": 0
+    },
+    "rag_answers": [
+      {
+        "provider": "offline_extractive",
+        "model": "sentence-overlap-v1",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 16
+      },
+      {
+        "provider": "ollama",
+        "model": "qwen3:4b-instruct-2507-q4_K_M",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 10
+      },
+      {
+        "provider": "ollama",
+        "model": "qwen2.5:0.5b",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 1
+      }
+    ],
+    "recommendations": [
+      {
+        "provider": "offline_deterministic",
+        "model": "template-recommender-v1",
+        "grounding_status": "partial",
+        "review_status": "needs_review",
+        "count": 7
+      }
+    ],
+    "artifacts": [
+      {
+        "artifact_type": "future_work",
+        "generation_status": "generated",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 1
+      },
+      {
+        "artifact_type": "limitations",
+        "generation_status": "generated",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 1
+      },
+      {
+        "artifact_type": "paper_intelligence_bundle",
+        "generation_status": "generated",
+        "grounding_status": "partial",
+        "review_status": "needs_review",
+        "count": 5
+      },
+      {
+        "artifact_type": "podcast_script",
+        "generation_status": "generated",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 5
+      },
+      {
+        "artifact_type": "public_summary",
+        "generation_status": "generated",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 1
+      },
+      {
+        "artifact_type": "technical_summary",
+        "generation_status": "generated",
+        "grounding_status": "grounded",
+        "review_status": "needs_review",
+        "count": 1
+      }
+    ],
+    "top_topics": [
+      {
+        "name": "Data Science",
+        "paper_count": 67
+      },
+      {
+        "name": "Networks",
+        "paper_count": 67
+      },
+      {
+        "name": "Education",
+        "paper_count": 66
+      },
+      {
+        "name": "Machine Learning",
+        "paper_count": 53
+      },
+      {
+        "name": "Visualization",
+        "paper_count": 44
+      },
+      {
+        "name": "Web Applications",
+        "paper_count": 38
+      },
+      {
+        "name": "Optimization",
+        "paper_count": 36
+      },
+      {
+        "name": "Telecommunications",
+        "paper_count": 31
+      },
+      {
+        "name": "Pricing",
+        "paper_count": 27
+      },
+      {
+        "name": "Summarization",
+        "paper_count": 25
+      },
+      {
+        "name": "Energy",
+        "paper_count": 24
+      },
+      {
+        "name": "Clustering",
+        "paper_count": 21
+      }
+    ],
+    "top_authors": [
+      {
+        "name": "Patrick Hosein",
+        "paper_count": 99
+      },
+      {
+        "name": "P. Hosein",
+        "paper_count": 21
+      },
+      {
+        "name": "Click to View",
+        "paper_count": 12
+      },
+      {
+        "name": "Inzamam Rahaman",
+        "paper_count": 10
+      },
+      {
+        "name": "Ramneek",
+        "paper_count": 8
+      },
+      {
+        "name": "Kris Manohar",
+        "paper_count": 7
+      },
+      {
+        "name": "Ramneek Sekhon",
+        "paper_count": 7
+      },
+      {
+        "name": "W. Choi",
+        "paper_count": 7
+      },
+      {
+        "name": "W. Seok",
+        "paper_count": 7
+      },
+      {
+        "name": "Reshawn Ramjattan",
+        "paper_count": 6
+      },
+      {
+        "name": "Sangheon Pack",
+        "paper_count": 6
+      },
+      {
+        "name": "Nicholas Hosein",
+        "paper_count": 5
+      }
+    ],
+    "date_bounds": {
+      "paper_first_created": "2026-07-02 01:54:57.807820",
+      "paper_last_updated": "2026-07-09 16:17:57.141278",
+      "answer_first_created": "2026-07-02 04:09:49.869549",
+      "answer_last_created": "2026-07-09 17:47:26.800439"
+    }
+  },
+  "filesystem_counts": {
+    "pdfs": 98,
+    "pdf_bytes": 29718138,
+    "pdf_checksum_manifest_sha256": "ac9ca99d2ee9c13a07442843b48712e51bef0efbf86f175682830f8a9ef53658",
+    "extracted_json": 98,
+    "extracted_text": 98,
+    "chunk_files": 98
+  },
+  "evaluation": {
+    "retrieval_eval_results.json": {
+      "status": "not_run"
+    },
+    "qa_eval_results.json": {
+      "status": "not_run"
+    },
+    "extension_eval_results.json": {
+      "status": "available",
+      "sha256": "eb9f324bec4737ef19e43e1cb5e69f5118ce6844b08e9fcd71392799ffc5081f",
+      "payload": {
+        "case_count": 1,
+        "cases": [
+          {
+            "case_id": "sample-001",
+            "recommendation_id": "bd3b3bef-4cad-41e1-8e19-2c0d46e36fa6",
+            "recommendation_count": 5,
+            "citation_count": 14,
+            "cited_paper_count": 5,
+            "grounding_status": "partial",
+            "percentage_recommendations_with_citations": 1.0,
+            "warnings_count": 19,
+            "recommendations": [
+              {
+                "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+                "extension_title": "rag and web apps prototype extending A Comparison of Large Language Models in a...",
+                "citation_count": 3,
+                "difficulty": "medium",
+                "risk_level": "medium"
+              },
+              {
+                "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+                "extension_title": "rag and web apps prototype extending Using Retrieval-Augmented Generation for Fault Prediction and Maintenance...",
+                "citation_count": 3,
+                "difficulty": "medium",
+                "risk_level": "medium"
+              },
+              {
+                "paper_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+                "extension_title": "rag and web apps prototype extending A Global Hierarchical LLM Framework for Precise Responses...",
+                "citation_count": 3,
+                "difficulty": "medium",
+                "risk_level": "high"
+              },
+              {
+                "paper_id": "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+                "extension_title": "rag and web apps prototype extending Automating the Collection, Display, Summarization and Podcasting of...",
+                "citation_count": 3,
+                "difficulty": "medium",
+                "risk_level": "medium"
+              },
+              {
+                "paper_id": "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+                "extension_title": "rag and web apps prototype extending Office Scheduling of a Hybrid Workforce with Fairness...",
+                "citation_count": 2,
+                "difficulty": "medium",
+                "risk_level": "medium"
+              }
+            ]
+          }
+        ],
+        "metrics": {
+          "average_recommendation_count": 5.0,
+          "average_citation_count": 14.0,
+          "average_citation_coverage": 1.0,
+          "grounded_cases": 0,
+          "partial_cases": 1,
+          "unsupported_cases": 0
+        }
+      }
+    },
+    "artifact_eval_results.json": {
+      "status": "available",
+      "sha256": "15b467abe0d95b78318875a3375a0993e229c6b2e30e9a7613a7f17754692641",
+      "payload": {
+        "case_count": 1,
+        "cases": [
+          {
+            "case_id": "sample-001",
+            "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+            "artifact_count": 4,
+            "citation_count": 10,
+            "percentage_artifacts_with_citations": 1.0,
+            "grounding_status": "grounded",
+            "warnings_count": 0,
+            "sections_with_explicit_support": 2,
+            "sections_inferred": 0,
+            "sections_not_found": 0
+          }
+        ],
+        "metrics": {
+          "average_artifact_count": 4.0,
+          "average_citation_count": 10.0,
+          "average_citation_coverage": 1.0,
+          "grounded_cases": 1,
+          "partial_cases": 0,
+          "unsupported_cases": 0
+        }
+      }
+    },
+    "ollama_benchmark_results.json": {
+      "status": "not_run"
+    }
+  },
+  "semantic_index": {
+    "status": "ready",
+    "path": "data/indexes/hashing_embeddings.json",
+    "bytes": 163524,
+    "sha256": "8cb6843a0c64a746d03ab48c2498e845cf455601feea3b33ceb0e5eb3bb50511",
+    "provider": "hashing",
+    "dimensions": 256,
+    "created_at": "2026-07-09T16:18:01.815592+00:00",
+    "record_count": 25
+  },
+  "code_inventory": {
+    "file_counts_by_extension": {
+      ".md": 14,
+      ".json": 8,
+      ".ts": 4,
+      ".sh": 1,
+      ".py": 71,
+      ".tsx": 12,
+      ".css": 1
+    },
+    "line_counts_by_extension": {
+      ".md": 3028,
+      ".json": 19664,
+      ".ts": 974,
+      ".sh": 299,
+      ".py": 11970,
+      ".tsx": 3447,
+      ".css": 1390
+    }
+  }
+}

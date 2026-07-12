@@ -1,0 +1,40 @@
+\chapter{Literature Review}
+\label{ch:literature}
+
+\section{Scholarly discovery and research intelligence}
+
+Early autonomous citation indexing showed how web-accessible papers could be gathered and linked into searchable digital libraries \cite{giles1998citeseer}. ArnetMiner combined extraction and mining to support expert and topic discovery \cite{tang2008arnetminer}, while S2ORC and OpenAlex demonstrate the value of large scholarly graphs and open metadata \cite{ammar2018literaturegraph,priem2022openalex}. The TTLAB precursor focused on collecting and presenting publications, producing lay summaries, notifications, and podcast material \cite{narine2025automating}. The current artefact differs principally in its use of full local papers, page-aware chunks, student-facing extension structures, and explicit review state.
+
+This local focus creates a trade-off. Large scholarly systems offer scale and citation networks; the prototype can retain inspectable full-text provenance and domain-specific workflows, but inherits the incompleteness and noise of its small corpus.
+
+\section{Scholarly recommendation and expertise discovery}
+
+Research-paper recommendation has used content, citations, user profiles, and hybrid signals; surveys identify evaluation comparability and realistic user modelling as persistent difficulties \cite{beel2016researchpaper}. Scholarly recommendations can also exploit a researcher's prior publications to infer interests \cite{sugiyama2010scholarly}. Expert finding is commonly formalised as ranking candidates from textual evidence, including candidate-centric and document-centric language models \cite{balog2006formal,balog2009language}.
+
+The project does not implement a learned recommender or probabilistic expert model. It uses deterministic weighted rules and labels author expertise as potential fit. This distinction matters because authorship plus lexical topics is supporting evidence for a possible connection, not proof of present expertise, availability, or willingness to collaborate.
+
+\section{Lexical and dense retrieval}
+
+BM25 remains a strong lexical retrieval baseline \cite{robertson2009bm25}. Learned sentence and passage representations, including Sentence-BERT, Dense Passage Retrieval, and SPECTER, enable semantic similarity beyond exact term overlap \cite{reimers2019sentencebert,karpukhin2020dpr,cohan2020specter}. BEIR shows that zero-shot retrieval performance varies substantially across tasks and that no single method should be assumed superior without evaluation \cite{thakur2021beir}.
+
+The prototype combines SQLite FTS ranking with a 256-dimensional signed feature-hashing representation. Feature hashing is a memory-efficient projection technique \cite{weinberger2009featurehashing}; unlike learned dense encoders, it mainly preserves lexical features. Calling the active path ``semantic'' in the interface is therefore looser than the algorithm warrants. The thesis uses the term \emph{hashing-vector retrieval}.
+
+\section{Topic modelling and author-topic relations}
+
+Probabilistic topic models such as latent Dirichlet allocation infer distributions over latent topics \cite{blei2003lda}; BERTopic combines transformer embeddings with clustering and class-based term weighting \cite{grootendorst2022bertopic}. Topic-model evaluation remains difficult because numerical coherence and human interpretability can diverge \cite{doogan2021topic}. The project instead applies a fixed lexical taxonomy of 39 rules. This improves determinism and domain editability, but does not discover latent topics and has not been validated for coverage or agreement.
+
+\section{Retrieval-augmented generation and grounding}
+
+RAG conditions generation on retrieved documents and can expose provenance \cite{lewis2020rag}. Fusion-in-Decoder aggregates multiple passages in the generator \cite{izacard2021fid}, while Self-RAG adds retrieval and self-reflection control tokens \cite{asai2024selfrag}. These methods motivate retrieval-aware answer construction, but do not imply that any system returning citations is faithful.
+
+Frameworks such as RAGAS and ARES propose automated dimensions and synthetic evaluation for RAG pipelines \cite{es2024ragas,saadfalcon2024ares}. FActScore decomposes long-form generations into atomic factual claims \cite{min2023factscore}. For summaries, SummEval demonstrates the need to compare automatic measures with human judgments \cite{fabbri2021summeval}; G-Eval explores model-based evaluation but remains dependent on prompt and evaluator behaviour \cite{liu2023geval}. The present verifier checks citation structure and token overlap only. It is properly treated as a guardrail, not a faithfulness metric.
+
+\section{Human review and responsible AI}
+
+Interactive machine learning emphasizes that effective systems incorporate human feedback at appropriate points in the workflow \cite{amershi2014power}. Dataset documentation and model reporting practices make provenance, intended use, and limitations explicit \cite{gebru2021datasheets,mitchell2019modelcards}. Language-model risk taxonomies include discrimination, misinformation, malicious use, and human-computer interaction harms \cite{weidinger2022taxonomy}; the NIST AI Risk Management Framework similarly emphasizes governance, mapping, measurement, and management \cite{tabassi2023airmf}.
+
+The platform's \texttt{needs\_review} state, warning fields, evidence links, and review-event model align with these principles at the mechanism level. However, zero recorded review events and the absence of authentication mean that review effectiveness and governance are not established.
+
+\section{Research gap}
+
+The reviewed literature offers mature components for scholarly graphs, recommendation, expert finding, retrieval, topic modelling, RAG, and evaluation. The practical gap addressed here is their integration into a small-laboratory workflow that connects full-paper evidence to student project formulation and public explanation while keeping source facts, inferences, suggestions, and review state separate. The contribution is integration and auditability in this context, not a replacement for the large-scale or learned methods above.

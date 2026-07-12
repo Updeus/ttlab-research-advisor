@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+\begin{axis}[
+  ybar,
+  width=0.97\linewidth,
+  height=65mm,
+  ymin=0,
+  bar width=7pt,
+  xlabel={Publication year in seed metadata},
+  ylabel={Papers},
+  xtick=data,
+  x tick label style={rotate=45,anchor=east,font=\scriptsize},
+  y tick label style={font=\small},
+  label style={font=\small},
+  grid=major,
+  grid style={gray!15},
+  nodes near coords,
+  nodes near coords style={font=\tiny}
+]
+\addplot[fill=Navy!65,draw=Navy] table[x=year,y=count,col sep=comma] {generated/year_distribution.csv};
+\end{axis}
+\end{tikzpicture}

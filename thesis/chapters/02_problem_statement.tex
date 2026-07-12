@@ -1,0 +1,41 @@
+\chapter{Problem Statement}
+\label{ch:problem}
+
+The practical problem is a mismatch between a publication archive and the questions its users need answered. A student may ask which paper is feasible to extend in one semester; an industry user may ask which researchers work on a problem; a researcher may need a public explanation of a technical contribution. Answering these questions requires evidence distributed across full papers, metadata, authorship relations, and generated interpretations.
+
+Three risks make a naive chatbot unsuitable. First, metadata-only retrieval can omit methods, limitations, experiments, and future work that appear only in the paper body. Second, generated prose can merge retrieved facts with unsupported suggestions. Third, an apparently polished interface can obscure missing PDFs, incomplete indexes, parsing errors, or the absence of human validation. Retrieval-augmented generation (RAG) can make retrieved evidence available to a generator \cite{lewis2020rag}, but retrieval and citation display do not automatically make an answer correct.
+
+The research problem is therefore:
+
+\begin{quote}
+How can a small, locally operated system transform a laboratory publication snapshot into a reproducible, inspectable research-advice workflow in which full-text evidence, generated interpretation, review state, and evaluation status remain distinguishable?
+\end{quote}
+
+\section{Stakeholders and information needs}
+
+\begin{table}[htbp]
+\centering
+\caption{Stakeholders, primary tasks, and principal failure risks.}
+\label{tab:stakeholders}
+\begin{tabularx}{\textwidth}{P{27mm}YY}
+\toprule
+Stakeholder & Task & Principal risk \\
+\midrule
+Student & discover relevant work and scope an extension & suggestion presented as a claim made by the source paper \\
+Researcher & improve discoverability and produce accessible summaries & inaccurate or decontextualised representation \\
+Public/industry user & connect a problem to papers or potential collaborators & expertise inferred from noisy authorship/topic data \\
+Administrator & correct metadata and approve generated outputs & unauthenticated or incomplete review workflow \\
+Evaluator & judge retrieval, grounding, and usefulness & structural checks mistaken for empirical quality \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Scope}
+
+The implemented scope is deliberately local and bounded: a manually inspectable corpus; SQLite persistence; local PDFs; deterministic processing; a React interface; an offline extractive answerer; and an optional local Ollama adapter. Authentication, production deployment, unrestricted crawling, optical character recognition, learned topic modelling, trained recommendation models, external OpenAI generation, and audio synthesis are outside the implemented scope.
+
+The intended institutional identity and corpus boundary still require confirmation: \authorinput{confirm the official laboratory name, acronym expansion, and whether the 134-record seed is an exhaustive date-bounded snapshot}.
+
+\section{Success criteria}
+
+For this thesis, implementation success means that the artefact can be built and exercised reproducibly, retains page/chunk provenance, reports failure states, and exposes generated material for review. Empirical success would additionally require labelled retrieval cases, answer and citation judgments, recommendation review, participant or expert protocol, and appropriate analysis. The first can be established from the repository; the second has not yet been established.

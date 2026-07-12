@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 import {
   fetchAdminOverview,
@@ -33,7 +33,7 @@ const ADMIN_TABS: { id: AdminTab; label: string }[] = [
   { id: "events", label: "Review Events" },
 ];
 
-const REVIEW_STATUSES: ReviewStatus[] = ["needs_review", "reviewed", "approved", "rejected", "needs_reprocess"];
+const REVIEW_STATUSES: ReviewStatus[] = ["needs_review", "ai_reviewed", "reviewed", "approved", "rejected", "needs_reprocess"];
 
 export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReviewPageProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
@@ -47,6 +47,7 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
   const [groundingStatus, setGroundingStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   function refresh() {
     setLoading(true);
@@ -96,19 +97,49 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
     onNotify?.(text, "error");
   }
 
-  return (
-    <section className="page-section">
-      <p className="notice notice--warning">Local demo admin tools. No authentication is implemented in this MVP.</p>
-      {error ? <p className="notice notice--error">{error}</p> : null}
+  function handleTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let next = index;
+    if (event.key === "ArrowRight") next = (index + 1) % ADMIN_TABS.length;
+    else if (event.key === "ArrowLeft") next = (index - 1 + ADMIN_TABS.length) % ADMIN_TABS.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = ADMIN_TABS.length - 1;
+    else return;
+    event.preventDefault();
+    setActiveTab(ADMIN_TABS[next].id);
+    tabRefs.current[next]?.focus();
+  }
 
-      <div className="artifact-tabs admin-tabs" aria-label="Admin review sections">
-        {ADMIN_TABS.map((tab) => (
-          <button key={tab.id} className={activeTab === tab.id ? "active" : ""} onClick={() => setActiveTab(tab.id)}>
+  return (
+    <section className="page-section" aria-labelledby="admin-review-title">
+      <h2 id="admin-review-title" className="sr-only">Admin review</h2>
+      <p className="notice">Protected reviewer tools. Review actions are attributed by the authenticated actor and recorded as append-only audit events.</p>
+      {error ? (
+        <div className="notice notice--error" role="alert">
+          <p>{error}</p>
+          <button className="action-button" onClick={refresh}>Retry protected data</button>
+        </div>
+      ) : null}
+
+      <div className="artifact-tabs admin-tabs" role="tablist" aria-label="Admin review sections">
+        {ADMIN_TABS.map((tab, index) => (
+          <button
+            key={tab.id}
+            ref={(node) => { tabRefs.current[index] = node; }}
+            id={`admin-tab-${tab.id}`}
+            role="tab"
+            aria-controls={`admin-panel-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            className={activeTab === tab.id ? "active" : ""}
+            onClick={() => setActiveTab(tab.id)}
+            onKeyDown={(event) => handleTabKey(event, index)}
+          >
             {tab.label}
           </button>
         ))}
       </div>
 
+      <div role="tabpanel" id={`admin-panel-${activeTab}`} aria-labelledby={`admin-tab-${activeTab}`} tabIndex={0}>
       {activeTab === "overview" ? <AdminOverviewPanel overview={overview} loading={loading} /> : null}
       {activeTab === "queue" ? (
         <ReviewQueuePanel
@@ -155,6 +186,7 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
         />
       ) : null}
       {activeTab === "events" ? <ReviewEventsPanel events={events} /> : null}
+      </div>
     </section>
   );
 }
@@ -562,6 +594,8 @@ function ReviewEventsPanel({ events }: { events: ReviewEvent[] }) {
               <span>{formatDate(event.created_at)}</span>
               <span>{event.item_type.replaceAll("_", " ")}</span>
               <span>{event.action.replaceAll("_", " ")}</span>
+              <span>{event.reviewer_name}{event.reviewer_type ? ` · ${event.reviewer_type}` : ""}{event.reviewer_role ? ` · ${event.reviewer_role}` : ""}</span>
+              {event.request_id ? <span>Request {event.request_id}</span> : null}
             </div>
             <h3>{event.item_id}</h3>
             <p>{event.reviewer_notes || "No notes recorded."}</p>

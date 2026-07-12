@@ -26,14 +26,54 @@ import type {
   SearchResponse,
   Stats,
   TopicDetail,
+  ServiceStatus,
 } from "../types/paper";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 
+let reviewerToken = "";
+
+export class ApiError extends Error {
+  status: number;
+  path: string;
+
+  constructor(path: string, status: number, detail?: string) {
+    super(detail ? `${detail} (${status})` : `Request failed: ${status}`);
+    this.name = "ApiError";
+    this.status = status;
+    this.path = path;
+  }
+}
+
+export function setReviewerToken(token: string) {
+  reviewerToken = token.trim();
+}
+
+export function hasReviewerToken(): boolean {
+  return Boolean(reviewerToken);
+}
+
+function authHeaders(): Record<string, string> {
+  return reviewerToken ? { Authorization: `Bearer ${reviewerToken}` } : {};
+}
+
+async function parseError(response: Response, path: string): Promise<ApiError> {
+  let detail = "";
+  try {
+    const payload = await response.json() as { detail?: unknown };
+    if (typeof payload.detail === "string") {
+      detail = payload.detail;
+    }
+  } catch {
+    // Preserve the status when an upstream proxy returns a non-JSON error.
+  }
+  return new ApiError(path, response.status, detail);
+}
+
 async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`);
+  const response = await fetch(`${API_BASE}${path}`, { headers: authHeaders() });
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw await parseError(response, path);
   }
   return response.json() as Promise<T>;
 }
@@ -41,17 +81,25 @@ async function getJson<T>(path: string): Promise<T> {
 async function patchJson<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw await parseError(response, path);
   }
   return response.json() as Promise<T>;
 }
 
 export function fetchPapers(): Promise<Paper[]> {
   return getJson<Paper[]>("/api/papers");
+}
+
+export function fetchPaper(paperId: string): Promise<Paper> {
+  return getJson<Paper>(`/api/papers/${encodeURIComponent(paperId)}`);
+}
+
+export function fetchServiceStatus(): Promise<ServiceStatus> {
+  return getJson<ServiceStatus>("");
 }
 
 export function fetchStats(): Promise<Stats> {
@@ -78,11 +126,11 @@ export function fetchSearchDiagnostics(): Promise<SearchDiagnostics> {
 export async function askTtlab(request: AskRequest): Promise<AskResponse> {
   const response = await fetch(`${API_BASE}/api/ask`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(request),
   });
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw await parseError(response, "/api/ask");
   }
   return response.json() as Promise<AskResponse>;
 }
@@ -102,11 +150,11 @@ export function fetchLatestLlmBenchmark(): Promise<Record<string, unknown>> {
 export async function recommendExtensions(request: ExtensionFinderRequest): Promise<ExtensionFinderResponse> {
   const response = await fetch(`${API_BASE}/api/recommendations/extensions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(request),
   });
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw await parseError(response, "/api/recommendations/extensions");
   }
   return response.json() as Promise<ExtensionFinderResponse>;
 }
@@ -122,7 +170,7 @@ export function fetchPaperArtifacts(paperId: string): Promise<PaperArtifact[]> {
 export async function generatePaperArtifacts(paperId: string): Promise<GenerateArtifactsResponse> {
   const response = await fetch(`${API_BASE}/api/papers/${paperId}/artifacts/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({
       artifact_types: ["paper_intelligence_bundle", "podcast_script"],
       provider: "auto",
@@ -131,7 +179,7 @@ export async function generatePaperArtifacts(paperId: string): Promise<GenerateA
     }),
   });
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw await parseError(response, `/api/papers/${paperId}/artifacts/generate`);
   }
   return response.json() as Promise<GenerateArtifactsResponse>;
 }

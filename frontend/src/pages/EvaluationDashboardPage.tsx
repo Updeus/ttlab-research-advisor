@@ -8,22 +8,33 @@ import type { EvaluationDashboard, EvaluationSectionStatus } from "../types/pape
 export function EvaluationDashboardPage() {
   const [dashboard, setDashboard] = useState<EvaluationDashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  function loadDashboard() {
+    setLoading(true);
+    setError(null);
     fetchEvaluationDashboard()
       .then(setDashboard)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load evaluation dashboard."));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load evaluation dashboard."))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadDashboard();
   }, []);
 
   if (error) {
     return (
       <section className="page-section">
-        <p className="notice notice--error">{error}</p>
+        <div className="notice notice--error" role="alert">
+          <p>{error}</p>
+          <button className="action-button" onClick={loadDashboard}>Retry evaluation dashboard</button>
+        </div>
       </section>
     );
   }
 
-  if (!dashboard) {
+  if (loading && !dashboard) {
     return (
       <section className="page-section">
         <div className="evaluation-grid" aria-label="Loading evaluation dashboard" aria-busy="true">
@@ -34,8 +45,13 @@ export function EvaluationDashboardPage() {
     );
   }
 
+  if (!dashboard) {
+    return <section className="page-section"><EmptyState title="No evaluation dashboard response" body="The service returned no evaluation state." /></section>;
+  }
+
   return (
-    <section className="page-section">
+    <section className="page-section" aria-labelledby="evaluation-title">
+      <h2 id="evaluation-title" className="sr-only">Evaluation dashboard</h2>
       <p className="notice notice--warning">
         Evaluation results are only as valid as the reviewed gold/test cases. Missing result files are shown as not run.
       </p>
@@ -123,6 +139,11 @@ function EvaluationCard({
       <h2>{title}</h2>
       {section.status === "available" ? (
         <div className="status-table">{children}</div>
+      ) : section.status === "invalid" ? (
+        <EmptyState
+          title="Evaluation result is invalid"
+          body={typeof section.error === "string" ? section.error : "The result file exists but failed schema or parse validation. Re-run and validate it before interpreting any metric."}
+        />
       ) : (
         <EmptyState
           title="Result file not run yet"

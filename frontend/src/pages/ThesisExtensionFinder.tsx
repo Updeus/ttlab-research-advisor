@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { fetchExtensionDiagnostics, recommendExtensions } from "../api/client";
+import { fetchExtensionDiagnostics, recommendExtensions, searchChunks } from "../api/client";
 import { EmptyState, GenerateButton, InlineProgress, ListSkeleton } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
 import type {
@@ -9,6 +9,7 @@ import type {
   ExtensionFinderResponse,
   ExtensionRecommendation,
   Paper,
+  SearchResponse,
   SearchMode,
 } from "../types/paper";
 
@@ -41,11 +42,24 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
   const [diagnostics, setDiagnostics] = useState<ExtensionDiagnostics | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [diagnosticsError, setDiagnosticsError] = useState<string | null>(null);
+  const [runMode, setRunMode] = useState<"advisor" | "evidence_only">("advisor");
+  const [evidenceResponse, setEvidenceResponse] = useState<SearchResponse | null>(null);
+  const [submittedProfile, setSubmittedProfile] = useState<ExtensionFinderRequest | null>(null);
+  const [submittedMode, setSubmittedMode] = useState<"advisor" | "evidence_only">("advisor");
 
-  useEffect(() => {
+  function loadDiagnostics() {
+    setDiagnosticsError(null);
     fetchExtensionDiagnostics()
       .then(setDiagnostics)
-      .catch(() => setDiagnostics(null));
+      .catch((err: unknown) => {
+        setDiagnostics(null);
+        setDiagnosticsError(err instanceof Error ? err.message : "Finder diagnostics are unavailable.");
+      });
+  }
+
+  useEffect(() => {
+    loadDiagnostics();
   }, []);
 
   function updateRequest(update: Partial<ExtensionFinderRequest>) {
@@ -65,11 +79,23 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
     }
     setLoading(true);
     setError(null);
-    recommendExtensions(payload)
+    setSubmittedProfile(payload);
+    setSubmittedMode(runMode);
+    const operation = runMode === "evidence_only"
+      ? searchChunks(profileQuery(payload), payload.retrieval_mode, Math.min(payload.top_k * 3, 20))
+      : recommendExtensions(payload);
+    operation
       .then((result) => {
-        setResponse(result);
-        onNotify?.(`Generated ${result.recommendations.length} thesis recommendations.`, result.grounding_status === "unsupported" ? "warning" : "success");
-        return fetchExtensionDiagnostics().then(setDiagnostics).catch(() => undefined);
+        if (runMode === "evidence_only") {
+          const evidence = result as SearchResponse;
+          setEvidenceResponse(evidence);
+          onNotify?.(`Evidence-only retrieval returned ${evidence.result_count} source passages.`, evidence.result_count ? "success" : "warning");
+        } else {
+          const advisor = result as ExtensionFinderResponse;
+          setResponse(advisor);
+          onNotify?.(`Generated ${advisor.recommendations.length} thesis recommendations.`, advisor.grounding_status === "unsupported" ? "warning" : "success");
+        }
+        return loadDiagnostics();
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Recommendation failed.";
@@ -86,7 +112,10 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
       </div>
 
       <p className="notice notice--warning">
-        These are AI-assisted thesis extension suggestions. Paper facts are cited; extension ideas are suggestions and should be reviewed with a supervisor.
+        These are AI-assisted thesis extension suggestions—not supervisor assignments. Paper facts are cited; fit rationales and extension ideas are system inferences or suggestions that require source checking and supervisor review.
+      </p>
+      <p className="notice">
+        Privacy: interests, skills, timeline, constraints, and preferences stay in this page and are sent only for the current request. The public endpoint does not save the profile. Do not enter confidential or personal data.
       </p>
 
       <div className="finder-panel finder-panel--advisor" aria-busy={loading}>
@@ -96,10 +125,14 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
             <label>
               <span>Interests</span>
               <textarea
+                id="finder-interests"
+                aria-invalid={Boolean(error && !request.interests.trim())}
+                aria-describedby="finder-interests-help finder-error"
                 value={request.interests}
                 onChange={(event) => updateRequest({ interests: event.target.value })}
                 rows={4}
               />
+              <small id="finder-interests-help">Describe research areas or problems; at least one interest is required.</small>
             </label>
             <label>
               <span>Skills</span>
@@ -173,7 +206,8 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
                 <span>Retrieval mode</span>
                 <select value={request.retrieval_mode} onChange={(event) => updateRequest({ retrieval_mode: event.target.value as SearchMode })}>
                   <option value="keyword">keyword</option>
-                  <option value="semantic">semantic</option>
+                  <option value="feature_hashing">feature-hashing baseline</option>
+                  <option value="dense">dense semantic (learned model)</option>
                   <option value="hybrid">hybrid</option>
                 </select>
               </label>
@@ -181,8 +215,13 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
           </section>
         </div>
         <div className="finder-action-bar">
+          <fieldset className="mode-choice">
+            <legend>Finder output</legend>
+            <label><input type="radio" name="finder-mode" checked={runMode === "advisor"} onChange={() => setRunMode("advisor")} /> Full advisor suggestions</label>
+            <label><input type="radio" name="finder-mode" checked={runMode === "evidence_only"} onChange={() => setRunMode("evidence_only")} /> Evidence-only ranked papers/passages</label>
+          </fieldset>
           <GenerateButton busy={loading} busyLabel="Finding..." onClick={submit} disabled={!request.interests.trim()}>
-            Find Thesis Extensions
+            {runMode === "advisor" ? "Find Thesis Extensions" : "Retrieve Evidence Only"}
           </GenerateButton>
         </div>
       </div>
@@ -191,14 +230,29 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
         <div className="search-diagnostics">
           <span>{diagnostics.searchable_chunks} searchable chunks</span>
           <span>{diagnostics.searchable_papers} papers with chunks</span>
-          <span>{diagnostics.total_recommendation_runs} saved runs</span>
+          <span>{diagnostics.total_recommendation_runs} stored reviewer/legacy runs</span>
           <span>{diagnostics.default_provider.replaceAll("_", " ")}</span>
+        </div>
+      ) : null}
+      {diagnosticsError ? (
+        <div className="notice notice--warning" role="status">
+          <p>{diagnosticsError}</p>
+          <button className="action-button" onClick={loadDiagnostics}>Retry diagnostics</button>
         </div>
       ) : null}
 
       {loading && response ? <InlineProgress label="Refreshing ranked recommendations and citation checks..." /> : null}
-      {error ? <p className="notice notice--error">{error}</p> : null}
+      {error ? (
+        <div id="finder-error" className="notice notice--error" role="alert">
+          <p>{error}</p>
+          {request.interests.trim() ? <button className="action-button" onClick={submit}>Retry finder request</button> : null}
+        </div>
+      ) : null}
       {loading && !response ? <ListSkeleton count={Number(request.top_k) || 3} lines={5} /> : null}
+
+      {submittedProfile ? <ProfileEcho profile={submittedProfile} mode={submittedMode} /> : null}
+
+      {evidenceResponse ? <EvidenceOnlyResults response={evidenceResponse} papers={papers} onSelectPaper={onSelectPaper} /> : null}
 
       {response ? (
         <div className="answer-layout">
@@ -207,10 +261,12 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
               <span className={`grounding grounding--${response.grounding_status}`}>{response.grounding_status}</span>
               <span>{response.provider.replaceAll("_", " ")}</span>
               <span>{response.retrieval_mode}</span>
+              <span>{response.model}</span>
+              <span>Generated {new Date(response.created_at).toLocaleString()}</span>
             </div>
             <h3>Recommendation Run</h3>
             <p>
-              Generated {response.recommendations.length} structured recommendations from indexed TTLAB source chunks.
+              Generated {response.recommendations.length} transient structured recommendations from indexed TTLAB source chunks. This public run was not saved or human-reviewed.
             </p>
           </article>
 
@@ -234,6 +290,58 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
           </div>
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function ProfileEcho({ profile, mode }: { profile: ExtensionFinderRequest; mode: "advisor" | "evidence_only" }) {
+  return (
+    <article className="profile-echo" aria-labelledby="submitted-profile-title">
+      <div className="section-heading section-heading--compact">
+        <h2 id="submitted-profile-title">Submitted profile (transient)</h2>
+        <span>{mode === "advisor" ? "Full advisor suggestions" : "Evidence-only baseline"}</span>
+      </div>
+      <dl>
+        <div><dt>Interests</dt><dd>{profile.interests}</dd></div>
+        <div><dt>Skills</dt><dd>{profile.skills.join(", ") || "None stated"}</dd></div>
+        <div><dt>Time / type</dt><dd>{profile.available_time} · {profile.project_type}</dd></div>
+        <div><dt>Data / difficulty</dt><dd>{profile.data_constraints} · {profile.preferred_difficulty}</dd></div>
+        <div><dt>Preferred topics</dt><dd>{profile.preferred_topics.join(", ") || "None stated"}</dd></div>
+        <div><dt>Avoid topics</dt><dd>{profile.avoid_topics.join(", ") || "None stated"}</dd></div>
+        <div><dt>Retrieval</dt><dd>{profile.retrieval_mode.replaceAll("_", " ")} · top {profile.top_k}</dd></div>
+      </dl>
+      <p className="section-kicker">This profile is displayed from client memory and is not a saved account or student record.</p>
+    </article>
+  );
+}
+
+function EvidenceOnlyResults({ response, papers, onSelectPaper }: { response: SearchResponse; papers: Paper[]; onSelectPaper: (paperId: string) => void }) {
+  return (
+    <section className="evidence-baseline" aria-labelledby="evidence-baseline-title">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Non-generative comparison</p>
+          <h2 id="evidence-baseline-title">Evidence-only ranked papers and passages</h2>
+        </div>
+      </div>
+      <p className="notice">This baseline returns retrieval evidence only. It does not invent an extension, estimate feasibility, or assign a supervisor.</p>
+      {response.warnings.length ? <p className="notice notice--warning">{response.warnings.join(" ")}</p> : null}
+      <div className="paper-list">
+        {response.results.map((result) => (
+          <article className="citation-card" key={result.chunk_id}>
+            <div className="paper-card__meta">
+              <span>Passage rank {result.rank}</span>
+              <span>{result.section ?? "Unknown section"}</span>
+              <span>Pages {result.page_start ?? "?"}-{result.page_end ?? "?"}</span>
+              <span>Chunk {result.chunk_id}</span>
+            </div>
+            <h3>{result.paper_title}</h3>
+            <p>{result.snippet}</p>
+            {papers.some((paper) => paper.paper_id === result.paper_id) ? <button className="link-button" onClick={() => onSelectPaper(result.paper_id)}>Paper detail</button> : null}
+          </article>
+        ))}
+        {!response.results.length ? <EmptyState title="No evidence-only results" body="Broaden the profile terms or choose an index mode that is ready for the current corpus." /> : null}
+      </div>
     </section>
   );
 }
@@ -269,19 +377,19 @@ function RecommendationCard({
 
       <div className="recommendation-grid">
         <section>
-          <h4>Why It Fits</h4>
+          <h4>System Fit Rationale</h4>
           <p>{recommendation.why_it_fits_student}</p>
         </section>
         <section>
-          <h4>Paper Focus</h4>
+          <h4>Paper Focus (evidence-derived)</h4>
           <p>{recommendation.paper_focus}</p>
         </section>
         <section>
-          <h4>Identified Gap</h4>
+          <h4>Gap Status ({recommendation.identified_gap.support_status.replaceAll("_", " ")})</h4>
           <p>{recommendation.identified_gap.text}</p>
         </section>
         <section>
-          <h4>Suggested Extension</h4>
+          <h4>System-Suggested Extension</h4>
           <p>{recommendation.extension_summary}</p>
         </section>
         <section>
@@ -318,6 +426,7 @@ function RecommendationCard({
                 <span>{fact.chunk_id}</span>
               </div>
               <p>{fact.claim}</p>
+              <p className="paper-card__status">Source snippet: {fact.snippet}</p>
             </article>
           ))}
         </div>
@@ -341,7 +450,7 @@ function RecommendationCard({
 
       {recommendation.related_papers.length ? (
         <details className="retrieved-details">
-          <summary>Related papers</summary>
+          <summary>Related work (evidence-derived)</summary>
           <div className="paper-list">
             {recommendation.related_papers.map((related) => (
               <article className="chunk-preview" key={related.paper_id}>
@@ -355,7 +464,7 @@ function RecommendationCard({
 
       {recommendation.potential_researcher_fit.length ? (
         <details className="retrieved-details">
-          <summary>Potential researcher fit</summary>
+          <summary>Potential researcher fit (discovery aid, not supervisor assignment)</summary>
           <div className="paper-list">
             {recommendation.potential_researcher_fit.map((researcher) => (
               <article className="chunk-preview" key={researcher.name}>
@@ -390,4 +499,13 @@ function splitList(value: string): string[] {
     .split(/[,\n]/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function profileQuery(profile: ExtensionFinderRequest): string {
+  return [
+    profile.interests,
+    profile.preferred_topics.join(" "),
+    profile.project_type,
+    profile.data_constraints,
+  ].filter(Boolean).join(" ");
 }

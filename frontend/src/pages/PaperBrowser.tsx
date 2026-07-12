@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { StatusBadge } from "../components/StatusBadge";
 import { EmptyState } from "../components/UiPrimitives";
@@ -6,10 +7,9 @@ import type { Paper } from "../types/paper";
 
 type PaperBrowserProps = {
   papers: Paper[];
-  onSelectPaper: (paper: Paper) => void;
 };
 
-export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
+export function PaperBrowser({ papers }: PaperBrowserProps) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -17,7 +17,7 @@ export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
       return papers;
     }
     return papers.filter((paper) => {
-      const haystack = [paper.title, paper.venue, paper.publication_date_raw, paper.authors.join(" ")]
+      const haystack = [paper.title, paper.venue, paper.publication_date_raw, paper.year, paper.authors.join(" ")]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -40,6 +40,7 @@ export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
         />
       </div>
       <div className="paper-list">
+        {!papers.length ? <EmptyState title="No publication records are available" body="Import or restore a public paper snapshot before browsing." /> : null}
         {filtered.map((paper) => (
           <article className="paper-card" key={paper.paper_id}>
             <div className="paper-card__body">
@@ -50,8 +51,8 @@ export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
               <h3>{paper.title}</h3>
               <p>{paper.authors.join(", ") || "Authors need review"}</p>
               <p className="paper-card__status">
-                {paper.local_pdf_path ? "Downloaded" : "Not downloaded"} · {paper.page_count ?? 0} pages ·{" "}
-                {paper.chunk_count} chunks
+                Text status: {paper.pdf_text_status.replaceAll("_", " ")} · {paper.page_count ?? "unknown"} pages ·{" "}
+                {paper.chunk_count} public chunks
               </p>
               <div className="paper-card__links">
                 {paper.source_url ? (
@@ -69,9 +70,9 @@ export function PaperBrowser({ papers, onSelectPaper }: PaperBrowserProps) {
                     TTLAB post
                   </a>
                 ) : null}
-                <button className="link-button" onClick={() => onSelectPaper(paper)}>
+                <Link className="link-button" to={`/papers/${encodeURIComponent(paper.paper_id)}`}>
                   Details
-                </button>
+                </Link>
               </div>
             </div>
             <div className="paper-card__badges">

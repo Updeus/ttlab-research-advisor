@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import { fetchAuthorDetail, fetchAuthors, fetchExplorerOverview, fetchTopicDetail, fetchTopics } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
@@ -9,10 +10,14 @@ type ExplorerTab = "overview" | "topics" | "authors";
 
 type TopicAuthorExplorerProps = {
   onSelectPaper: (paperId: string) => void;
+  initialTab?: ExplorerTab;
+  initialTopicId?: string;
+  initialAuthorId?: number;
 };
 
-export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps) {
-  const [activeTab, setActiveTab] = useState<ExplorerTab>("overview");
+export function TopicAuthorExplorer({ onSelectPaper, initialTab = "overview", initialTopicId, initialAuthorId }: TopicAuthorExplorerProps) {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<ExplorerTab>(initialTab);
   const [overview, setOverview] = useState<ExplorerOverview | null>(null);
   const [topics, setTopics] = useState<TopicSummary[]>([]);
   const [authors, setAuthors] = useState<AuthorSummary[]>([]);
@@ -43,6 +48,22 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
     loadOverview();
   }, []);
 
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  useEffect(() => {
+    if (initialTopicId) {
+      loadTopic(initialTopicId);
+    }
+  }, [initialTopicId]);
+
+  useEffect(() => {
+    if (initialAuthorId) {
+      loadAuthor(initialAuthorId);
+    }
+  }, [initialAuthorId]);
+
   function searchTopics() {
     setListLoading("topics");
     setError(null);
@@ -61,7 +82,7 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
       .finally(() => setListLoading(null));
   }
 
-  function openTopic(topicId: string) {
+  function loadTopic(topicId: string) {
     setDetailLoading("topic");
     setError(null);
     fetchTopicDetail(topicId)
@@ -73,7 +94,12 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
       .finally(() => setDetailLoading(null));
   }
 
-  function openAuthor(authorId: number) {
+  function openTopic(topicId: string) {
+    navigate(`/explorer/topics/${encodeURIComponent(topicId)}`);
+    loadTopic(topicId);
+  }
+
+  function loadAuthor(authorId: number) {
     setDetailLoading("author");
     setError(null);
     fetchAuthorDetail(authorId)
@@ -85,25 +111,36 @@ export function TopicAuthorExplorer({ onSelectPaper }: TopicAuthorExplorerProps)
       .finally(() => setDetailLoading(null));
   }
 
+  function openAuthor(authorId: number) {
+    navigate(`/explorer/authors/${authorId}`);
+    loadAuthor(authorId);
+  }
+
   return (
-    <section className="page-section">
+    <section className="page-section" aria-labelledby="explorer-title">
+      <h2 id="explorer-title" className="sr-only">Topic and author explorer</h2>
       <p className="notice">
         Topic and author relationships are deterministic and source-derived from indexed papers, chunks, and artifacts. They are not manually verified unless reviewed.
       </p>
-      {error ? <p className="notice notice--error">{error}</p> : null}
+      {error ? (
+        <div className="notice notice--error" role="alert">
+          <p>{error}</p>
+          <button className="action-button" onClick={loadOverview}>Retry explorer data</button>
+        </div>
+      ) : null}
       {loading && !overview ? <InlineProgress label="Loading explorer overview, topics, and authors..." /> : null}
 
-      <div className="artifact-tabs explorer-tabs" aria-label="Explorer sections">
-        <button className={activeTab === "overview" ? "active" : ""} onClick={() => setActiveTab("overview")}>
+      <nav className="artifact-tabs explorer-tabs" aria-label="Explorer sections">
+        <Link className={activeTab === "overview" ? "active" : ""} to="/explorer">
           Overview
-        </button>
-        <button className={activeTab === "topics" ? "active" : ""} onClick={() => setActiveTab("topics")}>
+        </Link>
+        <Link className={activeTab === "topics" ? "active" : ""} to="/explorer/topics">
           Topics
-        </button>
-        <button className={activeTab === "authors" ? "active" : ""} onClick={() => setActiveTab("authors")}>
+        </Link>
+        <Link className={activeTab === "authors" ? "active" : ""} to="/explorer/authors">
           Authors
-        </button>
-      </div>
+        </Link>
+      </nav>
 
       {activeTab === "overview" && loading && !overview ? <ExplorerOverviewSkeleton /> : null}
       {activeTab === "overview" && overview ? (
@@ -229,10 +266,11 @@ function TopicBrowser({
   return (
     <div className="explorer-layout">
       <section>
-        <div className="search-toolbar explorer-toolbar" aria-busy={loading}>
-          <input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Search topics" />
-          <SearchActionButton busy={loading} onClick={onSearch} />
-        </div>
+        <form className="search-toolbar explorer-toolbar" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
+          <label className="field-label" htmlFor="topic-search">Search topics</label>
+          <input id="topic-search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="For example: networks" />
+          <SearchActionButton type="submit" busy={loading} />
+        </form>
         <div className="paper-list">
           {loading ? <ListSkeleton count={4} lines={2} /> : null}
           {!loading && topics.map((topic) => (
@@ -285,11 +323,13 @@ function AuthorBrowser({
   return (
     <div className="explorer-layout">
       <section>
-        <div className="search-toolbar explorer-toolbar explorer-toolbar--authors" aria-busy={loading}>
-          <input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Search authors" />
-          <input value={topicFilter} onChange={(event) => onTopicFilterChange(event.target.value)} placeholder="Filter by topic" />
-          <SearchActionButton busy={loading} onClick={onSearch} />
-        </div>
+        <form className="search-toolbar explorer-toolbar explorer-toolbar--authors" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
+          <label className="field-label" htmlFor="author-search">Search authors</label>
+          <input id="author-search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="For example: Hosein" />
+          <label className="field-label" htmlFor="author-topic-filter">Filter authors by topic</label>
+          <input id="author-topic-filter" value={topicFilter} onChange={(event) => onTopicFilterChange(event.target.value)} placeholder="For example: optimization" />
+          <SearchActionButton type="submit" busy={loading} />
+        </form>
         <div className="paper-list">
           {loading ? <ListSkeleton count={4} lines={2} /> : null}
           {!loading && authors.map((author) => (

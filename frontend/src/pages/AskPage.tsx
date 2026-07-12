@@ -26,23 +26,38 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
   const [llmStatus, setLlmStatus] = useState<LocalLlmStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([fetchAskDiagnostics(), fetchLocalLlms()])
-      .then(([askRows, llmRows]) => {
-        setDiagnostics(askRows);
-        setLlmStatus(llmRows);
+  function loadStatus() {
+    setStatusError(null);
+    Promise.allSettled([fetchAskDiagnostics(), fetchLocalLlms()])
+      .then(([askResult, llmResult]) => {
+        if (askResult.status === "fulfilled") setDiagnostics(askResult.value);
+        else setDiagnostics(null);
+        if (llmResult.status === "fulfilled") {
+          const llmRows = llmResult.value;
+          setLlmStatus(llmRows);
         const preferred = llmRows.models.find((model) => model.installed && model.name === llmRows.default_model)
           ?? llmRows.models.find((model) => model.installed)
           ?? llmRows.models[0];
         if (preferred) {
           setSelectedModel(preferred.name);
         }
-      })
-      .catch(() => {
-        setDiagnostics(null);
-        setLlmStatus(null);
+          if (!llmRows.available || !llmRows.models.some((model) => model.installed)) {
+            setProvider("offline_extractive");
+          }
+        } else {
+          setLlmStatus(null);
+          setProvider("offline_extractive");
+        }
+        if (askResult.status === "rejected" || llmResult.status === "rejected") {
+          setStatusError("Some Ask/provider diagnostics could not be loaded.");
+        }
       });
+  }
+
+  useEffect(() => {
+    loadStatus();
   }, []);
 
   useEffect(() => {
@@ -93,6 +108,9 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
       <div className="section-heading">
         <h2>Ask TTLAB</h2>
       </div>
+      <p className="notice">
+        Privacy: your question and paper scope are sent for this request only. The public endpoint does not save them to Ask history. Do not enter confidential or personal data.
+      </p>
 
       <div className="ask-panel" aria-busy={loading}>
         <textarea
@@ -110,7 +128,8 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
           </select>
           <select aria-label="Retrieval mode" value={mode} onChange={(event) => setMode(event.target.value as SearchMode)}>
             <option value="keyword">Keyword</option>
-            <option value="semantic">Semantic</option>
+            <option value="feature_hashing">Feature-hashing baseline</option>
+            <option value="dense">Dense semantic (learned model)</option>
             <option value="hybrid">Hybrid</option>
           </select>
           <select aria-label="Top K" value={topK} onChange={(event) => setTopK(Number(event.target.value))}>
@@ -127,7 +146,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
             ))}
           </select>
           <select aria-label="Answer provider" value={provider} onChange={(event) => setProvider(event.target.value)}>
-            <option value="ollama">Local Ollama</option>
+            <option value="ollama" disabled={llmStatus !== null && !llmStatus.available}>Local Ollama{llmStatus !== null && !llmStatus.available ? " (unavailable)" : ""}</option>
             <option value="offline_extractive">Offline extractive</option>
             <option value="auto">Auto fallback</option>
           </select>
@@ -154,6 +173,8 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
           <span>{diagnostics.searchable_chunks} searchable chunks</span>
           <span>{diagnostics.total_stored_answers} stored answers</span>
           <span>{diagnostics.default_provider.replaceAll("_", " ")}</span>
+          {diagnostics.feature_hashing_index ? <span>Feature hashing: {diagnostics.feature_hashing_index.status} · {formatTimestamp(diagnostics.feature_hashing_index.last_indexed_at)}</span> : null}
+          {diagnostics.dense_index ? <span>Dense semantic: {diagnostics.dense_index.status}</span> : null}
           {llmStatus ? <span>{llmStatus.available ? `${llmStatus.model_count} local Ollama models` : "Ollama unavailable"}</span> : null}
         </div>
       ) : null}
@@ -173,9 +194,20 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
         </div>
       ) : null}
       {llmStatus?.warnings.length ? <p className="notice notice--warning">{llmStatus.warnings.join(" ")}</p> : null}
+      {statusError ? (
+        <div className="notice notice--warning" role="status">
+          <p>{statusError}</p>
+          <button className="action-button" onClick={loadStatus}>Retry status checks</button>
+        </div>
+      ) : null}
 
       {loading && response ? <InlineProgress label="Refreshing answer against indexed TTLAB paper chunks..." /> : null}
-      {error ? <p className="notice notice--error">{error}</p> : null}
+      {error ? (
+        <div className="notice notice--error" role="alert">
+          <p>{error}</p>
+          <button className="action-button" onClick={submitQuestion}>Retry question</button>
+        </div>
+      ) : null}
       {loading && !response ? <ListSkeleton count={3} lines={4} /> : null}
 
       {response ? (
@@ -186,15 +218,22 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
               <span>{response.provider.replaceAll("_", " ")}</span>
               <span>{response.model}</span>
               <span>{response.retrieval_mode}</span>
+              <span>Generated {new Date(response.created_at).toLocaleString()}</span>
               {response.paper_id ? <span>Single paper scope</span> : null}
             </div>
             <p className="notice notice--warning">
-              This answer is generated from indexed TTLAB paper chunks and should be checked against the cited sources.
+              This transient answer was generated from indexed TTLAB paper chunks and was not saved or human-reviewed. Check every claim against the cited sources.
             </p>
             <h3>Answer</h3>
             <p>{response.answer}</p>
             {response.retrieval_metadata?.query_expansions?.length ? (
               <p className="paper-card__status">Query expansion: {response.retrieval_metadata.query_expansions.join(", ")}</p>
+            ) : null}
+            {response.unsupported_claims.length ? (
+              <div className="notice notice--error" role="alert">
+                <strong>Unsupported-claim warnings</strong>
+                <ul>{response.unsupported_claims.map((claim) => <li key={claim}>{claim}</li>)}</ul>
+              </div>
             ) : null}
           </article>
 
@@ -214,6 +253,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
                     <span>{citation.section ?? "Unknown"}</span>
                     <span>Pages {citation.page_start ?? "?"}-{citation.page_end ?? "?"}</span>
                     <span>Score {citation.score.toFixed(3)}</span>
+                    <span>Chunk {citation.chunk_id}</span>
                   </div>
                   <h3>{citation.title}</h3>
                   <p className="paper-card__status">
@@ -245,6 +285,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
                     <span>{chunk.section ?? "Unknown"}</span>
                     <span>Pages {chunk.page_start ?? "?"}-{chunk.page_end ?? "?"}</span>
                     <span>Score {(chunk.scores.combined ?? 0).toFixed(3)}</span>
+                    <span>Chunk {chunk.chunk_id}</span>
                   </div>
                   <h3>{chunk.title}</h3>
                   <p>{chunk.snippet}</p>
@@ -268,10 +309,14 @@ function fallbackModel(name: string): LocalLlmModel {
     name,
     installed: false,
     source: "configured_default",
-    color: "green",
-    quality_tier: "recommended",
-    rationale: "Configured default model. Start Ollama and run ollama list to verify it is installed.",
+    color: "red",
+    quality_tier: "availability unverified",
+    rationale: "This configured model has not been confirmed as installed. Use offline extractive mode until the provider status is ready.",
     benchmark: null,
     is_default: true,
   };
+}
+
+function formatTimestamp(value: string | null | undefined): string {
+  return value ? new Date(value).toLocaleString() : "not built";
 }

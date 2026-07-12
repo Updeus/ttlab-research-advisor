@@ -24,13 +24,14 @@ export function Dashboard({ stats, papers }: DashboardProps) {
   ];
   const ingestionMetrics: MetricItem[] = [
     { label: "Direct PDFs found", value: withPdf },
-    { label: "Downloaded PDFs", value: stats?.downloaded_pdfs ?? papers.filter((paper) => paper.local_pdf_path).length },
+    { label: "Downloaded PDFs", value: stats?.downloaded_pdfs ?? "Unavailable" },
     { label: "Failed or no text", value: (stats?.extraction_failed ?? 0) + (stats?.no_text_pdfs ?? 0), tone: "warning" },
     { label: "Missing PDFs", value: stats?.missing_pdf ?? 0, tone: "warning" },
   ];
   const intelligenceMetrics: MetricItem[] = [
     { label: "Keyword indexed", value: stats?.keyword_indexed_chunks ?? 0 },
-    { label: "Semantic indexed", value: stats?.semantic_indexed_chunks ?? 0 },
+    { label: "Feature-hashing baseline", value: stats?.feature_hashing_indexed_chunks ?? stats?.semantic_indexed_chunks ?? 0, note: stats?.feature_hashing_index_status ?? "status unavailable" },
+    { label: "Dense semantic", value: stats?.dense_indexed_chunks ?? 0, note: stats?.dense_index_status ?? "status unavailable" },
     { label: "Ask answers", value: stats?.total_ask_answers ?? 0 },
     { label: "Extension ideas", value: stats?.total_extension_ideas ?? 0 },
     { label: "Papers with artifacts", value: stats?.papers_with_artifacts ?? 0 },
@@ -40,11 +41,15 @@ export function Dashboard({ stats, papers }: DashboardProps) {
     { label: "Admin review queue", value: stats?.admin_review_queue_count ?? 0, tone: "warning" },
     { label: "Artifacts needing review", value: stats?.artifacts_needing_review ?? 0, tone: "warning" },
     { label: "Review events", value: stats?.total_review_events ?? 0 },
-    { label: "Evaluation files", value: Object.values(stats?.evaluation_files_present ?? {}).filter(Boolean).length },
+    { label: "Evaluation state", value: stats?.evaluation_status === "available" ? `${Object.values(stats.evaluation_files_present).filter(Boolean).length} result files` : "Not run", note: stats?.evaluation_last_run_at ? `Last run ${new Date(stats.evaluation_last_run_at).toLocaleString()}` : "No evaluated timestamp" },
   ];
 
   return (
-    <section className="page-section">
+    <section className="page-section" aria-labelledby="dashboard-title">
+      <h2 id="dashboard-title" className="sr-only">Research intelligence dashboard</h2>
+      {stats && (stats.feature_hashing_index_status !== "ready" || stats.keyword_indexed_chunks !== stats.searchable_chunks) ? (
+        <p className="notice notice--warning" role="status">The search snapshot is incomplete or stale for the currently eligible corpus. Index counts below are diagnostics, not retrieval-quality measurements.</p>
+      ) : null}
       <div className="dashboard-hero">
         {primaryMetrics.map((metric) => (
           <MetricCard key={metric.label} metric={metric} large />

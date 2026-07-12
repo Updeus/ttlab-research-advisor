@@ -1,4 +1,4 @@
-export type ReviewStatus = "needs_review" | "reviewed" | "approved" | "rejected" | "needs_reprocess";
+export type ReviewStatus = "needs_review" | "ai_reviewed" | "reviewed" | "approved" | "rejected" | "needs_reprocess";
 
 export type Paper = {
   paper_id: string;
@@ -11,21 +11,27 @@ export type Paper = {
   source_url: string | null;
   post_url: string | null;
   pdf_url: string | null;
-  local_pdf_path: string | null;
+  local_pdf_path?: string | null;
   topics: string[];
   ingestion_status: string;
   pdf_text_status: string;
-  extracted_json_path: string | null;
-  extracted_text_path: string | null;
+  extraction_content_type?: string;
+  ocr_status?: string;
+  ocr_review_required?: boolean;
+  corpus_eligibility_status?: string;
+  corpus_exclusion_reason?: string | null;
+  pdf_title_match_status?: string;
+  extracted_json_path?: string | null;
+  extracted_text_path?: string | null;
   page_count: number | null;
-  total_char_count: number;
-  total_word_count: number;
-  pages_with_text: number;
-  pages_without_text: number;
-  possible_scanned_pdf: boolean;
+  total_char_count?: number;
+  total_word_count?: number;
+  pages_with_text?: number;
+  pages_without_text?: number;
+  possible_scanned_pdf?: boolean;
   chunk_count: number;
   review_status: ReviewStatus | string;
-  reviewer_notes: string | null;
+  reviewer_notes?: string | null;
   reviewed_at: string | null;
   reviewed_by: string | null;
   created_at: string;
@@ -51,6 +57,10 @@ export type Stats = {
   searchable_chunks: number;
   keyword_indexed_chunks: number;
   semantic_indexed_chunks: number;
+  feature_hashing_indexed_chunks: number;
+  dense_indexed_chunks: number;
+  feature_hashing_index_status: string;
+  dense_index_status: string;
   total_ask_answers: number;
   grounded_answers: number;
   partial_answers: number;
@@ -81,7 +91,7 @@ export type Stats = {
 export type ExtractionDiagnostics = {
   paper_id: string;
   pdf_url: string | null;
-  local_pdf_path: string | null;
+  local_pdf_path?: string | null;
   pdf_text_status: string;
   page_count: number | null;
   total_char_count: number;
@@ -90,9 +100,9 @@ export type ExtractionDiagnostics = {
   pages_without_text: number;
   possible_scanned_pdf: boolean;
   warnings: string[];
-  extraction_error: string | null;
-  extracted_json_path: string | null;
-  extracted_text_path: string | null;
+  extraction_error?: string | null;
+  extracted_json_path?: string | null;
+  extracted_text_path?: string | null;
   chunk_count: number;
 };
 
@@ -111,7 +121,23 @@ export type PaperChunk = {
   source_hash: string | null;
 };
 
-export type SearchMode = "keyword" | "semantic" | "hybrid";
+export type SearchMode = "keyword" | "feature_hashing" | "dense" | "hybrid" | "semantic";
+
+export type IndexDiagnostics = {
+  embedding_provider: string;
+  embedding_dimensions: number | null;
+  indexed_chunks: number;
+  eligible_chunks?: number;
+  coverage_ratio?: number;
+  index_path: string;
+  manifest_path?: string;
+  status: string;
+  index_status: string;
+  completeness_status?: string | null;
+  last_indexed_at: string | null;
+  corpus_snapshot_id?: string | null;
+  errors?: string[];
+};
 
 export type SearchResult = {
   rank: number;
@@ -145,15 +171,30 @@ export type SearchResponse = {
 };
 
 export type SearchDiagnostics = {
+  total_chunks?: number;
+  raw_chunks?: number;
+  eligible_chunks?: number;
   searchable_chunks: number;
   searchable_papers: number;
   chunks_indexed_for_keyword_search: number;
   chunks_indexed_for_semantic_search: number;
+  chunks_indexed_for_feature_hashing: number;
+  chunks_indexed_for_dense_search: number;
   embedding_provider: string;
   embedding_dimensions: number;
   index_path: string;
   index_status: string;
   last_indexed_timestamp: string | null;
+  keyword?: {
+    status?: string;
+    keyword_indexed_chunks?: number;
+    eligible_chunks?: number;
+    last_indexed_at?: string | null;
+    corpus_snapshot_id?: string | null;
+    errors?: string[];
+  };
+  feature_hashing: IndexDiagnostics;
+  dense: IndexDiagnostics;
 };
 
 export type AskRequest = {
@@ -219,13 +260,13 @@ export type AskResponse = {
   generation_metadata?: Record<string, unknown>;
   warnings: string[];
   unsupported_claims: string[];
-  review_status: ReviewStatus;
-  reviewer_notes: string | null;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
-  citation_correct: boolean | null;
-  answer_faithfulness_score: number | null;
-  usefulness_score: number | null;
+  review_status?: ReviewStatus;
+  reviewer_notes?: string | null;
+  reviewed_at?: string | null;
+  reviewed_by?: string | null;
+  citation_correct?: boolean | null;
+  answer_faithfulness_score?: number | null;
+  usefulness_score?: number | null;
   created_at: string;
 };
 
@@ -239,6 +280,8 @@ export type AskDiagnostics = {
   searchable_chunks: number;
   semantic_indexed_chunks: number;
   last_answer_timestamp: string | null;
+  feature_hashing_index?: IndexDiagnostics;
+  dense_index?: IndexDiagnostics;
 };
 
 export type LocalLlmBenchmarkSummary = {
@@ -371,11 +414,11 @@ export type ExtensionFinderResponse = {
   model: string;
   retrieval_mode: SearchMode;
   top_k: number;
-  review_status: ReviewStatus;
-  reviewer_notes: string | null;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
-  corrected_recommendations_json: Record<string, unknown>;
+  review_status?: ReviewStatus;
+  reviewer_notes?: string | null;
+  reviewed_at?: string | null;
+  reviewed_by?: string | null;
+  corrected_recommendations_json?: Record<string, unknown>;
   created_at: string;
 };
 
@@ -498,6 +541,10 @@ export type ReviewEvent = {
   previous_status: string | null;
   new_status: string | null;
   reviewer_name: string;
+  reviewer_id?: string;
+  reviewer_role?: string;
+  reviewer_type?: string;
+  request_id?: string;
   reviewer_notes: string | null;
   diff: Record<string, unknown>;
   created_at: string;
@@ -669,6 +716,17 @@ export type ExplorerOverview = {
   top_authors: AuthorSummary[];
   recent_papers: PaperSummary[];
   explorer_index_status: "ready" | "empty" | string;
+};
+
+export type ServiceStatus = {
+  service: string;
+  status: string;
+  security_mode: "local_demo" | "production" | string;
+  admin_authentication: "insecure_local_demo_bypass" | "bearer_token_required" | string;
+  frontend: string;
+  api_docs: string;
+  health: string;
+  readiness: string;
 };
 
 export type PaginatedTopics = {

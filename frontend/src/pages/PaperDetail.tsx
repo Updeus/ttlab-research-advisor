@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 
 import { fetchExtraction, fetchPaperArtifacts, fetchPaperChunks, fetchRelatedPapers, generatePaperArtifacts } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
@@ -22,6 +23,7 @@ type PaperDetailProps = {
   onSelectPaper?: (paperId: string) => void;
   onAskPaper?: (paperId: string) => void;
   onNotify?: (message: string, tone?: ToastTone) => void;
+  canGenerateArtifacts?: boolean;
 };
 
 type ArtifactTab =
@@ -49,7 +51,7 @@ const ARTIFACT_TABS: { id: ArtifactTab; label: string }[] = [
   { id: "podcast_script", label: "Podcast Script" },
 ];
 
-export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify }: PaperDetailProps) {
+export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify, canGenerateArtifacts = false }: PaperDetailProps) {
   const [extraction, setExtraction] = useState<ExtractionDiagnostics | null>(null);
   const [chunks, setChunks] = useState<PaperChunk[]>([]);
   const [artifacts, setArtifacts] = useState<PaperArtifact[]>([]);
@@ -59,8 +61,10 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
   const [detailLoading, setDetailLoading] = useState(true);
   const [artifactLoading, setArtifactLoading] = useState(false);
   const [activeArtifactTab, setActiveArtifactTab] = useState<ArtifactTab>("public_summary");
+  const [chunksLoaded, setChunksLoaded] = useState(false);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  useEffect(() => {
+  function loadDetail() {
     setError(null);
     setArtifactError(null);
     setDetailLoading(true);
@@ -68,20 +72,32 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
     setChunks([]);
     setArtifacts([]);
     setRelatedPapers([]);
-    Promise.all([
+    setChunksLoaded(false);
+    Promise.allSettled([
       fetchExtraction(paper.paper_id),
       fetchPaperChunks(paper.paper_id),
       fetchPaperArtifacts(paper.paper_id),
       fetchRelatedPapers(paper.paper_id),
     ])
-      .then(([extractionData, chunkRows, artifactRows, relatedRows]) => {
-        setExtraction(extractionData);
-        setChunks(chunkRows);
-        setArtifacts(artifactRows);
-        setRelatedPapers(relatedRows);
+      .then(([extractionResult, chunkResult, artifactResult, relatedResult]) => {
+        const failures: string[] = [];
+        if (extractionResult.status === "fulfilled") setExtraction(extractionResult.value);
+        else failures.push("extraction diagnostics");
+        if (chunkResult.status === "fulfilled") {
+          setChunks(chunkResult.value);
+          setChunksLoaded(true);
+        } else failures.push("chunk preview");
+        if (artifactResult.status === "fulfilled") setArtifacts(artifactResult.value);
+        else failures.push("generated artifacts");
+        if (relatedResult.status === "fulfilled") setRelatedPapers(relatedResult.value);
+        else failures.push("related papers");
+        if (failures.length) setError(`Some paper data could not be loaded: ${failures.join(", ")}.`);
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load paper detail."))
       .finally(() => setDetailLoading(false));
+  }
+
+  useEffect(() => {
+    loadDetail();
   }, [paper.paper_id]);
 
   const warning =
@@ -113,6 +129,18 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
         onNotify?.(message, "error");
       })
       .finally(() => setArtifactLoading(false));
+  }
+
+  function handleTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let next = index;
+    if (event.key === "ArrowRight") next = (index + 1) % ARTIFACT_TABS.length;
+    else if (event.key === "ArrowLeft") next = (index - 1 + ARTIFACT_TABS.length) % ARTIFACT_TABS.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = ARTIFACT_TABS.length - 1;
+    else return;
+    event.preventDefault();
+    setActiveArtifactTab(ARTIFACT_TABS[next].id);
+    tabRefs.current[next]?.focus();
   }
 
   return (
@@ -151,7 +179,12 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
         </div>
       </article>
 
-      {error ? <p className="notice notice--error">{error}</p> : null}
+      {error ? (
+        <div className="notice notice--error" role="alert">
+          <p>{error}</p>
+          <button className="action-button" onClick={loadDetail}>Retry paper data</button>
+        </div>
+      ) : null}
       {warning ? <p className="notice notice--warning">{warning}</p> : null}
 
       {detailLoading ? (
@@ -160,61 +193,77 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
         <div className="detail-grid">
           <article className="metric">
             <span className="metric__label">Pages</span>
-            <strong>{extraction?.page_count ?? paper.page_count ?? 0}</strong>
+            <strong>{extraction?.page_count ?? paper.page_count ?? "Not available"}</strong>
           </article>
           <article className="metric">
             <span className="metric__label">Words</span>
-            <strong>{extraction?.total_word_count ?? paper.total_word_count ?? 0}</strong>
+            <strong>{extraction?.total_word_count ?? paper.total_word_count ?? "Not available"}</strong>
           </article>
           <article className="metric">
             <span className="metric__label">Pages with text</span>
-            <strong>{extraction?.pages_with_text ?? paper.pages_with_text ?? 0}</strong>
+            <strong>{extraction?.pages_with_text ?? paper.pages_with_text ?? "Not available"}</strong>
           </article>
           <article className="metric">
             <span className="metric__label">Chunks</span>
-            <strong>{chunks.length}</strong>
+            <strong>{chunksLoaded ? chunks.length : "Not available"}</strong>
           </article>
         </div>
       )}
 
       <div className="section-heading">
         <h2>Paper Intelligence</h2>
-        <GenerateButton
-          busy={artifactLoading}
-          onClick={generateArtifacts}
-          disabled={detailLoading || chunks.length === 0}
-          busyLabel={artifacts.length ? "Refreshing..." : "Generating..."}
-        >
-          {artifacts.length ? "Refresh Artifacts" : "Generate Artifacts"}
-        </GenerateButton>
+        {canGenerateArtifacts ? (
+          <GenerateButton
+            busy={artifactLoading}
+            onClick={generateArtifacts}
+            disabled={detailLoading || chunks.length === 0}
+            busyLabel={artifacts.length ? "Refreshing..." : "Generating..."}
+          >
+            {artifacts.length ? "Refresh Artifacts" : "Generate Artifacts"}
+          </GenerateButton>
+        ) : <span className="section-kicker">Generation requires a reviewer credential.</span>}
       </div>
       <p className="notice notice--warning">
-        These outputs are AI-assisted and source-grounded where possible. They are not reviewed yet.
+        {bundle?.generated_notice ?? "These outputs are AI-assisted and source-grounded where possible. Check their current review and grounding status before use."}
       </p>
       {artifactLoading && (bundle || podcast) ? <InlineProgress label="Refreshing paper intelligence while keeping the current artifacts visible..." /> : null}
       {artifactError ? <p className="notice notice--error">{artifactError}</p> : null}
       {latestArtifact ? (
-        <div className="paper-card__badges paper-card__badges--left">
-          <StatusBadge label={latestArtifact.review_status} tone="warn" />
-          <StatusBadge label={latestArtifact.grounding_status} tone={latestArtifact.grounding_status === "grounded" ? "good" : "warn"} />
+        <div className="provenance-strip">
+          <div className="paper-card__badges paper-card__badges--left">
+            <StatusBadge label={latestArtifact.review_status} />
+            <StatusBadge label={latestArtifact.grounding_status} tone={latestArtifact.grounding_status === "grounded" ? "good" : "warn"} />
+          </div>
+          <span>Provider/model: {latestArtifact.provider} / {latestArtifact.model}</span>
+          <span>Generated: {new Date(latestArtifact.created_at).toLocaleString()}</span>
+          <span>{latestArtifact.reviewed_at ? `Reviewed ${new Date(latestArtifact.reviewed_at).toLocaleString()}` : "No human review recorded"}</span>
         </div>
       ) : null}
       {detailLoading || (artifactLoading && !bundle && !podcast) ? (
         <ListSkeleton count={1} lines={5} />
       ) : bundle || podcast ? (
         <div className="artifact-panel">
-          <div className="artifact-tabs" aria-label="Paper intelligence sections">
-            {ARTIFACT_TABS.map((tab) => (
+          <div className="artifact-tabs" role="tablist" aria-label="Paper intelligence sections">
+            {ARTIFACT_TABS.map((tab, index) => (
               <button
                 key={tab.id}
+                id={`artifact-tab-${tab.id}`}
+                ref={(node) => { tabRefs.current[index] = node; }}
                 className={activeArtifactTab === tab.id ? "active" : ""}
+                role="tab"
+                aria-selected={activeArtifactTab === tab.id}
+                aria-controls={`artifact-panel-${tab.id}`}
+                tabIndex={activeArtifactTab === tab.id ? 0 : -1}
                 onClick={() => setActiveArtifactTab(tab.id)}
+                onKeyDown={(event) => handleTabKey(event, index)}
               >
                 {tab.label}
               </button>
             ))}
           </div>
-          {renderArtifactTab(activeArtifactTab, bundle, podcast)}
+          <div role="tabpanel" id={`artifact-panel-${activeArtifactTab}`} aria-labelledby={`artifact-tab-${activeArtifactTab}`} tabIndex={0}>
+            {renderArtifactTab(activeArtifactTab, bundle, podcast)}
+          </div>
         </div>
       ) : (
         <EmptyState
@@ -279,7 +328,7 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
             <p>{chunk.snippet}</p>
           </article>
         ))}
-        {!detailLoading && chunks.length === 0 ? (
+        {!detailLoading && chunksLoaded && chunks.length === 0 ? (
           <EmptyState
             title="No chunks have been generated"
             body="Extract and chunk this PDF before search, Ask TTLAB, and paper intelligence can use full-paper text."

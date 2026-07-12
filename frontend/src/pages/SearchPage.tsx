@@ -18,12 +18,21 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
   const [response, setResponse] = useState<SearchResponse | null>(null);
   const [diagnostics, setDiagnostics] = useState<SearchDiagnostics | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [diagnosticsError, setDiagnosticsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  function loadDiagnostics() {
+    setDiagnosticsError(null);
     fetchSearchDiagnostics()
       .then(setDiagnostics)
-      .catch(() => setDiagnostics(null));
+      .catch((err: unknown) => {
+        setDiagnostics(null);
+        setDiagnosticsError(err instanceof Error ? err.message : "Index diagnostics are unavailable.");
+      });
+  }
+
+  useEffect(() => {
+    loadDiagnostics();
   }, []);
 
   function runSearch() {
@@ -52,7 +61,7 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
         <h2>Search Source Chunks</h2>
       </div>
 
-      <div className="search-toolbar" aria-busy={loading}>
+      <form className="search-toolbar" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); runSearch(); }}>
         <input
           aria-label="Search source chunks"
           value={query}
@@ -65,7 +74,8 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
         />
         <select aria-label="Search mode" value={mode} onChange={(event) => setMode(event.target.value as SearchMode)}>
           <option value="keyword">Keyword</option>
-          <option value="semantic">Semantic</option>
+          <option value="feature_hashing">Feature-hashing baseline</option>
+          <option value="dense">Dense semantic (learned model)</option>
           <option value="hybrid">Hybrid</option>
         </select>
         <select aria-label="Result limit" value={limit} onChange={(event) => setLimit(Number(event.target.value))}>
@@ -73,20 +83,38 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
           <option value={10}>10</option>
           <option value={20}>20</option>
         </select>
-        <SearchActionButton busy={loading} onClick={runSearch} disabled={!query.trim()} />
-      </div>
+        <SearchActionButton type="submit" busy={loading} disabled={!query.trim()} />
+      </form>
 
       {diagnostics ? (
-        <div className="search-diagnostics">
-          <span>{diagnostics.searchable_chunks} searchable chunks</span>
-          <span>{diagnostics.chunks_indexed_for_keyword_search} keyword indexed</span>
-          <span>{diagnostics.chunks_indexed_for_semantic_search} semantic indexed</span>
-          <span>{diagnostics.embedding_provider} · {diagnostics.index_status}</span>
+        <div className="search-diagnostics" aria-label="Current index snapshot">
+          <span>{diagnostics.searchable_chunks} eligible searchable chunks</span>
+          <span>Keyword: {diagnostics.chunks_indexed_for_keyword_search} · {diagnostics.keyword?.status ?? "status unavailable"}</span>
+          <span>Feature hashing: {diagnostics.chunks_indexed_for_feature_hashing} · {diagnostics.feature_hashing.status}</span>
+          <span>Dense semantic: {diagnostics.chunks_indexed_for_dense_search} · {diagnostics.dense.status}</span>
+          <span>Feature-hashing snapshot: {formatTimestamp(diagnostics.feature_hashing.last_indexed_at)}</span>
+        </div>
+      ) : null}
+      {diagnostics && [diagnostics.keyword?.status, diagnostics.feature_hashing.status].some((status) => status && status !== "ready") ? (
+        <p className="notice notice--warning" role="status">A required search index is not ready for the current eligible corpus. Results may fail until an administrator rebuilds it.</p>
+      ) : null}
+      {diagnostics?.dense.status !== "ready" ? (
+        <p className="notice" role="status">Dense semantic search is unavailable for this snapshot. Keyword and feature-hashing modes remain distinct alternatives.</p>
+      ) : null}
+      {diagnosticsError ? (
+        <div className="notice notice--warning" role="status">
+          <p>Index freshness could not be verified: {diagnosticsError}</p>
+          <button className="action-button" onClick={loadDiagnostics}>Retry diagnostics</button>
         </div>
       ) : null}
 
       {loading && response ? <InlineProgress label="Updating results from indexed chunks..." /> : null}
-      {error ? <p className="notice notice--error">{error}</p> : null}
+      {error ? (
+        <div className="notice notice--error" role="alert">
+          <p>{error}</p>
+          <button className="action-button" onClick={runSearch}>Retry search</button>
+        </div>
+      ) : null}
       {response?.warnings.length ? (
         <p className="notice notice--warning">{response.warnings.join(" ")}</p>
       ) : null}
@@ -102,6 +130,7 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
                 <span>{result.section ?? "Unknown"}</span>
                 <span>Pages {result.page_start ?? "?"}-{result.page_end ?? "?"}</span>
                 <span>Score {result.scores.combined.toFixed(3)}</span>
+                <span>Chunk {result.chunk_id}</span>
               </div>
               <h3>{result.paper_title}</h3>
               <p className="paper-card__status">{result.authors.join(", ") || "Authors need review"} {result.year ? `· ${result.year}` : ""}</p>
@@ -129,10 +158,14 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
         {response && response.results.length === 0 ? (
           <EmptyState
             title="No source chunks matched this search"
-            body="Try a broader phrase, fewer exact terms, or switch between keyword, semantic, and hybrid modes."
+            body="Try a broader phrase, fewer exact terms, or switch among keyword, feature-hashing baseline, dense semantic, and hybrid modes."
           />
         ) : null}
       </div>
     </section>
   );
+}
+
+function formatTimestamp(value: string | null | undefined): string {
+  return value ? new Date(value).toLocaleString() : "not built";
 }

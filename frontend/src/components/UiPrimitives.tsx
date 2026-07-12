@@ -88,7 +88,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="empty-state">
+    <div className="empty-state" role="status">
       <strong>{title}</strong>
       {body ? <p>{body}</p> : null}
       {action ? <div className="empty-state__action">{action}</div> : null}
@@ -154,7 +154,7 @@ export function ToastStack({ messages, onDismiss }: { messages: ToastMessage[]; 
   return (
     <div className="toast-stack" aria-live="polite" aria-relevant="additions removals">
       {messages.map((toast) => (
-        <div className={`toast toast--${toast.tone ?? "info"}`} role="status" key={toast.id}>
+        <div className={`toast toast--${toast.tone ?? "info"}`} role={toast.tone === "error" ? "alert" : "status"} key={toast.id}>
           {toastIcon(toast.tone ?? "info")}
           <span>{toast.message}</span>
           <button aria-label="Dismiss notification" onClick={() => onDismiss(toast.id)}>

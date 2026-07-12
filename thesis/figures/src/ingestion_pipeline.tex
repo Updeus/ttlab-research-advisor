@@ -1,0 +1,29 @@
+\begin{tikzpicture}[node distance=8mm and 10mm]
+  \node[flowbox] (archive) {TTLAB WordPress\\publication archive};
+  \node[flowbox, right=of archive] (discover) {Parse metadata, URLs\\and stable paper ID};
+  \node[datastore, right=of discover] (seed) {Seed JSON\\134 records};
+  \node[flowbox, right=of seed] (import) {Upsert Paper and\\raw Author strings};
+
+  \node[flowbox, below=14mm of import] (download) {Direct-PDF check,\\signature validation};
+  \node[decision, left=12mm of download] (available) {PDF\\available?};
+  \node[flowbox, left=12mm of available] (extract) {PyMuPDF page text +\\diagnostics + hash};
+  \node[flowbox, left=of extract] (chunk) {Sentence/page chunks\\850 words, overlap 125};
+
+  \node[datastore, below=14mm of chunk] (db) {SQLite\\Paper + Chunk};
+  \node[flowbox, right=of db] (fts) {SQLite FTS5\\756 rows};
+  \node[flowbox, right=of fts] (hash) {256-d feature hashing\\active index: 25 rows};
+  \node[flowbox, right=of hash] (topics) {Rule-based topic and\\author aggregation};
+
+  \draw[arrow] (archive) -- (discover);
+  \draw[arrow] (discover) -- (seed);
+  \draw[arrow] (seed) -- (import);
+  \draw[arrow] (import) -- (download);
+  \draw[arrow] (download) -- (available);
+  \draw[arrow] (available) -- node[above,font=\scriptsize]{yes} (extract);
+  \draw[arrow] (extract) -- (chunk);
+  \draw[arrow] (chunk) -- (db);
+  \draw[arrow] (db) -- (fts);
+  \draw[arrow] (fts) -- (hash);
+  \draw[arrow] (hash) -- (topics);
+  \draw[dashedarrow] (available.south) -- ++(0,-8mm) -| node[pos=0.25,right,font=\scriptsize]{no: missing/failed status} (db.north);
+\end{tikzpicture}

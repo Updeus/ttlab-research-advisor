@@ -1,0 +1,24 @@
+\chapter{Conclusion and Future Work}
+\label{ch:conclusion}
+
+This thesis examined how a laboratory publication archive can become a source-traceable research-intelligence workflow. The implemented prototype converts 98 of 134 records into 756 page-aware chunks, offers searchable and citation-returning interfaces, separates evidence from thesis-extension suggestions, links papers to topics and author strings, generates reviewable artefacts, and exposes evaluation state. Its repository can be tested, probed, built, and audited using the supplied evidence package.
+
+The bounded answers to the research questions are as follows. RQ1: the pipeline provides internally consistent extraction for 73.13\% of the snapshot, with missing PDFs, absent OCR, and incomplete section recognition. RQ2: retrieval and Ask TTLAB preserve paper/chunk/page provenance, but the active hashing index covers only 3.31\% of chunks and structural grounding does not establish correctness. RQ3: recommendation contracts distinguish source gap status from system suggestions, but no relevance or feasibility study supports the scores. RQ4: topics, authors, outputs, and review queues are inspectable, while identity defects, absent authentication, and zero review events prevent governance claims. RQ5: the audited implementation is reproducible from documented artefacts, but empirical effectiveness remains unevaluated.
+
+The principal conclusion is not that the platform is already an effective research advisor. It is that a demonstrable, evidence-aware prototype exists and its own data makes the next scientific work clear.
+
+\section{Prioritized future work}
+
+\begin{enumerate}
+  \item \textbf{Freeze and repair evidence state.} Rebuild the full vector index, clear stale statuses transactionally, record corpus/index/model manifests, and make the API expose coverage by mode.
+  \item \textbf{Improve corpus quality.} Resolve author identities, remove parsing artefacts, populate verified metadata, acquire permitted missing PDFs, add OCR with confidence diagnostics, and validate section extraction.
+  \item \textbf{Execute a gold retrieval/QA evaluation.} Establish reviewer-approved cases, compare modes and ablations, label claim--citation entailment, and report uncertainty and errors.
+  \item \textbf{Evaluate recommendations with stakeholders.} Separate novelty, feasibility, source fidelity, usefulness, risk calibration, and evaluation-plan quality; compare against a retrieval-only baseline.
+  \item \textbf{Complete governance.} Add authenticated review, reviewer identity, versioned approvals, change provenance, correction requests, retention/deletion controls, and deployment security.
+  \item \textbf{Evaluate learned alternatives.} Compare the current lexical hashing baseline with a reproducibly versioned scholarly or sentence encoder, rather than assuming semantic improvement \cite{reimers2019sentencebert,cohan2020specter,thakur2021beir}.
+  \item \textbf{Improve public communication.} Repair deep links and dashboard inconsistencies, hide raw markers, expose extraction review, and conduct accessibility and usability testing.
+\end{enumerate}
+
+\section{Final author decisions}
+
+Student ID, supervisor, submission date, official laboratory naming, methodology designation, ethics status, corpus authorization, authorship/AI disclosure, and the proposed evaluation protocol remain \textbf{AUTHOR INPUT REQUIRED}. They are consolidated in \codepath{AUTHOR_REVIEW.md} rather than silently completed.

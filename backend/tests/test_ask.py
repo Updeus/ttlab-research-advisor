@@ -8,7 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.db import get_session
 from app.indexing.keyword_search import rebuild_keyword_index
 from app.intelligence.citation_verifier import verify_citations
-from app.intelligence.llm_provider import LLMAnswerDraft, OfflineExtractiveProvider, OllamaProvider
+from app.intelligence.llm_provider import LLMAnswerDraft, OfflineExtractiveProvider, OllamaProvider, build_extractive_answer
 from app.intelligence.rag_answerer import ask_question
 from app.main import app
 from app.models import Chunk, Paper, RAGAnswer
@@ -51,6 +51,61 @@ def test_offline_provider_returns_answer_from_chunks() -> None:
     assert draft.provider == "offline_extractive"
     assert "indexed TTLAB paper chunks" in draft.answer_text
     assert "Retrieval augmented generation" in draft.answer_text
+
+
+def test_offline_provider_prioritizes_agriculture_evidence() -> None:
+    answer = build_extractive_answer(
+        "What research relates to agriculture or AI?",
+        [
+            {
+                "chunk_id": "generic-ai",
+                "title": "Generic AI Paper",
+                "authors": ["A"],
+                "year": 2025,
+                "snippet": "Generative AI can evaluate workplace scenarios for candidate assessment.",
+                "scores": {"combined": 0.9},
+            },
+            {
+                "chunk_id": "crop-ai",
+                "title": "Tropical Crops Paper",
+                "authors": ["B"],
+                "year": 2024,
+                "snippet": "Artificial Intelligence can support precision agriculture using labelled crop datasets.",
+                "scores": {"combined": 0.7},
+            },
+        ],
+        max_words=120,
+    )
+
+    assert answer.index("Tropical Crops Paper") < answer.index("Generic AI Paper")
+
+
+def test_offline_provider_extracts_explicit_limitations_before_weak_challenges() -> None:
+    answer = build_extractive_answer(
+        "What are the limitations or future work?",
+        [
+            {
+                "chunk_id": "challenge",
+                "title": "Discussion Paper",
+                "authors": ["A"],
+                "year": 2025,
+                "snippet": "This result challenges the bigger is better narrative in model selection.",
+                "scores": {"combined": 0.9},
+            },
+            {
+                "chunk_id": "future",
+                "title": "Future Work Paper",
+                "authors": ["B"],
+                "year": 2025,
+                "snippet": "LIMITATIONS AND FUTURE WORK This study used a private dataset, so future research should evaluate public datasets.",
+                "scores": {"combined": 0.6},
+            },
+        ],
+        max_words=120,
+    )
+
+    assert "LIMITATIONS AND FUTURE WORK" in answer
+    assert "bigger is better" not in answer
 
 
 def test_ollama_provider_parses_mocked_response(monkeypatch) -> None:

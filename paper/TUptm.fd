@@ -1,0 +1,9 @@
+\ProvidesFile{TUptm.fd}[2026/07/11 IEEEtran Times-family compatibility for XeTeX]
+\DeclareFontFamily{TU}{ptm}{}
+\DeclareFontShape{TU}{ptm}{m}{n}{<->ssub*lmr/m/n}{}
+\DeclareFontShape{TU}{ptm}{bx}{n}{<->ssub*lmr/bx/n}{}
+\DeclareFontShape{TU}{ptm}{m}{it}{<->ssub*lmr/m/it}{}
+\DeclareFontShape{TU}{ptm}{bx}{it}{<->ssub*lmr/bx/it}{}
+\DeclareFontShape{TU}{ptm}{b}{n}{<->ssub*lmr/bx/n}{}
+\DeclareFontShape{TU}{ptm}{b}{it}{<->ssub*lmr/bx/it}{}
+\endinput

@@ -1,0 +1,59 @@
+\chapter{Reproducibility Guide}
+\label{app:reproducibility}
+
+Run commands from the repository root on Linux/WSL. The exact snapshot is Git HEAD \texttt{713ea5c8e321200eb5a17655481e091cab13ccb4} plus the seven modified application/test files enumerated in \codepath{thesis/PROJECT_EVIDENCE.md}.
+
+\section{Evidence snapshots}
+
+\begin{lstlisting}[language=bash]
+PYTHONPATH=backend .venv/bin/python thesis/scripts/collect_evidence.py
+PYTHONPATH=backend .venv/bin/python thesis/scripts/runtime_probe.py
+\end{lstlisting}
+
+The second command copies the SQLite database to a temporary location before requests. It should not add answer or recommendation rows to the source database.
+
+\section{Application verification}
+
+\begin{lstlisting}[language=bash]
+rm -f /tmp/advisor-thesis-pytest.db
+TTLAB_DATABASE_URL=sqlite:////tmp/advisor-thesis-pytest.db \
+  PYTHONPATH=backend .venv/bin/python -m pytest
+
+cd frontend
+npm ci
+npm run build
+\end{lstlisting}
+
+For local interactive operation, use the repository's \codepath{scripts/run_everything.sh} and inspect its options before execution. Local Ollama is optional; provider failure falls back to offline extraction.
+
+\section{Document builds}
+
+\begin{lstlisting}[language=bash]
+make thesis   # build/thesis.pdf
+make paper    # build/ieee-paper.pdf
+make all      # both documents
+\end{lstlisting}
+
+The Makefile locates \texttt{tectonic} on \texttt{PATH} or under \texttt{\$HOME/.local/bin}. Figure sources are TikZ/PGFPlots files under \codepath{thesis/figures/src}; plot inputs are generated CSV files.
+
+\section{Snapshot identifiers}
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\caption{Key SHA-256 snapshot identifiers.}
+\begin{tabularx}{\textwidth}{P{31mm}Y}
+\toprule
+Artefact & SHA-256 \\
+\midrule
+Seed JSON & \nolinkurl{d542403eee240fdae831af31f105ab1cc39f36a4b90eaa19f07b84f211b27b16} \\
+Runtime SQLite & \nolinkurl{d9474b25b224306c6cf8d5a3769e1483acf512e94b0c077040503c9c1693a9e2} \\
+Sorted PDF manifest & \nolinkurl{ac9ca99d2ee9c13a07442843b48712e51bef0efbf86f175682830f8a9ef53658} \\
+Active hashing index & \texttt{8cb6843a}\ldots\texttt{0511} (full value in generated evidence JSON) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Screenshots}
+
+The eight PNGs under \codepath{thesis/figures/screenshots} were captured from a disposable-copy browser audit on ports 8011/5181. They are evidence for visible surfaces and failures, not pixel-level regression baselines. Reproduction requires starting the audited backend copy and frontend and capturing the named views at a consistent viewport.

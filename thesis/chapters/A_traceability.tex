@@ -1,0 +1,28 @@
+\chapter{Research-Question Traceability Matrix}
+\label{app:traceability}
+
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{P{8mm}P{26mm}P{32mm}P{32mm}P{31mm}}
+\caption{Connection from each research question to method, evidence, observed result, and conclusion.}\label{tab:rq-traceability}\\
+\toprule
+RQ & Method & Evidence & Result & Conclusion \\
+\midrule
+\endfirsthead
+\toprule
+RQ & Method & Evidence & Result & Conclusion \\
+\midrule
+\endhead
+1 & corpus, schema, and file audit & seed and PDF hashes; database and file manifests; extraction and chunk records & 134 records; 98 extracted; 698 pages; 756 chunks; 35 missing; 1 failed; 32.94\% unknown section & page-aware ingestion works for 73.13\% of the snapshot; completeness and extraction correctness are not established \\
+\addlinespace
+2 & code inspection; active-index comparison; disposable search/Ask probes & FTS/index files; status fields; retrieval, answer, and verifier code; response JSON & FTS 756; active hashing 25; DB-marked hashing 300; responses preserve IDs, pages, and status; broad-intent noise observed & traceability is implemented; semantic coverage, answer correctness, and retrieval effectiveness are not established \\
+\addlinespace
+3 & schema, weight, and verifier inspection; persisted and disposable outputs & recommendation code and records & 7 runs, 29 items, 67 citations; 3 explicit, 16 inferred, 10 missing gaps; all partial and unreviewed & evidence and suggestion separation exists; usefulness, novelty, and feasibility require human evaluation \\
+\addlinespace
+4 & data and interface inspection & topics/links, author records, artefacts, review queue/events, screenshots & 39 topics; identity defects; 14 artefacts; 182 queue items; zero events & inspectability exists; topic/expertise validity and governance do not \\
+\addlinespace
+5 & isolated tests, build, probes, hashes, PDF render QA & command results and generated evidence files & 71 backend tests pass; frontend builds; API/UI surfaces run; documents build from source & implementation snapshot is reproducible; empirical experiments remain to be executed \\
+\bottomrule
+\end{longtable}
+\endgroup

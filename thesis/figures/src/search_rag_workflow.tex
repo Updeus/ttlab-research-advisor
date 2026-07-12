@@ -1,0 +1,31 @@
+\begingroup\hfuzz=100pt
+\begin{tikzpicture}[node distance=8mm and 9mm]
+  \node[flowbox] (question) {User question + mode,\\top-k, audience, paper filter};
+  \node[flowbox, right=of question] (expand) {Stop-word removal +\\fixed query expansion};
+  \node[flowbox, right=of expand] (retrieve) {FTS BM25-like score\\+ hashing cosine score};
+  \node[flowbox, right=of retrieve] (rerank) {Metadata, section, topic\\adjustments + diversity};
+
+  \node[datastore, below=14mm of retrieve] (chunks) {Retrieved chunks\\page and paper IDs};
+  \node[decision, left=12mm of chunks] (provider) {Answer\\provider};
+  \node[flowbox, left=12mm of provider] (compose) {Offline extractive or\\Ollama composition};
+  \node[flowbox, left=of compose] (cite) {Attach top-result citations\\and retrieved chunk data};
+
+  \node[flowbox, below=14mm of cite] (verify) {Structural citation fields +\\chunk membership + 8\% overlap};
+  \node[decision, right=of verify] (status) {Grounding\\status};
+  \node[datastore, right=of status] (persist) {RAGAnswer\\needs\_review};
+  \node[flowbox, right=of persist] (display) {Answer, citations, pages,\\warnings, retrieved chunks};
+
+  \draw[arrow] (question) -- (expand);
+  \draw[arrow] (expand) -- (retrieve);
+  \draw[arrow] (retrieve) -- (rerank);
+  \draw[arrow] (rerank) -- (chunks);
+  \draw[arrow] (chunks) -- (provider);
+  \draw[arrow] (provider) -- (compose);
+  \draw[arrow] (compose) -- (cite);
+  \draw[arrow] (cite) -- (verify);
+  \draw[arrow] (verify) -- (status);
+  \draw[arrow] (status) -- (persist);
+  \draw[arrow] (persist) -- (display);
+  \draw[dashedarrow] (provider.south) -- ++(0,-6mm) node[below,font=\scriptsize,align=center]{Ollama failure falls back\\to offline extraction};
+\end{tikzpicture}
+\endgroup

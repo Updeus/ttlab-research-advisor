@@ -1,0 +1,4 @@
+ingestion_status,pdf_text_status,review_status,count
+text_extracted,extracted,needs_review,98
+missing_pdf,missing_pdf,needs_review,35
+download_failed,download_failed,needs_review,1

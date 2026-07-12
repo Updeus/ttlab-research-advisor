@@ -1,0 +1,38 @@
+\chapter{Research Questions and Objectives}
+\label{ch:rqs}
+
+The research questions are framed so that the current repository can answer implementation and characterization questions without manufacturing effectiveness results.
+
+\begin{description}[leftmargin=16mm,style=multiline]
+  \item[RQ1] With what coverage and observable failure modes can the publication snapshot be converted into page-aware full-text chunks?
+  \item[RQ2] How does the implemented retrieval and question-answering workflow preserve traceability under the currently active index?
+  \item[RQ3] How does the thesis-extension workflow distinguish source-supported baseline work and gaps from system-generated suggestions?
+  \item[RQ4] How are topics, authors, metadata, and generated outputs made inspectable and reviewable, and what data-quality risks remain?
+  \item[RQ5] To what extent can the prototype and its current evidence be reproduced and audited, and what evaluation is still required before effectiveness claims?
+\end{description}
+
+\section{Question-to-evidence design}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Research-question traceability plan.}
+\label{tab:rq-plan}
+\begin{tabularx}{\textwidth}{P{9mm}P{34mm}P{40mm}Y}
+\toprule
+RQ & Method & Evidence & Bounded conclusion type \\
+\midrule
+1 & repository and corpus audit & seed, PDF/text/chunk manifests, extraction diagnostics, SQLite counts & coverage and observed ingestion limitations \\
+2 & code inspection and disposable runtime probes & retrieval code, active index, search and Ask responses, citation verifier & traceability mechanics, not answer accuracy \\
+3 & schema/algorithm inspection and recommendation probe & weights, evidence fields, verifier, persisted/run-time outputs & structural separation, not educational usefulness \\
+4 & database/UI inspection & topic and author links, review API, screenshots, review-event count & inspectability and defects, not validated expertise \\
+5 & isolated tests, builds, hashes, build artefacts & test/build logs, scripts, generated snapshots, PDF QA & reproducibility of the audited snapshot \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The full evidence-result-conclusion matrix appears in \cref{app:traceability}. This structure prevents a passing software test from being used as evidence for a user-facing quality claim.
+
+\section{Propositions not yet tested}
+
+The following plausible propositions are intentionally not converted into conclusions: hybrid retrieval improves relevance over keyword search; page citations improve trust; extension recommendations help students choose feasible work; and administrative review improves public-output quality. Testing them requires labelled baselines and/or human participants. \authorinput{confirm whether these should become formal hypotheses and supply the approved evaluation protocol}.

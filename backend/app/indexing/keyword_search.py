@@ -12,6 +12,39 @@ from sqlmodel import Session, select
 from app.db import create_db_and_tables, engine
 from app.models import Chunk, Paper
 
+STOPWORDS = {
+    "about",
+    "also",
+    "and",
+    "are",
+    "can",
+    "could",
+    "discuss",
+    "does",
+    "for",
+    "from",
+    "have",
+    "how",
+    "into",
+    "main",
+    "papers",
+    "paper",
+    "read",
+    "relate",
+    "relates",
+    "research",
+    "show",
+    "that",
+    "the",
+    "this",
+    "to",
+    "want",
+    "what",
+    "which",
+    "who",
+    "with",
+}
+
 
 @dataclass
 class SearchFilters:
@@ -26,7 +59,11 @@ def utc_now_iso() -> str:
 
 
 def tokenize(query: str) -> list[str]:
-    return [token.lower() for token in re.findall(r"[a-zA-Z0-9]+", query) if len(token) > 1]
+    return [
+        token.lower()
+        for token in re.findall(r"[a-zA-Z0-9]+", query)
+        if len(token) > 1 and token.lower() not in STOPWORDS
+    ]
 
 
 def supports_fts5(session: Session) -> bool:
@@ -182,6 +219,7 @@ def build_keyword_result(chunk: Chunk, score: float, terms: list[str]) -> dict[s
         "page_start": chunk.page_start,
         "page_end": chunk.page_end,
         "snippet": make_snippet(chunk.text, terms),
+        "text": chunk.text,
         "score": round(float(score), 6),
         "match_type": "keyword",
     }
@@ -218,12 +256,22 @@ def enrich_keyword_results(
 
 def make_snippet(text_value: str, terms: list[str], window: int = 240) -> str:
     lowered = text_value.lower()
-    positions = [lowered.find(term) for term in terms if lowered.find(term) >= 0]
+    positions: list[int] = []
+    for term in terms:
+        pattern = re.compile(rf"(?<![A-Za-z0-9]){re.escape(term)}(?![A-Za-z0-9])", flags=re.IGNORECASE)
+        match = pattern.search(text_value)
+        if match:
+            positions.append(match.start())
+            continue
+        found = lowered.find(term)
+        if found >= 0 and len(term) > 3:
+            positions.append(found)
     start = max(min(positions) - 80, 0) if positions else 0
     snippet = re.sub(r"\s+", " ", text_value[start : start + window]).strip()
     for term in sorted(set(terms), key=len, reverse=True):
+        boundary = rf"(?<![A-Za-z0-9]){re.escape(term)}(?![A-Za-z0-9])"
         snippet = re.sub(
-            re.escape(term),
+            boundary,
             lambda match: f"[[{match.group(0)}]]",
             snippet,
             flags=re.IGNORECASE,

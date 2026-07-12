@@ -8,8 +8,8 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.db import get_session
 from app.evaluation.retrieval_eval import calculate_metrics, evaluate_retrieval
 from app.indexing.embedder import HashingEmbeddingProvider, index_chunks
-from app.indexing.keyword_search import rebuild_keyword_index, search_keyword
-from app.indexing.retriever import diversify_ranked_entries, expand_query, retrieve
+from app.indexing.keyword_search import make_snippet, rebuild_keyword_index, search_keyword
+from app.indexing.retriever import diversify_ranked_entries, expand_query, has_rag_signal, retrieve
 from app.indexing.vector_store import search_vector_store
 from app.main import app
 from app.models import Chunk, Paper
@@ -118,6 +118,27 @@ def test_query_expansion_adds_rag_ai_and_optimization_synonyms() -> None:
     assert "retrieval augmented generation" in expanded
     assert "artificial intelligence" in expanded
     assert "optimisation" in additions
+
+
+def test_query_expansion_adds_agriculture_terms() -> None:
+    expanded, additions = expand_query("agriculture and AI")
+
+    assert "cocoa" in expanded
+    assert "biomass" in additions
+    assert "artificial intelligence" in expanded
+
+
+def test_snippet_highlighting_uses_word_boundaries() -> None:
+    snippet = make_snippet("Contact hotmail support before reviewing AI crop research.", ["ai", "crop"])
+
+    assert "hotm[[ai]]l" not in snippet
+    assert "[[AI]]" in snippet
+    assert "[[crop]]" in snippet
+
+
+def test_rag_signal_does_not_match_average() -> None:
+    assert not has_rag_signal({"paper_title": "Average Model Performance", "snippet": "The average score improved.", "text": ""})
+    assert has_rag_signal({"paper_title": "RAG Model Performance", "snippet": "Retrieval-augmented generation improved.", "text": ""})
 
 
 def test_retrieval_respects_paper_filter(tmp_path: Path) -> None:

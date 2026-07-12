@@ -1,0 +1,45 @@
+\chapter{Limitations, Ethics and Threats to Validity}
+\label{ch:limitations}
+
+\section{Technical limitations}
+
+The corpus is incomplete, OCR is absent, section and sentence detection are heuristic, and metadata lacks structured abstracts, DOIs, and keywords. The active vector index is partial and its database statuses are stale. The only operational vector representation is lexical feature hashing. Hybrid and recommendation weights are not tuned. Topic classification uses a fixed taxonomy. Author identity resolution is incomplete. The OpenAI adapter is a stub, the local Ollama service was not reproducible during the audit, and text podcasts have no audio output.
+
+The frontend lacks deep links, authentication, authorization, production deployment configuration, and a complete extraction-review surface. The dashboard can show empty top topics despite populated explorer data, and raw marker syntax can appear in the UI. These are not cosmetic details when the system is intended for public evidence communication.
+
+\section{Evaluation limitations}
+
+No valid retrieval or QA benchmark has been run. Placeholder citation-coverage cases cannot validate correctness. Persisted grounding labels test structure and low lexical overlap only. No human review events, reviewer scores, agreement measures, user study, ablation, latency benchmark, hardware record, statistical test, or external baseline comparison exists. The thesis is consequently unable to establish retrieval effectiveness, answer faithfulness, topic quality, recommendation usefulness, user satisfaction, or generalisability.
+
+\section{Ethical and responsible-AI considerations}
+
+Potential harms include misattributing research expertise, recommending infeasible or non-novel thesis work, exposing copyrighted text beyond justified quotation, retaining personal student profiles, and presenting generated interpretations as researcher-endorsed claims. Language-model systems also carry broader misinformation and interaction risks \cite{weidinger2022taxonomy}. The interface's generated notices, citations, gap labels, review states, and warnings are risk controls, but they require functioning governance.
+
+Before public deployment the project needs:
+
+\begin{itemize}
+  \item confirmation of document-processing and snippet-display rights;
+  \item a privacy notice, lawful basis, retention policy, deletion path, and access controls for student inputs;
+  \item verified author identity and a correction/appeal process;
+  \item authenticated, attributable review with versioned approvals;
+  \item accessibility, security, and abuse testing; and
+  \item an institutional AI-assistance disclosure consistent with university policy.
+\end{itemize}
+
+\authorinput{state ethics approval or exemption, document permissions, participant consent arrangements, data-retention decisions, and the required AI-use declaration}.
+
+\section{Threats to internal validity}
+
+The audit reflects one working-tree snapshot that includes seven pre-existing uncommitted application/test modifications. Temporary database isolation reduces mutation risk, but one test writes an ignored generated artefact. Runtime probes use representative questions selected for diagnostic breadth rather than a preregistered sample. Manual interface inspection can miss intermittent or device-specific faults.
+
+\section{Threats to construct validity}
+
+The code's \texttt{Recall@k} is a binary hit measure rather than set recall. \texttt{Grounded} denotes structural citation checks, not entailment. Topic score denotes lexical-rule evidence, not topic truth. Recommendation score denotes rule fit, not usefulness or feasibility. Treating these names as their stronger everyday meanings would invalidate conclusions.
+
+\section{Threats to external validity}
+
+The system is tailored to one laboratory archive and a small local corpus. Archive markup, publication genres, and metadata quality may differ elsewhere. Rule-based topics and query expansions are domain-specific. Results cannot be generalized to other institutions, corpora, languages, or production workloads without replication.
+
+\section{Threats to reproducibility}
+
+The ignored database and derived data are not wholly represented by Git history. A local model tag does not guarantee identical model bytes. External archive content can change. The thesis mitigates these issues with hashes, generated snapshots, explicit Git state, local build scripts, and separation of reproduced from historical evidence; a release should additionally archive the permitted corpus, model digest, dependency lockfiles, and environment image.

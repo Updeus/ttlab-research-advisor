@@ -1,0 +1,28 @@
+\begingroup\hfuzz=100pt
+\begin{tikzpicture}[node distance=8mm and 10mm]
+  \node[flowbox] (questions) {Manually reviewed questions\\and gold paper IDs};
+  \node[flowbox, right=of questions] (retrieval) {Run keyword, hashing,\\and hybrid retrieval};
+  \node[flowbox, right=of retrieval] (metrics) {Hit-based Recall@3/5\\and MRR};
+  \node[flowbox, right=of metrics, fill=PaleGold, draw=Gold!80!black] (missing) {Current state:\\gold labels absent; not run};
+
+  \node[flowbox, below=15mm of questions] (qa) {Reviewed QA cases +\\required answer points};
+  \node[flowbox, right=of qa] (outputs) {Answers, recommendations,\\summaries and citations};
+  \node[flowbox, right=of outputs] (automatic) {Citation presence, warning\\and structural status counts};
+  \node[flowbox, right=of automatic, fill=PaleGold, draw=Gold!80!black] (placeholder) {Current state:\\one placeholder case per\\extension/artifact evaluation};
+
+  \node[flowbox, below=15mm of qa] (rubric) {Human rubric:\\faithfulness, usefulness,\\citation correctness, feasibility};
+  \node[flowbox, right=of rubric] (review) {Independent reviewers +\\adjudication and\\reliability};
+  \node[flowbox, right=of review] (analysis) {Error taxonomy, intervals,\\comparisons and conclusions};
+  \node[flowbox, right=of analysis, fill=PaleGold, draw=Gold!80!black] (notdone) {Current state:\\templates only; zero reviews};
+
+  \draw[arrow] (questions) -- (retrieval);
+  \draw[arrow] (retrieval) -- (metrics);
+  \draw[arrow] (metrics) -- (missing);
+  \draw[arrow] (qa) -- (outputs);
+  \draw[arrow] (outputs) -- (automatic);
+  \draw[arrow] (automatic) -- (placeholder);
+  \draw[dashedarrow] (rubric) -- (review);
+  \draw[dashedarrow] (review) -- (analysis);
+  \draw[dashedarrow] (analysis) -- (notdone);
+\end{tikzpicture}
+\endgroup

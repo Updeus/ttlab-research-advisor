@@ -211,8 +211,15 @@ def test_smoke_check_returns_structured_status_without_network() -> None:
     finally:
         app.dependency_overrides.clear()
 
-    assert result["overall_status"] in {"PASS", "WARN"}
-    assert result["counts"]["fail"] == 0
+    # This isolated test database deliberately has no matching authoritative
+    # retrieval indexes. The smoke checker must expose that state instead of
+    # treating any unrelated on-disk index as ready.
+    assert result["overall_status"] == "FAIL"
+    assert result["counts"]["fail"] >= 1
     assert any(check["name"] == "stats" and check["level"] == "PASS" for check in result["checks"])
+    assert any(
+        check["name"] == "feature_hashing_index" and check["level"] == "FAIL"
+        for check in result["checks"]
+    )
     assert result["summary"]["papers"] == 3
     assert result["summary"]["topics"] >= 1

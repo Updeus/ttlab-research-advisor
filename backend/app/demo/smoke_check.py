@@ -21,18 +21,18 @@ def run_smoke_check(client: TestClient | None = None) -> dict[str, Any]:
     payloads: dict[str, Any] = {}
 
     endpoint_plan = [
-        ("health", "/health"),
-        ("stats", "/api/stats"),
-        ("search_diagnostics", "/api/search/diagnostics"),
-        ("ask_diagnostics", "/api/ask/diagnostics"),
-        ("recommendation_diagnostics", "/api/recommendations/extensions/diagnostics"),
-        ("artifact_diagnostics", "/api/artifacts/diagnostics"),
-        ("admin_overview", "/api/admin/overview"),
-        ("evaluation_dashboard", "/api/evaluation/dashboard"),
-        ("explorer_overview", "/api/explorer/overview"),
+        ("health", "/health", 200),
+        ("stats", "/api/stats", 200),
+        ("search_diagnostics", "/api/search/diagnostics", 200),
+        ("ask_diagnostics", "/api/ask/diagnostics", 200),
+        ("recommendation_diagnostics", "/api/recommendations/extensions/diagnostics", 200),
+        ("artifact_diagnostics", "/api/artifacts/diagnostics", 200),
+        ("admin_protection", "/api/admin/overview", 401),
+        ("evaluation_dashboard", "/api/evaluation/dashboard", 200),
+        ("explorer_overview", "/api/explorer/overview", 200),
     ]
-    for name, path in endpoint_plan:
-        payload = check_endpoint(client, name, path, checks)
+    for name, path, expected_status in endpoint_plan:
+        payload = check_endpoint(client, name, path, checks, expected_status=expected_status)
         if payload is not None:
             payloads[name] = payload
 
@@ -43,18 +43,11 @@ def run_smoke_check(client: TestClient | None = None) -> dict[str, Any]:
 
     add_threshold_check(checks, "papers_imported", stats.get("papers", 0), "papers available in SQLite")
     add_threshold_check(checks, "chunks_available", stats.get("total_chunks", 0), "full-paper chunks available")
-    add_threshold_check(
-        checks,
-        "keyword_index",
-        search.get("chunks_indexed_for_keyword_search", 0),
-        "keyword index has chunks",
-    )
-    add_threshold_check(
-        checks,
-        "semantic_index",
-        search.get("chunks_indexed_for_semantic_search", 0),
-        "hashing semantic index has chunks",
-    )
+    add_index_health_check(checks, "keyword_index", search.get("keyword"), required=True)
+    add_index_health_check(checks, "feature_hashing_index", search.get("feature_hashing"), required=True)
+    # A local installation may deliberately omit the optional learned model,
+    # but a present, stale, partial, or corrupt dense index is still a failure.
+    add_index_health_check(checks, "dense_index", search.get("dense"), required=False)
     add_threshold_check(checks, "topics_built", explorer.get("topic_count", 0), "topic explorer has topics")
     add_threshold_check(checks, "authors_built", explorer.get("author_count", 0), "author explorer has authors")
     add_threshold_check(
@@ -84,16 +77,35 @@ def run_smoke_check(client: TestClient | None = None) -> dict[str, Any]:
     }
 
 
-def check_endpoint(client: TestClient, name: str, path: str, checks: list[dict[str, Any]]) -> Any | None:
+def check_endpoint(
+    client: TestClient,
+    name: str,
+    path: str,
+    checks: list[dict[str, Any]],
+    *,
+    expected_status: int = 200,
+) -> Any | None:
     try:
         response = client.get(path)
     except Exception as exc:
         checks.append({"name": name, "level": "FAIL", "message": f"{path} raised {exc.__class__.__name__}: {exc}"})
         return None
-    if response.status_code >= 400:
-        checks.append({"name": name, "level": "FAIL", "message": f"{path} returned HTTP {response.status_code}"})
+    if response.status_code != expected_status:
+        checks.append(
+            {
+                "name": name,
+                "level": "FAIL",
+                "message": f"{path} returned HTTP {response.status_code}; expected {expected_status}",
+            }
+        )
         return None
-    checks.append({"name": name, "level": "PASS", "message": f"{path} returned HTTP {response.status_code}"})
+    checks.append(
+        {
+            "name": name,
+            "level": "PASS",
+            "message": f"{path} returned expected HTTP {response.status_code}",
+        }
+    )
     try:
         return response.json()
     except ValueError:
@@ -113,6 +125,54 @@ def add_threshold_check(checks: list[dict[str, Any]], name: str, value: Any, mes
                 "value": numeric,
             }
         )
+
+
+def add_index_health_check(
+    checks: list[dict[str, Any]],
+    name: str,
+    report: Any,
+    *,
+    required: bool,
+) -> None:
+    if not isinstance(report, dict):
+        level = "FAIL" if required else "WARN"
+        checks.append({"name": name, "level": level, "message": "index diagnostics are unavailable"})
+        return
+
+    status = str(report.get("status") or report.get("index_status") or "unknown")
+    indexed = int(report.get("indexed_chunks") or report.get("keyword_indexed_chunks") or 0)
+    eligible = int(report.get("eligible_chunks") or 0)
+    completeness = str(report.get("completeness_status") or "unknown")
+    errors = [str(error) for error in report.get("errors", [])]
+    ready = (
+        status == "ready"
+        and completeness == "complete"
+        and indexed == eligible
+        and eligible > 0
+        and not errors
+    )
+    if ready:
+        checks.append(
+            {
+                "name": name,
+                "level": "PASS",
+                "message": f"complete authoritative coverage: {indexed}/{eligible} eligible chunks",
+                "value": indexed,
+            }
+        )
+        return
+
+    missing = status in {"missing", "not_built"} and indexed == 0
+    level = "WARN" if missing and not required else "FAIL"
+    details = "; ".join(errors) if errors else f"status={status}, completeness={completeness}"
+    checks.append(
+        {
+            "name": name,
+            "level": level,
+            "message": f"index is not authoritative: {indexed}/{eligible} eligible chunks; {details}",
+            "value": indexed,
+        }
+    )
 
 
 def main() -> None:

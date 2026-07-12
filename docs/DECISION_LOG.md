@@ -146,3 +146,29 @@ results may refine a choice, but an earlier entry is not silently rewritten.
 - **Consequence:** Section-label performance is measured on an AI-reviewed silver
   sample, while the current corpus may legitimately report zero OCR-processed
   pages.
+
+### D-014 — Freeze the experimental corpus at 96 papers and 719 chunks
+
+- **Decision:** Use the post-repair snapshot `corpus-04a010207327069a`, containing
+  96 eligible papers and 719 eligible chunks, for retrieval and downstream
+  experiments. Retain 36 no-text records as `needs_review` and exclude the two
+  verified metadata/PDF mismatches and their 16 chunks.
+- **Rationale:** All representations must operate on the same defensible source
+  set. Catalogue visibility is not sufficient evidence for experimental
+  inclusion when a PDF is absent or contradicted by its document title.
+- **Consequence:** Results characterize this dated local snapshot, not all TTLAB
+  publications. Any later source correction requires a new corpus hash and full
+  experiment rerun.
+
+### D-015 — Use a pinned CPU learned-dense baseline
+
+- **Decision:** Use `sentence-transformers/all-MiniLM-L6-v2` at immutable
+  revision `826711e54e001c83835913827a843d8dd0a1def9`, 384 dimensions, mean
+  pooling across deterministic overlapping tokenizer windows, and final L2
+  normalization. Pin PyTorch 2.13.0+cpu and the key transformer runtime.
+- **Rationale:** The model is small enough for the documented CPU-only local
+  workflow, has an Apache-2.0 model card, and supplies a learned representation
+  that is genuinely distinct from keyword and feature-hashing baselines.
+- **Consequence:** Model acquisition is an explicit networked operator action;
+  ordinary search remains offline and reports a missing dense provider clearly.
+  The acquired snapshot hash is recorded in the authoritative manifest.

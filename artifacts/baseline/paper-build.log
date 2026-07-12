@@ -1,0 +1,19 @@
+Script started on 2026-07-12 18:00:25-04:00 [COMMAND="make paper" <not executed on terminal>]
+cd paper && "/home/jarod/.local/bin/tectonic" --keep-logs --keep-intermediates --outdir ../build ieee-paper.tex
+Running TeX ...
+warning: ieee-paper.tex:52: Underfull \hbox (badness 1728) in paragraph at lines 50--52
+Running BibTeX on ieee-paper.aux ...
+Rerunning TeX because bibtex was run ...
+warning: ieee-paper.tex:52: Underfull \hbox (badness 1728) in paragraph at lines 50--52
+Rerunning TeX because "ieee-paper.out" changed ...
+warning: ieee-paper.tex:52: Underfull \hbox (badness 1728) in paragraph at lines 50--52
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+Running xdvipdfmx ...
+Writing `../build/ieee-paper.blg` (395 B)
+Writing `../build/ieee-paper.aux` (3.3291015625 KiB)
+Writing `../build/ieee-paper.pdf` (57.2744140625 KiB)
+Writing `../build/ieee-paper.log` (26.94140625 KiB)
+Writing `../build/ieee-paper.bbl` (11.7138671875 KiB)
+Writing `../build/ieee-paper.out` (913 B)
+
+Script done on 2026-07-12 18:00:31-04:00 [COMMAND_EXIT_CODE="0"]

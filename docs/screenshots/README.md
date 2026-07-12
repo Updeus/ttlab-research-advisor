@@ -6,7 +6,8 @@ No screenshots are committed by default. Capture these manually for thesis slide
 - Paper Browser with TTLAB paper cards.
 - Paper Detail with metadata, extraction status, chunks, and related papers.
 - Paper Intelligence with summaries, limitations/future work, citations, and podcast script.
-- Search page with keyword/semantic/hybrid results.
+- Search page with keyword/feature-hashing/hybrid results; legacy UI/API text
+  may still say `semantic` until the compatibility rename is complete.
 - Ask TTLAB answer with citations and page ranges.
 - Thesis Extension Finder recommendations.
 - Topic/Author Explorer overview.

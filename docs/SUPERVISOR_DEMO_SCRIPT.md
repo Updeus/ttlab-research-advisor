@@ -53,7 +53,8 @@ Open `http://127.0.0.1:5173`.
    - Talking point: generated content is AI-assisted and unreviewed until approved.
 
 5. Search
-   - Search for `RAG academic research`, then switch keyword/semantic/hybrid modes if useful.
+   - Search for `RAG academic research`, then switch keyword,
+     feature-hashing (legacy `semantic`), and hybrid modes if useful.
    - Show retrieved full-paper chunks, snippets, source papers, and page ranges.
    - Talking point: search returns source evidence before any generated answer.
 

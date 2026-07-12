@@ -1,4 +1,9 @@
-# Final Status
+# Pre-remediation Project Status
+
+This file described an earlier demo rebuild and was not a defensible final
+research status. It is retained as a product overview while remediation is in
+progress. Authoritative baseline evidence is in `artifacts/baseline/` and issue
+closure is tracked in `docs/REVIEW_REMEDIATION_MATRIX.md`.
 
 ## Project Title
 
@@ -22,7 +27,7 @@ This project extends that work by adding:
 
 - full-paper PDF inspection instead of abstract-only metadata;
 - page-aware chunks with citations;
-- keyword, semantic, and hybrid retrieval;
+- keyword, feature-hashing (legacy API name `semantic`), and hybrid retrieval;
 - citation-grounded Ask TTLAB Q&A;
 - Thesis Extension Finder for student project ideas;
 - paper intelligence bundles with public and technical outputs;
@@ -39,7 +44,7 @@ This project extends that work by adding:
 - Full-paper extraction with PyMuPDF.
 - Page-aware chunking.
 - Keyword search.
-- Offline semantic search with hashing embeddings.
+- Offline feature-hashing similarity; this is not a learned semantic encoder.
 - Hybrid retrieval.
 - Ask TTLAB citation-grounded Q&A.
 - Thesis Extension Finder with cited recommendations and support-status labeling.
@@ -75,13 +80,14 @@ This project extends that work by adding:
 
 ## Current Local Demo Dataset
 
-The local demo data is generated and ignored by Git. At the last verified rebuild:
+The local demo data is generated and ignored by Git. At the pre-remediation
+snapshot captured on 2026-07-12:
 
 - 134 papers were available in SQLite.
-- 83 papers had extracted text locally.
-- 651 full-paper chunks were available locally.
-- 688 paper-topic links were built.
-- 1024 author-topic links were built.
+- 98 papers had extracted text locally.
+- 756 full-paper chunks were available locally.
+- 767 paper-topic links were built.
+- 1105 author-topic links were built.
 - 39 topics and 126 authors were available through the explorer.
 - 14 paper artifact records were available locally.
 
@@ -125,9 +131,13 @@ PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 
 Latest final hardening verification:
 
-- Backend tests: `56 passed`.
+- Backend tests: `71 passed` with 5 warnings.
 - Frontend build: passed.
-- Demo prep: completed with warnings and produced 134 papers, 83 extracted papers, 651 chunks, 39 topics, 126 authors, and 14 artifacts.
-- Smoke check: `PASS`.
+- Clean npm install: passed; 0 vulnerabilities reported.
+- Baseline state: 134 papers, 98 extracted papers, 756 chunks, 39 topics,
+  126 author strings, and 14 artefacts.
+- Smoke check: `PASS`, but it incorrectly accepted a partial 25-of-756 hashing
+  file. That result is engineering baseline evidence, not index-health proof.
 
-One PDF download attempt failed during the final demo prep because its host could not be resolved. The command reported the failure and continued using the existing local demo dataset.
+One paper remains `download_failed` and 35 have `missing_pdf` status. These are
+classified corpus exclusions, not silently counted as extracted papers.

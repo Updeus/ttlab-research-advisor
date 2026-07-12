@@ -9,7 +9,7 @@ The platform currently supports:
 - TTLAB publication discovery and seed import.
 - Controlled direct-PDF download.
 - Full-paper text extraction and page-aware chunks.
-- Keyword, local hashing semantic, and hybrid retrieval.
+- Keyword, local feature-hashing (legacy `semantic`), and hybrid retrieval.
 - Citation-grounded Ask TTLAB.
 - Thesis Extension Finder with cited source facts and clearly labeled suggestions.
 - Paper intelligence artifacts and text-only podcast scripts.
@@ -25,9 +25,13 @@ The local demo can be prepared with:
 PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
 ```
 
-The helper is intentionally bounded. It can import seed records if needed, process only a limited number of direct PDFs, rebuild keyword and hashing indexes, rebuild the Topic/Author Explorer, and generate artifacts for a small set of chunked papers.
+The helper is intentionally bounded for UI demonstration. In the audited
+baseline it could overwrite the shared hashing file with a partial index, so it
+must not be used for research evaluation or as proof of complete coverage.
 
-Generated PDFs, extracted text, chunk JSON, index files, generated artifacts, and SQLite databases are local artifacts and should not be committed.
+Runtime PDFs, extracted text, chunk JSON, index files, generated artifacts, and
+SQLite databases are local artefacts and should not be committed. The compiled
+thesis and IEEE paper under `build/` are explicit tracked deliverables.
 
 ## Review And Grounding
 

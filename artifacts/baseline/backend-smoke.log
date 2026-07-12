@@ -1,0 +1,22 @@
+Script started on 2026-07-12 18:01:06-04:00 [COMMAND="PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check" <not executed on terminal>]
+PASS health: /health returned HTTP 200
+PASS stats: /api/stats returned HTTP 200
+PASS search_diagnostics: /api/search/diagnostics returned HTTP 200
+PASS ask_diagnostics: /api/ask/diagnostics returned HTTP 200
+PASS recommendation_diagnostics: /api/recommendations/extensions/diagnostics returned HTTP 200
+PASS artifact_diagnostics: /api/artifacts/diagnostics returned HTTP 200
+PASS admin_overview: /api/admin/overview returned HTTP 200
+PASS evaluation_dashboard: /api/evaluation/dashboard returned HTTP 200
+PASS explorer_overview: /api/explorer/overview returned HTTP 200
+PASS papers_imported: papers available in SQLite: 134
+PASS chunks_available: full-paper chunks available: 756
+PASS keyword_index: keyword index has chunks: 756
+PASS semantic_index: hashing semantic index has chunks: 25
+PASS topics_built: topic explorer has topics: 39
+PASS authors_built: author explorer has authors: 126
+PASS paper_artifacts: sample paper artifacts exist: 14
+summary={'papers': 134, 'chunks': 756, 'topics': 39, 'authors': 126, 'artifacts': 14}
+counts={'pass': 16, 'warn': 0, 'fail': 0}
+overall_status=PASS
+
+Script done on 2026-07-12 18:01:13-04:00 [COMMAND_EXIT_CODE="0"]

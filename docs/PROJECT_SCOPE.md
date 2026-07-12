@@ -10,7 +10,10 @@ Make the platform inspect full PDFs safely. This phase downloads a limited subse
 
 ## Phase 3 Goal
 
-Make extracted chunks searchable. This phase adds keyword search, local/offline semantic search, hybrid retrieval, retrieval APIs, a frontend Search page, and basic retrieval evaluation scaffolding.
+Make extracted chunks searchable. The implemented baseline adds keyword search,
+local/offline feature-hashing similarity (legacy API value `semantic`), hybrid
+retrieval, retrieval APIs, a frontend Search page, and evaluation scaffolding.
+Feature hashing is not a learned semantic encoder.
 
 ## Phase 4 Goal
 
@@ -44,7 +47,7 @@ Add a public-facing Topic/Author Explorer and polish the demo flow. This phase c
 - Seed JSON import into SQLite.
 - Minimal React dashboard and paper browser.
 - Paper detail view with extraction diagnostics and chunk previews.
-- Search page with keyword, semantic, and hybrid modes.
+- Search page with keyword, feature-hashing (legacy `semantic`), and hybrid modes.
 - Ask TTLAB page with grounding status, citations, snippets, and retrieved chunks.
 - Thesis Extension Finder page with ranked, citation-grounded paper recommendations and structured project scopes.
 - Extension recommendation APIs, CLI, persisted history, diagnostics, and stats metrics.
@@ -57,7 +60,8 @@ Add a public-facing Topic/Author Explorer and polish the demo flow. This phase c
 - Read-only Evaluation Dashboard API/page that parses existing result JSON and reports `not_run` for missing files.
 - Topic/Author Explorer API/page with overview cards, topic browser/detail, author browser/detail, source-basis evidence, and empty states.
 - Deterministic topic normalization, topic synonym merging, paper-topic links, author-topic links, and author expertise summaries derived from indexed papers.
-- Related-paper scoring based on shared authors, shared topics, venue/year proximity, metadata keywords, and local semantic similarity when available.
+- Related-paper scoring based on shared authors, shared topics, venue/year
+  proximity, metadata keywords, and local feature-hashing similarity when available.
 - Optional bounded demo preparation helper that imports seed data if needed, rebuilds indexes, rebuilds topics, and avoids processing all papers by default.
 - Demo status and feature matrix documentation.
 - Retrieval evaluation code for manually reviewed gold paper IDs.

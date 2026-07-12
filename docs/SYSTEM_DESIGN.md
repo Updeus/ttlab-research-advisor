@@ -108,8 +108,9 @@ section, page_start, page_end, snippet, scores, source
 Modes:
 
 - `keyword`: SQLite FTS5 if available; fallback token matching otherwise.
-- `semantic`: local hashing embeddings stored under `data/indexes/`.
-- `hybrid`: normalized keyword and semantic score combination.
+- `semantic`: legacy API value backed by local 256-dimensional feature-hashing
+  vectors under `data/indexes/`; it is not a learned semantic encoder.
+- `hybrid`: normalized keyword and feature-hashing score combination.
 
 Phase 3 retrieval does not call an LLM and does not generate answers.
 
@@ -131,7 +132,11 @@ Grounding status:
 
 Ask TTLAB can use local Ollama models as answer composers while keeping retrieved chunks and citations as the source of truth. If Ollama is unavailable or a model fails, the system falls back to `offline_extractive`, which works without API keys by extracting relevant sentences from retrieved chunks. Optional external providers must be adapter-based and must not break offline operation.
 
-The retriever uses deterministic query expansion, metadata-aware scoring, section boosts, and light diversity ranking before the answer provider sees context. This improves common short queries such as `RAG`, `AI`, `ML`, and optimization/optimisation while preserving the original keyword/semantic/hybrid modes.
+The retriever uses deterministic query expansion, metadata-aware scoring,
+section boosts, and light diversity ranking before the answer provider sees
+context. These are hand-authored retrieval heuristics; their effectiveness had
+not been experimentally established at baseline. The legacy request modes are
+keyword/semantic/hybrid, where `semantic` means feature hashing.
 
 ## Thesis Extension Finder Contract
 
@@ -159,7 +164,7 @@ potential_researcher_fit, citations, warnings
 The finder is not a chat system. It is a structured research advisor flow:
 
 1. Build a retrieval query from interests, preferred topics, project type, and data constraints.
-2. Retrieve source chunks through the existing keyword/semantic/hybrid retriever.
+2. Retrieve source chunks through the existing keyword/feature-hashing/hybrid retriever.
 3. Group chunks by `paper_id`.
 4. Score each paper with deterministic weights:
    - retrieval relevance: 0.30
@@ -326,7 +331,7 @@ Related papers are scored with simple, explainable signals:
 - shared venue,
 - nearby publication year,
 - shared metadata/title keywords,
-- local hashing semantic retrieval similarity when an index exists.
+- local feature-hashing retrieval similarity when an index exists.
 
 Explorer APIs:
 

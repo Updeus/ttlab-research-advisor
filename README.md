@@ -31,7 +31,9 @@ Backend storage is SQLite. Search uses keyword FTS/fallback matching plus local 
 - Safe direct-PDF downloader
 - PyMuPDF full-paper extraction
 - Page-aware chunking
-- Keyword, semantic, and hybrid retrieval
+- Keyword, 256-dimensional feature-hashing, and hybrid retrieval. The current
+  API value `semantic` is a legacy name for the hashing baseline; it is not a
+  learned semantic encoder.
 - Ask TTLAB citation-grounded Q&A
 - Local Ollama model support for Ask TTLAB with red/yellow/green model recommendations
 - Thesis Extension Finder with cited recommendations
@@ -80,6 +82,12 @@ Prepare a bounded local demo dataset:
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
 ```
+
+This bounded helper is for UI demonstration only. At the audited baseline it
+could replace a complete shared vector file with a partial 25-record hashing
+index, so it must not be used to create research results or to assert full index
+coverage. The remediation work tracks that defect as `DATA-03` in
+[`docs/REVIEW_REMEDIATION_MATRIX.md`](docs/REVIEW_REMEDIATION_MATRIX.md).
 
 Run backend:
 
@@ -234,7 +242,10 @@ npm run build
 
 ## Screenshots
 
-No screenshots are committed. Use [docs/screenshots/README.md](docs/screenshots/README.md) for the manual capture checklist.
+Current interface screenshots are committed under `thesis/figures/screenshots/`.
+Use [docs/screenshots/README.md](docs/screenshots/README.md) for their capture
+and refresh checklist; screenshots are dated evidence and must be regenerated
+after material UI or data-state changes.
 
 ## Local Data And Git Hygiene
 
@@ -248,7 +259,10 @@ Local runtime artifacts are ignored:
 - generated paper artifacts
 - evaluation result JSON
 
-Seed files and evaluation templates are tracked. Do not commit generated PDFs, extracted text, chunks, indexes, or SQLite DB files.
+Seed files and evaluation templates are tracked. Runtime PDFs, extracted text,
+chunks, indexes, generated records, and SQLite databases stay ignored. The two
+compiled document deliverables, `build/thesis.pdf` and
+`build/ieee-paper.pdf`, are explicit tracked exceptions.
 
 ## Limitations
 

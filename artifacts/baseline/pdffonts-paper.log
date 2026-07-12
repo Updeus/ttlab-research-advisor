@@ -1,0 +1,15 @@
+Script started on 2026-07-12 18:03:29-04:00 [COMMAND="pdffonts build/ieee-paper.pdf" <not executed on terminal>]
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+IHAIZV+NimbusRomNo9L-Regu            Type 1C           Custom           yes yes yes      5  0
+BZIVMZ+NimbusRomNo9L-MediItal        Type 1C           Custom           yes yes yes      6  0
+IXFAWU+NimbusRomNo9L-Medi            Type 1C           Custom           yes yes yes      7  0
+TQTHRL+CMMI10                        Type 1C           Builtin          yes yes yes     25  0
+YEUUOC+CMR10                         Type 1C           Builtin          yes yes yes     26  0
+AKHCZK+CMSY10                        Type 1C           Builtin          yes yes yes     27  0
+VDVGTR+CMR7                          Type 1C           Builtin          yes yes yes     29  0
+CAFSZL+CMMI7                         Type 1C           Builtin          yes yes yes     30  0
+DDIEWW+NimbusMonL-Regu               Type 1C           Custom           yes yes yes     31  0
+FKPJSN+NimbusRomNo9L-ReguItal        Type 1C           Custom           yes yes yes     37  0
+
+Script done on 2026-07-12 18:03:29-04:00 [COMMAND_EXIT_CODE="0"]

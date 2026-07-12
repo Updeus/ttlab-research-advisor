@@ -1,0 +1,9 @@
+Script started on 2026-07-12 18:03:29-04:00 [COMMAND="qpdf --check build/ieee-paper.pdf" <not executed on terminal>]
+checking build/ieee-paper.pdf
+PDF Version: 1.5
+File is not encrypted
+File is not linearized
+No syntax or stream encoding errors found; the file may still contain
+errors that qpdf cannot detect
+
+Script done on 2026-07-12 18:03:29-04:00 [COMMAND_EXIT_CODE="0"]

@@ -297,7 +297,7 @@ def semantic_index_snapshot() -> dict[str, Any]:
 def write_csv(path: Path, records: Iterable[dict[str, Any]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for record in records:
             writer.writerow({field: record.get(field) for field in fieldnames})

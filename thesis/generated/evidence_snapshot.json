@@ -1,22 +1,37 @@
 {
-  "snapshot_generated_at_utc": "2026-07-11T18:07:09.357926+00:00",
+  "snapshot_generated_at_utc": "2026-07-12T22:04:23.053459+00:00",
   "repository": {
     "root": "/mnt/c/Users/jarod/Desktop/Projects/Advisor",
-    "head_commit": "713ea5c8e321200eb5a17655481e091cab13ccb4",
-    "head_short": "713ea5c",
-    "head_subject": "Add local Ollama RAG improvements and demo polish",
-    "head_timestamp": "2026-07-09T14:25:33-04:00",
-    "branch": "main",
+    "head_commit": "649244552f4d68fc49bcc6d35a94e99e4e638dd8",
+    "head_short": "6492445",
+    "head_subject": "Add master remediation prompt",
+    "head_timestamp": "2026-07-12T17:53:03-04:00",
+    "branch": "codex/fix-audit-and-finalize-paper",
     "dirty": true,
     "status_short": [
-      "M backend/app/indexing/keyword_search.py",
-      " M backend/app/indexing/retriever.py",
-      " M backend/app/indexing/vector_store.py",
-      " M backend/app/intelligence/llm_provider.py",
-      " M backend/app/intelligence/rag_answerer.py",
-      " M backend/tests/test_ask.py",
-      " M backend/tests/test_retrieval.py",
-      "?? thesis/"
+      "M .gitignore",
+      " M README.md",
+      " M build/ieee-paper.pdf",
+      " M build/thesis.pdf",
+      " M docs/DEMO_SCRIPT.md",
+      " M docs/FINAL_STATUS.md",
+      " M docs/PROJECT_SCOPE.md",
+      " M docs/PROJECT_STATUS.md",
+      " M docs/REPRODUCIBILITY_CHECKLIST.md",
+      " M docs/SUPERVISOR_DEMO_SCRIPT.md",
+      " M docs/SYSTEM_DESIGN.md",
+      " M docs/screenshots/README.md",
+      " M thesis/generated/chunk_embedding_status.csv",
+      " M thesis/generated/evidence_snapshot.json",
+      " M thesis/generated/paper_status.csv",
+      " M thesis/generated/runtime_probe.json",
+      " M thesis/generated/top_topics.csv",
+      " M thesis/generated/year_distribution.csv",
+      " M thesis/scripts/collect_evidence.py",
+      "?? artifacts/",
+      "?? docs/DECISION_LOG.md",
+      "?? docs/REVIEW_REMEDIATION_MATRIX.md",
+      "?? scripts/capture_audit_state.py"
     ],
     "commits": [
       {
@@ -73,6 +88,21 @@
         "commit": "713ea5c",
         "timestamp": "2026-07-09T14:25:33-04:00",
         "subject": "Add local Ollama RAG improvements and demo polish"
+      },
+      {
+        "commit": "caefad9",
+        "timestamp": "2026-07-12T17:21:29-04:00",
+        "subject": "Publish thesis and RAG quality improvements"
+      },
+      {
+        "commit": "ce6d805",
+        "timestamp": "2026-07-12T17:28:46-04:00",
+        "subject": "Merge pull request #1 from Updeus/codex/publish-thesis-and-rag-improvements"
+      },
+      {
+        "commit": "6492445",
+        "timestamp": "2026-07-12T17:53:03-04:00",
+        "subject": "Add master remediation prompt"
       }
     ]
   },
@@ -104,7 +134,7 @@
     "available": true,
     "path": "data/papers.db",
     "bytes": 17256448,
-    "sha256": "d9474b25b224306c6cf8d5a3769e1483acf512e94b0c077040503c9c1693a9e2",
+    "sha256": "3823858062edfa0559997e66c3708685ad0b1fc95dd4b60ee2c4ee5389849f91",
     "entity_counts": {
       "paper": 134,
       "author": 126,
@@ -572,20 +602,20 @@
   },
   "code_inventory": {
     "file_counts_by_extension": {
-      ".md": 14,
-      ".json": 8,
+      ".md": 19,
+      ".json": 11,
       ".ts": 4,
+      ".py": 72,
       ".sh": 1,
-      ".py": 71,
       ".tsx": 12,
       ".css": 1
     },
     "line_counts_by_extension": {
-      ".md": 3028,
-      ".json": 19664,
+      ".md": 4061,
+      ".json": 22204,
       ".ts": 974,
+      ".py": 12321,
       ".sh": 299,
-      ".py": 11970,
       ".tsx": 3447,
       ".css": 1390
     }

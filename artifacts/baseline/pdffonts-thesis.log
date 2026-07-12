@@ -1,0 +1,20 @@
+Script started on 2026-07-12 18:03:29-04:00 [COMMAND="pdffonts build/thesis.pdf" <not executed on terminal>]
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+IHAIZV+TeXGyreTermesX-Bold-Identity-H CID Type 0C       Identity-H       yes yes yes      5  0
+BZIVMZ+TeXGyreTermesX-Regular-Identity-H CID Type 0C       Identity-H       yes yes yes      7  0
+IXFAWU+LMMono10-Regular-Identity-H   CID Type 0C       Identity-H       yes yes yes     11  0
+TQTHRL+TeXGyreTermesX-Italic-Identity-H CID Type 0C       Identity-H       yes yes yes    236  0
+YEUUOC+LMMono12-Regular-Identity-H   CID Type 0C       Identity-H       yes yes yes    258  0
+DDIEWW+TeXGyreTermesX-Regular        Type 1C           WinAnsi          yes yes yes    290  0
+FKPJSN+NewTXMI7                      Type 1C           Builtin          yes yes yes    294  0
+PVTTLK+NewTXMI                       Type 1C           Builtin          yes yes yes    300  0
+CAFSZL+txmiaX                        Type 1C           Builtin          yes yes yes    301  0
+JAGKKY+txsys                         Type 1C           Builtin          yes yes yes    302  0
+NOMARO+txexs                         Type 1C           Builtin          yes yes yes    303  0
+KPXLOM+txsyb                         Type 1C           Builtin          yes yes yes    304  0
+UTACNV+TeXGyreTermesX-Bold           Type 1C           WinAnsi          yes yes yes    305  0
+AKHCZK+LMMonoLt10-Bold-Identity-H    CID Type 0C       Identity-H       yes yes yes    403  0
+VDVGTR+LMMono8-Regular-Identity-H    CID Type 0C       Identity-H       yes yes yes    408  0
+
+Script done on 2026-07-12 18:03:29-04:00 [COMMAND_EXIT_CODE="0"]

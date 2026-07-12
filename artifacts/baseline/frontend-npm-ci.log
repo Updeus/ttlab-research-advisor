@@ -1,0 +1,10 @@
+Script started on 2026-07-12 18:00:25-04:00 [COMMAND="npm ci" <not executed on terminal>]
+
+added 72 packages, and audited 73 packages in 26s
+
+9 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+Script done on 2026-07-12 18:00:51-04:00 [COMMAND_EXIT_CODE="0"]

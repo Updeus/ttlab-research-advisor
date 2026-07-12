@@ -1,0 +1,22 @@
+{
+  "created_at_utc": "2026-07-12T21:59:10.772551+00:00",
+  "files": [
+    {
+      "bytes": 17256448,
+      "private_backup": "artifacts/baseline/private-backups/20260712T215910Z/data/papers.db",
+      "sha256": "d9474b25b224306c6cf8d5a3769e1483acf512e94b0c077040503c9c1693a9e2",
+      "source": "data/papers.db",
+      "verified": true
+    },
+    {
+      "bytes": 163524,
+      "private_backup": "artifacts/baseline/private-backups/20260712T215910Z/data/indexes/hashing_embeddings.json",
+      "sha256": "8cb6843a0c64a746d03ab48c2498e845cf455601feea3b33ceb0e5eb3bb50511",
+      "source": "data/indexes/hashing_embeddings.json",
+      "verified": true
+    }
+  ],
+  "gitignored": true,
+  "private_backup_root": "artifacts/baseline/private-backups/20260712T215910Z",
+  "schema_version": 1
+}

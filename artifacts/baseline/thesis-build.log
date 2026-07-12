@@ -1,0 +1,713 @@
+Script started on 2026-07-12 18:00:25-04:00 [COMMAND="make thesis" <not executed on terminal>]
+cd thesis && "/home/jarod/.local/bin/tectonic" --keep-logs --keep-intermediates --outdir ../build thesis.tex
+Running TeX ...
+warning: hyperref.sty:4873: Requested font "pzdr" at 0.00002pt
+warning: hyperref.sty:4873:  -> pzdr
+warning: thesis.tex:5:
+Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 11.99997pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Slanted.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-BoldItalic.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-BoldSlanted.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: thesis.tex:11: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: thesis.tex:11: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: thesis.tex:13: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 14.4pt
+warning: thesis.tex:15: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 24.88pt
+warning: thesis.tex:15: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 24.88pt
+warning: thesis.tex:23:
+Requested font "ntx-Regular-tlf-ot1" at 12.0pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntx-Regular-tlf-ot1" at 8.8pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntx-Regular-tlf-ot1" at 6.6pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntxmi" at 12.0pt
+warning: thesis.tex:23:  -> ntxmi
+warning: thesis.tex:23: Requested font "ntxmi" at 8.8pt
+warning: thesis.tex:23:  -> ntxmi
+warning: thesis.tex:23: Requested font "ntxmi7" at 6.6pt
+warning: thesis.tex:23:  -> ntxmi7
+warning: thesis.tex:23: Requested font "ntxsy" at 12.0pt
+warning: thesis.tex:23:  -> ntxsy
+warning: thesis.tex:23: Requested font "ntxsy" at 8.8pt
+warning: thesis.tex:23:  -> ntxsy
+warning: thesis.tex:23: Requested font "ntxsy7" at 6.6pt
+warning: thesis.tex:23:  -> ntxsy7
+warning: thesis.tex:23: Requested font "ntxexx" at 12.0pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23: Requested font "ntxexx" at 8.8pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23: Requested font "ntxexx" at 6.6pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23:
+Requested font "ntxmia" at 12.0pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23: Requested font "ntxmia" at 8.8pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23: Requested font "ntxmia" at 6.6pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23:
+Requested font "ntxsym" at 12.0pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23: Requested font "ntxsym" at 8.8pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23: Requested font "ntxsym" at 6.6pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23:
+Requested font "ntxsyc" at 12.0pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxsyc" at 8.8pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxsyc" at 6.6pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxexa" at 12.0pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:23: Requested font "ntxexa" at 8.8pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:23: Requested font "ntxexa" at 6.6pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:25: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: thesis.tex:32: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: thesis.tex:32: Requested font "[lmmono10-regular]:" at 10.95pt
+warning: chapters/02_problem_statement.tex:18: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: chapters/02_problem_statement.tex:38: Overfull \hbox (0.45956pt too wide) in paragraph at lines 37--38
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi7" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi7
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi5" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi5
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy7" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy7
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy5" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy5
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/04_literature_review.tex:20: Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: chapters/04_literature_review.tex:36:
+Requested font "[lmmono12-regular]:" at 12.0pt
+warning: figures/src/architecture:6: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: figures/src/entity_model:2: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: figures/src/entity_model:2: Requested font "ntx-Regular-tlf-ot1" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntx-Regular-tlf-ot1
+warning: figures/src/entity_model:2: Requested font "ntx-Regular-tlf-ot1" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntx-Regular-tlf-ot1
+warning: figures/src/entity_model:2: Requested font "ntxmi5" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxmi5
+warning: figures/src/entity_model:2: Requested font "ntxmi5" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxmi5
+warning: figures/src/entity_model:2: Requested font "ntxsy5" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsy5
+warning: figures/src/entity_model:2: Requested font "ntxsy5" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsy5
+warning: figures/src/entity_model:2: Requested font "ntxexx" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxexx
+warning: figures/src/entity_model:2: Requested font "ntxexx" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxexx
+warning: figures/src/entity_model:2: Requested font "ntxmia" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxmia
+warning: figures/src/entity_model:2: Requested font "ntxmia" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxmia
+warning: figures/src/entity_model:2: Requested font "ntxsym" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsym
+warning: figures/src/entity_model:2: Requested font "ntxsym" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsym
+warning: figures/src/entity_model:2: Requested font "ntxsyc" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsyc
+warning: figures/src/entity_model:2: Requested font "ntxsyc" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsyc
+warning: figures/src/entity_model:2: Requested font "ntxexa" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxexa
+warning: figures/src/entity_model:2: Requested font "ntxexa" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxexa
+warning: chapters/07_data_collection_processing.tex:7: Underfull \hbox (badness 1454) in paragraph at lines 6--7
+warning: chapters/07_data_collection_processing.tex:7: Underfull \hbox (badness 1308) in paragraph at lines 6--7
+warning: figures/src/year_distribution_plot:20: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 6.0pt
+warning: figures/src/year_distribution_plot:20: Requested font "ntx-Regular-tlf-ot1" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntx-Regular-tlf-ot1
+warning: figures/src/year_distribution_plot:20: Requested font "ntxmi7" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxmi7
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsy7" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsy7
+warning: figures/src/year_distribution_plot:20: Requested font "ntxexx" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxexx
+warning: figures/src/year_distribution_plot:20: Requested font "ntxmia" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxmia
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsym" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsym
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsyc" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsyc
+warning: figures/src/year_distribution_plot:20: Requested font "ntxexa" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxexa
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 12.0pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 8.8pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 6.6pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5:
+Requested font "ntx-Bold-tlf-ot1" at 10.95pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5: Requested font "ntx-Bold-tlf-ot1" at 8.0pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5: Requested font "ntx-Bold-tlf-ot1" at 6.1pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:106: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: chapters/08_implementation.tex:106: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: chapters/10_results.tex:36: Underfull \hbox (badness 2875) in paragraph at lines 35--36
+warning: chapters/B_reproducibility.tex:22: Requested font "[lmmonolt10-bold]:" at 10.95pt
+warning: chapters/B_reproducibility.tex:54:
+Requested font "ntx-Bold-tlf-ot1" at 6.2pt
+warning: chapters/B_reproducibility.tex:54:  -> ntx-Bold-tlf-ot1
+warning: chapters/B_reproducibility.tex:54: Requested font "ntx-Bold-tlf-ot1" at 5.5pt
+warning: chapters/B_reproducibility.tex:54:  -> ntx-Bold-tlf-ot1
+warning: chapters/B_reproducibility.tex:54: Requested font "[lmmono8-regular]:" at 8.0pt
+Running BibTeX on thesis.aux ...
+Running BibTeX on chapters/B_reproducibility.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/D_review_instruments.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/10_results.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/04_literature_review.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/13_conclusion_future_work.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/A_traceability.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/C_schema_api.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/03_research_questions_objectives.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/01_introduction.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/05_methodology.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/07_data_collection_processing.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/08_implementation.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/00_abstract.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/06_architecture_design.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/09_experimental_design.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/02_problem_statement.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/11_discussion.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Running BibTeX on chapters/12_limitations_ethics_validity.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+Rerunning TeX because bibtex was run ...
+warning: hyperref.sty:4873: Requested font "pzdr" at 0.00002pt
+warning: hyperref.sty:4873:  -> pzdr
+warning: thesis.tex:5:
+Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 11.99997pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Slanted.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-BoldItalic.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-BoldSlanted.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: thesis.tex:11: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: thesis.tex:11: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: thesis.tex:13: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 14.4pt
+warning: thesis.tex:15: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 24.88pt
+warning: thesis.tex:15: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 24.88pt
+warning: thesis.tex:23:
+Requested font "ntx-Regular-tlf-ot1" at 12.0pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntx-Regular-tlf-ot1" at 8.8pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntx-Regular-tlf-ot1" at 6.6pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntxmi" at 12.0pt
+warning: thesis.tex:23:  -> ntxmi
+warning: thesis.tex:23: Requested font "ntxmi" at 8.8pt
+warning: thesis.tex:23:  -> ntxmi
+warning: thesis.tex:23: Requested font "ntxmi7" at 6.6pt
+warning: thesis.tex:23:  -> ntxmi7
+warning: thesis.tex:23: Requested font "ntxsy" at 12.0pt
+warning: thesis.tex:23:  -> ntxsy
+warning: thesis.tex:23: Requested font "ntxsy" at 8.8pt
+warning: thesis.tex:23:  -> ntxsy
+warning: thesis.tex:23: Requested font "ntxsy7" at 6.6pt
+warning: thesis.tex:23:  -> ntxsy7
+warning: thesis.tex:23: Requested font "ntxexx" at 12.0pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23: Requested font "ntxexx" at 8.8pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23: Requested font "ntxexx" at 6.6pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23:
+Requested font "ntxmia" at 12.0pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23: Requested font "ntxmia" at 8.8pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23: Requested font "ntxmia" at 6.6pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23:
+Requested font "ntxsym" at 12.0pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23: Requested font "ntxsym" at 8.8pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23: Requested font "ntxsym" at 6.6pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23:
+Requested font "ntxsyc" at 12.0pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxsyc" at 8.8pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxsyc" at 6.6pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxexa" at 12.0pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:23: Requested font "ntxexa" at 8.8pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:23: Requested font "ntxexa" at 6.6pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:25: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: thesis.tex:32: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: thesis.tex:32: Requested font "[lmmono10-regular]:" at 10.95pt
+warning: chapters/02_problem_statement.tex:18: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: chapters/02_problem_statement.tex:38: Overfull \hbox (0.45956pt too wide) in paragraph at lines 37--38
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi7" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi7
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi5" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi5
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy7" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy7
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy5" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy5
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/04_literature_review.tex:20: Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: chapters/04_literature_review.tex:36:
+Requested font "[lmmono12-regular]:" at 12.0pt
+warning: figures/src/architecture:6: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: figures/src/entity_model:2: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: figures/src/entity_model:2: Requested font "ntx-Regular-tlf-ot1" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntx-Regular-tlf-ot1
+warning: figures/src/entity_model:2: Requested font "ntx-Regular-tlf-ot1" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntx-Regular-tlf-ot1
+warning: figures/src/entity_model:2: Requested font "ntxmi5" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxmi5
+warning: figures/src/entity_model:2: Requested font "ntxmi5" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxmi5
+warning: figures/src/entity_model:2: Requested font "ntxsy5" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsy5
+warning: figures/src/entity_model:2: Requested font "ntxsy5" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsy5
+warning: figures/src/entity_model:2: Requested font "ntxexx" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxexx
+warning: figures/src/entity_model:2: Requested font "ntxexx" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxexx
+warning: figures/src/entity_model:2: Requested font "ntxmia" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxmia
+warning: figures/src/entity_model:2: Requested font "ntxmia" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxmia
+warning: figures/src/entity_model:2: Requested font "ntxsym" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsym
+warning: figures/src/entity_model:2: Requested font "ntxsym" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsym
+warning: figures/src/entity_model:2: Requested font "ntxsyc" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsyc
+warning: figures/src/entity_model:2: Requested font "ntxsyc" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsyc
+warning: figures/src/entity_model:2: Requested font "ntxexa" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxexa
+warning: figures/src/entity_model:2: Requested font "ntxexa" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxexa
+warning: chapters/07_data_collection_processing.tex:7: Underfull \hbox (badness 1454) in paragraph at lines 6--7
+warning: chapters/07_data_collection_processing.tex:7: Underfull \hbox (badness 1308) in paragraph at lines 6--7
+warning: figures/src/year_distribution_plot:20: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 6.0pt
+warning: figures/src/year_distribution_plot:20: Requested font "ntx-Regular-tlf-ot1" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntx-Regular-tlf-ot1
+warning: figures/src/year_distribution_plot:20: Requested font "ntxmi7" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxmi7
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsy7" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsy7
+warning: figures/src/year_distribution_plot:20: Requested font "ntxexx" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxexx
+warning: figures/src/year_distribution_plot:20: Requested font "ntxmia" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxmia
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsym" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsym
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsyc" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsyc
+warning: figures/src/year_distribution_plot:20: Requested font "ntxexa" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxexa
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 12.0pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 8.8pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 6.6pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5:
+Requested font "ntx-Bold-tlf-ot1" at 10.95pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5: Requested font "ntx-Bold-tlf-ot1" at 8.0pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5: Requested font "ntx-Bold-tlf-ot1" at 6.1pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:106: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: chapters/08_implementation.tex:106: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: chapters/10_results.tex:36: Underfull \hbox (badness 2875) in paragraph at lines 35--36
+warning: chapters/B_reproducibility.tex:22: Requested font "[lmmonolt10-bold]:" at 10.95pt
+warning: chapters/B_reproducibility.tex:54:
+Requested font "ntx-Bold-tlf-ot1" at 6.2pt
+warning: chapters/B_reproducibility.tex:54:  -> ntx-Bold-tlf-ot1
+warning: chapters/B_reproducibility.tex:54: Requested font "ntx-Bold-tlf-ot1" at 5.5pt
+warning: chapters/B_reproducibility.tex:54:  -> ntx-Bold-tlf-ot1
+warning: chapters/B_reproducibility.tex:54: Requested font "[lmmono8-regular]:" at 8.0pt
+Rerunning TeX because "thesis.aux" changed ...
+warning: hyperref.sty:4873: Requested font "pzdr" at 0.00002pt
+warning: hyperref.sty:4873:  -> pzdr
+warning: thesis.tex:5:
+Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 11.99997pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Slanted.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-BoldItalic.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-BoldSlanted.otf]/OT:script=latn;language=dflt;" at 12.00003pt
+warning: thesis.tex:5: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: thesis.tex:11: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: thesis.tex:11: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+warning: thesis.tex:13: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 14.4pt
+warning: thesis.tex:15: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 24.88pt
+warning: thesis.tex:15: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 24.88pt
+warning: thesis.tex:23:
+Requested font "ntx-Regular-tlf-ot1" at 12.0pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntx-Regular-tlf-ot1" at 8.8pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntx-Regular-tlf-ot1" at 6.6pt
+warning: thesis.tex:23:  -> ntx-Regular-tlf-ot1
+warning: thesis.tex:23: Requested font "ntxmi" at 12.0pt
+warning: thesis.tex:23:  -> ntxmi
+warning: thesis.tex:23: Requested font "ntxmi" at 8.8pt
+warning: thesis.tex:23:  -> ntxmi
+warning: thesis.tex:23: Requested font "ntxmi7" at 6.6pt
+warning: thesis.tex:23:  -> ntxmi7
+warning: thesis.tex:23: Requested font "ntxsy" at 12.0pt
+warning: thesis.tex:23:  -> ntxsy
+warning: thesis.tex:23: Requested font "ntxsy" at 8.8pt
+warning: thesis.tex:23:  -> ntxsy
+warning: thesis.tex:23: Requested font "ntxsy7" at 6.6pt
+warning: thesis.tex:23:  -> ntxsy7
+warning: thesis.tex:23: Requested font "ntxexx" at 12.0pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23: Requested font "ntxexx" at 8.8pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23: Requested font "ntxexx" at 6.6pt
+warning: thesis.tex:23:  -> ntxexx
+warning: thesis.tex:23:
+Requested font "ntxmia" at 12.0pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23: Requested font "ntxmia" at 8.8pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23: Requested font "ntxmia" at 6.6pt
+warning: thesis.tex:23:  -> ntxmia
+warning: thesis.tex:23:
+Requested font "ntxsym" at 12.0pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23: Requested font "ntxsym" at 8.8pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23: Requested font "ntxsym" at 6.6pt
+warning: thesis.tex:23:  -> ntxsym
+warning: thesis.tex:23:
+Requested font "ntxsyc" at 12.0pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxsyc" at 8.8pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxsyc" at 6.6pt
+warning: thesis.tex:23:  -> ntxsyc
+warning: thesis.tex:23: Requested font "ntxexa" at 12.0pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:23: Requested font "ntxexa" at 8.8pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:23: Requested font "ntxexa" at 6.6pt
+warning: thesis.tex:23:  -> ntxexa
+warning: thesis.tex:25: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: thesis.tex:32: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: thesis.tex:32: Requested font "[lmmono10-regular]:" at 10.95pt
+warning: chapters/02_problem_statement.tex:18: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+warning: chapters/02_problem_statement.tex:38: Overfull \hbox (0.45956pt too wide) in paragraph at lines 37--38
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntx-Regular-tlf-ot1" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntx-Regular-tlf-ot1
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi7" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi7
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmi5" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmi5
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy7" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy7
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsy5" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsy5
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexx" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexx
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxmia" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxmia
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsym" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsym
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxsyc" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxsyc
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 10.95pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 8.0pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/03_research_questions_objectives.tex:31: Requested font "ntxexa" at 6.1pt
+warning: chapters/03_research_questions_objectives.tex:31:  -> ntxexa
+warning: chapters/04_literature_review.tex:20: Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+warning: chapters/04_literature_review.tex:36:
+Requested font "[lmmono12-regular]:" at 12.0pt
+warning: figures/src/architecture:6: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: figures/src/entity_model:2: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+warning: figures/src/entity_model:2: Requested font "ntx-Regular-tlf-ot1" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntx-Regular-tlf-ot1
+warning: figures/src/entity_model:2: Requested font "ntx-Regular-tlf-ot1" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntx-Regular-tlf-ot1
+warning: figures/src/entity_model:2: Requested font "ntxmi5" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxmi5
+warning: figures/src/entity_model:2: Requested font "ntxmi5" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxmi5
+warning: figures/src/entity_model:2: Requested font "ntxsy5" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsy5
+warning: figures/src/entity_model:2: Requested font "ntxsy5" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsy5
+warning: figures/src/entity_model:2: Requested font "ntxexx" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxexx
+warning: figures/src/entity_model:2: Requested font "ntxexx" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxexx
+warning: figures/src/entity_model:2: Requested font "ntxmia" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxmia
+warning: figures/src/entity_model:2: Requested font "ntxmia" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxmia
+warning: figures/src/entity_model:2: Requested font "ntxsym" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsym
+warning: figures/src/entity_model:2: Requested font "ntxsym" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsym
+warning: figures/src/entity_model:2: Requested font "ntxsyc" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxsyc
+warning: figures/src/entity_model:2: Requested font "ntxsyc" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxsyc
+warning: figures/src/entity_model:2: Requested font "ntxexa" at 6.2pt
+warning: figures/src/entity_model:2:  -> ntxexa
+warning: figures/src/entity_model:2: Requested font "ntxexa" at 5.5pt
+warning: figures/src/entity_model:2:  -> ntxexa
+warning: chapters/07_data_collection_processing.tex:7: Underfull \hbox (badness 1454) in paragraph at lines 6--7
+warning: chapters/07_data_collection_processing.tex:7: Underfull \hbox (badness 1308) in paragraph at lines 6--7
+warning: figures/src/year_distribution_plot:20: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 6.0pt
+warning: figures/src/year_distribution_plot:20: Requested font "ntx-Regular-tlf-ot1" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntx-Regular-tlf-ot1
+warning: figures/src/year_distribution_plot:20: Requested font "ntxmi7" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxmi7
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsy7" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsy7
+warning: figures/src/year_distribution_plot:20: Requested font "ntxexx" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxexx
+warning: figures/src/year_distribution_plot:20: Requested font "ntxmia" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxmia
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsym" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsym
+warning: figures/src/year_distribution_plot:20: Requested font "ntxsyc" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxsyc
+warning: figures/src/year_distribution_plot:20: Requested font "ntxexa" at 6.5pt
+warning: figures/src/year_distribution_plot:20:  -> ntxexa
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 12.0pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 8.8pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:36: Requested font "ntx-Bold-tlf-ot1" at 6.6pt
+warning: chapters/08_implementation.tex:36:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5:
+Requested font "ntx-Bold-tlf-ot1" at 10.95pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5: Requested font "ntx-Bold-tlf-ot1" at 8.0pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: figures/src/recommendation_workflow:5: Requested font "ntx-Bold-tlf-ot1" at 6.1pt
+warning: figures/src/recommendation_workflow:5:  -> ntx-Bold-tlf-ot1
+warning: chapters/08_implementation.tex:106: Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: chapters/08_implementation.tex:106: Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+warning: chapters/10_results.tex:36: Underfull \hbox (badness 2875) in paragraph at lines 35--36
+warning: chapters/B_reproducibility.tex:22: Requested font "[lmmonolt10-bold]:" at 10.95pt
+warning: chapters/B_reproducibility.tex:54:
+Requested font "ntx-Bold-tlf-ot1" at 6.2pt
+warning: chapters/B_reproducibility.tex:54:  -> ntx-Bold-tlf-ot1
+warning: chapters/B_reproducibility.tex:54: Requested font "ntx-Bold-tlf-ot1" at 5.5pt
+warning: chapters/B_reproducibility.tex:54:  -> ntx-Bold-tlf-ot1
+warning: chapters/B_reproducibility.tex:54: Requested font "[lmmono8-regular]:" at 8.0pt
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+Running xdvipdfmx ...
+warning: Object @page.i already defined.
+Not writing `chapters/09_experimental_design.bbl`: it would be empty.
+Not writing `chapters/05_methodology.bbl`: it would be empty.
+Writing `../build/chapters/D_review_instruments.aux` (1.759765625 KiB)
+Writing `../build/chapters/10_results.aux` (2.7333984375 KiB)
+Not writing `chapters/01_introduction.bbl`: it would be empty.
+Not writing `chapters/11_discussion.bbl`: it would be empty.
+Not writing `chapters/07_data_collection_processing.bbl`: it would be empty.
+Not writing `chapters/02_problem_statement.bbl`: it would be empty.
+Writing `../build/chapters/C_schema_api.aux` (2.091796875 KiB)
+Not writing `chapters/C_schema_api.bbl`: it would be empty.
+Writing `../build/chapters/01_introduction.aux` (1.7890625 KiB)
+Writing `../build/chapters/A_traceability.blg` (415 B)
+Writing `../build/chapters/11_discussion.blg` (411 B)
+Not writing `chapters/13_conclusion_future_work.bbl`: it would be empty.
+Writing `../build/chapters/B_reproducibility.aux` (1.9892578125 KiB)
+Writing `../build/chapters/00_abstract.aux` (1008 B)
+Writing `../build/chapters/B_reproducibility.blg` (427 B)
+Writing `../build/chapters/12_limitations_ethics_validity.blg` (384 B)
+Writing `../build/chapters/02_problem_statement.aux` (2.00390625 KiB)
+Not writing `chapters/12_limitations_ethics_validity.bbl`: it would be empty.
+Not writing `chapters/B_reproducibility.bbl`: it would be empty.
+Writing `../build/chapters/13_conclusion_future_work.aux` (1.560546875 KiB)
+Not writing `chapters/D_review_instruments.bbl`: it would be empty.
+Writing `../build/chapters/05_methodology.aux` (1.810546875 KiB)
+Not writing `chapters/10_results.bbl`: it would be empty.
+Writing `../build/chapters/07_data_collection_processing.blg` (475 B)
+Writing `../build/chapters/04_literature_review.blg` (354 B)
+Not writing `chapters/03_research_questions_objectives.bbl`: it would be empty.
+Writing `../build/chapters/11_discussion.aux` (2.2509765625 KiB)
+Not writing `chapters/04_literature_review.bbl`: it would be empty.
+Writing `../build/chapters/08_implementation.blg` (345 B)
+Writing `../build/chapters/05_methodology.blg` (415 B)
+Writing `../build/chapters/12_limitations_ethics_validity.aux` (2.2216796875 KiB)
+Not writing `chapters/A_traceability.bbl`: it would be empty.
+Writing `../build/thesis.toc` (8.25390625 KiB)
+Writing `../build/chapters/D_review_instruments.blg` (439 B)
+Writing `../build/chapters/02_problem_statement.blg` (354 B)
+Writing `../build/chapters/04_literature_review.aux` (2.9794921875 KiB)
+Writing `../build/chapters/03_research_questions_objectives.aux` (1.802734375 KiB)
+Writing `../build/thesis.log` (58.49609375 KiB)
+Writing `../build/thesis.blg` (1.41015625 KiB)
+Writing `../build/chapters/00_abstract.blg` (403 B)
+Writing `../build/thesis.out` (20.48828125 KiB)
+Writing `../build/thesis.lof` (3.466796875 KiB)
+Not writing `chapters/00_abstract.bbl`: it would be empty.
+Not writing `chapters/08_implementation.bbl`: it would be empty.
+Writing `../build/chapters/09_experimental_design.aux` (3.490234375 KiB)
+Writing `../build/thesis.pdf` (3.553438186645508 MiB)
+Writing `../build/thesis.aux` (2.654296875 KiB)
+Writing `../build/chapters/10_results.blg` (399 B)
+Writing `../build/chapters/A_traceability.aux` (1.8701171875 KiB)
+Writing `../build/chapters/09_experimental_design.blg` (360 B)
+Writing `../build/chapters/07_data_collection_processing.aux` (3.337890625 KiB)
+Writing `../build/chapters/06_architecture_design.blg` (360 B)
+Writing `../build/thesis.lot` (1.27734375 KiB)
+Writing `../build/chapters/13_conclusion_future_work.blg` (369 B)
+Writing `../build/chapters/08_implementation.aux` (6.7919921875 KiB)
+Writing `../build/thesis.bbl` (15.0029296875 KiB)
+Writing `../build/chapters/01_introduction.blg` (339 B)
+Writing `../build/chapters/03_research_questions_objectives.blg` (487 B)
+Not writing `chapters/06_architecture_design.bbl`: it would be empty.
+Writing `../build/chapters/06_architecture_design.aux` (2.95703125 KiB)
+Writing `../build/chapters/C_schema_api.blg` (407 B)
+
+Script done on 2026-07-12 18:00:52-04:00 [COMMAND_EXIT_CODE="0"]

@@ -34,7 +34,10 @@ cd frontend && npm run dev
 ## 7-10 Minute Flow
 
 1. Dashboard
-   - Show imported papers, PDFs, extracted PDFs, chunks, keyword/semantic indexes, artifacts, admin review queue, evaluation files, topics, authors, and papers with topics.
+   - Show imported papers, PDFs, extracted PDFs, chunks, keyword and
+     feature-hashing indexes, artefacts, admin review queue, evaluation files,
+     topics, authors, and papers with topics. The baseline API may still expose
+     the hashing mode under the legacy name `semantic`.
    - Talking point: the system is local, bounded, and traceable.
 
 2. Papers

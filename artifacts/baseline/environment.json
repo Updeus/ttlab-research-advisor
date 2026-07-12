@@ -1,0 +1,208 @@
+{
+  "captured_at_utc": "2026-07-12T21:59:03.317777+00:00",
+  "frontend_lock": {
+    "bytes": 61954,
+    "path": "frontend/package-lock.json",
+    "sha256": "0aaef5922c47f9b1198e420fb950763c885b9c161e51a793dfc51cf9f9a35412"
+  },
+  "frontend_package_json": {
+    "bytes": 631,
+    "path": "frontend/package.json",
+    "sha256": "42daeefe297f64da075b6bc1908714fefbe3481707abfe3445d0dc38d21951da"
+  },
+  "git": {
+    "branch": {
+      "available": true,
+      "command": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "exit_code": 0,
+      "output": "codex/fix-audit-and-finalize-paper"
+    },
+    "dirty": true,
+    "head": {
+      "available": true,
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "649244552f4d68fc49bcc6d35a94e99e4e638dd8"
+    },
+    "origin_main": {
+      "available": true,
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exit_code": 0,
+      "output": "ce6d805afba27c2550da2ca58d1f844793ea25a8"
+    },
+    "remotes": [
+      "origin\thttps://github.com/Updeus/ttlab-research-advisor.git (fetch)",
+      "origin\thttps://github.com/Updeus/ttlab-research-advisor.git (push)"
+    ],
+    "status_short": [
+      "M .gitignore",
+      "?? docs/DECISION_LOG.md",
+      "?? docs/REVIEW_REMEDIATION_MATRIX.md",
+      "?? scripts/capture_audit_state.py"
+    ]
+  },
+  "platform": {
+    "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
+    "logical_cpu_count": 16,
+    "machine": "x86_64",
+    "memory_bytes": 4108656640,
+    "release": "5.15.133.1-microsoft-standard-WSL2",
+    "system": "Linux",
+    "version": "#1 SMP Thu Oct 5 21:02:42 UTC 2023"
+  },
+  "python_packages": {
+    "beautifulsoup4": "4.12.3",
+    "fastapi": null,
+    "httpx": null,
+    "pip": "24.0",
+    "pydantic-settings": null,
+    "pymupdf": null,
+    "pytest": null,
+    "setuptools": "68.1.2",
+    "sqlmodel": null,
+    "uvicorn": null
+  },
+  "schema_version": 1,
+  "timezone": "-04",
+  "tools": {
+    "chktex": {
+      "available": false,
+      "command": [
+        "chktex",
+        "--version"
+      ],
+      "output": null
+    },
+    "git": {
+      "available": true,
+      "command": [
+        "git",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "git version 2.43.0"
+    },
+    "latexmk": {
+      "available": false,
+      "command": [
+        "latexmk",
+        "--version"
+      ],
+      "output": null
+    },
+    "node": {
+      "available": true,
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "v20.20.2"
+    },
+    "npm": {
+      "available": true,
+      "command": [
+        "npm",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "10.8.2"
+    },
+    "nvidia_smi": {
+      "available": true,
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=name,driver_version,memory.total",
+        "--format=csv,noheader"
+      ],
+      "exit_code": 0,
+      "output": "NVIDIA GeForce RTX 3080, 596.49, 10240 MiB"
+    },
+    "pdffonts": {
+      "available": true,
+      "command": [
+        "pdffonts",
+        "-v"
+      ],
+      "exit_code": 0,
+      "output": "pdffonts version 24.02.0\nCopyright 2005-2024 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC"
+    },
+    "pdfinfo": {
+      "available": true,
+      "command": [
+        "pdfinfo",
+        "-v"
+      ],
+      "exit_code": 0,
+      "output": "pdfinfo version 24.02.0\nCopyright 2005-2024 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC"
+    },
+    "pdftotext": {
+      "available": true,
+      "command": [
+        "pdftotext",
+        "-v"
+      ],
+      "exit_code": 0,
+      "output": "pdftotext version 24.02.0\nCopyright 2005-2024 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC"
+    },
+    "pip": {
+      "available": true,
+      "command": [
+        "/usr/bin/python",
+        "-m",
+        "pip",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "pip 24.0 from /usr/lib/python3/dist-packages/pip (python 3.12)"
+    },
+    "python": {
+      "available": true,
+      "command": [
+        "/usr/bin/python",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "Python 3.12.3"
+    },
+    "qpdf": {
+      "available": true,
+      "command": [
+        "qpdf",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "qpdf version 11.9.0\nRun qpdf --copyright to see copyright and license information."
+    },
+    "sqlite": {
+      "available": true,
+      "command": [
+        "sqlite3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "3.45.1 2024-01-30 16:01:20 e876e51a0ed5c5b3126f52e532044363a014bc594cfefa87ffb5b82257ccalt1 (64-bit)"
+    },
+    "tectonic": {
+      "available": true,
+      "command": [
+        "tectonic",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "Tectonic 0.16.9"
+    }
+  }
+}

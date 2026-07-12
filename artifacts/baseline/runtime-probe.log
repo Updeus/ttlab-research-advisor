@@ -1,0 +1,6 @@
+Script started on 2026-07-12 18:01:06-04:00 [COMMAND="PYTHONPATH=backend .venv/bin/python thesis/scripts/runtime_probe.py" <not executed on terminal>]
+wrote=/mnt/c/Users/jarod/Desktop/Projects/Advisor/thesis/generated/runtime_probe.json
+searches=3 answers=3
+recommendations=3
+
+Script done on 2026-07-12 18:01:15-04:00 [COMMAND_EXIT_CODE="0"]

@@ -1,6 +1,9 @@
 # Reproducibility Checklist
 
-Use this from a fresh clone to recreate the local demo.
+Use this from a fresh clone to recreate a **bounded local UI demo**, not the
+research snapshot or reported experiments. The audited helper can produce a
+partial vector index; full research reproduction is being implemented under
+`REP-01` in `docs/REVIEW_REMEDIATION_MATRIX.md`.
 
 ## 1. Clone And Backend Setup
 
@@ -65,7 +68,8 @@ PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator
   --max-chunks 12
 ```
 
-The helper is conservative and idempotent. It does not process all papers by default.
+The helper does not process all papers by default. It must use an isolated demo
+index and must never be cited as evidence of full-corpus coverage.
 
 ## 5. Run The App
 

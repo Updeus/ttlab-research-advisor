@@ -1,0 +1,6 @@
+Script started on 2026-07-12 18:04:22-04:00 [COMMAND="PYTHONPATH=backend .venv/bin/python thesis/scripts/collect_evidence.py" <not executed on terminal>]
+wrote=/mnt/c/Users/jarod/Desktop/Projects/Advisor/thesis/generated/evidence_snapshot.json
+head=6492445 dirty=True
+database_available=True
+
+Script done on 2026-07-12 18:04:26-04:00 [COMMAND_EXIT_CODE="0"]

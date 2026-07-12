@@ -1,5 +1,11 @@
 # Optional learned dense-retrieval dependency. The core application remains
 # usable offline without this extra. Model acquisition is a separate explicit
 # CLI action; ordinary search never downloads weights.
+--extra-index-url https://download.pytorch.org/whl/cpu
 -r requirements.txt
 sentence-transformers==5.6.0
+torch==2.13.0+cpu
+transformers==5.13.1
+huggingface-hub==1.23.0
+tokenizers==0.22.2
+safetensors==0.8.0

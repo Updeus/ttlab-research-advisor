@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import re
+import unicodedata
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -16,36 +17,252 @@ from app.models import Chunk, Paper
 SECTION_ALIASES = {
     "abstract": "Abstract",
     "introduction": "Introduction",
+    "purpose": "Introduction",
+    "problem": "Introduction",
+    "problem definition": "Introduction",
+    "problem formulation": "Introduction",
     "background": "Literature Review",
     "literature review": "Literature Review",
+    "literature survey": "Literature Review",
     "related work": "Literature Review",
+    "related works": "Literature Review",
+    "related work and contribution": "Literature Review",
+    "related work and contributions": "Literature Review",
     "method": "Methodology",
     "methods": "Methodology",
     "methodology": "Methodology",
+    "methodology and tools": "Methodology",
     "materials and methods": "Methodology",
+    "data": "Methodology",
+    "dataset": "Methodology",
+    "data description": "Methodology",
+    "dataset description": "Methodology",
+    "data set description": "Methodology",
+    "description of datasets": "Methodology",
+    "description of data sets": "Methodology",
+    "the proposed approach": "Methodology",
+    "proposed approach": "Methodology",
+    "clustering heuristic": "Methodology",
+    "traditional approach": "Methodology",
+    "model description": "Methodology",
+    "framework": "Methodology",
+    "implementation": "Methodology",
     "experimental setup": "Methodology",
+    "experiments": "Methodology",
     "results": "Results",
     "findings": "Results",
     "results and discussion": "Results",
+    "results and analysis": "Results",
+    "numerical results": "Results",
+    "experimental results": "Results",
+    "performance results": "Results",
+    "performance evaluation": "Results",
+    "analysis": "Results",
+    "evaluation": "Results",
     "discussion": "Discussion",
+    "comparison": "Discussion",
     "limitations": "Discussion",
     "conclusion": "Conclusion",
     "conclusions": "Conclusion",
     "conclusion and future work": "Conclusion",
+    "conclusions and future work": "Conclusion",
+    "conclusion and recommendations": "Conclusion",
+    "conclusions and recommendations": "Conclusion",
+    "summary and conclusion": "Conclusion",
+    "summary and conclusions": "Conclusion",
     "limitations and future work": "Conclusion",
+    "limitations and future directions": "Conclusion",
     "future work": "Conclusion",
+    "recommendations": "Conclusion",
     "references": "References",
     "bibliography": "References",
 }
-SECTION_HEADING_RE = re.compile(
-    r"^\s*(?:(?:[IVXLCDM]+|\d+(?:\.\d+)*)[.)]?\s+)?"
-    r"(?P<heading>abstract|introduction|background|literature review|related work|"
-    r"methods?|methodology|materials and methods|experimental setup|results?|findings|"
-    r"results and discussion|discussion|limitations|conclusions?|conclusion and future work|"
-    r"limitations and future work|future work|references|bibliography)"
-    r"\s*(?P<suffix>[:.\-—]?)(?P<rest>.*)$",
+
+# These headings delimit scholarly content but do not map defensibly to one of
+# the canonical section labels.  Treating them as explicit Unknown boundaries
+# prevents a prior section (especially Abstract or Conclusion) from leaking
+# through front/back matter.
+UNKNOWN_SECTION_HEADINGS = {
+    "abbreviations",
+    "acknowledgement",
+    "acknowledgements",
+    "acknowledgment",
+    "acknowledgments",
+    "author contributions",
+    "conflict of interest",
+    "conflicts of interest",
+    "contents",
+    "copyright material",
+    "data availability",
+    "declarations",
+    "funding",
+    "general terms",
+    "keywords",
+    "preface",
+}
+
+SECTION_NUMBER_PREFIX_RE = re.compile(
+    r"^\s*(?P<number>(?:[IVXLCDM]+|\d+(?:\.\d+)*))"
+    r"(?:(?:[.)]+\s*)|(?:\s+))(?P<body>.*)$",
     re.IGNORECASE,
 )
+LETTER_SUBSECTION_PREFIX_RE = re.compile(r"^\s*[A-Z][.)]\s+", re.IGNORECASE)
+HEADING_TRAILING_PUNCTUATION_RE = re.compile(r"[\s:.;\-—–]+$")
+FORMULA_OR_CODE_RE = re.compile(r"[=<>∑∏√{}\[\]|]|(?:\+|/|\\){2,}")
+NON_HEADING_PREFIX_RE = re.compile(
+    r"^(?:table|fig(?:ure)?|algorithm|listing|equation|isbn|issn|doi)\b",
+    re.IGNORECASE,
+)
+UPPERCASE_SECTION_CUE_RE = re.compile(
+    r"\b(?:application|approach|architecture|background|challenges|conclusion|"
+    r"conformance|design|discussion|evaluation|experiments?|framework|future|"
+    r"implementation|introduction|limitations|literature|methodology|methods?|"
+    r"problem|purpose|recommendations?|references|related|results?|summary|"
+    r"system|technologies|work)\b",
+    re.IGNORECASE,
+)
+
+
+def _normalize_heading(value: str) -> str:
+    value = unicodedata.normalize("NFKC", value)
+    value = value.replace("&", " and ")
+    value = re.sub(r"[_\-—–]+", " ", value)
+    return re.sub(r"\s+", " ", value).strip().casefold()
+
+
+def _strip_section_number(value: str) -> tuple[str, bool]:
+    match = SECTION_NUMBER_PREFIX_RE.match(value)
+    if not match:
+        return value.strip(), False
+    body = match.group("body").strip()
+    # A bare Roman/Arabic marker is a real extracted section boundary; the
+    # following line normally contains the title.
+    return body, True
+
+
+def _heading_alias(candidate: str, *, numbered: bool) -> str | None:
+    """Return a canonical section only for an explicit heading presentation."""
+
+    stripped = HEADING_TRAILING_PUNCTUATION_RE.sub("", candidate).strip()
+    normalized = _normalize_heading(stripped)
+    if normalized in SECTION_ALIASES:
+        # Standalone DATA/DATASET/ANALYSIS/EVALUATION is too ambiguous without
+        # a structural marker or all-uppercase typography.  This avoids table
+        # headers becoming section changes while supporting observed headings.
+        if normalized in {"data", "dataset", "analysis", "evaluation"}:
+            if not numbered and not stripped.isupper():
+                return None
+        return SECTION_ALIASES[normalized]
+
+    # The source corpus contains qualified method headings such as
+    # "PROPOSED METHOD FOR DISTRIBUTED COMPUTATION".  Match the semantic head,
+    # not arbitrary occurrences of "method" in prose.
+    if re.fullmatch(r"proposed (?:method|approach)(?:\s+for\s+[a-z0-9 ]+)?", normalized):
+        return "Methodology"
+    if re.fullmatch(r"traditional (?:method|approach)(?:\s+for\s+[a-z0-9 ]+)?", normalized):
+        return "Methodology"
+    if re.fullmatch(r"(?:data|dataset|data set) description(?:\s+and\s+[a-z0-9 ]+)?", normalized):
+        return "Methodology"
+    return None
+
+
+def _mapped_heading_with_inline_body(candidate: str, *, numbered: bool) -> str | None:
+    """Recognize headings whose body starts on the same extracted line."""
+
+    abstract_match = re.match(r"^(?P<head>abstract)\s+(?P<body>\S.*)$", candidate, flags=re.IGNORECASE)
+    if abstract_match:
+        original_head = abstract_match.group("head")
+        if numbered or original_head.isupper() or original_head[:1].isupper():
+            return "Abstract"
+    for alias in sorted(SECTION_ALIASES, key=len, reverse=True):
+        match = re.match(
+            rf"^(?P<head>{re.escape(alias)})(?P<delimiter>\s*[:.\-—–]\s*)(?P<body>\S.*)$",
+            candidate,
+            flags=re.IGNORECASE,
+        )
+        if not match:
+            continue
+        original_head = match.group("head")
+        # Lowercase prose such as "limitations. We ..." and bibliography text
+        # such as "introduction. Comput. Optim." are not heading evidence.
+        if not numbered and not (original_head.isupper() or original_head[:1].isupper()):
+            return None
+        if alias in {"data", "dataset", "analysis", "evaluation"}:
+            delimiter = match.group("delimiter").strip()
+            if delimiter in {"-", "—", "–"}:
+                return None
+        return SECTION_ALIASES[alias]
+    return None
+
+
+def _roman_value(value: str) -> int | None:
+    if not value or not re.fullmatch(r"[IVXLCDM]+", value, flags=re.IGNORECASE):
+        return None
+    values = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+    total = 0
+    previous = 0
+    for character in reversed(value.upper()):
+        current = values[character]
+        total += -current if current < previous else current
+        previous = max(previous, current)
+    return total
+
+
+def _plausible_section_marker(compact: str) -> bool:
+    match = SECTION_NUMBER_PREFIX_RE.match(compact)
+    if not match:
+        return False
+    marker = match.group("number")
+    if marker[:1].isdigit():
+        try:
+            return int(marker.split(".", 1)[0]) <= 50
+        except ValueError:
+            return False
+    value = _roman_value(marker)
+    return value is not None and value <= 50
+
+
+def is_strong_section_heading(line: str) -> bool:
+    """Detect an explicit but unmapped major heading conservatively.
+
+    Only numbered or all-uppercase lines qualify.  Formulae, table captions,
+    single-symbol fragments, and ordinary numbered prose are rejected.
+    """
+
+    compact = re.sub(r"\s+", " ", line).strip()
+    if not compact or len(compact) > 180:
+        return False
+    candidate, numbered = _strip_section_number(compact)
+    if numbered and not _plausible_section_marker(compact):
+        return False
+    if numbered and not candidate:
+        return True
+    if not candidate or NON_HEADING_PREFIX_RE.match(candidate):
+        return False
+    if LETTER_SUBSECTION_PREFIX_RE.match(compact) or FORMULA_OR_CODE_RE.search(candidate):
+        return False
+    if ":" in candidate.rstrip(":") or "," in candidate:
+        return False
+    words = re.findall(r"[A-Za-z][A-Za-z'’\-]*", candidate)
+    if not words or len(words) > 14:
+        return False
+    alpha_count = sum(character.isalpha() for character in candidate)
+    visible_count = sum(not character.isspace() for character in candidate)
+    if not visible_count or alpha_count / visible_count < 0.60:
+        return False
+    uppercase_heading = (
+        candidate.isupper()
+        and len(words) >= 2
+        and any(len(word) > 1 for word in words)
+        and bool(UPPERCASE_SECTION_CUE_RE.search(candidate))
+    )
+    if not numbered and not uppercase_heading:
+        return False
+    if numbered and not uppercase_heading:
+        title_words = sum(word[:1].isupper() for word in words)
+        if title_words / len(words) < 0.70:
+            return False
+    return True
 
 
 def utc_now() -> datetime:
@@ -77,21 +294,34 @@ def detect_section_heading(line: str) -> str | None:
     compact = re.sub(r"\s+", " ", line).strip()
     if not compact or len(compact) > 240:
         return None
-    match = SECTION_HEADING_RE.match(compact)
-    if not match:
+    candidate, numbered = _strip_section_number(compact)
+    if not candidate:
         return None
-    heading = re.sub(r"\s+", " ", match.group("heading").casefold()).strip()
-    rest = match.group("rest").strip()
-    suffix = match.group("suffix")
-    # A heading embedded in ordinary prose is deliberately left Unknown. Abstract
-    # commonly starts its body on the same extracted line; numbered/uppercase
-    # headings and punctuation-delimited headings are also accepted.
-    heading_token = match.group("heading")
-    prefix = compact[: match.start("heading")]
-    defensible_prefix = bool(prefix.strip()) or heading_token.isupper() or bool(suffix)
-    if rest and heading != "abstract" and not defensible_prefix:
-        return None
-    return SECTION_ALIASES.get(heading)
+    mapped = _heading_alias(candidate, numbered=numbered)
+    if mapped:
+        return mapped
+    return _mapped_heading_with_inline_body(candidate, numbered=numbered)
+
+
+def detect_section_boundary(line: str) -> tuple[bool, str | None]:
+    """Return whether a line changes section state and its canonical label.
+
+    ``None`` with a true boundary means that the evidence supports a new major
+    section, but not one of the canonical labels.  Callers must reset to
+    ``Unknown`` instead of carrying the previous label forward.
+    """
+
+    compact = re.sub(r"\s+", " ", line).strip()
+    if not compact:
+        return False, None
+    section = detect_section_heading(compact)
+    if section:
+        return True, section
+    candidate, _ = _strip_section_number(compact)
+    normalized = _normalize_heading(HEADING_TRAILING_PUNCTUATION_RE.sub("", candidate))
+    if normalized in UNKNOWN_SECTION_HEADINGS or is_strong_section_heading(compact):
+        return True, None
+    return False, None
 
 
 def infer_section(text: str) -> str:
@@ -111,14 +341,24 @@ def infer_section(text: str) -> str:
 def page_sentence_units(extracted: dict[str, Any]) -> list[dict[str, Any]]:
     units: list[dict[str, Any]] = []
     current_section: str | None = None
+    substantive_section_seen = False
     for page in extracted.get("pages", []):
         page_number = int(page.get("page_number") or 0)
         page_text = str(page.get("text") or "")
         lines = [line.strip() for line in page_text.splitlines() if line.strip()] or [page_text]
         for line in lines:
-            detected = detect_section_heading(line)
-            if detected:
-                current_section = detected
+            boundary, detected = detect_section_boundary(line)
+            # Two-column extraction can place an Abstract block after the
+            # Introduction/Related Work lines from the opposite column.  Once
+            # substantive body evidence has appeared, do not relabel that body
+            # as Abstract merely because the extraction order is interleaved.
+            if detected == "Abstract" and substantive_section_seen:
+                boundary = False
+                detected = None
+            if boundary:
+                current_section = detected or "Unknown"
+                if detected not in {None, "Abstract"}:
+                    substantive_section_seen = True
             for sentence in split_sentences(line):
                 units.append(
                     {
@@ -127,6 +367,7 @@ def page_sentence_units(extracted: dict[str, Any]) -> list[dict[str, Any]]:
                         "word_count": count_words(sentence),
                         "section_hint": current_section,
                         "section_heading_detected": detected,
+                        "section_boundary_detected": boundary,
                     }
                 )
     return units

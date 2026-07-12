@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import random
 import sqlite3
@@ -26,7 +27,7 @@ def norm(value: str) -> str:
     return " ".join(value.split()).casefold()
 
 
-def main() -> None:
+def validate(*, database: Path = DB, evaluate_current: bool = False) -> None:
     create, final = load(CREATE), load(FINAL)
     assert len(create) == len(final) == 40
     assert len({row["chunk_id"] for row in final}) == 40
@@ -35,9 +36,10 @@ def main() -> None:
     shuffled = list(create)
     random.Random(SEED).shuffle(shuffled)
     assert [row["source_case_id"] for row in final] == [row["case_id"] for row in shuffled]
-    connection = sqlite3.connect(DB)
+    connection = sqlite3.connect(database)
     connection.row_factory = sqlite3.Row
     create_by_id = {row["case_id"]: row for row in create}
+    current_predictions: list[str] = []
     for position, case in enumerate(final, start=1):
         assert case["reviewer_id"] == case["verifier_id"] == "codex-ai-review"
         assert case["reviewer_type"] == "ai" and case["label_quality"] == "silver" and case["pass"] == "verify"
@@ -47,6 +49,9 @@ def main() -> None:
         assert row is not None
         for field in ("paper_id", "chunk_index", "page_start", "page_end", "source_hash", "section"):
             key = "predicted_section" if field == "section" else field
+            if evaluate_current and field == "section":
+                current_predictions.append(str(row[field]))
+                continue
             assert case[key] == row[field], (case["case_id"], key)
         extraction = json.loads((ROOT / row["extracted_json_path"]).read_text(encoding="utf-8"))
         pages = {int(page["page_number"]): str(page.get("text") or "") for page in extraction["pages"]}
@@ -59,10 +64,11 @@ def main() -> None:
         assert case["creation_expected_section"] == source["expected_section"]
     connection.close()
 
-    predicted = [row["predicted_section"] for row in final]
+    predicted = current_predictions if evaluate_current else [row["predicted_section"] for row in final]
     expected = [row["expected_section"] for row in final]
     correct = sum(left == right for left, right in zip(predicted, expected))
     supported = sum(label != "Unknown" for label in expected)
+    labeled_correct = sum(left == right and right != "Unknown" for left, right in zip(predicted, expected))
     per_label = {}
     for label in LABELS:
         tp = sum(p == label and e == label for p, e in zip(predicted, expected))
@@ -71,12 +77,30 @@ def main() -> None:
     precisions = [row["precision"] for row in per_label.values() if row["precision"] is not None]
     recalls = [row["recall"] for row in per_label.values() if row["recall"] is not None]
     decisions = Counter(row["decision"] for row in final)
-    print(f"cases={len(final)} accuracy={correct/len(final):.6f} labeled_accuracy={correct/supported:.6f}")
+    print(f"cases={len(final)} accuracy={correct/len(final):.6f} labeled_accuracy={labeled_correct/supported:.6f}")
     print(f"labeled_coverage={supported/len(final):.6f} expected_unknown_rate={expected.count('Unknown')/len(final):.6f} predicted_unknown_rate={predicted.count('Unknown')/len(final):.6f}")
     print(f"macro_precision={sum(precisions)/len(precisions):.6f} macro_recall={sum(recalls)/len(recalls):.6f}")
+    print("prediction_source=" + ("current_database" if evaluate_current else "frozen_silver_snapshot"))
+    print(f"database={database}")
     print("decisions=" + json.dumps(dict(sorted(decisions.items())), sort_keys=True))
     print("per_label=" + json.dumps(per_label, sort_keys=True))
     print("status=valid")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Validate the section silver set and optionally score a rechunked database.")
+    parser.add_argument("--database", type=Path, default=DB)
+    parser.add_argument(
+        "--evaluate-current",
+        action="store_true",
+        help="Score section labels stored in --database while preserving the frozen silver expectations.",
+    )
+    return parser
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    validate(database=args.database, evaluate_current=args.evaluate_current)
 
 
 if __name__ == "__main__":

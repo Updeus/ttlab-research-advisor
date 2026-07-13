@@ -16,6 +16,8 @@ def test_manifest_hashes_outputs_and_marks_private_runtime_payloads(tmp_path: Pa
     (work / "data/pdfs").mkdir(parents=True)
     (work / "logs/test.log").write_text("passed\n")
     (work / "data/pdfs/paper.pdf").write_bytes(b"%PDF-test")
+    (work / ".venv/lib").mkdir(parents=True)
+    (work / ".venv/lib/ignored.py").write_text("ignored\n")
     result = manifest(
         root,
         work,
@@ -26,6 +28,7 @@ def test_manifest_hashes_outputs_and_marks_private_runtime_payloads(tmp_path: Pa
     )
     assert result["file_count"] == 2
     assert result["restricted_runtime_payload_count"] == 1
+    assert result["excluded_runtime_directories"] == [".venv"]
     assert all(row["sha256"] for row in result["files"])
     assert result["work_directory"] == "."
     assert result["source_snapshot"] == {

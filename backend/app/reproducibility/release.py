@@ -61,7 +61,6 @@ TEXT_BEARING_KEYS = {
     "source_excerpt",
     "source_text",
 }
-TEXT_PATH_MARKERS = {"adjudicated_claims", "citations", "claims", "pages", "retrieved_chunks", "source_records", "supporting_sources"}
 LOCAL_PATH_PATTERN = re.compile(r"(?:/mnt/[a-z]/|/home/[^/]+/|[A-Za-z]:\\Users\\)")
 SECRET_PATTERNS = {
     "github_token": re.compile(r"\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b"),
@@ -138,10 +137,7 @@ def sanitize_json(value: Any, *, path: tuple[str, ...] = ()) -> tuple[Any, list[
                 sanitized[key] = redaction(rendered, "unreviewed_scrape_payload")
                 events.append({"json_path": ".".join(next_path), "reason": "unreviewed_scrape_payload"})
                 continue
-            if isinstance(item, str) and (
-                lowered in TEXT_BEARING_KEYS
-                or (lowered == "text" and bool(TEXT_PATH_MARKERS.intersection(path)))
-            ):
+            if isinstance(item, str) and (lowered in TEXT_BEARING_KEYS or lowered == "text"):
                 sanitized[key] = redaction(item, "source_or_answer_text_not_redistributed")
                 events.append({"json_path": ".".join(next_path), "reason": "source_or_answer_text_not_redistributed"})
                 continue
@@ -331,6 +327,7 @@ def build_release(
         "prepared_tag": f"v{version}",
         "tag_created": False,
         "source_commit": commit,
+        "source_tree": git("rev-parse", f"{commit}^{{tree}}", root=root),
         "source_worktree_dirty": bool(dirty_status),
         # A source-commit timestamp, rather than wall-clock time, keeps archive
         # bytes reproducible when the tracked inputs are unchanged.
@@ -359,6 +356,20 @@ def build_release(
             "scan_patterns": sorted(SECRET_PATTERNS),
             "absolute_path_scan": True,
             "pdf_magic_scan": True,
+        },
+        "dependency_locks": {
+            "python": {
+                "path": "backend/requirements-lock.txt",
+                "sha256": sha256_path(root / "backend/requirements-lock.txt")
+                if (root / "backend/requirements-lock.txt").is_file()
+                else None,
+            },
+            "frontend": {
+                "path": "frontend/package-lock.json",
+                "sha256": sha256_path(root / "frontend/package-lock.json")
+                if (root / "frontend/package-lock.json").is_file()
+                else None,
+            },
         },
     }
     manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
@@ -390,6 +401,7 @@ def build_release(
         "bytes": archive_path.stat().st_size,
         "sha256": archive_sha,
     }
+    manifest["archive_verification"] = verify_release(archive_path)
     manifest_copy_path.write_text(json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
     checksum_path.write_text(f"{archive_sha}  {archive_path.name}\n", encoding="utf-8")
     if evidence_dir is not None:
@@ -402,7 +414,6 @@ def build_release(
             f"{archive_sha}  {archive_path.name}\n",
             encoding="utf-8",
         )
-    verify_release(archive_path)
     return manifest
 
 

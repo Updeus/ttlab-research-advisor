@@ -30,6 +30,12 @@ def test_json_sanitizer_hashes_source_text_and_local_paths() -> None:
     assert len(events) == 2
 
 
+def test_json_sanitizer_redacts_unclassified_text_fields_conservatively() -> None:
+    sanitized, events = sanitize_json({"answer_point_judgments": [{"text": "publication-derived wording"}]})
+    assert sanitized["answer_point_judgments"][0]["text"]["release_redacted"] is True
+    assert events[0]["reason"] == "source_or_answer_text_not_redistributed"
+
+
 def test_payload_scanner_detects_secrets_absolute_paths_and_pdf_magic() -> None:
     content = b"/home/person/private\nAuthorization: Bearer abcdefghijklmnopqrstuvwxyz\n"
     findings = scan_payload(PurePosixPath("notes.txt"), content)
@@ -69,6 +75,9 @@ def test_release_is_deterministic_and_verifies_every_payload_checksum(tmp_path: 
     first_sha = first["archive"]["sha256"]
     result = verify_release(archive)
     assert result["checksum_entries_verified"] >= 3
+    assert first["source_worktree_dirty"] is False
+    assert len(first["source_tree"]) == 40
+    assert first["archive_verification"]["status"] == "valid"
     second = build_release(root=root, output_root=output_root, version="test")
     assert second["archive"]["sha256"] == first_sha
     assert second["generated_at"] == first["generated_at"]

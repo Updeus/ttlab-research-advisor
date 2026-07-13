@@ -41,8 +41,22 @@ def manifest(
 ) -> dict[str, Any]:
     files: list[dict[str, Any]] = []
     excluded_runtime_payloads = 0
-    for path in sorted(work.rglob("*")):
-        if not path.is_file() or path.name in {"reproduction_manifest.json", "REPRODUCTION_SHA256SUMS"}:
+    excluded_runtime_directories: list[str] = []
+    candidates: list[Path] = []
+    excluded_directory_names = {".git", ".pytest_cache", ".venv", "__pycache__", "node_modules"}
+    for directory, directory_names, file_names in os.walk(work, followlinks=False):
+        directory_path = Path(directory)
+        retained_directories: list[str] = []
+        for name in sorted(directory_names):
+            candidate = directory_path / name
+            if name in excluded_directory_names or candidate.is_symlink():
+                excluded_runtime_directories.append(candidate.relative_to(work).as_posix())
+            else:
+                retained_directories.append(name)
+        directory_names[:] = retained_directories
+        candidates.extend(directory_path / name for name in sorted(file_names))
+    for path in sorted(candidates):
+        if path.name in {"reproduction_manifest.json", "REPRODUCTION_SHA256SUMS"}:
             continue
         relative = path.relative_to(work)
         is_restricted_runtime = bool(
@@ -105,6 +119,7 @@ def manifest(
         "work_directory": ".",
         "file_count": len(files),
         "restricted_runtime_payload_count": excluded_runtime_payloads,
+        "excluded_runtime_directories": excluded_runtime_directories,
         "files": files,
         "claim_boundary": (
             "This manifest proves command/artifact execution in the recorded local environment. "

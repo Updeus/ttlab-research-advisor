@@ -10,14 +10,14 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import fmean
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from sqlmodel import Session
 
 from app.db import create_db_and_tables, engine
 from app.evaluation.statistics import bootstrap_mean_interval
 from app.indexing.embedder import corpus_descriptor, eligible_chunks
-from app.indexing.retriever import retrieve
+from app.indexing.retriever import RetrieverConfig, coerce_retriever_config, retrieve
 
 
 RESULT_SCHEMA_VERSION = "2.0.0"
@@ -320,22 +320,42 @@ def evaluate_retrieval(
     bootstrap_seed: int = DEFAULT_BOOTSTRAP_SEED,
     retain_bootstrap_replicates: bool = True,
     run_config: Mapping[str, Any] | None = None,
+    provider: str = "auto",
+    retriever_config: RetrieverConfig | Mapping[str, Any] | None = None,
+    retrieval_depth: int | None = None,
+    response_factory: Callable[[Mapping[str, Any], int], Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     validated_cutoffs = _validate_cutoffs(cutoffs)
     required_top_k = max(validated_cutoffs)
     if top_k < required_top_k:
         raise ValueError(f"top_k={top_k} cannot compute requested cutoff {required_top_k}; use top_k >= {required_top_k}.")
+    resolved_retrieval_depth = retrieval_depth or top_k
+    if resolved_retrieval_depth < top_k:
+        raise ValueError("retrieval_depth cannot be smaller than the paper-level top_k cutoff")
+    resolved_retriever_config = coerce_retriever_config(retriever_config)
 
     evaluated: list[dict[str, Any]] = []
     warnings: list[str] = []
     observed_vector_providers: set[str] = set()
     for line_number, raw_question in enumerate(questions, start=1):
         question = normalize_question(raw_question, line_number=line_number)
-        response = retrieve(session, question["question"], mode=mode, top_k=top_k)
+        response = (
+            response_factory(question, resolved_retrieval_depth)
+            if response_factory is not None
+            else retrieve(
+                session,
+                question["question"],
+                mode=mode,
+                top_k=resolved_retrieval_depth,
+                provider=provider,
+                config=resolved_retriever_config,
+            )
+        )
         raw_results = response.get("results", [])
         if not isinstance(raw_results, list):
             raise ValueError("Retriever response 'results' must be a list.")
-        ranking_rows = capture_ranking_rows(raw_results)
+        all_ranking_rows = capture_ranking_rows(raw_results)
+        ranking_rows = all_ranking_rows[:top_k]
         paper_ids = [row["paper_id"] for row in ranking_rows]
         query_result = evaluate_ranked_query(question, paper_ids, cutoffs=validated_cutoffs)
         response_warnings = [str(value) for value in response.get("warnings", [])]
@@ -347,14 +367,19 @@ def evaluate_retrieval(
             {
                 **query_result,
                 "raw_chunk_result_count": len(raw_results),
-                "duplicate_paper_results_removed": len(raw_results) - len(ranking_rows),
+                "duplicate_paper_results_removed": len(raw_results) - len(all_ranking_rows),
+                "unique_papers_beyond_cutoff": max(0, len(all_ranking_rows) - len(ranking_rows)),
                 "ranked_results": ranking_rows,
+                "candidate_ranked_results": all_ranking_rows,
                 "retrieval_metadata": {
                     "mode": mode,
                     "vector_provider": vector_provider,
                     "retrieval_strategy": response.get("retrieval_strategy"),
                     "expanded_query": response.get("expanded_query"),
                     "query_expansions": response.get("query_expansions", []),
+                    "retriever_config": response.get(
+                        "retriever_config", resolved_retriever_config.to_dict()
+                    ),
                     "warnings": response_warnings,
                 },
             }
@@ -377,11 +402,22 @@ def evaluate_retrieval(
             **dict(run_config or {}),
             "mode": mode,
             "top_k": top_k,
+            "retrieval_depth": resolved_retrieval_depth,
             "cutoffs": list(validated_cutoffs),
+            "evaluated_case_ids_sha256": hashlib.sha256(
+                json.dumps(
+                    [str(item["case_id"]) for item in evaluated],
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest(),
+            "filters": {"paper_id": None, "author": None, "year": None, "section": None},
             "bootstrap_repetitions": bootstrap_repetitions,
             "bootstrap_seed": bootstrap_seed,
             "retain_bootstrap_replicates": retain_bootstrap_replicates,
             "observed_vector_providers": sorted(observed_vector_providers),
+            "requested_vector_provider": provider,
+            "retriever_config": resolved_retriever_config.to_dict(),
             "corpus": corpus,
         },
         "metric_definitions": METRIC_DEFINITIONS,
@@ -405,7 +441,7 @@ def capture_ranking_rows(raw_results: Sequence[Mapping[str, Any]]) -> list[dict[
 
     rows: list[dict[str, Any]] = []
     seen_papers: set[str] = set()
-    score_fields = (
+    flat_score_fields = (
         "score",
         "keyword_score",
         "semantic_score",
@@ -415,6 +451,16 @@ def capture_ranking_rows(raw_results: Sequence[Mapping[str, Any]]) -> list[dict[
         "topical_alignment_score",
         "diversity_penalty",
     )
+    nested_score_fields = {
+        "combined": "score",
+        "keyword": "keyword_score",
+        "semantic": "semantic_score",
+        "metadata": "metadata_score",
+        "section_boost": "section_boost",
+        "evidence_quality": "evidence_quality_score",
+        "topical_alignment": "topical_alignment_score",
+        "diversity_penalty": "diversity_penalty",
+    }
     for raw_rank, result in enumerate(raw_results, start=1):
         paper_id = str(result.get("paper_id") or "").strip()
         if not paper_id or paper_id in seen_papers:
@@ -429,10 +475,16 @@ def capture_ranking_rows(raw_results: Sequence[Mapping[str, Any]]) -> list[dict[
             "page_end": result.get("page_end"),
             "section": result.get("section"),
         }
-        for field in score_fields:
+        for field in flat_score_fields:
             value = result.get(field)
             if isinstance(value, (float, int)) and not isinstance(value, bool):
                 row[field] = float(value)
+        nested_scores = result.get("scores")
+        if isinstance(nested_scores, Mapping):
+            for source_field, output_field in nested_score_fields.items():
+                value = nested_scores.get(source_field)
+                if isinstance(value, (float, int)) and not isinstance(value, bool):
+                    row[output_field] = float(value)
         rows.append(row)
     return rows
 

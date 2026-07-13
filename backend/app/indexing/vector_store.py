@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,7 @@ from app.db import create_db_and_tables, engine
 from app.indexing.embedder import (
     DEFAULT_PROVIDER,
     DenseProviderUnavailable,
+    EmbeddingProvider,
     IndexIntegrityError,
     canonical_provider_name,
     cosine_similarity,
@@ -19,6 +21,42 @@ from app.indexing.embedder import (
     manifest_path_for,
 )
 from app.models import Chunk, Paper
+
+
+@dataclass(frozen=True)
+class VectorSearchContext:
+    """One validated immutable index/provider pair for a frozen experiment."""
+
+    provider_name: str
+    index_path: Path
+    payload: dict[str, Any]
+    provider: EmbeddingProvider
+
+
+def load_vector_search_context(
+    session: Session,
+    *,
+    provider_name: str = DEFAULT_PROVIDER,
+    index_path: Path | None = None,
+) -> VectorSearchContext:
+    canonical = canonical_provider_name(provider_name)
+    resolved_path = (index_path or default_index_path(canonical)).resolve()
+    if not resolved_path.exists() or not manifest_path_for(resolved_path).exists():
+        raise FileNotFoundError(
+            f"{canonical} index is unavailable at {resolved_path}. Build and validate the complete index first."
+        )
+    payload, _report = load_validated_index(
+        session,
+        index_path=resolved_path,
+        provider_name=canonical,
+    )
+    provider = get_provider(canonical, dimensions=int(payload.get("dimensions") or 0) or None)
+    return VectorSearchContext(
+        provider_name=canonical,
+        index_path=resolved_path,
+        payload=payload,
+        provider=provider,
+    )
 
 
 def search_vector_store(
@@ -32,25 +70,41 @@ def search_vector_store(
     author: str | None = None,
     year: int | None = None,
     section: str | None = None,
+    context: VectorSearchContext | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
     canonical = canonical_provider_name(provider_name)
-    resolved_path = index_path or default_index_path(canonical)
+    resolved_path = (index_path or default_index_path(canonical)).resolve()
+    if context is not None:
+        if context.provider_name != canonical:
+            raise ValueError(
+                f"vector search context provider={context.provider_name} does not match requested provider={canonical}"
+            )
+        if index_path is not None and context.index_path != resolved_path:
+            raise ValueError(
+                f"vector search context path={context.index_path} does not match requested path={resolved_path}"
+            )
+        payload = context.payload
+        provider = context.provider
+    else:
+        payload = None
+        provider = None
     if not resolved_path.exists() or not manifest_path_for(resolved_path).exists():
         return [], [
             f"{canonical} index is unavailable at {resolved_path}. Build and validate the complete index first."
         ]
 
-    # A present-but-inconsistent index is a data-integrity defect, not a normal
-    # provider outage. Raise so startup/evaluation callers cannot use it.
-    payload, _report = load_validated_index(
-        session,
-        index_path=resolved_path,
-        provider_name=canonical,
-    )
-    try:
-        provider = get_provider(canonical, dimensions=int(payload.get("dimensions") or 0) or None)
-    except DenseProviderUnavailable as exc:
-        return [], [str(exc)]
+    if payload is None or provider is None:
+        # A present-but-inconsistent index is a data-integrity defect, not a normal
+        # provider outage. Raise so startup/evaluation callers cannot use it.
+        payload, _report = load_validated_index(
+            session,
+            index_path=resolved_path,
+            provider_name=canonical,
+        )
+        try:
+            provider = get_provider(canonical, dimensions=int(payload.get("dimensions") or 0) or None)
+        except DenseProviderUnavailable as exc:
+            return [], [str(exc)]
 
     query_vector = provider.embed(query)
     scored: list[tuple[float, dict[str, Any]]] = []

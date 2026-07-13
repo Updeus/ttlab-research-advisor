@@ -44,12 +44,21 @@ def compare_retrieval_results(
     repetitions: int = 10_000,
     seed: int = 20260712,
     familywise_alpha: float = 0.05,
+    retain_bootstrap_replicates: bool = False,
 ) -> dict[str, Any]:
     """Paired comparisons after enforcing the shared experimental controls."""
 
     baseline_config = _mapping(baseline.get("run_config"), "baseline run_config")
     candidate_config = _mapping(candidate.get("run_config"), "candidate run_config")
-    control_fields = ("questions_sha256", "top_k", "cutoffs", "corpus")
+    control_fields = (
+        "questions_sha256",
+        "evaluated_case_ids_sha256",
+        "top_k",
+        "retrieval_depth",
+        "cutoffs",
+        "filters",
+        "corpus",
+    )
     mismatches: dict[str, dict[str, Any]] = {}
     missing_controls: list[str] = []
     for field in control_fields:
@@ -76,6 +85,7 @@ def compare_retrieval_results(
                 metric=metric,
                 repetitions=repetitions,
                 seed=seed + offset,
+                retain_bootstrap_replicates=retain_bootstrap_replicates,
             )
         except ValueError as exc:
             if "no paired numeric values" in str(exc):
@@ -102,6 +112,7 @@ def compare_retrieval_results(
             "paired_test": "two-sided paired randomization on query-level differences",
             "multiplicity_correction": "Holm-Bonferroni",
             "familywise_alpha": familywise_alpha,
+            "retain_bootstrap_replicates": retain_bootstrap_replicates,
         },
         "comparisons": comparisons,
         "unavailable_metrics": unavailable,

@@ -239,6 +239,7 @@ def compare_paired_runs(
     metric: str,
     repetitions: int = 10_000,
     seed: int = 20260712,
+    retain_bootstrap_replicates: bool = False,
 ) -> dict[str, Any]:
     """Compare one per-query metric over two runs with identical case IDs."""
 
@@ -281,6 +282,7 @@ def compare_paired_runs(
             candidate_values,
             repetitions=repetitions,
             seed=seed,
+            retain_replicates=retain_bootstrap_replicates,
         ),
         "paired_test": paired_permutation_test(baseline_values, candidate_values, seed=seed),
     }

@@ -22,15 +22,20 @@
     "generated_at": {"type": "string", "format": "date-time"},
     "run_config": {
       "type": "object",
-      "required": ["mode", "top_k", "cutoffs", "bootstrap_repetitions", "bootstrap_seed", "retain_bootstrap_replicates", "observed_vector_providers", "corpus"],
+      "required": ["mode", "top_k", "retrieval_depth", "cutoffs", "evaluated_case_ids_sha256", "filters", "bootstrap_repetitions", "bootstrap_seed", "retain_bootstrap_replicates", "observed_vector_providers", "requested_vector_provider", "retriever_config", "corpus"],
       "properties": {
         "mode": {"enum": ["keyword", "feature_hashing", "dense", "semantic", "hybrid"]},
         "top_k": {"type": "integer", "minimum": 10},
+        "retrieval_depth": {"type": "integer", "minimum": 10},
         "cutoffs": {"type": "array", "items": {"type": "integer", "minimum": 1}, "uniqueItems": true},
+        "evaluated_case_ids_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "filters": {"type": "object"},
         "bootstrap_repetitions": {"type": "integer", "minimum": 1},
         "bootstrap_seed": {"type": "integer"},
         "retain_bootstrap_replicates": {"type": "boolean"},
         "observed_vector_providers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "requested_vector_provider": {"type": "string"},
+        "retriever_config": {"type": "object"},
         "corpus": {
           "type": "object",
           "required": ["snapshot_id", "snapshot_hash", "eligible_paper_count", "eligible_chunk_count", "eligible_chunks"],
@@ -127,7 +132,9 @@
         "retrieved_unique_paper_count",
         "raw_chunk_result_count",
         "duplicate_paper_results_removed",
+        "unique_papers_beyond_cutoff",
         "ranked_results",
+        "candidate_ranked_results",
         "retrieval_metadata",
         "metrics"
       ],
@@ -143,6 +150,7 @@
         "retrieved_unique_paper_count": {"type": "integer", "minimum": 0},
         "raw_chunk_result_count": {"type": "integer", "minimum": 0},
         "duplicate_paper_results_removed": {"type": "integer", "minimum": 0},
+        "unique_papers_beyond_cutoff": {"type": "integer", "minimum": 0},
         "ranked_results": {
           "type": "array",
           "items": {
@@ -166,6 +174,10 @@
               "diversity_penalty": {"type": "number"}
             }
           }
+        },
+        "candidate_ranked_results": {
+          "type": "array",
+          "items": {"type": "object"}
         },
         "retrieval_metadata": {"type": "object"},
         "metrics": {"type": "object"}

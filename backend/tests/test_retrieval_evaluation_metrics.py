@@ -229,8 +229,11 @@ def test_compare_paired_runs_maps_aggregate_mrr_name_to_query_reciprocal_rank() 
 def test_retrieval_result_comparison_enforces_frozen_controls_and_applies_holm() -> None:
     controls = {
         "questions_sha256": "a" * 64,
+        "evaluated_case_ids_sha256": "c" * 64,
         "top_k": 10,
+        "retrieval_depth": 50,
         "cutoffs": [3, 5, 10],
+        "filters": {"paper_id": None},
         "corpus": {"snapshot_hash": "b" * 64},
     }
     baseline = {
@@ -265,8 +268,11 @@ def test_retrieval_result_comparison_rejects_different_corpus_snapshots() -> Non
     baseline = {
         "run_config": {
             "questions_sha256": "a" * 64,
+            "evaluated_case_ids_sha256": "d" * 64,
             "top_k": 10,
+            "retrieval_depth": 50,
             "cutoffs": [3, 5, 10],
+            "filters": {"paper_id": None},
             "corpus": {"snapshot_hash": "b" * 64},
         },
         "questions": [],
@@ -274,8 +280,11 @@ def test_retrieval_result_comparison_rejects_different_corpus_snapshots() -> Non
     candidate = {
         "run_config": {
             "questions_sha256": "a" * 64,
+            "evaluated_case_ids_sha256": "d" * 64,
             "top_k": 10,
+            "retrieval_depth": 50,
             "cutoffs": [3, 5, 10],
+            "filters": {"paper_id": None},
             "corpus": {"snapshot_hash": "c" * 64},
         },
         "questions": [],

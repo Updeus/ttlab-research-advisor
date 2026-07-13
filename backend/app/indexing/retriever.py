@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 import re
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Mapping
 
 from sqlmodel import Session
 
@@ -20,6 +21,81 @@ from app.indexing.keyword_search import SearchFilters, enrich_keyword_results, s
 from app.indexing.vector_store import search_vector_store
 
 RetrievalMode = Literal["keyword", "feature_hashing", "dense", "hybrid", "semantic"]
+
+
+@dataclass(frozen=True)
+class RetrieverConfig:
+    """Explicit, serializable controls for retrieval and re-ranking.
+
+    Defaults reproduce the pre-experiment runtime heuristic. Experiments pass
+    their own immutable configurations so a named baseline cannot silently
+    inherit query expansion or heuristic re-ranking terms.
+    """
+
+    enable_query_expansion: bool = True
+    enable_metadata_boost: bool = True
+    enable_section_boost: bool = True
+    enable_evidence_adjustment: bool = True
+    enable_topic_adjustment: bool = True
+    enable_diversity_penalty: bool = True
+    keyword_weight: float = 0.42
+    vector_weight: float = 0.48
+    metadata_scale: float = 1.0
+    section_scale: float = 1.0
+    evidence_scale: float = 1.0
+    topic_scale: float = 1.0
+    diversity_scale: float = 1.0
+    candidate_multiplier: int = 3
+
+    def __post_init__(self) -> None:
+        numeric = (
+            "keyword_weight",
+            "vector_weight",
+            "metadata_scale",
+            "section_scale",
+            "evidence_scale",
+            "topic_scale",
+            "diversity_scale",
+        )
+        for name in numeric:
+            if float(getattr(self, name)) < 0.0:
+                raise ValueError(f"{name} must be non-negative")
+        if self.keyword_weight == 0.0 and self.vector_weight == 0.0:
+            raise ValueError("at least one base retrieval weight must be positive")
+        if self.candidate_multiplier < 1:
+            raise ValueError("candidate_multiplier must be at least 1")
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> "RetrieverConfig":
+        allowed = {field.name for field in fields(cls)}
+        unknown = sorted(set(value) - allowed)
+        if unknown:
+            raise ValueError(f"unknown retriever configuration fields: {unknown}")
+        return cls(**dict(value))
+
+
+DEFAULT_RETRIEVER_CONFIG = RetrieverConfig()
+BASELINE_RETRIEVER_CONFIG = RetrieverConfig(
+    enable_query_expansion=False,
+    enable_metadata_boost=False,
+    enable_section_boost=False,
+    enable_evidence_adjustment=False,
+    enable_topic_adjustment=False,
+    enable_diversity_penalty=False,
+    keyword_weight=1.0,
+    vector_weight=1.0,
+)
+
+
+def coerce_retriever_config(value: RetrieverConfig | Mapping[str, Any] | None) -> RetrieverConfig:
+    if value is None:
+        return DEFAULT_RETRIEVER_CONFIG
+    if isinstance(value, RetrieverConfig):
+        return value
+    return RetrieverConfig.from_mapping(value)
 
 STOPWORDS = {
     "about",
@@ -88,10 +164,14 @@ def retrieve(
     provider: str = "auto",
     index_path: Path | None = None,
     include_text: bool = False,
+    config: RetrieverConfig | Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    resolved_config = coerce_retriever_config(config)
     warnings: list[str] = []
     filters = SearchFilters(paper_id=paper_id, author=author, year=year, section=section)
-    expanded_query, query_expansions = expand_query(query)
+    expanded_query, query_expansions = (
+        expand_query(query) if resolved_config.enable_query_expansion else (query, [])
+    )
 
     keyword_results: list[dict[str, Any]] = []
     vector_results: list[dict[str, Any]] = []
@@ -103,14 +183,16 @@ def retrieve(
     )
     warnings.extend(provider_warnings)
 
+    candidate_k = max(top_k * resolved_config.candidate_multiplier, top_k)
+
     if mode in {"keyword", "hybrid"}:
-        raw_keyword = search_keyword(session, expanded_query, top_k=max(top_k * 3, top_k), filters=filters)
+        raw_keyword = search_keyword(session, expanded_query, top_k=candidate_k, filters=filters)
         keyword_results = enrich_keyword_results(session, raw_keyword, filters=filters)
     if mode in {"feature_hashing", "dense", "semantic", "hybrid"}:
         vector_results, vector_warnings = search_vector_store(
             session,
             expanded_query,
-            top_k=max(top_k * 3, top_k),
+            top_k=candidate_k,
             provider_name=vector_provider,
             index_path=vector_index_path,
             paper_id=paper_id,
@@ -120,36 +202,16 @@ def retrieve(
         )
         warnings.extend(vector_warnings)
 
-    selection_k = max(top_k * 3, top_k) if has_strong_topical_constraint(expanded_query) else top_k
-
-    if mode == "keyword":
-        results = [
-            format_result(result, rank, keyword=result["score"], semantic=0.0, query=expanded_query, include_text=include_text)
-            for rank, result in enumerate(keyword_results[:selection_k], start=1)
-        ]
-    elif mode in {"feature_hashing", "dense", "semantic"}:
-        results = [
-            format_result(
-                result,
-                rank,
-                keyword=0.0,
-                semantic=result["score"],
-                vector_provider=vector_provider,
-                query=expanded_query,
-                include_text=include_text,
-            )
-            for rank, result in enumerate(vector_results[:selection_k], start=1)
-        ]
-    else:
-        results = combine_hybrid(
-            keyword_results,
-            vector_results,
-            top_k=selection_k,
-            query=expanded_query,
-            vector_provider=vector_provider,
-            include_text=include_text,
-        )
-    results = apply_topical_constraints(results, expanded_query, top_k=top_k)
+    results = rank_retrieval_components(
+        keyword_results,
+        vector_results,
+        mode=mode,
+        top_k=top_k,
+        query=expanded_query,
+        vector_provider=vector_provider,
+        include_text=include_text,
+        config=resolved_config,
+    )
 
     return {
         "query": query,
@@ -160,8 +222,83 @@ def retrieve(
         "results": results,
         "warnings": warnings,
         "vector_provider": vector_provider if mode != "keyword" else None,
-        "retrieval_strategy": "expanded_metadata_section_diverse" if query_expansions else "metadata_section_diverse",
+        "retrieval_strategy": "explicit_config_v1",
+        "retriever_config": resolved_config.to_dict(),
     }
+
+
+def rank_retrieval_components(
+    keyword_results: list[dict[str, Any]],
+    vector_results: list[dict[str, Any]],
+    *,
+    mode: RetrievalMode,
+    top_k: int,
+    query: str,
+    vector_provider: str = FEATURE_HASHING_PROVIDER,
+    include_text: bool = False,
+    config: RetrieverConfig | Mapping[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Rank already-retrieved components under one explicit configuration.
+
+    The experiment runner uses this pure re-ranking boundary to reuse the same
+    frozen candidate pools for weight searches, ablations, and sensitivity
+    analysis. Runtime callers continue to use :func:`retrieve`.
+    """
+
+    resolved_config = coerce_retriever_config(config)
+    if top_k < 1:
+        raise ValueError("top_k must be at least 1")
+    selection_k = (
+        max(top_k * resolved_config.candidate_multiplier, top_k)
+        if resolved_config.enable_topic_adjustment and has_strong_topical_constraint(query)
+        else top_k
+    )
+    if mode == "keyword":
+        results = [
+            format_result(
+                result,
+                rank,
+                keyword=result["score"],
+                semantic=0.0,
+                query=query,
+                include_text=include_text,
+                config=resolved_config,
+            )
+            for rank, result in enumerate(keyword_results[:selection_k], start=1)
+        ]
+    elif mode in {"feature_hashing", "dense", "semantic"}:
+        results = [
+            format_result(
+                result,
+                rank,
+                keyword=0.0,
+                semantic=result["score"],
+                vector_provider=vector_provider,
+                query=query,
+                include_text=include_text,
+                config=resolved_config,
+            )
+            for rank, result in enumerate(vector_results[:selection_k], start=1)
+        ]
+    elif mode == "hybrid":
+        results = combine_hybrid(
+            keyword_results,
+            vector_results,
+            top_k=selection_k,
+            query=query,
+            vector_provider=vector_provider,
+            include_text=include_text,
+            config=resolved_config,
+        )
+    else:  # pragma: no cover - Literal protects typed callers; retained for runtime validation.
+        raise ValueError(f"unknown retrieval mode: {mode}")
+    if resolved_config.enable_topic_adjustment:
+        results = apply_topical_constraints(results, query, top_k=top_k)
+    else:
+        results = results[:top_k]
+    for rank, result in enumerate(results, start=1):
+        result["rank"] = rank
+    return results
 
 
 def resolve_vector_backend(
@@ -205,7 +342,9 @@ def combine_hybrid(
     query: str,
     vector_provider: str = FEATURE_HASHING_PROVIDER,
     include_text: bool = False,
+    config: RetrieverConfig | Mapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
+    resolved_config = coerce_retriever_config(config)
     combined: dict[str, dict[str, Any]] = {}
     for result in keyword_results:
         entry = combined.setdefault(result["chunk_id"], {"base": result, "keyword": 0.0, "semantic": 0.0})
@@ -218,11 +357,30 @@ def combine_hybrid(
 
     for entry in combined.values():
         base = entry["base"]
-        base_score = entry["keyword"] * 0.42 + entry["semantic"] * 0.48
-        entry["metadata"] = metadata_score(base, query)
-        entry["section_boost"] = section_boost(str(base.get("section") or ""), query)
-        entry["evidence_quality"] = evidence_quality_score(base)
-        entry["topical_alignment"] = topical_alignment_score(base, query)
+        base_score = (
+            entry["keyword"] * resolved_config.keyword_weight
+            + entry["semantic"] * resolved_config.vector_weight
+        )
+        entry["metadata"] = (
+            metadata_score(base, query) * resolved_config.metadata_scale
+            if resolved_config.enable_metadata_boost
+            else 0.0
+        )
+        entry["section_boost"] = (
+            section_boost(str(base.get("section") or ""), query) * resolved_config.section_scale
+            if resolved_config.enable_section_boost
+            else 0.0
+        )
+        entry["evidence_quality"] = (
+            evidence_quality_score(base) * resolved_config.evidence_scale
+            if resolved_config.enable_evidence_adjustment
+            else 0.0
+        )
+        entry["topical_alignment"] = (
+            topical_alignment_score(base, query) * resolved_config.topic_scale
+            if resolved_config.enable_topic_adjustment
+            else 0.0
+        )
         entry["base_combined"] = min(
             1.0,
             max(
@@ -236,7 +394,12 @@ def combine_hybrid(
         )
 
     ranked = sorted(combined.values(), key=lambda entry: entry["base_combined"], reverse=True)
-    diversified = diversify_ranked_entries(ranked, top_k=top_k)
+    diversified = diversify_ranked_entries(
+        ranked,
+        top_k=top_k,
+        enabled=resolved_config.enable_diversity_penalty,
+        scale=resolved_config.diversity_scale,
+    )
     return [
         format_result(
             entry["base"],
@@ -246,9 +409,13 @@ def combine_hybrid(
             vector_provider=vector_provider,
             metadata=entry["metadata"],
             section=entry["section_boost"],
+            evidence=entry["evidence_quality"],
+            topic=entry["topical_alignment"],
+            diversity=entry["diversity_penalty"],
             combined_override=entry["diversified_score"],
             query=query,
             include_text=include_text,
+            config=resolved_config,
         )
         for rank, entry in enumerate(diversified, start=1)
     ]
@@ -268,13 +435,34 @@ def format_result(
     query: str = "",
     metadata: float | None = None,
     section: float | None = None,
+    evidence: float | None = None,
+    topic: float | None = None,
+    diversity: float = 0.0,
     combined_override: float | None = None,
     include_text: bool = False,
+    config: RetrieverConfig | Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    metadata_score_value = metadata if metadata is not None else metadata_score(result, query)
-    section_boost_value = section if section is not None else section_boost(str(result.get("section") or ""), query)
-    evidence_quality_value = evidence_quality_score(result)
-    topical_alignment_value = topical_alignment_score(result, query)
+    resolved_config = coerce_retriever_config(config)
+    metadata_score_value = metadata if metadata is not None else (
+        metadata_score(result, query) * resolved_config.metadata_scale
+        if resolved_config.enable_metadata_boost
+        else 0.0
+    )
+    section_boost_value = section if section is not None else (
+        section_boost(str(result.get("section") or ""), query) * resolved_config.section_scale
+        if resolved_config.enable_section_boost
+        else 0.0
+    )
+    evidence_quality_value = evidence if evidence is not None else (
+        evidence_quality_score(result) * resolved_config.evidence_scale
+        if resolved_config.enable_evidence_adjustment
+        else 0.0
+    )
+    topical_alignment_value = topic if topic is not None else (
+        topical_alignment_score(result, query) * resolved_config.topic_scale
+        if resolved_config.enable_topic_adjustment
+        else 0.0
+    )
     combined = (
         combined_override
         if combined_override is not None
@@ -282,8 +470,8 @@ def format_result(
             1.0,
             max(
                 0.0,
-                keyword * 0.42
-                + semantic * 0.48
+                keyword * resolved_config.keyword_weight
+                + semantic * resolved_config.vector_weight
                 + metadata_score_value
                 + section_boost_value
                 + evidence_quality_value
@@ -314,7 +502,8 @@ def format_result(
             "section_boost": round(section_boost_value, 6),
             "evidence_quality": round(evidence_quality_value, 6),
             "topical_alignment": round(topical_alignment_value, 6),
-            "combined": round(combined if combined else normalize_score(result.get("score", 0.0)), 6),
+            "diversity_penalty": round(diversity, 6),
+            "combined": round(combined, 6),
         },
         "source": {
             key: value
@@ -478,19 +667,28 @@ def has_rag_signal(result: dict[str, Any]) -> bool:
     return bool(re.search(r"(?<![a-z0-9])rag(?![a-z0-9])", text)) or "retrieval augmented" in text or "retrieval-augmented" in text
 
 
-def diversify_ranked_entries(entries: list[dict[str, Any]], *, top_k: int) -> list[dict[str, Any]]:
+def diversify_ranked_entries(
+    entries: list[dict[str, Any]],
+    *,
+    top_k: int,
+    enabled: bool = True,
+    scale: float = 1.0,
+) -> list[dict[str, Any]]:
     selected: list[dict[str, Any]] = []
     remaining = [dict(entry) for entry in entries]
     while remaining and len(selected) < top_k:
         best_index = 0
         best_score = -1.0
         for index, entry in enumerate(remaining):
-            penalty = diversity_penalty(entry, selected)
+            penalty = diversity_penalty(entry, selected) * scale if enabled else 0.0
             score = max(0.0, float(entry["base_combined"]) - penalty)
             if score > best_score:
                 best_score = score
                 best_index = index
         picked = remaining.pop(best_index)
+        picked["diversity_penalty"] = round(
+            max(0.0, float(picked["base_combined"]) - best_score), 6
+        )
         picked["diversified_score"] = round(best_score, 6)
         selected.append(picked)
     return selected

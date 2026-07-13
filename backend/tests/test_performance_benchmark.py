@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.evaluation.performance_benchmark import percentile, summarize_samples
+from app.evaluation.performance_benchmark import execution_source_manifest, percentile, summarize_samples
 
 
 def test_percentile_uses_linear_interpolation() -> None:
@@ -24,3 +24,12 @@ def test_summary_keeps_failures_in_failure_rate_and_omits_failed_latency() -> No
     assert result["failure_rate"] == pytest.approx(1 / 3, abs=1e-6)
     assert result["elapsed_seconds"]["median"] == 2.0
     assert result["max_rss_kib"] == 120
+
+
+def test_execution_source_manifest_records_commit_status_and_source_hash() -> None:
+    result = execution_source_manifest()
+    assert len(result["commit"]) == 40
+    assert isinstance(result["dirty"], bool)
+    assert isinstance(result["dirty_paths"], list)
+    assert result["benchmark_source_path"] == "backend/app/evaluation/performance_benchmark.py"
+    assert len(result["benchmark_source_sha256"]) == 64

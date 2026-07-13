@@ -268,6 +268,8 @@ def build_release(
 ) -> dict[str, Any]:
     commit = git("rev-parse", "HEAD", root=root)
     short_commit = commit[:12]
+    commit_timestamp = int(git("show", "-s", "--format=%ct", commit, root=root))
+    release_timestamp = datetime.fromtimestamp(commit_timestamp, UTC).isoformat()
     dirty_status = git("status", "--porcelain", root=root)
     if dirty_status and not allow_dirty:
         raise RuntimeError("Refusing to build a release from a dirty worktree; commit changes or pass --allow-dirty")
@@ -330,7 +332,9 @@ def build_release(
         "tag_created": False,
         "source_commit": commit,
         "source_worktree_dirty": bool(dirty_status),
-        "generated_at": datetime.now(UTC).isoformat(),
+        # A source-commit timestamp, rather than wall-clock time, keeps archive
+        # bytes reproducible when the tracked inputs are unchanged.
+        "generated_at": release_timestamp,
         "availability": "sanitized research reproducibility bundle; repository visibility unchanged",
         "rights_boundary": (
             "TTLAB project authorization is not blanket third-party PDF redistribution permission. "
@@ -360,7 +364,6 @@ def build_release(
     manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
     entries[PurePosixPath(release_name) / "RELEASE_MANIFEST.json"] = manifest_bytes
 
-    commit_timestamp = int(git("show", "-s", "--format=%ct", commit, root=root))
     with tempfile.NamedTemporaryFile(prefix="ttlab-release-", suffix=".tar", delete=False) as handle:
         temporary_tar = Path(handle.name)
     try:
@@ -383,7 +386,7 @@ def build_release(
 
     archive_sha = sha256_path(archive_path)
     manifest["archive"] = {
-        "path": str(archive_path.relative_to(root)) if archive_path.is_relative_to(root) else str(archive_path),
+        "path": archive_path.name,
         "bytes": archive_path.stat().st_size,
         "sha256": archive_sha,
     }
@@ -407,26 +410,69 @@ def verify_release(archive_path: Path) -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
     members = 0
     with tarfile.open(archive_path, "r:gz") as archive:
-        names = [member.name for member in archive.getmembers() if member.isfile()]
-        if not any(name.endswith("/RELEASE_MANIFEST.json") for name in names):
+        archive_members = archive.getmembers()
+        names = [member.name for member in archive_members if member.isfile()]
+        if len(names) != len(set(names)):
+            raise RuntimeError("Release contains duplicate archive member names")
+        manifest_names = [name for name in names if name.endswith("/RELEASE_MANIFEST.json")]
+        checksum_names = [name for name in names if name.endswith("/SHA256SUMS")]
+        if len(manifest_names) != 1:
             raise RuntimeError("Release has no RELEASE_MANIFEST.json")
-        if not any(name.endswith("/SHA256SUMS") for name in names):
+        if len(checksum_names) != 1:
             raise RuntimeError("Release has no SHA256SUMS")
-        for member in archive.getmembers():
-            if not member.isfile():
-                continue
-            members += 1
+        roots = {PurePosixPath(name).parts[0] for name in names}
+        if len(roots) != 1:
+            raise RuntimeError("Release members do not share one archive root")
+        release_root = next(iter(roots))
+        payloads: dict[str, bytes] = {}
+        for member in archive_members:
             path = PurePosixPath(member.name)
             if path.is_absolute() or ".." in path.parts:
                 findings.append({"path": member.name, "finding": "unsafe_archive_path"})
                 continue
+            if not member.isfile():
+                continue
+            members += 1
             extracted = archive.extractfile(member)
             content = extracted.read() if extracted else b""
+            relative = path.relative_to(release_root).as_posix()
+            payloads[relative] = content
             for finding in scan_payload(path, content):
                 findings.append({"path": member.name, "finding": finding})
+        checksum_content = payloads.get("SHA256SUMS", b"").decode("utf-8")
+        checksum_entries: dict[str, str] = {}
+        for line_number, line in enumerate(checksum_content.splitlines(), start=1):
+            match = re.fullmatch(r"([0-9a-f]{64})  ([^\r\n]+)", line)
+            if not match:
+                findings.append({"path": "SHA256SUMS", "finding": f"malformed_checksum_line:{line_number}"})
+                continue
+            digest, relative = match.groups()
+            if relative in checksum_entries:
+                findings.append({"path": relative, "finding": "duplicate_checksum_entry"})
+                continue
+            checksum_entries[relative] = digest
+        expected_payloads = set(payloads) - {"SHA256SUMS", "RELEASE_MANIFEST.json"}
+        if set(checksum_entries) != expected_payloads:
+            missing = sorted(expected_payloads - set(checksum_entries))
+            unexpected = sorted(set(checksum_entries) - expected_payloads)
+            findings.append(
+                {
+                    "path": "SHA256SUMS",
+                    "finding": f"checksum_inventory_mismatch:missing={missing[:5]}:unexpected={unexpected[:5]}",
+                }
+            )
+        for relative, expected_digest in checksum_entries.items():
+            content = payloads.get(relative)
+            if content is not None and sha256_bytes(content) != expected_digest:
+                findings.append({"path": relative, "finding": "checksum_mismatch"})
     if findings:
         raise RuntimeError(f"Release verification failed: {findings[:10]}")
-    return {"status": "valid", "members": members, "archive_sha256": sha256_path(archive_path)}
+    return {
+        "status": "valid",
+        "members": members,
+        "checksum_entries_verified": len(checksum_entries),
+        "archive_sha256": sha256_path(archive_path),
+    }
 
 
 def build_parser() -> argparse.ArgumentParser:

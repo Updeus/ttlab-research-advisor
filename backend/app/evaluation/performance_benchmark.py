@@ -103,6 +103,21 @@ def hardware_manifest() -> dict[str, Any]:
     if meminfo.is_file():
         match = re.search(r"^MemTotal:\s+(\d+)\s+kB", meminfo.read_text(errors="replace"), re.MULTILINE)
         memory_kib = int(match.group(1)) if match else None
+    numerical_threads: dict[str, Any] = {
+        "omp_num_threads": os.getenv("OMP_NUM_THREADS"),
+        "mkl_num_threads": os.getenv("MKL_NUM_THREADS"),
+    }
+    try:
+        import torch
+
+        numerical_threads.update(
+            {
+                "torch_intraop_threads": torch.get_num_threads(),
+                "torch_interop_threads": torch.get_num_interop_threads(),
+            }
+        )
+    except Exception as exc:  # pragma: no cover - exercised only when optional dense dependencies are unavailable
+        numerical_threads["torch_status"] = f"unavailable:{type(exc).__name__}"
     return {
         "platform": platform.platform(),
         "kernel_release": platform.release(),
@@ -113,8 +128,29 @@ def hardware_manifest() -> dict[str, Any]:
         "python": platform.python_version(),
         "node": command_version(["node", "--version"]),
         "npm": command_version(["npm", "--version"]),
-        "concurrency": 1,
+        "process_concurrency": 1,
+        "numerical_kernel_threads": numerical_threads,
         "device": "CPU",
+    }
+
+
+def execution_source_manifest() -> dict[str, Any]:
+    """Freeze the source state that governs a benchmark execution.
+
+    The performance result is written only after this function's end-state
+    counterpart is captured, so the result file itself cannot make the
+    worktree appear dirty. Recording both boundaries detects concurrent edits
+    during long CPU-bound runs.
+    """
+
+    status = git_value("status", "--porcelain", "--untracked-files=all")
+    benchmark_source = Path(__file__).resolve()
+    return {
+        "commit": git_value("rev-parse", "HEAD"),
+        "dirty": bool(status),
+        "dirty_paths": status.splitlines(),
+        "benchmark_source_sha256": sha256_path(benchmark_source),
+        "benchmark_source_path": benchmark_source.relative_to(ROOT).as_posix(),
     }
 
 
@@ -637,8 +673,10 @@ def benchmark(
     stages: list[str],
     runtime_root: Path = ROOT,
 ) -> dict[str, Any]:
+    execution_start = execution_source_manifest()
     results: dict[str, Any] = {}
     for stage in stages:
+        print(f"[performance] stage={stage}", file=sys.stderr, flush=True)
         cold_samples: list[dict[str, Any]] = []
         cold_commands: list[str] = []
         for _ in range(repetitions):
@@ -673,6 +711,11 @@ def benchmark(
         }
 
     corpus = corpus_manifest(database)
+    execution_end = execution_source_manifest()
+    if execution_start["commit"] != execution_end["commit"]:
+        raise RuntimeError("Git commit changed while the performance benchmark was running")
+    if execution_start["benchmark_source_sha256"] != execution_end["benchmark_source_sha256"]:
+        raise RuntimeError("Performance benchmark source changed while the benchmark was running")
     results["ocr"] = {
         "status": "not_applicable",
         "reason": "No eligible corpus paper used OCR in the frozen snapshot; no OCR latency metric is reported.",
@@ -692,17 +735,18 @@ def benchmark(
             "summary": "Linear-interpolation p95 and median over successful repetitions; failures remain in the denominator.",
             "repetitions": repetitions,
             "document_limit": document_limit,
-            "concurrency": 1,
+            "process_concurrency": 1,
+            "concurrency_note": (
+                "One benchmark probe process runs at a time; dense numerical kernels may use the recorded "
+                "PyTorch/OpenMP worker-thread configuration."
+            ),
             "runtime_root": str(runtime_root),
             "network_discovery": "one TTLAB archive page per repetition; network and remote-server latency are included",
             "memory": "GNU time maximum resident set size (KiB) for the probe process, where available",
         },
         "hardware": hardware_manifest(),
         "corpus": corpus,
-        "git": {
-            "commit": git_value("rev-parse", "HEAD"),
-            "dirty": bool(git_value("status", "--porcelain")),
-        },
+        "execution_source": {"start": execution_start, "end": execution_end},
         "results": results,
         "limitations": [
             "Process-cold runs do not flush the Linux page cache or model files from the operating-system cache.",

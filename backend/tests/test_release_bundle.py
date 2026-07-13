@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import tarfile
 from pathlib import Path, PurePosixPath
 
-from app.reproducibility.release import sanitize_json, scan_payload, should_include
+import pytest
+
+from app.reproducibility.release import build_release, sanitize_json, scan_payload, should_include, verify_release
 
 
 def test_release_policy_excludes_runtime_corpus_and_all_pdfs() -> None:
@@ -37,3 +41,50 @@ def test_payload_scanner_detects_secrets_absolute_paths_and_pdf_magic() -> None:
 def test_sanitized_value_remains_json_serializable() -> None:
     sanitized, _ = sanitize_json({"answer": "source-like output", "score": 0.5})
     assert json.loads(json.dumps(sanitized))["score"] == 0.5
+
+
+def _git(root: Path, *args: str) -> None:
+    subprocess.run(["git", *args], cwd=root, check=True, capture_output=True, text=True)
+
+
+def test_release_is_deterministic_and_verifies_every_payload_checksum(tmp_path: Path) -> None:
+    root = tmp_path / "source"
+    (root / "backend/app").mkdir(parents=True)
+    (root / "data/seed").mkdir(parents=True)
+    (root / "backend/app/main.py").write_text("print('safe')\n")
+    (root / "README.md").write_text("reproducible\n")
+    (root / ".gitignore").write_text("build/\n")
+    (root / "data/seed/papers.json").write_text(
+        json.dumps([{"paper_id": "p1", "title": "Allowed metadata", "pdf_path": "/private/p1.pdf"}])
+    )
+    _git(root, "init")
+    _git(root, "config", "user.email", "test@example.invalid")
+    _git(root, "config", "user.name", "Release Test")
+    _git(root, "add", ".")
+    _git(root, "commit", "-m", "fixture")
+
+    output_root = root / "build/releases"
+    first = build_release(root=root, output_root=output_root, version="test")
+    archive = output_root / first["archive"]["path"]
+    first_sha = first["archive"]["sha256"]
+    result = verify_release(archive)
+    assert result["checksum_entries_verified"] >= 3
+    second = build_release(root=root, output_root=output_root, version="test")
+    assert second["archive"]["sha256"] == first_sha
+    assert second["generated_at"] == first["generated_at"]
+
+
+def test_release_verifier_rejects_tampered_payload_even_when_content_scan_is_clean(tmp_path: Path) -> None:
+    archive_path = tmp_path / "tampered.tar.gz"
+    root = "release"
+    with tarfile.open(archive_path, "w:gz") as archive:
+        for name, content in {
+            f"{root}/README.md": b"changed but superficially safe\n",
+            f"{root}/SHA256SUMS": ("0" * 64 + "  README.md\n").encode(),
+            f"{root}/RELEASE_MANIFEST.json": b"{}\n",
+        }.items():
+            path = tmp_path / Path(name).name
+            path.write_bytes(content)
+            archive.add(path, arcname=name)
+    with pytest.raises(RuntimeError, match="checksum_mismatch"):
+        verify_release(archive_path)

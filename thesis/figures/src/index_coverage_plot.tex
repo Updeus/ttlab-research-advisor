@@ -1,7 +1,7 @@
 \begin{tikzpicture}
 \begin{axis}[
   xbar,
-  width=0.96\linewidth,
+  width=0.84\linewidth,
   height=58mm,
   xmin=0,
   xmax=780,
@@ -16,6 +16,6 @@
   grid=major,
   grid style={gray!15}
 ]
-\addplot[fill=Blue!60,draw=Blue!90!black] coordinates {(719,Learned dense) (719,Feature hashing) (719,Keyword FTS)};
+\addplot[fill=Blue!60,draw=Blue!90!black] table[x=indexed_chunks,y=provider,col sep=comma] {generated/chunk_embedding_status.csv};
 \end{axis}
 \end{tikzpicture}

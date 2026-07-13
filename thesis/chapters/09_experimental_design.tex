@@ -1,52 +1,63 @@
 \chapter{Experimental Design}
 \label{ch:experiments}
 
-\section{Completed technical verification}
+\section{Overview}
 
-Completed verification comprises source/schema audit, file and database consistency checks, automated tests against an isolated database, representative API probes against a disposable database copy, a clean frontend dependency/build run, browser inspection of eight main surfaces, and LaTeX build/render inspection. These procedures answer whether the snapshot is internally reproducible and demonstrable; they do not answer whether users receive relevant or faithful advice.
-
-\section{Implemented retrieval metrics}
-
-For query $q$, with retrieved paper list $L_q$ and gold set $G_q$, the code reports a binary hit indicator called Recall@$k$:
-\begin{equation}
-\operatorname{Hit@}k(q)=\mathbb{I}\!\left[G_q\cap L_q[1{:}k]\neq\varnothing\right].
-\label{eq:hitk}
-\end{equation}
-The implementation averages this indicator over queries. It is therefore a hit rate, not set recall $|G_q\cap L_q[1{:}k]|/|G_q|$. Mean reciprocal rank is
-\begin{equation}
-\operatorname{MRR}=\frac{1}{|Q|}\sum_{q\in Q}\frac{1}{\operatorname{rank}_q},
-\label{eq:mrr}
-\end{equation}
-with zero when no gold paper is retrieved. The sample retrieval and QA files contain empty gold labels and intentionally fail validation, so neither metric has a current result.
-
-\section{Proposed retrieval experiment}
-
-A versioned test set should stratify questions by exact fact, method, result, limitation/future work, topic, author, comparison, and broad intent. Keyword, hashing-vector, and hybrid modes should use the same corpus, cut-offs, and paper filtering. Primary outcomes should include set Recall@3/5, hit rate, MRR, nDCG where graded judgments are available, and per-intent error analysis. Query-expansion and reranking terms should be ablated. The active vector index must first be rebuilt for all 756 chunks and status consistency verified.
-
-\section{Proposed QA evaluation}
-
-Each answer should be decomposed into checkable claims. Reviewers should label whether each claim is entailed by its cited snippet, whether the citation points to the right paper/page, whether important answer points are covered, and whether unsupported general knowledge appears. Automatic RAG measures may supplement but not replace these labels \cite{es2024ragas,saadfalcon2024ares,min2023factscore}. Provider, model hash/tag, prompt, temperature, retrieval list, and fallback state must be stored.
-
-\section{Proposed recommendation evaluation}
-
-Students and supervisors should independently rate paper relevance, gap fidelity, novelty, feasibility for the stated time/skills/data, usefulness of the MVP, risk calibration, and appropriateness of the evaluation plan. Reviewers must separately judge source claims and system suggestions. A comparison baseline could present retrieved papers without generated extension advice. \authorinput{approve participant groups, sample size, rating scales, compensation, consent, and analysis}.
-
-\section{Proposed topic/author and summary evaluation}
-
-Topic evaluation should measure label precision/coverage and reviewer agreement against the fixed taxonomy, including multi-label cases and an ``other'' outcome. Author evaluation should first resolve identities, then assess expertise links. Public and technical summaries should be reviewed for correctness, relevance, coherence, and readability, drawing on human-centred evaluation lessons from SummEval \cite{fabbri2021summeval}.
-
-\section{Evaluation workflow and current state}
+\Cref{fig:evaluation-workflow} separates evaluation evidence into offline quality, engineering verification, and external-only validation. All datasets store schemas, source/rationale fields, reviewer type, timestamps, review passes, and hashes. Raw full-text prompts remain local when redistribution would expose third-party passages; sanitized labels and hashes remain in the release.
 
 \begin{figure}[htbp]
 \centering
-\begingroup\hfuzz=100pt\resizebox{\textwidth}{!}{\input{figures/src/evaluation_workflow}}\endgroup
-\caption{Implemented and proposed evaluation workflow. Gold retrieval/QA labels and human reviews are absent in the audited snapshot.}
+\resizebox{0.99\textwidth}{!}{\input{figures/src/evaluation_workflow}}
+\caption[Executed evaluation workflow and evidence boundary.]{Executed evaluation workflow. AI-reviewed silver evidence is versioned separately from external human or institutional validation.}
 \label{fig:evaluation-workflow}
 \end{figure}
 
-\begin{figure}[htbp]
+\section{Experiment inventory}
+
+\Cref{tab:experiment-inventory} lists the executed unit, comparison, and primary outcomes for every experiment family.
+
+\begin{table}[htbp]
 \centering
-\projectScreenshot{figures/screenshots/evaluation.png}{0.96\textwidth}
-\caption{Evaluation dashboard correctly displaying not-run and placeholder states rather than inferred performance.}
-\label{fig:evaluation-shot}
-\end{figure}
+\small
+\caption{Executed experiments, units, and primary outcomes.}
+\label{tab:experiment-inventory}
+\begin{tabularx}{\textwidth}{P{31mm}P{31mm}P{35mm}Y}
+\toprule
+Experiment & Cases/unit & Comparison & Primary outcomes \\
+\midrule
+Section quality & \SectionSilverCaseCount{} chunks & predicted versus AI-silver section & accuracy, coverage, macro precision/recall \\
+Retrieval & \RetrievalCaseCount{} questions (\RetrievalDevCount{} dev/\RetrievalTestCount{} test) & keyword, hashing, dense, heuristic/tuned hybrid & set Recall, Hit, Precision, MRR, nDCG, abstention, paired tests \\
+QA & \QaCaseCount{} answers; \QaClaimCount{} claims; \QaAnswerPointCount{} points & offline extractive outputs against source evidence & claim support, citation correctness/completeness, point coverage, abstention \\
+Recommendation & \RecommendationProfileCount{} profiles; \RecommendationItemCountPerArm{} items/arm & evidence-only versus full finder & proxy relevance, source/claim boundaries, feasibility, scope, risk, sensitivity \\
+Topics & \TopicCaseCount{} papers (\TopicDevCount{} dev/\TopicTestCount{} test) & controlled lexical versus dense prototype & multi-label precision, recall, F1, coverage \\
+Author identity & \RawAuthorRowCount{} rows & schema/source invariants & leakage, collisions, mismatches, overclaims, unresolved candidates \\
+Generated outputs & \GeneratedReviewTotalCount{} stored records & review pass one versus idempotence pass & status/correction/event integrity \\
+Performance & full-corpus workloads & process-cold versus warm & median, p95, RSS, failures, units \\
+External sanity & \ExternalSanityDocumentCount{} CC BY papers & fixed lexical discriminators & acquisition/license validation, top-1 format smoke result \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Retrieval configuration}
+
+The retrieval dataset contains all eleven specified strata, including four out-of-corpus cases overall. The deterministic split assigns \RetrievalDevCount{} cases to development and \RetrievalTestCount{} to test; the held-out set contains \RetrievalAnswerableTestCount{} answerable and \RetrievalUnanswerableTestCount{} unanswerable case. All methods use the \texttt{\CorpusSnapshotId} corpus, top 150 chunks per component for frozen candidate pools, a top-50 chunk depth, and top ten unique papers. Unjudged papers count as non-relevant.
+
+Development tuning searched nine keyword/dense weight pairs from 0.10/0.80 to 0.80/0.10, with a 0.42/0.48 implementation reference. The objective was development MRR with fixed secondary rules. The selected tuned configuration used keyword 0.10, dense 0.80, and all heuristic adjustments enabled. Sensitivity tested nearby 0.05/0.85, 0.15/0.75, 0.20/0.70, and 0.30/0.60 weights. Individual ablations removed one component from the selected hybrid; cumulative ablations added components in the documented order.
+
+\section{QA review procedure}
+
+The offline extractive answerer generated all 50 reviewed answers. Each atomic corpus claim was linked to inline source IDs and returned citation records. The AI reviewer performed a support-first creation pass and a shuffled contradiction-focused verification pass; the verification label was final, with disagreements retained. The metrics use strict treatment of partial labels. Confidence intervals resample whole QA cases 10,000 times, preserving within-case claim correlation. They do not include AI-label uncertainty.
+
+An Ollama comparison was attempted at the configured local endpoint on port 11434. CLI version 0.21.2 was present, but version, tags, and process endpoints refused connections. No installed model, digest, quantisation, response, or latency could be verified, so the comparison is reported as unavailable rather than approximated.
+
+\section{Recommendation, topic, and review protocols}
+
+The 28 synthetic profiles span one-month, two-week, and semester timelines; software, ML, analysis, dashboard, literature-support, and other project types; public/synthetic/no-external/supervisor data constraints; easy/medium/hard preferences; and avoid topics. Both arms return three items. Review criteria are applied to every item in two shuffled AI passes. The paired relevance contrast and sensitivity results resample profiles, not individual recommendations.
+
+The topic dataset contains 36 development and 24 test papers, covers all controlled labels across the full dataset, includes 51 multi-label cases and four \texttt{other/unknown} cases. The dense threshold (0.20) was selected by development micro-F1, with macro-F1 and higher threshold as tie-breakers. Test data were not used for selection. The author audit checks only source-backed invariants; candidate merges are preserved for external identity confirmation.
+
+Generated-output review covers every stored RAG answer, recommendation run, and paper artifact. The procedure records rationale, citation locators, corrections, actor type, and chained event hashes. Configuration-incomplete historical outputs remain \texttt{needs\_reprocess}; they are not deleted or silently regenerated.
+
+\section{Performance and reproducibility protocol}
+
+The full benchmark uses three process-cold and three warm repetitions at concurrency one. Each workload runs in an isolated database/index/output context and retains raw timing and bounded errors. The operating-system cache is not flushed. A linearly interpolated p95 over three observations is coarse and is reported only as a local baseline. The one-command reproduction path verifies dependencies, rebuilds allowed derived state, runs evaluations and tests, compiles both manuscripts, performs PDF preflight, builds the sanitized release, and emits hashes. Exact full-corpus reruns require lawful access to local PDFs and the pinned dense model.

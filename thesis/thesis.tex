@@ -1,6 +1,7 @@
 \documentclass[12pt,oneside,openany]{book}
 \input{preamble}
 \input{metadata}
+\input{generated/evidence_macros}
 
 \begin{document}
 
@@ -16,27 +17,22 @@
   \vspace{6mm}
   {\Large\color{Slate} \thesissubtitle\par}
   \vfill
-  {\large A thesis submitted in partial fulfilment of the requirements for the degree of\par}
-  \vspace{3mm}
-  {\Large\bfseries \programmename\par}
+  {\Large\bfseries \projectcontext\par}
   \vspace{12mm}
-  \begin{tabular}{rl}
-    Candidate: & \studentname \\
-    Student ID: & \studentid \\
-    Email: & \href{mailto:\studentemail}{\studentemail} \\
-    Country: & \studentcountry \\
-    Supervisor: & \supervisorname \\
-    Submission: & \submissiondate
-  \end{tabular}
+  {\large\textbf{Jarod Esareesingh}\par}
+  \vspace{3mm}
+  {\large\href{mailto:\studentemail}{\studentemail}\par}
+  \vspace{3mm}
+  {\large\studentcountry\par}
   \vfill
-  {\small Repository evidence snapshot: HEAD \texttt{713ea5c} plus seven enumerated pre-existing working-tree changes, audited 11 July 2026.\par}
+  {\small Evidence snapshot \texttt{\CorpusSnapshotId}; editable manuscript and generated metrics are version controlled.\par}
 \end{titlepage}
 
 \include{chapters/00_abstract}
 
-\chapter*{Declaration and Acknowledgements}
-\addcontentsline{toc}{chapter}{Declaration and Acknowledgements}
-\authorinput{Insert the university-approved authorship declaration, disclosure of AI-assisted tools, copyright statement, and acknowledgements.}
+\chapter*{Statement of Scope and AI Assistance}
+\addcontentsline{toc}{chapter}{Statement of Scope and AI Assistance}
+This thesis reports software engineering, document processing, controlled offline experiments, and AI-assisted formative review. No human participants were recruited. TTLAB authorized the project and use of the laboratory corpus; that authorization is not represented as research-ethics approval or as permission to redistribute third-party PDFs. OpenAI Codex assisted materially with repository inspection, code changes, test preparation, AI-silver label creation and verification, analysis, and manuscript editing. The reviewer identity is retained as \texttt{codex-ai-review}; all resulting labels are described as AI-reviewed silver labels rather than human judgments. Jarod Esareesingh is the named thesis author. Any institution-specific authorship declaration, conflict statement, or submission attestation remains an external submission requirement and is not fabricated here.
 
 \tableofcontents
 \listoffigures
@@ -44,19 +40,21 @@
 
 \chapter*{List of Abbreviations}
 \addcontentsline{toc}{chapter}{List of Abbreviations}
-\begin{description}[style=nextline,leftmargin=30mm]
+\begin{description}[style=nextline,leftmargin=32mm]
   \item[API] Application Programming Interface
-  \item[BM25] Best Matching 25 probabilistic retrieval function
+  \item[CI] Confidence Interval
   \item[DOI] Digital Object Identifier
   \item[FTS] Full-Text Search
   \item[LLM] Large Language Model
   \item[MRR] Mean Reciprocal Rank
   \item[MVP] Minimum Viable Product
+  \item[nDCG] Normalized Discounted Cumulative Gain
+  \item[OCR] Optical Character Recognition
   \item[PDF] Portable Document Format
   \item[QA] Question Answering
   \item[RAG] Retrieval-Augmented Generation
   \item[RQ] Research Question
-  \item[TTLAB] \authorinput{official expansion of TTLAB}
+  \item[TTLAB] Laboratory/project identifier used by the source archive and platform; no unverified acronym expansion is asserted
   \item[UI] User Interface
 \end{description}
 

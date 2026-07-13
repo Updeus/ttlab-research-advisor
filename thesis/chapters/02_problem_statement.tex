@@ -1,41 +1,48 @@
 \chapter{Problem Statement}
 \label{ch:problem}
 
-The practical problem is a mismatch between a publication archive and the questions its users need answered. A student may ask which paper is feasible to extend in one semester; an industry user may ask which researchers work on a problem; a researcher may need a public explanation of a technical contribution. Answering these questions requires evidence distributed across full papers, metadata, authorship relations, and generated interpretations.
+The practical problem is a mismatch between a publication archive and the questions its users need answered. A student may ask which paper matches a set of interests and constraints, what the paper actually did, which extension is new system advice, and how the extension could be evaluated. A researcher may want an accurate technical or public summary. A public or industry user may seek publications related to a problem or authors whose indexed work provides evidence of a possible connection. These answers require evidence distributed across full papers, metadata, authorship relations, and generated interpretation.
 
-Three risks make a naive chatbot unsuitable. First, metadata-only retrieval can omit methods, limitations, experiments, and future work that appear only in the paper body. Second, generated prose can merge retrieved facts with unsupported suggestions. Third, an apparently polished interface can obscure missing PDFs, incomplete indexes, parsing errors, or the absence of human validation. Retrieval-augmented generation (RAG) can make retrieved evidence available to a generator \cite{lewis2020rag}, but retrieval and citation display do not automatically make an answer correct.
+Four risks make a naive archive chatbot unsuitable. First, metadata-only retrieval omits methods, results, limitations, and future work present only in the paper body. Second, PDF acquisition and extraction can silently introduce missing text, scanned pages, malformed metadata, or document-identity errors. Third, generation can merge retrieved facts with inferred gaps and novel suggestions. Fourth, a polished interface can conceal incomplete indexes, weak abstention, low answer coverage, unresolved identities, or unreviewed outputs. RAG supplies evidence to a generator \cite{lewis2020rag}; it does not eliminate these risks.
 
 The research problem is therefore:
 
 \begin{quote}
-How can a small, locally operated system transform a laboratory publication snapshot into a reproducible, inspectable research-advice workflow in which full-text evidence, generated interpretation, review state, and evaluation status remain distinguishable?
+How can a small, locally operated system transform a laboratory publication snapshot into a reproducible and inspectable research-intelligence workflow in which full-text evidence, generated interpretation, review state, evaluation state, and residual uncertainty remain distinguishable?
 \end{quote}
 
-\section{Stakeholders and information needs}
+\section{Stakeholders and failure consequences}
+
+The task/risk mapping in \cref{tab:stakeholders} determines which evidence and warnings each interface must expose.
 
 \begin{table}[htbp]
 \centering
-\caption{Stakeholders, primary tasks, and principal failure risks.}
+\small
+\caption{Stakeholders, tasks, and principal failure risks.}
 \label{tab:stakeholders}
 \begin{tabularx}{\textwidth}{P{27mm}YY}
 \toprule
-Stakeholder & Task & Principal risk \\
+Stakeholder & Primary task & Principal risk \\
 \midrule
-Student & discover relevant work and scope an extension & suggestion presented as a claim made by the source paper \\
-Researcher & improve discoverability and produce accessible summaries & inaccurate or decontextualised representation \\
-Public/industry user & connect a problem to papers or potential collaborators & expertise inferred from noisy authorship/topic data \\
-Administrator & correct metadata and approve generated outputs & unauthenticated or incomplete review workflow \\
-Evaluator & judge retrieval, grounding, and usefulness & structural checks mistaken for empirical quality \\
+Student & find papers and scope a feasible extension & system suggestion presented as source fact, or feasibility presented as validated \\
+Researcher & improve discoverability and explanation & inaccurate, incomplete, or decontextualised representation \\
+Public/industry user & connect a problem to papers or people & publication-derived topic relation presented as endorsement or current availability \\
+Reviewer/admin & correct metadata and generated outputs & unauthorised mutation, unattributed decisions, or AI review confused with approval \\
+Evaluator & assess retrieval, grounding, and usefulness & coverage or structural traceability mistaken for quality \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{Scope}
 
-The implemented scope is deliberately local and bounded: a manually inspectable corpus; SQLite persistence; local PDFs; deterministic processing; a React interface; an offline extractive answerer; and an optional local Ollama adapter. Authentication, production deployment, unrestricted crawling, optical character recognition, learned topic modelling, trained recommendation models, external OpenAI generation, and audio synthesis are outside the implemented scope.
+The implemented scope comprises a \CatalogPaperCount{}-record catalog; permitted local PDFs; deterministic and optional OCR-aware extraction; page-aware chunks; SQLite persistence; React/Vite presentation; FastAPI services; keyword, feature-hashing, learned dense, and hybrid retrieval; an offline extractive answerer and optional local Ollama adapter; evidence-only and full extension workflows; controlled topic/author discovery; generated summaries and text podcast scripts; AI and human review states; and offline evaluation.
 
-The intended institutional identity and corpus boundary still require confirmation: \authorinput{confirm the official laboratory name, acronym expansion, and whether the 134-record seed is an exhaustive date-bounded snapshot}.
+The study does not include unrestricted crawling, paywall bypass, hosted proprietary generation, participant recruitment, supervisor validation, researcher endorsement, audio synthesis, capacity/load testing, or production deployment. The optional OCR path is implemented and tested, but the frozen corpus records no OCR-completed pages; no OCR performance result is reported. The platform name uses the laboratory identifier present in repository and archive evidence without asserting an unverified acronym expansion.
+
+\section{Operational definitions}
+
+\emph{Source-traceable} means that an output retains persistent paper, chunk, page/section, provider/model, timestamp, warning, and review-state fields. \emph{Structurally grounded} means required citation fields and retrieved-chunk membership pass deterministic checks. Neither term is synonymous with factual entailment. \emph{AI-reviewed silver} denotes labels created and verified in two passes by the same declared AI reviewer process; it is not human gold data or human inter-rater agreement. \emph{Eligible corpus} denotes records with a verified or accepted PDF/text identity under the frozen inclusion rules; catalog records without text and suspected PDF/title mismatches remain visible but are excluded from retrieval experiments.
 
 \section{Success criteria}
 
-For this thesis, implementation success means that the artefact can be built and exercised reproducibly, retains page/chunk provenance, reports failure states, and exposes generated material for review. Empirical success would additionally require labelled retrieval cases, answer and citation judgments, recommendation review, participant or expert protocol, and appropriate analysis. The first can be established from the repository; the second has not yet been established.
+Engineering success requires deterministic processing, complete authoritative indexes for every eligible chunk, stable provenance fields, explicit degraded states, protected review mutations, reproducible builds, and a sanitized release. Empirical success is evaluated separately: retrieval quality relative to baselines, atomic claim support, citation correctness and completeness, answer-point coverage, abstention, recommendation proxy criteria, controlled-topic performance, section-label quality, review consistency, and bounded performance. Human usefulness remains outside the evidential scope.

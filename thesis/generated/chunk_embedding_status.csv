@@ -1,3 +1,4 @@
-embedding_status,count,average_estimated_tokens
-not_indexed,456,967.4
-indexed:hashing,300,901.4
+provider,indexed_chunks
+Keyword FTS,719
+Feature hashing,719
+Learned dense,719

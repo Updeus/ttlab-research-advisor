@@ -1,45 +1,38 @@
 \chapter{Limitations, Ethics and Threats to Validity}
 \label{ch:limitations}
 
-\section{Technical limitations}
+\section{Technical and empirical limitations}
 
-The corpus is incomplete, OCR is absent, section and sentence detection are heuristic, and metadata lacks structured abstracts, DOIs, and keywords. The active vector index is partial and its database statuses are stale. The only operational vector representation is lexical feature hashing. Hybrid and recommendation weights are not tuned. Topic classification uses a fixed taxonomy. Author identity resolution is incomplete. The OpenAI adapter is a stub, the local Ollama service was not reproducible during the audit, and text podcasts have no audio output.
+Only \EligiblePaperCount{} of \CatalogPaperCount{} catalog records enter full-text experiments. Thirty-six lack eligible text and two suspected PDF/title mismatches require external resolution. Native extraction is heuristic; no frozen-corpus document used OCR. The 199 unknown-section chunks constrain section-aware ranking. Metadata lacks verified DOI, abstract, and keyword coverage for many records. Thirteen author identity candidates remain unresolved.
 
-The frontend lacks deep links, authentication, authorization, production deployment configuration, and a complete extraction-review surface. The dashboard can show empty top topics despite populated explorer data, and raw marker syntax can appear in the UI. These are not cosmetic details when the system is intended for public evidence communication.
+The retrieval set has 50 AI-silver cases and only 20 held-out cases. Its single held-out unanswerable case makes the false-positive rate unstable. AI-created relevance pools may omit relevant papers; unjudged documents are treated as non-relevant. The strongest cumulative ablation was inspected after final configuration selection. Confidence intervals omit label and corpus-selection uncertainty.
 
-\section{Evaluation limitations}
+QA results are derived from one offline extractive answerer and one AI-review process. High support partly reflects extraction rather than synthesis ability. Citation correctness and answer coverage are weak, and all unanswerable cases received answers. The local Ollama service was unavailable, so no generative-model comparison exists. Recommendation and topic findings are AI-proxy/silver results, not student, supervisor, researcher, or public judgments. The performance benchmark uses concurrency one, three cold and three warm repetitions, one machine, and a local WSL2 environment; it is not capacity or production testing.
 
-No valid retrieval or QA benchmark has been run. Placeholder citation-coverage cases cannot validate correctness. Persisted grounding labels test structure and low lexical overlap only. No human review events, reviewer scores, agreement measures, user study, ablation, latency benchmark, hardware record, statistical test, or external baseline comparison exists. The thesis is consequently unable to establish retrieval effectiveness, answer faithfulness, topic quality, recommendation usefulness, user satisfaction, or generalisability.
+\section{Ethics, permissions, and responsible AI}
 
-\section{Ethical and responsible-AI considerations}
+TTLAB explicitly authorized the project and use of the laboratory corpus. This fact does not establish research-ethics-board approval or exemption, ownership of third-party publications, or blanket redistribution permission. No human participants were recruited; no satisfaction, usability, educational benefit, or supervisor-approval claim is made. If a later human study is undertaken, institutional ethics determination, informed consent, recruitment, retention, compensation, and withdrawal procedures must precede data collection.
 
-Potential harms include misattributing research expertise, recommending infeasible or non-novel thesis work, exposing copyrighted text beyond justified quotation, retaining personal student profiles, and presenting generated interpretations as researcher-endorsed claims. Language-model systems also carry broader misinformation and interaction risks \cite{weidinger2022taxonomy}. The interface's generated notices, citations, gap labels, review states, and warnings are risk controls, but they require functioning governance.
+Potential harms include source misrepresentation, inappropriate thesis advice, expertise misattribution, copyright overexposure, privacy leakage from project profiles, malicious documents, and unauthorised review changes. Controls include source locators, fact/inference/suggestion labels, AI/human review separation, warnings, evidence-only mode, transient profiles, authenticated mutations, append-only event hashes, PDF/downloader limits, and a sanitized release. These controls reduce risk; they do not amount to institutional approval or human verification.
 
-Before public deployment the project needs:
+Codex/LLM assistance was material in coding, evidence inspection, test and evaluation preparation, AI-silver labeling, analysis, and manuscript editing. Reviewer IDs, prompts or prompt hashes, seeds, and limitations are persisted. The exact underlying Codex model digest was not exposed by the runtime and was not invented. This disclosure should be reconciled with the University's current submission policy by the author/institution before formal submission.
 
-\begin{itemize}
-  \item confirmation of document-processing and snippet-display rights;
-  \item a privacy notice, lawful basis, retention policy, deletion path, and access controls for student inputs;
-  \item verified author identity and a correction/appeal process;
-  \item authenticated, attributable review with versioned approvals;
-  \item accessibility, security, and abuse testing; and
-  \item an institutional AI-assistance disclosure consistent with university policy.
-\end{itemize}
+\section{Construct validity}
 
-\authorinput{state ethics approval or exemption, document permissions, participant consent arrangements, data-retention decisions, and the required AI-use declaration}.
+Set Recall@$k$, Hit@$k$, MRR, nDCG, citation correctness, citation completeness, supported-claim rate, answer-point coverage, and abstention are defined separately. ``Grounded'' in operational records denotes structural checks, not entailment. Topic score denotes controlled or prototype label evidence, not topic truth. Recommendation score denotes heuristic fit, not usefulness, novelty, or feasibility. AI-review consistency is not human inter-rater reliability. Index coverage and test counts are engineering properties, not effectiveness.
 
-\section{Threats to internal validity}
+\section{Internal validity}
 
-The audit reflects one working-tree snapshot that includes seven pre-existing uncommitted application/test modifications. Temporary database isolation reduces mutation risk, but one test writes an ignored generated artefact. Runtime probes use representative questions selected for diagnostic breadth rather than a preregistered sample. Manual interface inspection can miss intermittent or device-specific faults.
+Development/test separation reduces direct tuning leakage, and the retrieval runner freezes candidate pools and controls. Nevertheless, source-derived questions and labels were produced within one remediation process and may reflect the system's corpus vocabulary. The same AI reviewer created and verified labels, even though order and review lens changed. Error taxonomy tags are diagnostic signals and do not establish causal mechanisms. Background load, WSL scheduling, caches, and remote-server behavior influence performance.
 
-\section{Threats to construct validity}
+\section{External validity}
 
-The code's \texttt{Recall@k} is a binary hit measure rather than set recall. \texttt{Grounded} denotes structural citation checks, not entailment. Topic score denotes lexical-rule evidence, not topic truth. Recommendation score denotes rule fit, not usefulness or feasibility. Treating these names as their stronger everyday meanings would invalidate conclusions.
+The system and controlled taxonomy are tailored to one laboratory, English-language records, and a small local corpus. Archive markup, disciplinary terminology, PDF quality, and user goals will differ elsewhere. The three-document Europe PMC check covers only CC BY life-science JATS/XML and trivial lexical queries. It cannot support claims about other institutions, languages, domains, or large corpora. No human study supports generalisation to student decision-making or public understanding.
 
-\section{Threats to external validity}
+\section{Reproducibility validity}
 
-The system is tailored to one laboratory archive and a small local corpus. Archive markup, publication genres, and metadata quality may differ elsewhere. Rule-based topics and query expansions are domain-specific. Results cannot be generalized to other institutions, corpora, languages, or production workloads without replication.
+Code, schemas, labels, raw sanitized results, model revision/hash, environment metadata, seeds, and manifests are versioned. Index validators bind derived state to the corpus. Exact replication still depends on lawful source access, changing remote archives, availability of the pinned model artifact, operating-system/toolchain differences, and externally excluded full-text review prompts. The release distinguishes open analytical reproduction from conditional full-corpus reproduction rather than claiming that both are identical.
 
-\section{Threats to reproducibility}
+\section{Security and deployment limitations}
 
-The ignored database and derived data are not wholly represented by Git history. A local model tag does not guarantee identical model bytes. External archive content can change. The thesis mitigates these issues with hashes, generated snapshots, explicit Git state, local build scripts, and separation of reproduced from historical evidence; a release should additionally archive the permitted corpus, model digest, dependency lockfiles, and environment image.
+The repository provides a fail-closed production configuration boundary, but it is not a hosted service. TLS, reverse proxy, identity-provider lifecycle, central monitoring, backups, incident response staffing, legal notices, accessibility conformance assessment, and operational correction processes remain deployment-specific. External IEEE PDF Express/Checker validation and any venue/institutional declarations require credentials and authorized human attestations.

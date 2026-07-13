@@ -1,34 +1,34 @@
 \chapter{Discussion}
 \label{ch:discussion}
 
-\section{From archive to inspectable advice}
+\section{Traceability is an engineering property, not an accuracy score}
 
-The artefact advances beyond a publication list in a concrete sense: 98 papers are represented as page-aware evidence, retrieval outputs expose chunk/page provenance, recommendations separate retrieved gaps from generated proposals, and review status follows generated items. This integration makes the reasoning path more inspectable than an abstract-only or answer-only interface.
+The platform now preserves paper, chunk, page/section, provider, warning, timestamp, and review state through its principal workflows. Complete manifest coverage eliminates the earlier ambiguity between active index files and stale database flags. These are meaningful engineering results because they make an output auditable and a stale index detectable. They do not make the output correct.
 
-That same evidence reveals why the system should not yet be presented as a validated advisor. A user can see a citation but still receive an incomplete or topically diffuse answer. A student can see an attractive extension plan whose novelty and feasibility have never been reviewed. An industry user can see an author-topic link produced from a malformed identity. Traceability reduces the cost of checking; it does not perform the check.
+The QA evaluation illustrates the distinction. Strict local claim support was \QaSupportedClaimRate{} and citation presence was \QaCitationCompleteness{}, yet citation correctness was \QaCitationCorrectness{} and answer-point coverage was \QaAnswerPointCoverage{}. Extractive composition largely avoided unsupported statements by copying supported passages, but it selected too much off-topic evidence and omitted much of the requested information. Traceability reduces the cost of diagnosis; it does not substitute for diagnosis.
 
-\section{RQ1: coverage is useful but incomplete}
+\section{Simple lexical retrieval remained competitive}
 
-The ingestion pipeline demonstrates reproducible full-text processing for 73.13\% of the catalogue. One-to-one derived files and successful database integrity checks support a bounded conclusion about internal consistency. Missing PDFs, absent OCR, heuristic sentence boundaries, and 32.94\% unknown sections limit any stronger claim about corpus completeness or extraction quality. The platform should expose both paper-level availability and chunk-level diagnostics to users and evaluators.
+Keyword retrieval produced the highest held-out MRR and nDCG@10 point estimates. Learned dense produced MRR \RetrievalDenseMrr{} and nDCG@10 \RetrievalDenseNdcgTen{}, versus keyword values \RetrievalKeywordMrr{} and \RetrievalKeywordNdcgTen{}; the study was not designed as an equivalence or non-inferiority test. The tuned hybrid had lower point estimates than both and did not yield a corrected significant gain even over feature hashing. This result agrees with the broader lesson of heterogeneous retrieval benchmarks: learned representations are not automatically superior for every corpus \cite{thakur2021beir}.
 
-\section{RQ2: provenance survives, semantic coverage does not}
+Several features may explain the keyword result without establishing causality. The laboratory questions and paper titles share specialised vocabulary; relevant-paper labels may favour explicit lexical matches; the corpus is small; and the candidate pool is already rich. The post-selection ablation showing a stronger cumulative configuration is hypothesis-generating, not an invitation to retune on the held-out set. A future release needs a larger preregistered test partition and hard paraphrase cases.
 
-Paper, page, chunk, provider, warning, and review fields survive the retrieval-to-display path. This is the strongest implementation result. However, the active hashing index covers only three papers and its algorithm is lexical feature hashing, not learned semantic representation. Hybrid retrieval can still return results via FTS, but UI language and database status can overstate semantic coverage. A single transactional index manifest or rebuild procedure should make vector state authoritative.
+\section{Abstention is the principal end-to-end safety gap}
 
-The broad-intent failure also validates the project preference for representative questions rather than tests alone. Automated tests establish contractual behaviour; they cannot establish that a composed answer ``makes sense'' across heterogeneous evidence.
+All retrieval modes returned a positive result on the single held-out unanswerable case, and the answerer failed to abstain on all four QA unanswerable cases. This limitation is more consequential than small ranking differences: a user may receive a fluent, supported but irrelevant answer to a question the corpus cannot answer. An abstention mechanism should therefore combine calibrated top-score/margin signals, evidence coverage, corpus-scope classification, and explicit fallback wording, then be evaluated on a substantially larger unanswerable set.
 
-\section{RQ3: recommendation structure is safer than recommendation quality}
+\section{Recommendation structure is stronger than recommendation validation}
 
-The recommendation schema is a useful design contribution because it records source evidence, explicit/inferred/missing gap status, generated scope, skills, risk, data assumptions, and evaluation suggestions separately. All observed runs being partial is arguably preferable to false certainty. Yet the weights and templates are design choices, not learned or empirically calibrated decisions. Supervisor/student review is necessary before any recommendation is used as thesis advice.
+The extension schema successfully separates baseline evidence, explicit versus inferred gaps, system suggestions, MVP/stretch scope, risk, skills, data assumptions, and evaluation plans. All reviewed outputs retained those boundaries. However, every feasibility judgment was partial, and the relevance difference over an evidence-only baseline crossed zero. The full finder should be presented as a structured brainstorming aid, not as proof that an idea is novel, feasible, suitable for a degree, or approved by a supervisor. The evidence-only mode is valuable because it lets a cautious user stop before generation.
 
-\section{RQ4: reviewability is necessary but not sufficient}
+\section{Controlled discovery favors inspectability}
 
-The normalized topic links, author-topic aggregation, review queue, and field-diff events support correction in principle. Zero review events show that the governance loop is open. Moreover, unauthenticated actions and a fixed reviewer name are unsuitable for public operation. Data cleaning should precede expertise claims, and review evidence should be versioned alongside generated outputs.
+The topic comparison exposes a practical trade-off. Dense prototypes increased coverage and recall but reduced precision. The controlled vocabulary had higher precision, slightly higher F1, deterministic rules, and an editable governance surface. That profile better suits a public laboratory archive where over-attributing a topic to a researcher can cause reputational harm. The remaining 13 identity candidates show why automatic name merging is intentionally conservative. Publication-derived relations should remain qualified even after identity resolution.
 
-\section{RQ5: reproducibility is stronger than evaluation maturity}
+\section{Review and governance as first-class data}
 
-The repository can be rebuilt, tested, probed, inspected, and compiled from documented commands. Hashes identify the data snapshot, while a disposable probe avoids modifying the source database. This supports reproducibility of the reported implementation state. It does not provide a stable experimental benchmark because gold labels, model benchmark outputs, hardware timings, repetitions, and reviewer judgments are absent.
+Forty-eight append-only AI review events close the earlier empty-governance state and demonstrate deterministic idempotence. The design does not conflate that activity with human approval: 21 outputs are AI-reviewed, while configuration-incomplete historical answers are needs-reprocess. Authentication, actor roles, chain hashes, and protected status transitions make future human review attributable. A deployed institution still needs operational ownership, identity lifecycle, correction response times, and legal/privacy decisions.
 
-\section{Implications for research-intelligence systems}
+\section{Reproducibility with rights constraints}
 
-Three broader lessons follow. First, product labels should match algorithms: a hashing vector should not be silently equated with a learned semantic encoder. Second, the system of record for an index must include corpus and model identity, coverage, and status invalidation. Third, evaluation state should be a first-class interface output. The dashboard's honest \texttt{not run} states are more scientifically useful than a fabricated score.
+An exact full-corpus replication requires lawful access to the third-party papers; publishing their text would improve convenience by violating the evidential and rights boundary. The sanitized release therefore favours computational transparency over unrestricted data redistribution. It includes code, schemas, labels, sanitized results, prompts/configurations, hashes, figures, and instructions, while requiring recipients to reacquire permitted documents. The external sanity harness mapped three JATS/XML documents into the production chunker's extraction contract. It did not exercise the primary PDF-ingestion path, and three life-science articles do not establish domain transfer.

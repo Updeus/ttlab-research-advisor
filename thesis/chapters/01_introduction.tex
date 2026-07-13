@@ -1,42 +1,43 @@
 \chapter{Introduction}
 \label{ch:introduction}
 
-Research groups commonly expose their work through publication lists. Such lists answer what has been published, but leave substantial interpretation work to the reader: locating a paper, obtaining its full text, understanding its contribution, relating it to other work, and deciding whether it can support a thesis or collaboration. The precursor TTLAB system automated collection, display, summarisation, notifications, and podcast preparation over publication metadata and abstracts, while identifying retrieval-augmented querying as future work \cite{narine2025automating}. The present project extends that direction into a full-text research-intelligence prototype.
+Laboratory publication pages answer a bibliographic question---what has been published---but place the remaining analytical burden on the reader. A student must locate accessible full text, compare methods and limitations, identify a feasible extension, and avoid mistaking a generated proposal for an author-stated research gap. Researchers and public or industry users face related problems when locating work by topic or identifying a possible collaborator. The TTLAB precursor automated publication collection and display, lay summarisation, notifications, and a manual podcast workflow, and identified RAG querying as future work \cite{narine2025automating}. This project extends that direction from a publication archive into a full-text, source-traceable research-intelligence platform.
 
-The broader scholarly-discovery landscape includes autonomous digital libraries such as CiteSeer \cite{giles1998citeseer}, researcher-centred services such as ArnetMiner \cite{tang2008arnetminer}, large research corpora such as S2ORC \cite{lo2020s2orc}, and open bibliographic infrastructure such as OpenAlex \cite{priem2022openalex}. These systems demonstrate the value of linked metadata and retrieval at scale. This project addresses a smaller and different setting: a curated laboratory corpus, local operation, explicit page/chunk evidence, student-facing extension advice, and review before public exposure.
+The wider scholarly-discovery landscape includes autonomous citation indexing in CiteSeer \cite{giles1998citeseer}, expert and topic mining in ArnetMiner \cite{tang2008arnetminer}, literature graphs and large corpora such as Semantic Scholar and S2ORC \cite{ammar2018literaturegraph,lo2020s2orc}, and open bibliographic infrastructure such as OpenAlex \cite{priem2022openalex}. These services demonstrate the value of linked scholarly metadata at scale. The present project addresses a narrower setting: a local laboratory corpus, full-text evidence with page and chunk locators, student-facing extension structures, public explanation, and explicit review state.
 
-The implemented application is not treated as proof that all of those goals have been achieved. Instead, this thesis adopts a strict evidential boundary. A capability is called implemented only when supported by code, persisted state, an executed test or probe, or a captured interface. A quality claim requires appropriate evaluation evidence. Proposed experiments and missing institutional decisions are marked explicitly.
+RAG can condition generation on retrieved documents \cite{lewis2020rag}, but a citation-bearing interface is not itself proof of retrieval completeness, entailment, recommendation feasibility, or user benefit. This distinction motivates the thesis's evidence boundary. Software tests establish implemented behavior. Corpus manifests establish coverage. Source-reviewed cases establish bounded empirical quality. Human usefulness, author endorsement, supervisor fit, and institutional approval require evidence that was not collected in this study.
 
 \section{Aim}
 
-The aim is to design, implement, and reproducibly characterize a source-traceable research-intelligence prototype for TTLAB publications, while identifying the evidence still required to establish retrieval effectiveness, answer faithfulness, recommendation usefulness, and readiness for public deployment.
+The aim is to design, implement, and reproducibly evaluate a source-traceable research-intelligence platform that converts a bounded laboratory publication snapshot into searchable full text, citation-bearing answers, evidence-separated thesis-extension suggestions, and reviewable topic/author relations, while making failures and evidential limits visible.
 
 \section{Objectives}
 
-The project objectives are to:
+The objectives were to:
 
 \begin{enumerate}[label=O\arabic*.,leftmargin=13mm]
-  \item construct a deterministic pipeline from publication records and local PDFs to page-aware, searchable chunks;
-  \item provide searchable publication, topic, and author views over a curated corpus;
-  \item implement retrieval and citation-returning question answering with visible evidence and grounding warnings;
-  \item produce source-linked thesis-extension recommendations that distinguish paper evidence from system suggestions;
-  \item expose generated outputs and metadata to administrative review rather than silently presenting them as verified; and
-  \item define and support a reproducible evaluation method that separates implementation checks from empirical effectiveness.
+  \item construct a deterministic, page-aware pipeline from catalog records and permitted local PDFs to eligible chunks and authoritative indexes;
+  \item implement keyword, lexical feature-hashing, learned dense, and hybrid retrieval over one frozen corpus;
+  \item preserve source identifiers and review state through search, RAG, recommendation, generated-artifact, and user-interface workflows;
+  \item evaluate retrieval, claim support, citations, answer completeness, recommendation structure, controlled topics, author identity, generated outputs, and performance using persisted raw evidence;
+  \item implement review, privacy, authentication, security, accessibility, and data-freshness controls appropriate to a demonstrable public-facing prototype; and
+  \item provide one-command reproduction and a versioned sanitized release that excludes restricted full text and secrets.
 \end{enumerate}
 
 \section{Contributions}
 
-The defensible contributions of the audited snapshot are:
+The thesis makes five bounded contributions:
 
-\begin{itemize}
-  \item a modular local software artefact joining PDF extraction, page-aware chunking, hybrid retrieval, source-linked generation, exploration, and review;
-  \item a structured recommendation contract separating baseline work, evidence status, inferred or explicit gaps, generated extension scope, risks, skills, and evaluation suggestions;
-  \item an auditable evidence package containing machine-readable repository and runtime snapshots, reproducible figure sources, build commands, and an author-review checklist; and
-  \item a candid characterization of coverage, data quality, index consistency, and evaluation gaps in a real laboratory corpus.
-\end{itemize}
+\begin{enumerate}[label=C\arabic*.,leftmargin=13mm]
+  \item a layered research-intelligence artefact joining deterministic acquisition, page-aware chunking, four retrieval modes, answer and recommendation workflows, controlled topic/author discovery, and attributable review;
+  \item an authoritative index-manifest design that binds corpus identity, ordered chunk/source hashes, model configuration, code commit, index hash, and completeness state, with atomic writes and fail-loud validation;
+  \item reproducible source-derived evaluation sets and raw outputs for retrieval, QA faithfulness/citations, recommendations, topics/authors, generated-output review, section detection, performance, and an external format sanity check;
+  \item empirical evidence that simple keyword retrieval had the highest held-out point estimates in this corpus, without an equivalence claim for dense retrieval, and that high extractive claim support did not imply adequate citation selection, answer completeness, or abstention; and
+  \item an evidence-calibrated responsible-AI interface and sanitized release process that separates source facts, paper-stated future work, inference, suggestions, AI review, and external human validation.
+\end{enumerate}
 
-No algorithmic novelty, retrieval superiority, factual-accuracy rate, recommendation benefit, or deployed production service is claimed.
+No new retrieval algorithm, human-validated recommendation benefit, researcher endorsement, production-scale capacity, or cross-institutional generalisation is claimed.
 
 \section{Thesis structure}
 
-\Cref{ch:problem} defines the problem and scope. \Cref{ch:rqs} presents the research questions and traceability plan. \Cref{ch:literature} reviews relevant scholarship. \Cref{ch:methodology,ch:architecture,ch:data,ch:implementation} describe the evidence method, design, corpus, and implementation. \Cref{ch:experiments,ch:results} separate planned evaluation from currently observed results. \Cref{ch:discussion,ch:limitations,ch:conclusion} interpret the evidence, state threats and ethical requirements, and conclude.
+\Cref{ch:problem,ch:rqs} define the problem and research questions. \Cref{ch:literature} positions the work. \Cref{ch:methodology,ch:architecture,ch:data,ch:implementation} describe the executed study, system, corpus, and implementation. \Cref{ch:experiments,ch:results} define and report the controlled evaluations. \Cref{ch:discussion,ch:limitations,ch:conclusion} interpret the findings, state threats and governance boundaries, and answer RQ1--RQ5. The appendices provide the complete RQ traceability matrix, reproduction commands, schema/API summary, and executed AI-review instruments.

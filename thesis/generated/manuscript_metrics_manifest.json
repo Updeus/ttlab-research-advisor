@@ -1,7 +1,27 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generator": "thesis/scripts/generate_manuscript_assets.py",
+  "generation_provenance": {
+    "committed_base": {
+      "commit": "f4abb767018f9db13a2a9ac5bee1e6f6fca3428e",
+      "tree": "bcd72e37cfd935aa3a6a73e70197356f449492b5",
+      "backend_dirty": false
+    },
+    "exact_generator": {
+      "path": "thesis/scripts/generate_manuscript_assets.py",
+      "sha256": "aeccf51ca19a91f844510ed198bedff3296aa7f77e9e23ebfb5607d0e0f1d558"
+    },
+    "expected_manuscript_output_dirty_boundary": [
+      "thesis/generated/**",
+      "build/thesis.pdf"
+    ],
+    "semantics": "The commit/tree identify the clean committed application base. Exact generator, input, and output hashes bind this asset set. The generated manuscript outputs are an explicit self-referential dirty boundary and are not claimed to originate from a final clean commit."
+  },
   "sources": {
+    "evidence_snapshot": {
+      "path": "thesis/generated/evidence_snapshot.json",
+      "sha256": "6fc481a1eefcb0e33d19eefbbe38864195d96bef730b688adca5a61d144dd648"
+    },
     "phase1": {
       "path": "artifacts/phase1/phase1_evidence.json",
       "sha256": "bef831edcd4ec81df3ea4a94fbae2e9042de07a5bba525a450f59df1173aa50c"
@@ -9,6 +29,14 @@
     "retrieval": {
       "path": "artifacts/phase2/retrieval/summary.json",
       "sha256": "791130cf879b29f9b85dcfbbb3b88ebb1d5e9eb1539bf24bf79aa52a19ee3617"
+    },
+    "retrieval_statistics": {
+      "path": "artifacts/phase2/retrieval/paired_statistics.json",
+      "sha256": "64ffc984123b2a4e1717decec11d5bb97ee7bc99b7ec10ad00fb2dcd7d9f5a3d"
+    },
+    "retrieval_errors": {
+      "path": "artifacts/phase2/retrieval/error_taxonomy.json",
+      "sha256": "57f02a4d3b989e6a31f1cbe93af38b9d58199140c948a736cc5d2a5e4bfc43ff"
     },
     "retrieval_labels": {
       "path": "data/evaluation/retrieval_silver_v1.jsonl",
@@ -25,12 +53,32 @@
     "topics": {
       "path": "artifacts/phase4/topic_author/topic_metrics.json",
       "sha256": "00b06f7c22c05b5b4d12c68657f636cf41c747c4f93dbbecec7b13904f8b1fa3"
+    },
+    "authors": {
+      "path": "artifacts/phase4/topic_author/author_identity_audit.json",
+      "sha256": "c67cbc2b8a326912aee18021aff17a6cf7581c80f54e04a8ef421f0af918880d"
+    },
+    "generated_review": {
+      "path": "artifacts/phase4/generated_output_review/generated_output_review_summary.json",
+      "sha256": "f6102bbec33c8b7793a8c1d48482ec9d4883ed399c85dfd68f4690aef256eb46"
+    },
+    "external_sanity": {
+      "path": "artifacts/phase6/external_sanity/external_sanity_manifest.json",
+      "sha256": "fbe9b460244769faf4a3a21284f6ee3ab3507343eeb8d6e7e1d5057edae461be"
+    },
+    "performance": {
+      "path": "artifacts/phase6/performance/performance_full_results.json",
+      "sha256": "8642812aa50891c533d238a6ca5f3b6d7870d96ff8c1cf303d8ef9075cbed01e"
+    },
+    "performance_validation": {
+      "path": "artifacts/phase6/performance/performance_validation.json",
+      "sha256": "c6ff67a680caccdf0fd518fbf1fd5b13f64a8498dcc3e483ca16fb94278bee43"
     }
   },
   "outputs": {
     "macros": {
       "path": "thesis/generated/evidence_macros.tex",
-      "sha256": "4fb8cc7b2d114647a333119b78c87f7507ef839fa67286c058ec332bc22cdd71"
+      "sha256": "85a5d12e6aad3cb2e3ef98838e8f9854ce1f8fda99792d2a07c2cf585f914cac"
     },
     "retrieval_csv": {
       "path": "thesis/generated/retrieval_results.csv",
@@ -43,19 +91,33 @@
     "topic_csv": {
       "path": "thesis/generated/topic_results.csv",
       "sha256": "7630763822dfb36b16a2b33eab70c61d305b69bdbcc76b372d90757a605b81ef"
+    },
+    "performance_csv": {
+      "path": "thesis/generated/performance_results.csv",
+      "sha256": "8c4d520e3dd8a77f0a62f9ec9cd0425e32c34c855562320cf68eb2cb56c7de9a"
     }
   },
   "values": {
     "CorpusSnapshotId": "corpus-04a010207327069a",
     "CatalogPaperCount": 134,
     "AvailablePdfCount": 98,
+    "NoPdfUrlCount": 34,
+    "PdfNetworkErrorCount": 1,
+    "PdfNotFoundCount": 1,
     "EligiblePaperCount": 96,
     "NoTextPaperCount": 36,
     "MismatchPaperCount": 2,
+    "MismatchChunkCount": 16,
     "RawChunkCount": 735,
     "EligibleChunkCount": 719,
     "EligibleUnknownChunkCount": 199,
+    "EligibleUnknownChunkPercent": "27.7",
+    "ExtractedPageCount": 698,
+    "ExtractedWordCount": "455,601",
     "SectionSilverAccuracy": "0.900",
+    "SectionSilverCaseCount": 40,
+    "SectionSilverMacroPrecision": "0.892",
+    "SectionSilverMacroRecall": "0.904",
     "RetrievalCaseCount": 50,
     "RetrievalDevCount": 30,
     "RetrievalTestCount": 20,
@@ -63,6 +125,14 @@
     "RetrievalUnanswerableTestCount": 1,
     "QaCaseCount": 50,
     "QaClaimCount": 400,
+    "QaSupportedClaimCount": 398,
+    "QaPartiallySupportedClaimCount": 2,
+    "QaUnsupportedClaimCount": 0,
+    "QaCorrectCitationCount": 250,
+    "QaAnswerPointCount": 81,
+    "QaCoveredAnswerPointCount": 11,
+    "QaUnanswerableCaseCount": 4,
+    "QaUnanswerableAbstentionCount": 0,
     "QaSupportedClaimRate": "0.995",
     "QaSupportedClaimRateLow": "0.987",
     "QaSupportedClaimRateHigh": "1.000",
@@ -74,14 +144,29 @@
     "QaAnswerPointCoverageLow": "0.067",
     "QaAnswerPointCoverageHigh": "0.211",
     "QaUnanswerableAbstentionRate": "0.000",
+    "QaAbstentionAccuracy": "0.920",
+    "QaAbstentionAccuracyLow": "0.840",
+    "QaAbstentionAccuracyHigh": "0.980",
+    "QaCitationUtilization": "0.592",
     "RecommendationProfileCount": 28,
     "RecommendationEvidenceRelevance": "0.631",
     "RecommendationFullRelevance": "0.655",
     "RecommendationRelevanceDifference": "0.024",
     "RecommendationDifferenceLow": "-0.024",
     "RecommendationDifferenceHigh": "0.071",
+    "RecommendationEvidenceRelevanceLow": "0.524",
+    "RecommendationEvidenceRelevanceHigh": "0.726",
+    "RecommendationFullRelevanceLow": "0.560",
+    "RecommendationFullRelevanceHigh": "0.750",
+    "RecommendationItemCountPerArm": 84,
+    "RecommendationFeasibilityPartialCount": 84,
+    "RecommendationEvaluationPlanPassCount": 72,
+    "RecommendationEvaluationPlanPartialCount": 12,
+    "RecommendationReviewAgreement": "0.994",
+    "RecommendationCriterionCount": 1092,
     "TopicCaseCount": 60,
     "TopicTestCount": 24,
+    "TopicDevCount": 36,
     "TopicLexicalPrecision": "0.652",
     "TopicLexicalRecall": "0.484",
     "TopicLexicalFone": "0.556",
@@ -90,25 +175,85 @@
     "TopicDenseRecall": "0.694",
     "TopicDenseFone": "0.521",
     "TopicDenseCoverage": "0.958",
+    "RawAuthorRowCount": 136,
+    "CanonicalAuthorCount": 133,
+    "PossibleAuthorMergeCount": 13,
+    "AuthorTopicLinkCount": 313,
+    "GeneratedReviewTotalCount": 48,
+    "GeneratedRagAnswerCount": 27,
+    "GeneratedRecommendationCount": 7,
+    "GeneratedArtifactCount": 14,
+    "GeneratedAiReviewedCount": 21,
+    "GeneratedNeedsReprocessCount": 27,
+    "GeneratedReviewEventCount": 48,
+    "ExternalSanityDocumentCount": 3,
+    "ExternalSanityTopOneCount": 3,
+    "ExternalSanityChunkCount": 70,
+    "PerformanceRepetitions": 3,
+    "PerformanceStageCount": 17,
+    "PerformanceAttemptCount": 102,
+    "PerformanceFailureCount": 0,
+    "PerformanceCpu": "AMD Ryzen 7 5800X 8-Core Processor",
+    "PerformanceMemoryGiB": "3.8",
+    "PerformanceSourceCommit": "5ccf22ec",
+    "PerformanceProvenancePrefix": "61378b9aa78a",
+    "PerformanceMaxRssMiB": "751.5",
+    "PerformanceTableRows": "Dense indexing & 145.005 & 145.020 & 66.169 & 134.066 \\\\\nKeyword retrieval & 9.809 & 10.126 & 8.091 & 9.526 \\\\\nDense retrieval & 84.487 & 86.265 & 12.215 & 78.342 \\\\\nHybrid retrieval & 93.355 & 93.616 & 20.326 & 86.385 \\\\\nOffline answer & 83.355 & 83.736 & 9.842 & 75.800 \\\\\nRecommendation & 83.604 & 85.675 & 10.482 & 76.668 \\\\\nASGI endpoint set & 79.606 & 81.178 & 3.948 & 72.397 \\\\\nFrontend route set & 12.496 & 12.807 & 12.463 & 12.631 \\\\",
+    "TunedMinusKeywordMrr": "-0.088",
+    "TunedMinusKeywordMrrLow": "-0.237",
+    "TunedMinusKeywordMrrHigh": "0.044",
+    "TunedMinusKeywordRawP": "0.375",
+    "TunedMinusKeywordAdjustedP": "1.000",
+    "TunedMinusDenseMrr": "-0.079",
+    "TunedMinusDenseMrrLow": "-0.175",
+    "TunedMinusDenseMrrHigh": "0.000",
+    "TunedMinusDenseRawP": "0.250",
+    "TunedMinusDenseAdjustedP": "1.000",
+    "TunedMinusFeatureHashingMrr": "0.272",
+    "TunedMinusFeatureHashingMrrLow": "0.026",
+    "TunedMinusFeatureHashingMrrHigh": "0.518",
+    "TunedMinusFeatureHashingRawP": "0.061",
+    "TunedMinusFeatureHashingAdjustedP": "1.000",
+    "QaIncompleteCaseCount": 44,
+    "QaOffTopicRetrievalCaseCount": 42,
+    "QaWithinPaperMissCaseCount": 14,
+    "QaAnswerPointOmissionCaseCount": 13,
+    "QaSentenceSelectionMissCaseCount": 12,
+    "QaIncorrectCitationCaseCount": 4,
+    "QaFalsePositiveCaseCount": 4,
+    "RetrievalExtractionErrorCaseCount": 1,
+    "RetrievalIntentMismatchCaseCount": 2,
+    "RetrievalCorpusAbsenceCaseCount": 1,
     "RetrievalKeywordRecallThree": "0.939",
+    "RetrievalKeywordRecallThreeLow": "0.866",
+    "RetrievalKeywordRecallThreeHigh": "1.000",
     "RetrievalKeywordRecallTen": "1.000",
     "RetrievalKeywordMrr": "0.947",
     "RetrievalKeywordNdcgTen": "0.958",
     "RetrievalFeatureHashingRecallThree": "0.654",
+    "RetrievalFeatureHashingRecallThreeLow": "0.443",
+    "RetrievalFeatureHashingRecallThreeHigh": "0.851",
     "RetrievalFeatureHashingRecallTen": "0.704",
     "RetrievalFeatureHashingMrr": "0.588",
     "RetrievalFeatureHashingNdcgTen": "0.582",
     "RetrievalDenseRecallThree": "0.916",
+    "RetrievalDenseRecallThreeLow": "0.821",
+    "RetrievalDenseRecallThreeHigh": "1.000",
     "RetrievalDenseRecallTen": "0.989",
     "RetrievalDenseMrr": "0.939",
     "RetrievalDenseNdcgTen": "0.939",
     "RetrievalHeuristicHybridRecallThree": "0.795",
+    "RetrievalHeuristicHybridRecallThreeLow": "0.611",
+    "RetrievalHeuristicHybridRecallThreeHigh": "0.947",
     "RetrievalHeuristicHybridRecallTen": "0.917",
     "RetrievalHeuristicHybridMrr": "0.813",
     "RetrievalHeuristicHybridNdcgTen": "0.829",
     "RetrievalTunedHybridRecallThree": "0.856",
+    "RetrievalTunedHybridRecallThreeLow": "0.707",
+    "RetrievalTunedHybridRecallThreeHigh": "0.974",
     "RetrievalTunedHybridRecallTen": "0.925",
     "RetrievalTunedHybridMrr": "0.860",
-    "RetrievalTunedHybridNdcgTen": "0.871"
+    "RetrievalTunedHybridNdcgTen": "0.871",
+    "RetrievalUnanswerableFalsePositiveCount": 1
   }
 }

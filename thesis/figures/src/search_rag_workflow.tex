@@ -1,22 +1,22 @@
 \begingroup\hfuzz=100pt
 \begin{tikzpicture}[node distance=8mm and 9mm]
-  \node[flowbox] (question) {User question + mode,\\top-k, audience, paper filter};
-  \node[flowbox, right=of question] (expand) {Stop-word removal +\\fixed query expansion};
-  \node[flowbox, right=of expand] (retrieve) {FTS BM25-like score\\+ hashing cosine score};
-  \node[flowbox, right=of retrieve] (rerank) {Metadata, section, topic\\adjustments + diversity};
+  \node[flowbox] (question) {Question + retrieval mode,\\top-$k$, audience, paper filter};
+  \node[flowbox, right=of question] (prepare) {Stop-word handling +\\fixed expansion when enabled};
+  \node[flowbox, right=of prepare] (retrieve) {Keyword FTS, 256-d hashing,\\384-d pinned dense, or hybrid};
+  \node[flowbox, right=of retrieve] (rerank) {Optional metadata, section, evidence,\\topic and diversity adjustments};
 
-  \node[datastore, below=14mm of retrieve] (chunks) {Retrieved chunks\\page and paper IDs};
+  \node[datastore, below=14mm of retrieve] (chunks) {Retrieved chunks\\paper, page, section, hash};
   \node[decision, left=12mm of chunks] (provider) {Answer\\provider};
-  \node[flowbox, left=12mm of provider] (compose) {Offline extractive or\\Ollama composition};
-  \node[flowbox, left=of compose] (cite) {Attach top-result citations\\and retrieved chunk data};
+  \node[flowbox, left=12mm of provider] (compose) {Offline extractive or\\local Ollama composition};
+  \node[flowbox, left=of compose] (cite) {Return answer plus citations,\\snippets and retrieved chunks};
 
-  \node[flowbox, below=14mm of cite] (verify) {Structural citation fields +\\chunk membership + 8\% overlap};
-  \node[decision, right=of verify] (status) {Grounding\\status};
-  \node[datastore, right=of status] (persist) {RAGAnswer\\needs\_review};
-  \node[flowbox, right=of persist] (display) {Answer, citations, pages,\\warnings, retrieved chunks};
+  \node[flowbox, below=14mm of cite] (verify) {Structural locator/membership check;\\later atomic AI-silver review};
+  \node[decision, right=of verify] (status) {Grounding /\\warning state};
+  \node[datastore, right=of status] (persist) {Transient by default;\\protected history/review};
+  \node[flowbox, right=of persist] (display) {Evidence, provider/time, review state,\\unsupported/partial warnings};
 
-  \draw[arrow] (question) -- (expand);
-  \draw[arrow] (expand) -- (retrieve);
+  \draw[arrow] (question) -- (prepare);
+  \draw[arrow] (prepare) -- (retrieve);
   \draw[arrow] (retrieve) -- (rerank);
   \draw[arrow] (rerank) -- (chunks);
   \draw[arrow] (chunks) -- (provider);
@@ -26,6 +26,6 @@
   \draw[arrow] (verify) -- (status);
   \draw[arrow] (status) -- (persist);
   \draw[arrow] (persist) -- (display);
-  \draw[dashedarrow] (provider.south) -- ++(0,-6mm) node[below,font=\scriptsize,align=center]{Ollama failure falls back\\to offline extraction};
+  \draw[dashedarrow] (provider.south) -- ++(0,-6mm) node[below,font=\scriptsize,align=center]{Provider unavailability is visible;\\Ollama may fall back to extraction};
 \end{tikzpicture}
 \endgroup

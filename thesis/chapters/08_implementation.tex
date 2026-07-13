@@ -1,115 +1,77 @@
 \chapter{Implementation}
 \label{ch:implementation}
 
-\section{Technology stack and interface}
+\section{Backend and persistence}
 
-The backend uses Python, FastAPI, SQLModel, Pydantic settings, SQLite, and PyMuPDF. The frontend uses React, TypeScript, and Vite. Eight views expose dashboard statistics, papers, search, Ask TTLAB, extension recommendations, topic/author exploration, administrative review, and evaluation. \Cref{fig:dashboard-shot,fig:search-shot} show the audited runtime.
+FastAPI registers papers, search, Ask, local-model status, recommendations, artifacts, topics/authors, evaluation, and protected admin routers. SQLModel maps entities to SQLite and applies additive compatibility migrations. Startup validates security configuration, creates tables, and rejects present authoritative indexes whose corpus, configuration, file hash, or coverage is invalid. \texttt{/health} reports process liveness; \texttt{/ready} separately reports database, keyword, feature-hashing, and optional dense readiness without exposing local paths.
+
+JSON-like response fields remain structured across the service boundary. RAG answers retain question, answer, retrieved chunks/papers, citations, provider/model, grounding state, warnings, unsupported-claim list, timestamps, and review metadata. Recommendations retain the submitted profile, ranked papers, evidence, gap class, system suggestion, MVP/stretch scope, skills, data needs, risk, difficulty, evaluation plan, provider, and review state.
+
+\section{Retrieval modes}
+
+Keyword retrieval uses SQLite FTS5 and its \texttt{bm25()} rank, with a deterministic token-frequency fallback. Feature hashing maps lower-cased alphanumeric tokens through signed SHA-256 buckets into 256 L2-normalised dimensions. Learned dense retrieval uses the pinned \texttt{all-MiniLM-L6-v2} encoder and 384-dimensional L2-normalised vectors. Long chunks are encoded as overlapping 254-token windows, mean pooled, and renormalised. Query/chunk similarity is cosine similarity.
+
+The heuristic hybrid combines normalised keyword/vector scores with hand-authored metadata, section, evidence, topic, and diversity terms. The tuned configuration retains those terms but sets keyword weight to 0.10 and dense weight to 0.80 based on development MRR. Search APIs and UI expose \texttt{keyword}, \texttt{feature\_hashing}, \texttt{dense}, and \texttt{hybrid}; they return mode, expanded query, component scores, manifest/freshness diagnostics, snippets, pages, sections, and warnings.
 
 \begin{figure}[htbp]
 \centering
-\projectScreenshot{figures/screenshots/dashboard.png}{0.96\textwidth}
-\caption{Dashboard in the audited browser session. The empty top-topic widget contrasts with populated explorer data and is retained as failure evidence.}
-\label{fig:dashboard-shot}
+\input{figures/src/index_coverage_plot}
+\caption[Authoritative index coverage for all retrieval representations.]{Authoritative index coverage. Keyword FTS, feature hashing, and learned dense retrieval each cover all \EligibleChunkCount{} eligible chunks.}
+\label{fig:index-coverage}
 \end{figure}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.96\textwidth,trim=0 950bp 0 0,clip]{figures/screenshots/search-results.png}
-\caption{Search results with mode, scores, paper metadata, pages, and source snippets. The full-page capture is deliberately cropped to its top results for legibility.}
-\label{fig:search-shot}
-\end{figure}
+\section{Question answering and citation checks}
 
-Navigation is held in React state rather than URL routes, so refreshing returns to the dashboard and views are not deep-linkable.
+\Cref{fig:rag-workflow} traces an Ask request. The default reproducible answerer is offline and extractive: it orders retrieved sentences by intent and composes a bounded response. An Ollama adapter can call a local model with a source-restricted prompt and temperature 0.1; provider failure produces a visible fallback. The configured Ollama service was unavailable during Phase 3, so no model tag, digest, quantisation, quality, or latency comparison is claimed.
 
-\section{Keyword and hashing-vector retrieval}
-
-SQLite FTS5 indexes all chunk text and returns its \texttt{bm25()} rank, transformed by
-\begin{equation}
-K = \frac{1}{1+|r_{\mathrm{FTS}}|}.
-\label{eq:fts-transform}
-\end{equation}
-A deterministic fallback combines term frequency and query coverage when FTS is unavailable.
-
-The vector path maps token $t$ into one of $d=256$ coordinates and a sign using SHA-256. For document $x$, the unnormalised coordinate is
-\begin{equation}
-z_j(x)=\sum_{t\in x}\mathbb{I}[h(t)=j]s(t), \qquad
-\mathbf{v}(x)=\frac{\mathbf{z}(x)}{\lVert\mathbf{z}(x)\rVert_2}.
-\label{eq:hashing}
-\end{equation}
-Similarity is the dot product $V=\mathbf{v}(q)^\top\mathbf{v}(c)$, equivalent to cosine similarity after normalisation. This is feature hashing \cite{weinberger2009featurehashing}, not a learned semantic encoder.
-
-\section{Hybrid scoring and diversification}
-
-Current working-tree code removes a fixed stop-word set, applies fixed domain query expansions, and computes
-\begin{equation}
-H=\operatorname{clip}_{[0,1]}(0.42K+0.48V+M+S+E+T),
-\label{eq:hybrid}
-\end{equation}
-where $M$ is metadata match, $S$ an intent-dependent section boost, $E$ an evidence-quality adjustment, and $T$ topical alignment. A greedy penalty reduces repeated or adjacent chunks from the same paper. The coefficients are hand-authored; no tuning or ablation evidence exists.
-
-\section{Question answering}
-
-The workflow in \cref{fig:rag-workflow} retrieves chunks, composes an answer with a deterministic offline provider or local Ollama, attaches citations, verifies structural properties, persists the result, and displays the answer with source pages and warnings.
+The deterministic verifier checks source identifiers, page/chunk membership, required fields, and minimum lexical overlap. Its status is labelled structural grounding. The later atomic review evaluates support, citation choice, answer-point coverage, and abstention separately.
 
 \begin{figure}[htbp]
 \centering
-\begingroup\hfuzz=100pt\resizebox{\textwidth}{!}{\input{figures/src/search_rag_workflow}}\endgroup
-\caption{Implemented search and RAG workflow. The verifier checks structure, membership, and lexical overlap rather than semantic entailment.}
+\resizebox{0.99\textwidth}{!}{\input{figures/src/search_rag_workflow}}
+\caption[Search and RAG workflow.]{Search and RAG workflow. All retrieval modes preserve source locators; structural verification is distinct from claim-level support review.}
 \label{fig:rag-workflow}
 \end{figure}
 
-The Ollama adapter uses a low-temperature, source-restricted prompt and falls back on error. The OpenAI provider branch raises a not-implemented error. The verifier requires retrieved chunks, complete citation fields, citation membership, and at least 0.08 answer-to-snippet token overlap. Therefore, its \texttt{grounded} label means structurally/lexically grounded only.
+\section{Thesis Extension Finder}
+
+The finder accepts interests, skills, time, project type, data constraints, preferred difficulty/topics, avoid-topics, retrieval mode, and result count. It retrieves an expanded candidate set, groups evidence by paper, and computes a deterministic score: retrieval relevance 0.30, interest/topic match 0.20, skill match 0.15, data/time/difficulty 0.10 each, evidence strength 0.05, and an avoid-topic penalty of 0.20.
+
+Each output separates paper-supported baseline work; explicit, inferred, or missing gap evidence; and a system-suggested extension. It includes MVP, stretch goals, skills, risks, data assumptions, evaluation plan, citations, warnings, and review state. An evidence-only mode returns ranked papers and passages without a generated extension, providing both a safer user choice and the experimental baseline shown in \cref{fig:recommendation-workflow}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.96\textwidth,trim=0 900bp 0 0,clip]{figures/screenshots/ask-answer.png}
-\caption{Ask TTLAB response showing generated-answer notice, grounding state, and cited papers. The full-page capture is deliberately cropped to the answer and leading citations.}
-\label{fig:ask-shot}
-\end{figure}
-
-\section{Thesis-extension recommendations}
-
-\Cref{fig:recommendation-workflow} shows the deterministic workflow. Candidate paper score $R$ is
-\begin{align}
-R={}&0.30r+0.20i+0.15s+0.10d+0.10t \\
-   &+0.10f+0.05e-0.20a,
-\label{eq:recommendation}
-\end{align}
-where the terms represent retrieval relevance, interest, skill, data, time, difficulty fit, evidence strength, and avoided-topic match. The output distinguishes an explicit, inferred, or absent source gap from the system's suggested extension.
-
-\begin{figure}[htbp]
-\centering
-\begingroup\hfuzz=100pt\resizebox{\textwidth}{!}{\input{figures/src/recommendation_workflow}}\endgroup
-\caption{Implemented recommendation pipeline and the human-validation stage that has not yet been executed.}
+\resizebox{0.99\textwidth}{!}{\input{figures/src/recommendation_workflow}}
+\caption[Recommendation workflow and AI-proxy evaluation.]{Recommendation workflow and its \RecommendationProfileCount{}-profile AI-proxy evaluation. The final suggestion remains advice requiring external feasibility and novelty confirmation.}
 \label{fig:recommendation-workflow}
 \end{figure}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.96\textwidth,trim=0 6500bp 0 0,clip]{figures/screenshots/extension-results.png}
-\caption{Extension Finder profile and leading ranked result with source/gap status. The full-page capture is deliberately cropped before additional result detail.}
-\label{fig:extension-shot}
-\end{figure}
+\section{Topics, authors, artifacts, and review}
 
-\section{Topic, author, artefact, and review functions}
+The explorer uses a controlled 39-label lexical taxonomy with synonym rules and source-weighted evidence. A learned-dense prototype compares paper primary-source centroids with label prototypes at a development-selected threshold. Author-topic scores aggregate only eligible publication-topic links under canonical identities. Related-paper ranking combines shared topics/authors, venue/year proximity, lexical overlap, and optional vector similarity.
 
-Topic discovery uses a fixed 39-topic lexical taxonomy and weighted text sources. It can retain up to eight topic links per paper; author-topic scores aggregate paper topics. Related-paper scoring combines topics, authors, venue, year, lexical overlap, and hashing-vector signals. This is rule-based classification, not topic modelling.
+The deterministic artifact generator produces public and technical summaries, contributions, methods, limitations, future work, suggested extensions, skills, evaluation plans, and text podcast scripts. Fact, inference, and suggestion types are explicit. The Phase 4 review processed every \GeneratedRagAnswerCount{} historical RAG answers, \GeneratedRecommendationCount{} recommendation runs, and \GeneratedArtifactCount{} artifacts. It regenerated evidence-safe artifacts/recommendations where configuration was sufficient; historical RAG configuration was insufficient, so those \GeneratedNeedsReprocessCount{} records were preserved and marked \texttt{needs\_reprocess}. \GeneratedReviewEventCount{} hash-chained events record the corrections. A second pass changed zero rows, demonstrating idempotence.
 
-The paper-intelligence generator uses section and lexical priorities to create public and technical summaries, contributions, methods, limitations, future work, suggestions, skills, evaluation ideas, and text-only podcast dialogue. It labels limitations/future work as explicit, inferred, or not found and labels extensions as system suggestions.
+\section{Frontend and evidence communication}
 
-Review endpoints can update metadata and statuses and write a review event. The UI exposes queues and status controls, but there is no authentication; the reviewer identity is fixed to \texttt{local\_admin}. \Cref{fig:explorer-shot,fig:admin-shot} show both the explorer's visible identity defect and the review mechanism.
+The route-based frontend provides Dashboard, Paper Browser/Detail, Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer, Evaluation, and protected Admin Review. Relevant screens expose paper/chunk/page/section evidence, provider/time, grounding and review status, data/index freshness, generated-content warnings, and empty/error/retry/offline states. Profile inputs are not stored by default. Keyboard focus, semantic landmarks, form labels, reduced-motion behavior, chart alternatives, and 360/768/1024/1440-pixel layouts are covered by automated tests.
+
+\Cref{fig:ui-evidence} illustrates the evidence-rich Ask result, while \cref{fig:ui-evaluation} shows the evaluation surface. These screenshots demonstrate implemented presentation only; they are not user-study evidence.
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\textwidth}
-\projectScreenshot{figures/screenshots/explorer.png}{\linewidth}
-\caption{Topic/author explorer.}
-\label{fig:explorer-shot}
-\end{subfigure}\hfill
-\begin{subfigure}{0.49\textwidth}
-\projectScreenshot{figures/screenshots/admin-review.png}{\linewidth}
-\caption{Administrative review queue.}
-\label{fig:admin-shot}
-\end{subfigure}
-\caption{Discovery and review interfaces. The explorer screenshot retains the ``Click to View'' author artefact.}
+\includegraphics[width=0.98\textwidth,trim=0 780 0 0,clip]{figures/screenshots/ask-answer.png}
+\caption[Ask TTLAB evidence-rich result.]{Ask TTLAB result showing generated-content notice, source locators, evidence snippets, and grounding/review warnings. The screenshot is an implementation record, not a quality rating.}
+\label{fig:ui-evidence}
 \end{figure}
+
+\begin{figure}[htbp]
+\centering
+\projectScreenshot{figures/screenshots/evaluation-current.png}{0.98\textwidth}
+\caption[Current Evaluation Dashboard evidence cards.]{Current Evaluation Dashboard cards presenting retrieval, QA, recommendation, and generated-output review evidence with explicit AI-review boundaries.}
+\label{fig:ui-evaluation}
+\end{figure}
+
+\section{Generated-output governance and deployment boundary}
+
+Admin mutations require reviewer/admin authentication except when an operator explicitly enables a loopback-only insecure demo. Production configuration fails closed without HTTPS and an active admin actor. Human and AI actors have distinct reviewer types; AI actors cannot issue reviewed/approved/rejected human states. The threat model covers path traversal, SSRF, PDF bombs, XSS, injection, secrets, rate limits, logging, backups, dependency auditing, and correction/incident procedures. A reverse proxy, TLS termination, monitoring service, and production identity provider remain deployment responsibilities, not repository claims.

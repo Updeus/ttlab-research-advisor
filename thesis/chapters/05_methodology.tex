@@ -3,42 +3,60 @@
 
 \section{Study design}
 
-This work is reported as an artefact-oriented engineering case study with design-science characteristics: a problem-motivated software artefact is built, demonstrated, and evaluated through repository and runtime evidence. \authorinput{confirm that this methodological designation matches the approved MSc proposal and university terminology}. The present thesis evaluation is a technical characterization, not a completed user study.
+The study is an executed artefact-oriented design-science/engineering case study combined with controlled offline evaluation. The unit of engineering analysis is a versioned corpus-and-system snapshot. The unit of retrieval and QA analysis is a question case. The unit of recommendation analysis is a synthetic project profile. The unit of topic analysis is a paper case. Performance measurements use one operation or route workload per repetition. No human participants were recruited.
 
-\section{Evidence protocol}
+The study proceeded in six evidence phases: (1) corpus, extraction, identity, and index repair; (2) source-derived retrieval evaluation; (3) atomic QA and citation review; (4) recommendation, topic/author, and generated-output review; (5) frontend, privacy, authentication, security, and accessibility verification; and (6) performance, external-format sanity, reproduction, and sanitized release preparation. All empirical labels produced in this pass identify \texttt{reviewer\_type=ai}.
 
-The audit used six evidence classes, ordered by what each can establish:
+\section{Evidence hierarchy and reproducibility controls}
 
-\begin{enumerate}
-  \item source and schema inspection establishes implemented logic and data contracts;
-  \item file and database manifests establish snapshot coverage and consistency;
-  \item isolated tests establish tested behaviour under test assumptions;
-  \item disposable runtime probes establish endpoint behaviour without contaminating the project database;
-  \item frontend builds and browser inspection establish client compilation and visible integration; and
-  \item literature records establish externally verifiable context, not project performance.
-\end{enumerate}
-
-Claims were rejected or labelled as requiring author input when no corresponding evidence existed. Commit subjects were used as chronology, never as sole proof of functionality. The ignored runtime database was hashed before probing, and API probes operated on a temporary copy.
-
-\section{Reproducible snapshot collection}
-
-The script \codepath{thesis/scripts/collect_evidence.py} records Git state, file hashes, corpus manifests, SQLite integrity, table counts, chunk sections, semantic-index coverage, and evaluation artefacts. It emits JSON and CSV files consumed by the thesis figures. The script is read-only with respect to the project database. \codepath{thesis/scripts/runtime_probe.py} copies that database to a temporary location, sets an isolated database URL, and issues representative requests through FastAPI's test client.
-
-\section{Analytical boundaries}
-
-The reported counts are descriptive statistics over one dated repository snapshot. No sampling uncertainty is attached to counts such as PDFs or chunks. Retrieval scores from illustrative requests are not aggregated effectiveness metrics. A structurally grounded answer is not counted as factually correct. Placeholder evaluation cases are not treated as experiments. These boundaries are essential because an evaluation dashboard can exist while evaluation data do not.
-
-\section{Proposed empirical methodology}
-
-The implemented evaluator supports binary paper-relevance labels and reciprocal rank. A defensible follow-up study should:
+Claims were admitted only when supported by an authoritative source:
 
 \begin{enumerate}
-  \item freeze a versioned corpus and index manifest;
-  \item have at least two domain-informed assessors label relevant papers and answer points for a stratified set of fact, method, limitation, comparison, topic, author, and broad-intent questions;
-  \item compare keyword, hashing-vector, and hybrid retrieval under identical cut-offs;
-  \item review answer claims and citations for entailment, completeness, and usefulness;
-  \item evaluate recommendation relevance, feasibility, novelty, source fidelity, and calibration with students and/or supervisors; and
-  \item report agreement, uncertainty, failures, latency, hardware, model version, prompts, repetitions, and statistical tests appropriate to the final design.
+  \item immutable or hash-linked manifests establish corpus, model, index, and release identity;
+  \item raw case-level outputs establish executed experimental observations;
+  \item evaluation code and unit tests establish metric definitions and implementation behavior;
+  \item database integrity checks and protected runtime probes establish current operational state;
+  \item automated frontend and security tests establish the tested interface contracts; and
+  \item compiled/rendered documents establish publication artefact quality.
 \end{enumerate}
 
-Until that protocol is approved and executed, the thesis reports only implementation and reproducibility results. \authorinput{provide ethics approval/exemption status, assessor recruitment plan, consent procedure, sample-size rationale, and approved statistical analysis}.
+Generated manuscript macros and tables are produced from frozen JSON artefacts by \codepath{thesis/scripts/generate_manuscript_assets.py}; their input and output hashes are recorded in \codepath{thesis/generated/manuscript_metrics_manifest.json}. Tests and build counts are reported only as engineering verification, never as quality metrics.
+
+\section{Corpus freeze and inclusion rules}
+
+Catalog records were retained even when full text was unavailable. A paper entered the experimental full-text corpus only when its PDF was present, extractable, and its identity passed title/document checks. Suspected PDF/title mismatches were excluded, not repaired by assumption. Every eligible chunk's identifier and source hash contributes to the ordered corpus snapshot hash. The authoritative corpus is \texttt{\CorpusSnapshotId}, comprising \EligiblePaperCount{} papers and \EligibleChunkCount{} chunks. The catalog additionally contains \NoTextPaperCount{} records requiring text acquisition/review and \MismatchPaperCount{} mismatch exclusions.
+
+\section{AI-reviewed silver annotation}
+
+Retrieval cases were constructed from source passages and stratified by exact fact, methods, results, limitations/future work, title/author/venue, topic/application, comparison, broad intent, multi-paper synthesis, hard negative, and out-of-corpus intent. A creation pass recorded relevant paper IDs, supporting chunks/pages, rationale, and answerability. A later shuffled verification pass checked labels without access to system rankings. Creation/verification disagreements and adjudication were retained. Because the same AI reviewer process performed both passes, consistency is described as annotation consistency, not inter-rater reliability.
+
+QA review used a related \QaCaseCount{}-case set with 46 answerable and \QaUnanswerableCaseCount{} unanswerable questions. Answers were segmented into atomic checkable claims; each claim--citation relation was assessed as supported, partial, or unsupported. AI-reviewed silver reference answer points were assessed separately. Recommendation and topic reviews used the same two-pass AI-silver principle. Human validation remains a limitation throughout.
+
+\section{Retrieval metrics}
+
+For a query $q$ with relevant-paper set $R_q$ and returned top-$k$ paper set $S_{q,k}$, set recall and precision are
+\begin{align}
+\mathrm{Recall@}k(q) &= \frac{|R_q\cap S_{q,k}|}{|R_q|}, \\
+\mathrm{Precision@}k(q) &= \frac{|R_q\cap S_{q,k}|}{k}.
+\end{align}
+Hit@$k$ is one when $R_q\cap S_{q,k}\neq\emptyset$ and zero otherwise. Reciprocal rank is $1/r_q$ for the rank $r_q$ of the first relevant paper, and zero when none is retrieved. nDCG@10 uses graded source labels and logarithmic rank discount. Unanswerable false-positive rate is the proportion of out-of-corpus cases for which a mode returns a positive result instead of abstaining. This corrects the earlier ambiguity in which a binary hit measure had been called recall.
+
+\section{Tuning, uncertainty, and statistical analysis}
+
+\RetrievalDevCount{} of \RetrievalCaseCount{} retrieval cases formed the development partition and \RetrievalTestCount{} formed the held-out test partition. Keyword, feature-hashing, learned dense, and heuristic hybrid modes used identical corpus, filters, candidate-pool depth, unique-paper cut-offs, and cases. Hybrid weights were selected on development MRR from a recorded search space; test labels were not used for selection. Individual and cumulative ablations disabled query expansion, metadata, section, evidence, topic, and diversity terms. Weight sensitivity varied keyword/dense proportions around the selected values.
+
+Percentile bootstrap 95\% CIs used 10,000 query-level resamples with fixed seeds. Paired randomisation tests compared the tuned hybrid with baselines on answerable test cases. Holm correction controlled multiplicity within metric and experiment families. These intervals reflect query-sample uncertainty, not uncertainty in AI-silver labels or corpus selection.
+
+\section{QA, recommendation, and topic metrics}
+
+Strict supported-claim rate counts only fully supported checkable claims. Citation correctness divides correct claim--citation links by all reviewed links; citation completeness measures citation presence, not correctness. Answer-point coverage divides fully covered points by all expected points. Abstention accuracy distinguishes answering answerable cases from declining unanswerable ones.
+
+The recommendation experiment compared three evidence-only paper/passages with three full-finder recommendations for each of \RecommendationProfileCount{} profiles. AI-proxy criteria included relevance, source fidelity, fact/future-work/gap/suggestion separation, novelty caution, feasibility, MVP and stretch scope, risk, skills, evaluation plan, and proxy usefulness. The paired contrast resampled profiles. Topic evaluation reported multi-label micro precision, recall, F1, exact match, and coverage for the controlled lexical and learned-dense prototype methods on a development/test split.
+
+\section{Performance and external sanity methodology}
+
+The Phase 6 harness runs process-cold and warm repetitions at concurrency one for discovery, import, extraction, chunking, keyword/hashing/dense indexing, four retrieval modes, offline answering, recommendation, read-only APIs, frontend production build, and primary route loads. It reports median, linearly interpolated p95, failures, processed units, and maximum resident set size where available. ``Cold'' means a fresh process, not a flushed operating-system cache. The external sanity check reacquires three pinned CC BY articles from the official Europe PMC API, validates embedded license evidence, chunks them, and tests three fixed lexical-discrimination queries. This establishes only format compatibility and trivial discrimination, not external TTLAB effectiveness.
+
+\section{Ethics and authorization protocol}
+
+TTLAB authorized the project and use of the laboratory corpus. The study does not convert that authorization into a claim of ethics-board approval, blanket copyright ownership, or redistribution rights. No participants were recruited. Student-profile fields are transient by default. Restricted PDFs, full extracted text, private prompts, databases, indexes, and secrets are excluded from the sanitized bundle. AI assistance and reviewer identity are disclosed in the front matter and evidence manifests.

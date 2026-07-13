@@ -1,49 +1,51 @@
 \chapter{Data Collection and Processing}
 \label{ch:data}
 
-\section{Corpus provenance}
+\section{Catalog and acquisition}
 
-The seed contains 134 publication records derived from a TTLAB WordPress archive and matches the saved discovery JSON byte-for-byte. Its SHA-256 digest is recorded in \codepath{PROJECT_EVIDENCE.md}. The snapshot includes local PDFs for 98 papers; 35 are missing and one download is marked failed. \authorinput{confirm the collection date, archive completeness, laboratory authorization, and copyright/licensing basis for retaining PDFs and displaying snippets}.
+The catalog contains \CatalogPaperCount{} publication records derived from the TTLAB archive and stored in deterministic seed JSON. The discovery/import path normalises titles and URLs, assigns stable identifiers, preserves absent metadata as missing, and records provenance/review state. PDF acquisition uses allowed hosts and public IP resolution, bounded redirects, timeouts, content-length and byte limits, content-type and PDF-signature validation, and explicit failure categories. It does not bypass authentication, paywalls, or access controls.
 
-\section{Ingestion workflow}
-
-\Cref{fig:ingestion} reconstructs the implemented path. Discovery parses archive metadata and stable identifiers. Manual import upserts paper and raw author records. The downloader accepts direct PDF-like URLs and checks content type and the PDF signature. PyMuPDF extracts text page by page and records counts, empty pages, a text hash, and low-text warnings. A sentence heuristic then forms page-aware, overlapping chunks.
+The frozen audit records \AvailablePdfCount{} available PDFs, \NoPdfUrlCount{} records with no PDF URL, \PdfNetworkErrorCount{} network error, and \PdfNotFoundCount{} not-found result. Of the available documents, \EligiblePaperCount{} matched their catalog identity and entered the experimental corpus; \MismatchPaperCount{} possible PDF/title mismatches were excluded. The remaining \NoTextPaperCount{} catalog records are visible as needs-review/no-text records rather than being silently absent. \Cref{fig:ingestion} shows the full pipeline, and \cref{fig:corpus-status} shows the resulting paper-level eligibility categories.
 
 \begin{figure}[htbp]
 \centering
-\resizebox{\textwidth}{!}{\input{figures/src/ingestion_pipeline}}
-\caption{Implemented ingestion, extraction, indexing, and topic-processing pipeline with snapshot counts.}
+\resizebox{0.99\textwidth}{!}{\input{figures/src/ingestion_pipeline}}
+\caption[Deterministic ingestion and authoritative indexing pipeline.]{Deterministic ingestion and authoritative indexing pipeline. The optional OCR stage records status/provenance but was not used in the frozen corpus.}
 \label{fig:ingestion}
 \end{figure}
-
-\section{Chunking}
-
-The default chunk target is 850 words with a maximum of 5,000 characters and 125 overlapping words. A final chunk shorter than 400 characters is merged with its predecessor. Each identifier incorporates paper ID, sequence, page span, and content hash. Sections are inferred by matching headings within the first 1,200 characters of a chunk; no document-layout model is used.
-
-The 98 extracted papers contain 698 pages, 455,601 source words, and 756 chunks. Overlap raises the sum of chunk words to 547,628, a ratio of 1.202. Of 756 chunks, 249 (32.94\%) have section \texttt{Unknown}. The dominant recognized sections are Methodology (242) and Results (102). Section-sensitive reranking and artefact generation therefore operate over incomplete structural labels.
-
-\section{Corpus status}
 
 \begin{figure}[htbp]
 \centering
 \input{figures/src/corpus_status_plot}
-\caption{Paper-level PDF/extraction status in the audited database. Counts sum to the 134 seed records.}
+\caption[Frozen catalog eligibility.]{Frozen catalog eligibility: \EligiblePaperCount{} eligible full-text papers, \NoTextPaperCount{} records without eligible text, and \MismatchPaperCount{} PDF/title mismatch exclusions. These are inventory counts, not quality scores.}
 \label{fig:corpus-status}
 \end{figure}
 
-The 98 database PDF paths map one-to-one to extracted JSON, extracted text, and chunk JSON in the current snapshot. The sorted PDF checksum manifest covers 29,718,138 bytes. SQLite integrity and foreign-key checks passed. These checks establish snapshot consistency, not text-extraction correctness.
+\section{Extraction and OCR-aware diagnostics}
+
+PyMuPDF extracts native text page by page and records page/character/word counts, empty pages, extraction status, and hashes. Content classification distinguishes textual, mixed, and unknown records. The repaired pipeline detects low-text/image-heavy pages and supports optional OCR with page-level engine/configuration, confidence/status, and review flags. OCR dependencies are optional and fail explicitly. All \CatalogPaperCount{} records in the frozen snapshot have \texttt{ocr\_status=not\_requested}; therefore, the thesis reports no OCR accuracy or latency.
+
+The \AvailablePdfCount{} extracted PDFs contain \ExtractedPageCount{} pages and \ExtractedWordCount{} native-extraction words. These totals describe the local source snapshot; they are not included in the sanitized release. The suspected identity mismatches account for \MismatchChunkCount{} excluded chunks. The raw chunk table contains \RawChunkCount{} rows, while the eligible experiment and authoritative indexes contain \EligibleChunkCount{} rows.
+
+\section{Page-aware chunking and sections}
+
+Extracted sentences retain their page number. Chunks target 850 words with a 5,000-character limit and 125-word overlap; identifiers incorporate paper, sequence, page span, and source hash. Section names are inferred from headings and layout cues, with \texttt{Unknown} preserved when evidence is insufficient. Among eligible chunks, \EligibleUnknownChunkCount{} are unknown-section chunks (\EligibleUnknownChunkPercent\%).
+
+A \SectionSilverCaseCount{}-case stratified AI-reviewed silver sample compared current section labels with source passages. Exact accuracy was \SectionSilverAccuracy{}, labeled coverage 0.900, macro precision \SectionSilverMacroPrecision{}, and macro recall \SectionSilverMacroRecall{}. Seven creation decisions required revision. These results support using section labels as a reranking feature with caution, not as authoritative document structure.
+
+\section{Metadata and author identity}
+
+The malformed \texttt{Click to View} author parser artifact was removed by an idempotent migration. The schema now stores canonical author rows, aliases, identity/merge state, and review status. The audit found \RawAuthorRowCount{} author rows: \CanonicalAuthorCount{} unresolved active canonical identities, two merged rows, and one invalid row. Exact alias collisions, eligible authorship mismatches, excluded-paper leakage, and prohibited expertise overclaims were all zero in the executed audit. \PossibleAuthorMergeCount{} possible initial/full-name or spelling pairs remain deliberately unmerged pending authoritative confirmation.
+
+DOI, abstract, keyword, venue, and date fields carry provenance and review fields. Unverified metadata remain empty. Author-topic links are derived only from eligible indexed publication authorship and paper topics; their UI wording explicitly disclaims availability, endorsement, supervision, or expertise beyond this corpus.
+
+\section{Corpus distribution and release boundary}
 
 \begin{figure}[htbp]
 \centering
 \input{figures/src/year_distribution_plot}
-\caption{Distribution of publication years in the seed metadata. Values are descriptive of the audited snapshot, not a publication-rate analysis.}
+\caption[Publication-year distribution in catalog metadata.]{Publication-year distribution in the catalog metadata. Missing or uncertain years remain represented in the generated source data rather than being imputed.}
 \label{fig:years}
 \end{figure}
 
-\section{Metadata quality}
-
-All papers require review. No structured DOI, abstract, keyword, or denormalized paper-topic field is populated in the database; normalized topics are stored separately. Six venues and 93 source URLs are missing. Raw author strings yield 126 records, including separate identities for ``Patrick Hosein'' and ``P. Hosein'', and the parsing artefact ``Click to View'' is linked to 12 papers. Counts of authors and expertise connections must consequently be interpreted as unvalidated string-level records.
-
-\section{Data minimization and retention}
-
-The system stores publication documents and public scholarly metadata rather than user accounts. Recommendation requests can nevertheless contain interests, skills, and constraints; persisted requests may be personal data. No retention schedule, consent notice, access control, or deletion workflow is implemented. Public deployment requires decisions on these issues before recommendation inputs are retained.
+The year distribution in \cref{fig:years} characterises the seed, not full-text eligibility. Raw PDFs, extracted text, chunks, local database, and indexes are excluded from the sanitized release because TTLAB project authorization does not itself confer redistribution rights for every third-party paper. The release retains redistributable metadata, schemas, prompts without restricted passages, labels, aggregate/raw sanitized results, source hashes, and reacquisition instructions.

@@ -18,6 +18,6 @@
   grid=major,
   grid style={gray!15}
 ]
-\addplot[fill=Teal!65,draw=Teal!80!black] coordinates {(Eligible,96) (No text,36) (Mismatch,2)};
+\addplot[fill=Teal!65,draw=Teal!80!black] table[x=status,y=count,col sep=comma] {generated/paper_status.csv};
 \end{axis}
 \end{tikzpicture}

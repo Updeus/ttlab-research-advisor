@@ -1,557 +1,305 @@
 {
-  "generated_at_utc": "2026-07-12T22:01:15.446589+00:00",
+  "schema_version": 2,
+  "probe_version": "thesis-runtime-probe-v2",
+  "generation_provenance": {
+    "committed_base": {
+      "commit": "f4abb767018f9db13a2a9ac5bee1e6f6fca3428e",
+      "tree": "bcd72e37cfd935aa3a6a73e70197356f449492b5",
+      "backend_dirty": false
+    },
+    "exact_probe": {
+      "path": "thesis/scripts/runtime_probe.py",
+      "sha256": "18539bb72bc9db16ca42a93d9a9d965d9382775fc98b506766df8769a74e2e52"
+    },
+    "expected_manuscript_output_dirty_boundary": [
+      "thesis/generated/runtime_probe.json",
+      "build/thesis.pdf"
+    ],
+    "semantics": "The commit/tree identify the clean committed backend used by the disposable probe. The exact live probe script is SHA-256 bound; generated thesis outputs are expected to differ from the committed base."
+  },
   "database_source": "data/papers.db",
   "database_mode": "disposable copy",
+  "public_requests_persist": false,
+  "history_counts_before": {
+    "raganswer": 27,
+    "thesisrecommendation": 7,
+    "reviewevent": 48
+  },
+  "history_counts_after": {
+    "raganswer": 27,
+    "thesisrecommendation": 7,
+    "reviewevent": 48
+  },
+  "root": {
+    "service": "TTLAB Research Intelligence Platform",
+    "status": "ok",
+    "security_mode": "local_demo",
+    "admin_authentication": "bearer_token_required",
+    "frontend": "http://127.0.0.1:5173",
+    "api_docs": "/docs",
+    "health": "/health",
+    "readiness": "/ready"
+  },
   "health": {
     "status": "ok",
     "service": "ttlab-research-intelligence"
   },
+  "readiness": {
+    "status": "ready",
+    "checks": {
+      "database": true,
+      "keyword_index": {
+        "required": true,
+        "ready": true,
+        "status": "ready",
+        "completeness_status": "complete",
+        "indexed_chunks": 719,
+        "eligible_chunks": 719
+      },
+      "feature_hashing_index": {
+        "required": true,
+        "ready": true,
+        "status": "ready",
+        "completeness_status": "complete",
+        "indexed_chunks": 719,
+        "eligible_chunks": 719
+      },
+      "dense_index": {
+        "required": false,
+        "ready": true,
+        "status": "ready",
+        "completeness_status": "complete",
+        "indexed_chunks": 719,
+        "eligible_chunks": 719
+      }
+    }
+  },
   "stats": {
     "papers": 134,
-    "with_pdf_url": 100,
-    "downloaded_pdfs": 98,
-    "extracted_pdfs": 98,
-    "extraction_failed": 1,
-    "no_text_pdfs": 0,
-    "missing_pdf": 35,
-    "total_chunks": 756,
+    "searchable_papers": 96,
+    "eligible_chunks": 719,
+    "raw_chunks": 735,
+    "keyword_indexed_chunks": 719,
+    "feature_hashing_indexed_chunks": 719,
+    "dense_indexed_chunks": 719,
+    "author_count": 133,
     "topic_count": 39,
-    "author_count": 126,
-    "paper_topic_links": 767,
-    "author_topic_links": 1105,
-    "papers_with_topics": 132,
-    "authors_with_topics": 126,
-    "searchable_papers": 98,
-    "searchable_chunks": 756,
-    "keyword_indexed_chunks": 756,
-    "semantic_indexed_chunks": 25,
-    "total_ask_answers": 27,
-    "grounded_answers": 27,
-    "partial_answers": 0,
-    "unsupported_answers": 0,
-    "default_ask_provider": "ollama",
-    "total_extension_recommendation_runs": 7,
-    "total_extension_ideas": 29,
-    "grounded_extension_runs": 0,
-    "partial_extension_runs": 7,
-    "unsupported_extension_runs": 0,
-    "total_paper_artifacts": 14,
-    "papers_with_artifacts": 5,
-    "podcast_scripts_generated": 5,
-    "artifacts_needing_review": 14,
-    "admin_review_queue_count": 182,
-    "papers_needing_review": 134,
-    "answers_needing_review": 27,
-    "recommendations_needing_review": 7,
-    "total_review_events": 0,
-    "latest_review_event_at": null,
-    "evaluation_files_present": {
-      "retrieval": false,
-      "qa": false,
-      "extension": true,
-      "artifact": true
-    },
-    "evaluation_last_run_at": "2026-07-02T05:23:48.397317+00:00",
-    "evaluation_status": "available"
+    "review_event_count": null,
+    "latest_evaluation_at": null
   },
   "search_diagnostics": {
-    "total_chunks": 756,
-    "searchable_chunks": 756,
-    "searchable_papers": 98,
-    "chunks_indexed_for_keyword_search": 756,
-    "chunks_indexed_for_semantic_search": 25,
+    "total_chunks": 735,
+    "raw_chunks": 735,
+    "eligible_chunks": 719,
+    "searchable_chunks": 719,
+    "searchable_papers": 96,
+    "chunks_indexed_for_keyword_search": 719,
+    "chunks_indexed_for_feature_hashing": 719,
+    "chunks_indexed_for_dense_search": 719,
+    "chunks_indexed_for_semantic_search": 719,
     "keyword": {
       "fts_available": true,
-      "keyword_indexed_chunks": 756,
-      "total_chunks": 756,
+      "keyword_indexed_chunks": 719,
+      "eligible_chunks": 719,
+      "eligible_papers": 96,
+      "coverage_ratio": 1.0,
+      "corpus_snapshot_id": "corpus-04a010207327069a",
+      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "stored_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "completeness_status": "complete",
+      "provider": "sqlite_fts5_bm25",
+      "errors": [],
+      "total_chunks": 719,
       "status": "ready"
     },
-    "semantic": {
-      "semantic_indexed_chunks": 25,
-      "embedding_provider": "hashing",
+    "feature_hashing": {
+      "valid": true,
+      "status": "ready",
+      "errors": [],
+      "provider": "feature_hashing",
+      "model_name": "sha256-signed-token-hashing-v1",
+      "model_revision": "1",
+      "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39",
+      "dimensions": 256,
+      "normalization": "l2",
+      "indexed_chunks": 719,
+      "eligible_chunks": 719,
+      "eligible_papers": 96,
+      "completeness_status": "complete",
+      "corpus_snapshot_id": "corpus-04a010207327069a",
+      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "configuration_hash": "0e1747930d46faf752a9a7acda3e0aaa79147a6bbd1fa1b672866620e7513707",
+      "index_sha256": "f23353187252bb88188f8f5561c90de282481c1e87130405ccf556a14f319fa5",
+      "created_at": "2026-07-12T23:14:04.312681+00:00",
+      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
+      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "semantic_indexed_chunks": 719,
+      "embedding_provider": "feature_hashing",
       "embedding_dimensions": 256,
-      "index_path": "data/indexes/hashing_embeddings.json",
       "index_status": "ready",
-      "last_indexed_at": "2026-07-09T16:18:01.815592+00:00"
+      "last_indexed_at": "2026-07-12T23:14:04.312681+00:00"
     },
-    "embedding_provider": "hashing",
+    "dense": {
+      "valid": true,
+      "status": "ready",
+      "errors": [],
+      "provider": "dense",
+      "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+      "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+      "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c",
+      "dimensions": 384,
+      "normalization": "l2",
+      "indexed_chunks": 719,
+      "eligible_chunks": 719,
+      "eligible_papers": 96,
+      "completeness_status": "complete",
+      "corpus_snapshot_id": "corpus-04a010207327069a",
+      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "configuration_hash": "82bd4770afaf734b2fab006a9f9ff253bc5f1fe8e3b02ba4cd248d1fe6cb61d9",
+      "index_sha256": "ac0d1242787760638f294d8268166a99782d652fef66af70c5ba3739e1b15673",
+      "created_at": "2026-07-12T23:17:06.509772+00:00",
+      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
+      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "semantic_indexed_chunks": 719,
+      "embedding_provider": "dense",
+      "embedding_dimensions": 384,
+      "index_status": "ready",
+      "last_indexed_at": "2026-07-12T23:17:06.509772+00:00"
+    },
+    "semantic": {
+      "valid": true,
+      "status": "ready",
+      "errors": [],
+      "provider": "feature_hashing",
+      "model_name": "sha256-signed-token-hashing-v1",
+      "model_revision": "1",
+      "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39",
+      "dimensions": 256,
+      "normalization": "l2",
+      "indexed_chunks": 719,
+      "eligible_chunks": 719,
+      "eligible_papers": 96,
+      "completeness_status": "complete",
+      "corpus_snapshot_id": "corpus-04a010207327069a",
+      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "configuration_hash": "0e1747930d46faf752a9a7acda3e0aaa79147a6bbd1fa1b672866620e7513707",
+      "index_sha256": "f23353187252bb88188f8f5561c90de282481c1e87130405ccf556a14f319fa5",
+      "created_at": "2026-07-12T23:14:04.312681+00:00",
+      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
+      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "semantic_indexed_chunks": 719,
+      "embedding_provider": "feature_hashing",
+      "embedding_dimensions": 256,
+      "index_status": "ready",
+      "last_indexed_at": "2026-07-12T23:14:04.312681+00:00"
+    },
+    "embedding_provider": "feature_hashing",
     "embedding_dimensions": 256,
-    "index_path": "data/indexes/hashing_embeddings.json",
     "index_status": "ready",
-    "last_indexed_timestamp": "2026-07-09T16:18:01.815592+00:00"
+    "last_indexed_timestamp": "2026-07-12T23:14:04.312681+00:00"
   },
-  "searches": [
-    {
-      "query": "retrieval augmented generation",
-      "expanded_query": "retrieval augmented generation rag retrieval-augmented generation grounded generation",
-      "mode": "hybrid",
+  "searches": {
+    "keyword": {
       "result_count": 5,
       "warnings": [],
       "results": [
         {
           "rank": 1,
           "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "paper_title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0002-09f26e3ae1df",
-          "page_start": 2,
-          "page_end": 3,
-          "combined_score": 0.244401
-        },
-        {
-          "rank": 2,
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "paper_title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-fb420da92e89",
-          "page_start": 1,
-          "page_end": 1,
-          "combined_score": 0.20815
-        },
-        {
-          "rank": 3,
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "paper_title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0004-cf4fbf6de2f1",
-          "page_start": 4,
-          "page_end": 5,
-          "combined_score": 0.172179
-        },
-        {
-          "rank": 4,
-          "paper_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
-          "paper_title": "A Global Hierarchical LLM Framework for Precise Responses through Subscriptions to Country LLMs",
-          "chunk_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562-chunk-0005-0d87adcceea3",
-          "page_start": 4,
-          "page_end": 5,
-          "combined_score": 0.151686
-        },
-        {
-          "rank": 5,
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "paper_title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0006-bacb6b25c7fb",
-          "page_start": 5,
-          "page_end": 6,
-          "combined_score": 0.142312
-        }
-      ]
-    },
-    {
-      "query": "agriculture artificial intelligence",
-      "expanded_query": "agriculture artificial intelligence ai crops crop cocoa plantation biomass deforestation drone farming",
-      "mode": "hybrid",
-      "result_count": 5,
-      "warnings": [],
-      "results": [
-        {
-          "rank": 1,
-          "paper_id": "weed-and-water-stress-detection-using-drone-video-03885d3b",
-          "paper_title": "Weed and Water Stress Detection using Drone Video",
-          "chunk_id": "weed-and-water-stress-detection-using-drone-video-03885d3b-chunk-0003-32a9d36fee00",
-          "page_start": 5,
-          "page_end": 8,
-          "combined_score": 0.245109
-        },
-        {
-          "rank": 2,
-          "paper_id": "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
-          "paper_title": "An Open Dataset of Labelled Tropical Crops",
-          "chunk_id": "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e-chunk-0003-fa0ed443a532",
-          "page_start": 5,
-          "page_end": 7,
-          "combined_score": 0.124476
-        },
-        {
-          "rank": 3,
-          "paper_id": "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
-          "paper_title": "Above ground Biomass estimation of a Cocoa Plantation using Machine Learning",
-          "chunk_id": "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb-chunk-0000-c5cab0e3addb",
-          "page_start": 1,
-          "page_end": 1,
-          "combined_score": 0.09658
-        },
-        {
-          "rank": 4,
-          "paper_id": "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
-          "paper_title": "An Open Dataset of Labelled Tropical Crops",
-          "chunk_id": "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e-chunk-0000-87f562578cb7",
-          "page_start": 1,
-          "page_end": 2,
-          "combined_score": 0.0748
-        },
-        {
-          "rank": 5,
-          "paper_id": "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
-          "paper_title": "Crop Price Prediction: A Comparison of the Recursive and Direct Forecasting Strategies on SARIMAX Models",
-          "chunk_id": "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71-chunk-0000-f0f9e8a34ff0",
-          "page_start": 1,
-          "page_end": 1,
-          "combined_score": 0.058854
-        }
-      ]
-    },
-    {
-      "query": "limitations future work retrieval augmented generation",
-      "expanded_query": "limitations future work retrieval augmented generation rag retrieval-augmented generation grounded generation",
-      "mode": "hybrid",
-      "result_count": 5,
-      "warnings": [],
-      "results": [
-        {
-          "rank": 1,
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "paper_title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0006-bacb6b25c7fb",
-          "page_start": 5,
-          "page_end": 6,
-          "combined_score": 0.248592
-        },
-        {
-          "rank": 2,
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "paper_title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0006-a14e2d2daad7",
+          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0006-657f03c84944",
           "page_start": 6,
           "page_end": 6,
-          "combined_score": 0.238067
+          "section": "Conclusion",
+          "combined_score": 0.181728
+        },
+        {
+          "rank": 2,
+          "paper_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+          "chunk_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562-chunk-0001-41ef83ebaf97",
+          "page_start": 1,
+          "page_end": 2,
+          "section": "Introduction",
+          "combined_score": 0.071219
         },
         {
           "rank": 3,
-          "paper_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
-          "paper_title": "A Global Hierarchical LLM Framework for Precise Responses through Subscriptions to Country LLMs",
-          "chunk_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562-chunk-0005-0d87adcceea3",
-          "page_start": 4,
-          "page_end": 5,
-          "combined_score": 0.229354
-        },
-        {
-          "rank": 4,
           "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "paper_title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-fb420da92e89",
+          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-f097efe29bdc",
           "page_start": 1,
           "page_end": 1,
-          "combined_score": 0.179986
+          "section": "Introduction",
+          "combined_score": 0.208224
+        }
+      ]
+    },
+    "feature_hashing": {
+      "result_count": 5,
+      "warnings": [],
+      "results": [
+        {
+          "rank": 1,
+          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0006-657f03c84944",
+          "page_start": 6,
+          "page_end": 6,
+          "section": "Conclusion",
+          "combined_score": 0.267152
         },
         {
-          "rank": 5,
+          "rank": 2,
           "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "paper_title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0002-09f26e3ae1df",
-          "page_start": 2,
-          "page_end": 3,
-          "combined_score": 0.163907
+          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0001-6842f401aa20",
+          "page_start": 1,
+          "page_end": 2,
+          "section": "Literature Review",
+          "combined_score": 0.207061
+        },
+        {
+          "rank": 3,
+          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-f097efe29bdc",
+          "page_start": 1,
+          "page_end": 1,
+          "section": "Introduction",
+          "combined_score": 0.267169
         }
       ]
     }
-  ],
-  "answers": [
-    {
-      "question": "Which TTLAB papers discuss retrieval-augmented generation?",
-      "answer": "Based on the indexed TTLAB paper chunks, the strongest matching papers are:\n- Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor (2025) - Adir Soechit, Patrick Hosein: Index Terms—Retrieval-Augmented Generation, RAG, Large Language Models, LLMs, Industry 4.0, Predictive Maintenance, Anomaly Detection, Smart Factories I. [using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-fb420da92e89]\n- A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts (2025) - Shane Tikasingh, Patrick Hosein: The process consists of two main stages: information retrieval and generation. [a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0002-09f26e3ae1df]\n- Automating the Collection, Display, Summarization and Podcasting of Academic Research (2025) - Tristan Narine, Patrick Hosein: This will use retrieval-augmented generation (RAG), combining vector similarity search (e.g., FAISS) with transformer models like GPT. [automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a-chunk-0006-1575800d9333]",
-      "grounding_status": "grounded",
-      "provider": "offline_extractive",
-      "model": "sentence-overlap-v1",
-      "citation_count": 5,
-      "citations": [
-        {
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-fb420da92e89",
-          "page_start": 1,
-          "page_end": 1
-        },
-        {
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0002-09f26e3ae1df",
-          "page_start": 2,
-          "page_end": 3
-        },
-        {
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0006-bacb6b25c7fb",
-          "page_start": 5,
-          "page_end": 6
-        },
-        {
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0004-cf4fbf6de2f1",
-          "page_start": 4,
-          "page_end": 5
-        },
-        {
-          "paper_id": "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
-          "title": "Automating the Collection, Display, Summarization and Podcasting of Academic Research",
-          "chunk_id": "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a-chunk-0006-1575800d9333",
-          "page_start": 5,
-          "page_end": 6
-        }
-      ],
-      "warnings": [],
-      "unsupported_claims": []
-    },
-    {
-      "question": "What research relates to agriculture or AI?",
-      "answer": "Based on the indexed TTLAB paper chunks, the most relevant sources are: - An Open Dataset of Labelled Tropical Crops (2023) - Jade Chattergoon, Fazeeia Mohammed, Kimberley Gillette: We received a National Geographic Grant to investigate the application of Artiﬁcial Intelligence to Precision Agriculture in SIDS and one of the required steps was the collection of data for training Machine Learning algorithms. [an-open-dataset-of-labelled-tropical-crops-9b1b8d0e-chunk-0000-87f562578cb7] - Above ground Biomass estimation of a Cocoa Plantation using Machine Learning (2022) - Sabrina Sankar, Marvin Lewis, Patrick Hosein: For this research we used LiDAR data, along with various Machine Learning (ML) algorithms (Multiple Linear Regression, Random Forest, Support Vector Regression and Regression Tree) to estimate DBH of cocoa trees. [above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb-chunk-0000-c5cab0e3addb] - A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts (2025) - Shane Tikasingh, Patrick Hosein: LIMITATIONS AND FUTURE WORK This study, while comprehensive, has limitations that present opportunities for future research: • This study was carried out on a private dataset of tech- nical machine manuals from a ﬂour mill. [a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0005-dc571f607c6e] - Generative AI and Multi-Agent Systems Approach to Psychometric Evaluation for Human Resource Management and Talent Acquisition (2025) - Tamia-Ashley Tuitt, Letetia M. Addison, Patrick Hosein: Augustine Campus Trinidad and Tobago Traditional psychometric evaluations often fail to reliably assess candidates due to the reliance.",
-      "grounding_status": "grounded",
-      "provider": "offline_extractive",
-      "model": "sentence-overlap-v1",
-      "citation_count": 5,
-      "citations": [
-        {
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0005-dc571f607c6e",
-          "page_start": 4,
-          "page_end": 6
-        },
-        {
-          "paper_id": "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
-          "title": "An Open Dataset of Labelled Tropical Crops",
-          "chunk_id": "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e-chunk-0000-87f562578cb7",
-          "page_start": 1,
-          "page_end": 2
-        },
-        {
-          "paper_id": "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
-          "title": "Generative AI and Multi-Agent Systems Approach to Psychometric Evaluation for Human Resource Management and Talent Acquisition",
-          "chunk_id": "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f-chunk-0000-c7d26677870c",
-          "page_start": 1,
-          "page_end": 2
-        },
-        {
-          "paper_id": "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
-          "title": "Above ground Biomass estimation of a Cocoa Plantation using Machine Learning",
-          "chunk_id": "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb-chunk-0000-c5cab0e3addb",
-          "page_start": 1,
-          "page_end": 1
-        },
-        {
-          "paper_id": "a-consumer-focused-open-data-platform-8fd2a9df",
-          "title": "A Consumer Focused Open Data Platform",
-          "chunk_id": "a-consumer-focused-open-data-platform-8fd2a9df-chunk-0003-a85b9ef93af4",
-          "page_start": 3,
-          "page_end": 4
-        }
-      ],
-      "warnings": [],
-      "unsupported_claims": []
-    },
-    {
-      "question": "What limitations or future work are reported for the RAG papers?",
-      "answer": "The retrieved chunks include these limitation/future-work signals:\n- A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts: LIMITATIONS AND FUTURE WORK This study, while comprehensive, has limitations that present opportunities for future research: • This study was carried out on a private dataset of tech- nical machine manuals from a ﬂour mill. [a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0005-dc571f607c6e]\n- Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor: By integrat- ing machine sensor data with a veriﬁable knowledge base, the system provides highly relevant, interpretable and actionable insights, addressing critical limitations of traditional predictive maintenance approaches and signiﬁcantly improving decision- making in complex manufacturing environments. [using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0006-bacb6b25c7fb]\n- A Global Hierarchical LLM Framework for Precise Responses through Subscriptions to Country LLMs: Speciﬁcally, a signiﬁcant limitation is the political and logistical challenge of establishing a neutral, trusted gov- erning body to manage the Sovereign Node Directory which determines which participants are on the network. [a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562-chunk-0005-0d87adcceea3]\n- Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor: Advanced AI paradigms, particularly Large Language Mod- els (LLMs), offer a promising avenue to overcome these limitations. [using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-fb420da92e89]",
-      "grounding_status": "grounded",
-      "provider": "offline_extractive",
-      "model": "sentence-overlap-v1",
-      "citation_count": 5,
-      "citations": [
-        {
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0005-dc571f607c6e",
-          "page_start": 4,
-          "page_end": 6
-        },
-        {
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0006-bacb6b25c7fb",
-          "page_start": 5,
-          "page_end": 6
-        },
-        {
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0002-09f26e3ae1df",
-          "page_start": 2,
-          "page_end": 3
-        },
-        {
-          "paper_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
-          "title": "A Global Hierarchical LLM Framework for Precise Responses through Subscriptions to Country LLMs",
-          "chunk_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562-chunk-0005-0d87adcceea3",
-          "page_start": 4,
-          "page_end": 5
-        },
-        {
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-fb420da92e89",
-          "page_start": 1,
-          "page_end": 1
-        }
-      ],
-      "warnings": [],
-      "unsupported_claims": []
-    }
-  ],
+  },
+  "answer": {
+    "grounding_status": "grounded",
+    "provider": "offline_extractive",
+    "model": "sentence-overlap-v1",
+    "citation_count": 5,
+    "retrieved_chunk_count": 5,
+    "warnings": []
+  },
   "recommendation": {
     "grounding_status": "partial",
     "provider": "offline_deterministic",
-    "model": "template-recommender-v1",
+    "recommendation_count": 3,
     "warnings": [
+      "Recommendation 1 did not find explicit limitations or future work in retrieved chunks.",
       "Recommendation 1 has student skill gaps: API design, evaluation, information retrieval.",
-      "Recommendation 2 did not find explicit limitations or future work in retrieved chunks.",
       "Recommendation 2 has student skill gaps: API design, evaluation, information retrieval.",
-      "Recommendation 3 did not find explicit limitations or future work in retrieved chunks.",
-      "Recommendation 3 has student skill gaps: API design, evaluation, information retrieval, network analysis."
-    ],
-    "recommendations": [
-      {
-        "rank": 1,
-        "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-        "paper_title": "Using Retrieval-Augmented Generation for Fault Prediction and Maintenance on the Factory Floor",
-        "fit_score": 0.5176,
-        "difficulty": "medium",
-        "risk_level": "medium",
-        "gap_support_status": "explicit_in_paper",
-        "citation_count": 3
-      },
-      {
-        "rank": 2,
-        "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-        "paper_title": "A Comparison of Large Language Models in a Retrieval-Augmented Generation (RAG) System for Machine Repair and Maintenance Prompts",
-        "fit_score": 0.5169,
-        "difficulty": "medium",
-        "risk_level": "medium",
-        "gap_support_status": "not_found",
-        "citation_count": 3
-      },
-      {
-        "rank": 3,
-        "paper_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
-        "paper_title": "A Global Hierarchical LLM Framework for Precise Responses through Subscriptions to Country LLMs",
-        "fit_score": 0.5002,
-        "difficulty": "medium",
-        "risk_level": "high",
-        "gap_support_status": "not_found",
-        "citation_count": 3
-      }
+      "Recommendation 3 has student skill gaps: API design, evaluation, information retrieval, domain research."
     ]
   },
-  "evaluation": {
-    "retrieval": {
-      "status": "not_run",
-      "question_count": 0,
-      "recall_at_3": null,
-      "recall_at_5": null,
-      "mrr": null
-    },
-    "qa": {
-      "status": "not_run",
-      "question_count": 0,
-      "answer_count": 0,
-      "grounding_counts": {
-        "grounded": 0,
-        "partial": 0,
-        "unsupported": 0
-      }
-    },
-    "extension": {
-      "status": "available",
-      "case_count": 1,
-      "recommendation_count": 5,
-      "citation_coverage": 1.0,
-      "grounding_counts": {
-        "grounded": 0,
-        "partial": 1,
-        "unsupported": 0
-      }
-    },
-    "artifact": {
-      "status": "available",
-      "case_count": 1,
-      "artifact_count": 4,
-      "citation_coverage": 1.0,
-      "grounding_counts": {
-        "grounded": 1,
-        "partial": 0,
-        "unsupported": 0
-      }
-    }
-  },
-  "admin": {
-    "papers_total": 134,
-    "papers_needing_metadata_review": 134,
-    "papers_missing_pdfs": 35,
-    "papers_with_extraction_failures": 1,
-    "possible_scanned_pdfs": 0,
-    "total_chunks": 756,
-    "rag_answers": {
-      "needs_review": 27,
-      "reviewed": 0,
-      "approved": 0,
-      "rejected": 0,
-      "needs_reprocess": 0
-    },
-    "rag_answers_by_grounding": {
-      "grounded": 27,
-      "partial": 0,
-      "unsupported": 0
-    },
-    "thesis_recommendations": {
-      "needs_review": 7,
-      "reviewed": 0,
-      "approved": 0,
-      "rejected": 0,
-      "needs_reprocess": 0
-    },
-    "thesis_recommendations_by_grounding": {
-      "grounded": 0,
-      "partial": 7,
-      "unsupported": 0
-    },
-    "paper_artifacts": {
-      "needs_review": 14,
-      "reviewed": 0,
-      "approved": 0,
-      "rejected": 0,
-      "needs_reprocess": 0
-    },
-    "paper_artifacts_by_grounding": {
-      "grounded": 9,
-      "partial": 5,
-      "unsupported": 0
-    },
-    "paper_artifacts_by_type": {
-      "future_work": 1,
-      "limitations": 1,
-      "paper_intelligence_bundle": 5,
-      "podcast_script": 5,
-      "public_summary": 1,
-      "technical_summary": 1
-    },
-    "artifacts_needing_review": 14,
-    "total_review_events": 0
+  "evaluation_status": {
+    "retrieval": "available",
+    "qa": "available",
+    "extension": "available",
+    "artifact": "available"
   },
   "explorer": {
     "topic_count": 39,
-    "author_count": 126,
-    "paper_count": 134,
-    "linked_paper_topics": 767,
-    "linked_author_topics": 1105,
-    "explorer_index_status": "ready",
-    "top_topics": [
-      "Data Science",
-      "Networks",
-      "Education",
-      "Machine Learning",
-      "Visualization",
-      "Web Applications",
-      "Optimization",
-      "Telecommunications"
-    ],
-    "top_authors": [
-      "Patrick Hosein",
-      "P. Hosein",
-      "Click to View",
-      "Inzamam Rahaman",
-      "Ramneek",
-      "W. Seok",
-      "W. Choi",
-      "Ramneek Sekhon"
-    ]
+    "author_count": 109,
+    "paper_count": 96,
+    "linked_paper_topics": 170,
+    "linked_author_topics": 313
+  },
+  "anonymous_protection": {
+    "admin_overview_status": 401,
+    "ask_history_status": 401
   }
 }

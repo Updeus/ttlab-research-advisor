@@ -1,59 +1,83 @@
 \chapter{Reproducibility Guide}
 \label{app:reproducibility}
 
-Run commands from the repository root on Linux/WSL. The exact snapshot is Git HEAD \texttt{713ea5c8e321200eb5a17655481e091cab13ccb4} plus the seven modified application/test files enumerated in \codepath{thesis/PROJECT_EVIDENCE.md}.
+Run commands from the repository root on Linux/WSL. The exact code revision, working-tree state at execution, environment, input hashes, and output hashes are embedded in phase and reproduction manifests. The corpus snapshot is \texttt{\CorpusSnapshotId}.
 
-\section{Evidence snapshots}
+\section{One-command paths}
+
+\begin{lstlisting}[language=bash]
+make reproduce-quick  # code/sanitized evidence path
+make reproduce        # full authorized-corpus path
+make release          # deterministic sanitized bundle
+\end{lstlisting}
+
+The full path requires a lawful local database/PDF corpus and the pinned dense model. It imports/repairs metadata, extracts and chunks, validates/rebuilds indexes, executes evaluations and performance workloads, runs tests/builds, generates manuscript evidence, compiles paper and thesis, performs local PDF preflight, builds the release, and emits a final manifest/checksums. The quick path verifies distributable code and sanitized evidence without claiming to recreate restricted inputs.
+
+\section{Evidence and manuscript generation}
 
 \begin{lstlisting}[language=bash]
 PYTHONPATH=backend .venv/bin/python thesis/scripts/collect_evidence.py
 PYTHONPATH=backend .venv/bin/python thesis/scripts/runtime_probe.py
+PYTHONPATH=backend .venv/bin/python thesis/scripts/generate_manuscript_assets.py
+# With the backend on :8000 and frontend on :4173:
+node thesis/scripts/capture_interface_screenshots.mjs
+make thesis
 \end{lstlisting}
 
-The second command copies the SQLite database to a temporary location before requests. It should not add answer or recommendation rows to the source database.
+The runtime probe copies the SQLite database to a temporary directory, uses transient generation, verifies public routes, and confirms that anonymous admin access is denied. It never adds evidence rows to the source database. The screenshot command executes one transient offline Ask request and captures the current Ask and Evaluation components; it requires a running local backend/frontend and Playwright's browser dependency. The manuscript generator fails when a required frozen artefact is missing.
 
-\section{Application verification}
+\section{Evaluation commands}
 
 \begin{lstlisting}[language=bash]
-rm -f /tmp/advisor-thesis-pytest.db
-TTLAB_DATABASE_URL=sqlite:////tmp/advisor-thesis-pytest.db \
-  PYTHONPATH=backend .venv/bin/python -m pytest
-
-cd frontend
-npm ci
-npm run build
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_experiment
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_qa_faithfulness_v1.py
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_recommendation_proxy_v1.py
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_topic_author_silver_v1.py
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_section_quality_silver_v1.py \
+  --database data/papers.db --evaluate-current
 \end{lstlisting}
 
-For local interactive operation, use the repository's \codepath{scripts/run_everything.sh} and inspect its options before execution. Local Ollama is optional; provider failure falls back to offline extraction.
+Exact CLI arguments and phase-specific seeds are preserved in their manifests and the reproduction script. The retrieval outputs retain per-query rankings rather than only aggregate metrics.
 
-\section{Document builds}
+\section{Application and document verification}
 
 \begin{lstlisting}[language=bash]
-make thesis   # build/thesis.pdf
-make paper    # build/ieee-paper.pdf
-make all      # both documents
+PYTHONPATH=backend .venv/bin/python -m pytest
+cd frontend && npm ci && npm test && npm run build && npm run test:e2e
+cd ..
+make thesis
+.venv/bin/python scripts/validate_manuscripts.py --source-only
+.venv/bin/python scripts/validate_manuscripts.py
+pdfinfo build/thesis.pdf
+pdffonts build/thesis.pdf
+pdftoppm -png build/thesis.pdf tmp/pdfs/thesis
 \end{lstlisting}
 
-The Makefile locates \texttt{tectonic} on \texttt{PATH} or under \texttt{\$HOME/.local/bin}. Figure sources are TikZ/PGFPlots files under \codepath{thesis/figures/src}; plot inputs are generated CSV files.
+Local preflight verifies A4 thesis page size, metadata, embedded fonts, absence of Type 3 fonts and visible placeholder markers, citation/reference resolution, and serious overflow. PDF Express/Checker is external because it requires venue credentials.
 
-\section{Snapshot identifiers}
+\section{Key identifiers}
+
+\Cref{tab:repro-identifiers} provides compact identifiers for checking that a rerun uses the intended corpus, indexes, model, and labels.
 
 \begin{table}[htbp]
 \centering
-\scriptsize
-\caption{Key SHA-256 snapshot identifiers.}
-\begin{tabularx}{\textwidth}{P{31mm}Y}
+\small
+\caption{Key frozen identifiers. Full values are retained in manifests.}
+\label{tab:repro-identifiers}
+\begin{tabularx}{\textwidth}{P{42mm}Y}
 \toprule
-Artefact & SHA-256 \\
+Artefact & Identifier \\
 \midrule
-Seed JSON & \nolinkurl{d542403eee240fdae831af31f105ab1cc39f36a4b90eaa19f07b84f211b27b16} \\
-Runtime SQLite & \nolinkurl{d9474b25b224306c6cf8d5a3769e1483acf512e94b0c077040503c9c1693a9e2} \\
-Sorted PDF manifest & \nolinkurl{ac9ca99d2ee9c13a07442843b48712e51bef0efbf86f175682830f8a9ef53658} \\
-Active hashing index & \texttt{8cb6843a}\ldots\texttt{0511} (full value in generated evidence JSON) \\
+Corpus snapshot & \texttt{\CorpusSnapshotId}; SHA-256 prefix \texttt{04a010207327069a} \\
+Feature-hashing index & SHA-256 \texttt{f23353187252...f319fa5} \\
+Learned-dense index & SHA-256 \texttt{ac0d12427877...1b15673} \\
+Dense model & \texttt{all-MiniLM-L6-v2} revision \texttt{826711e54e001c...a1def9} \\
+Dense model artifact & SHA-256 \texttt{18309e334c02...048c0a7c} \\
+Retrieval labels & SHA-256 \texttt{ccd16f6428c9...949a3cbe1} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\section{Screenshots}
+\section{Availability boundary}
 
-The eight PNGs under \codepath{thesis/figures/screenshots} were captured from a disposable-copy browser audit on ports 8011/5181. They are evidence for visible surfaces and failures, not pixel-level regression baselines. Reproduction requires starting the audited backend copy and frontend and capturing the named views at a consistent viewport.
+The sanitized bundle contains code, tests, schemas, redistributable metadata, evaluation cases/labels, sanitized raw results, prompts/configurations, figures, manuscript sources, hashes, and instructions. It excludes every PDF, SQLite database, runtime index, extracted/chunked publication text, raw full-text prompt, raw external XML, secret, and absolute local path. Exact full-corpus results are reproducible only for an authorized recipient who reacquires or receives the lawful source material.

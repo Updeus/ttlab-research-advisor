@@ -1,4 +1,4 @@
-% Shared thesis formatting. No university template was present in the audited repository.
+% Professional thesis layout used because no university LaTeX template was present.
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{newtxtext,newtxmath}
@@ -27,7 +27,7 @@
 \pgfplotsset{compat=1.18}
 \usepackage{cite}
 \usepackage{url}
-\usepackage[hidelinks,bookmarksnumbered=true,bookmarksopen=true]{hyperref}
+\usepackage[hidelinks,bookmarksnumbered=true,bookmarksopen=true,pdfdisplaydoctitle=true]{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
 
 \definecolor{Navy}{HTML}{16324F}
@@ -46,8 +46,10 @@
   linkcolor=Navy,
   citecolor=Blue,
   urlcolor=Blue,
-  pdftitle={From Publication Archive to Research Advisor},
-  pdfsubject={TTLAB Research Intelligence Platform MSc thesis}
+  pdftitle={Engineering and Evaluating a Source-Traceable Research-Intelligence Platform for a Laboratory Corpus},
+  pdfauthor={Jarod Esareesingh},
+  pdfsubject={MSc Data Science project, Department of Computing \& Information Technology, The University of the West Indies},
+  pdfkeywords={research intelligence, information retrieval, retrieval-augmented generation, scholarly recommendation, responsible AI, reproducibility}
 }
 
 \onehalfspacing
@@ -72,6 +74,7 @@
 \fancyhead[R]{TTLAB Research Intelligence Platform}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter}{}}
 
 \captionsetup{font=small,labelfont=bf,justification=centering}
 \crefname{figure}{Fig.}{Figs.}
@@ -106,15 +109,9 @@
   dashedarrow/.style={-{Latex[length=2.4mm]}, thick, dashed, draw=Slate}
 }
 
-\newcommand{\authorinput}[1]{\textcolor{Warn}{\textbf{AUTHOR INPUT REQUIRED: #1}}}
-\newcommand{\implemented}{\textcolor{Teal!75!black}{\textbf{Implemented}}}
-\newcommand{\proposed}{\textcolor{Gold!75!black}{\textbf{Proposed}}}
-\newcommand{\notvalidated}{\textcolor{Warn}{\textbf{Not validated}}}
 \newcommand{\codepath}[1]{\nolinkurl{#1}}
 \newcommand{\projectScreenshot}[2]{%
-  \IfFileExists{#1}{\includegraphics[width=#2]{#1}}{%
-    \fbox{\parbox[c][55mm][c]{0.9\linewidth}{\centering Screenshot unavailable at build time:\\[1ex]\texttt{\detokenize{#1}}}}%
-  }%
+  \includegraphics[width=#2]{#1}%
 }
 
 \newenvironment{evidencebox}

@@ -1,20 +1,28 @@
-\chapter{Proposed Review Instruments}
+\chapter{Executed AI-Review Instruments}
 \label{app:review-instruments}
 
-These instruments are proposed and have not been administered. They require ethics and supervisor approval.
+The following instruments were executed by a declared AI reviewer and produced silver evidence. They were not administered to human participants. Full records, rationales, source IDs, review passes, disagreements, and prompt hashes are stored under \codepath{data/evaluation} and \codepath{artifacts/phase3--phase4}; private full-text prompts are excluded from the release.
+
+\section{Retrieval relevance}
+
+For each question, the reviewer recorded category, answerability, relevant paper IDs, graded relevance, supporting chunk/page evidence, source rationale, creation decision, shuffled verification decision, disagreement, and adjudication. Rankings were unavailable to the label-creation process. Test cases were not used for tuning.
 
 \section{Answer and citation review}
 
-For each atomic answer claim, record: supported/partially supported/unsupported; correct paper; correct page/chunk; citation entails claim; important context omitted; conflicting evidence; and reviewer notes. At answer level, rate faithfulness and usefulness on a defined five-point rubric and record whether fallback occurred.
+Every answer was segmented into atomic checkable claims. For each claim the instrument recorded support (supported/partial/unsupported), inline source IDs, correct paper/chunk/page, citation relation (correct/partial/incorrect), unsupported general knowledge, and error tags. At answer level it recorded expected answer points (covered/partial/missing), answerability decision, abstention, returned-citation use, and notes.
 
 \section{Recommendation review}
 
-Review source fidelity separately from the suggestion. Rate paper relevance, gap classification, novelty, feasibility within stated time, data accessibility, skill calibration, MVP clarity, risk calibration, and evaluation-plan appropriateness. Reviewers should flag where a system inference is phrased as if it appeared in the paper.
+Each of three evidence-only and three full-finder results per profile was reviewed for paper relevance and source fidelity. Full outputs were also reviewed for fact/future-work/gap/suggestion separation, novelty caution, skills/time/data feasibility, MVP scope, stretch scope, risk, required skills, evaluation-plan quality, and usefulness as an AI proxy. The proxy judgment is not evidence of student or supervisor benefit.
 
 \section{Topic and author review}
 
-For each sampled paper, mark applicable controlled topics, missing topics, incorrect topics, and ambiguous labels. For author records, first decide identity merges/splits and parsing errors, then review whether topic evidence supports a qualified expertise association.
+Paper cases retained applicable controlled labels, explicit source passages, multi-label and other/unknown state, and two review passes. Author auditing first checked canonical/alias identity, excluded-paper leakage, authorship mismatch, and possible same-person candidates. Topic associations were then constrained to eligible indexed publications. No availability, endorsement, or supervision judgment was requested.
 
-\section{Minimum provenance fields}
+\section{Generated-output review}
 
-Each judgment should retain case ID, corpus/index version, output ID, provider/model/prompt version, reviewer pseudonym, timestamp, decision, rationale, and adjudication state. \authorinput{approve instruments, scales, reviewer training, anonymity, retention, and adjudication procedure}.
+Every stored RAG answer, recommendation, summary, technical summary, contribution, method, limitation, future-work section, suggested extension, skill/evaluation-plan structure, and podcast script was inspected for source locators, claim boundaries, configuration sufficiency, and safe status. Corrections were applied through append-only attributed events. AI review could assign only \texttt{ai\_reviewed} or \texttt{needs\_reprocess}; it could not approve content as human-reviewed.
+
+\section{Future human instrument boundary}
+
+A later human study would require an institutional ethics determination and a separate protocol covering recruitment, consent, inclusion criteria, sample-size rationale, assessor training, anonymity, retention, withdrawal, compensation, rating scales, agreement/adjudication, and adverse-event/correction handling. Nothing in the AI-silver process is presented as satisfying those requirements.

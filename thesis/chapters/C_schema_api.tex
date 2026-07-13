@@ -3,7 +3,9 @@
 
 \section{Principal persisted contracts}
 
-\begin{longtable}{P{35mm}P{105mm}}
+The persisted contracts in \cref{tab:schema-summary} define where provenance and review state survive beyond one request.
+
+\begin{longtable}{P{39mm}P{101mm}}
 \caption{Principal persisted entities and traceability fields.}\label{tab:schema-summary}\\
 \toprule
 Entity & Principal fields \\
@@ -13,35 +15,45 @@ Entity & Principal fields \\
 Entity & Principal fields \\
 \midrule
 \endhead
-Paper & identifier; title; author JSON; year/date/venue; abstract; source/PDF paths; DOI; keyword/topic JSON; ingestion, extraction, and review statuses; timestamps \\
-Chunk & identifier; paper foreign key; page start/end; inferred section; text; word/token count; source hash; embedding status; timestamp \\
-RAGAnswer & question; answer; retrieved chunk and paper JSON; citation JSON; provider/model; grounding status; unsupported-claim/warning JSON; human review fields; timestamp \\
-Thesis\allowbreak Recommendation & student request JSON; recommendation JSON; citation JSON; grounding and review state; timestamp \\
-Paper\allowbreak Artifact & paper foreign key; artefact type; generated text/JSON; citation and source-section JSON; provider/model; grounding and review state \\
-Topic / Paper\allowbreak Topic / Author\allowbreak Topic & normalized topic; paper/author links; score; source and evidence JSON; review state \\
-ReviewEvent & item type/ID; previous/new state; reviewer; notes; changed-field JSON; timestamp \\
+Paper & identifier; title; source authors; canonical identity links; year/date/venue; abstract; source/PDF paths; DOI; keywords; provenance; ingestion, extraction, eligibility, OCR, and review statuses; timestamps \\
+Chunk & identifier; paper foreign key; page start/end; inferred section; text; word/token count; source hash; eligibility/index status; timestamp \\
+Index manifest & corpus snapshot/hash; ordered chunk/source hashes; provider/model/revision; dimension/normalisation; configuration/code/index hashes; index role; completeness \\
+RAGAnswer & question; answer; retrieved chunk/paper/citation structures; provider/model/configuration; grounding and unsupported-claim warnings; reviewer fields; timestamps \\
+Thesis Recommendation & transient request profile; ranked recommendation structures; evidence/gap/suggestion boundaries; citations; provider/model; grounding/review state; timestamp \\
+Paper Artifact & paper foreign key; artifact type; generated text/JSON; citations and source sections; provider/model; grounding/review state \\
+Canonical Author / Alias & canonical name; alias/provenance; identity/merge and review states; publication relation \\
+Topic / PaperTopic / AuthorTopic & controlled name; paper/author links; score; source/evidence JSON; review state \\
+ReviewEvent & item type/ID; previous/new state; reviewer ID/name/type/role; request ID; notes; field diff; previous/event hashes; timestamp \\
 \bottomrule
 \end{longtable}
 
 \section{Principal API surfaces}
 
+\Cref{tab:api-summary} separates public/transient functions from protected history and mutation operations.
+
 \begin{table}[htbp]
 \centering
-\caption{User-facing API groups and implemented purpose.}
-\begin{tabularx}{\textwidth}{P{34mm}Y}
+\caption{User-facing API groups and security boundary.}
+\label{tab:api-summary}
+\begin{tabularx}{\textwidth}{P{36mm}Y P{30mm}}
 \toprule
-Group & Purpose \\
+Group & Purpose & Access \\
 \midrule
-papers & statistics, list/detail, extracted status and paper artefacts \\
-search & keyword, hashing-vector, or hybrid chunk retrieval with diagnostics \\
-ask & retrieve, compose, cite, structurally verify, persist, and return answers \\
-recommendations & profile-driven ranked paper/extension structures \\
-topics/authors & topic list/detail, author list/detail, related papers, rebuild \\
-admin & overview and review/update actions for metadata and generated items \\
-evaluation & evaluation-state dashboard and available result files \\
-local model & Ollama availability/model status used by the UI \\
+papers & statistics, browse/detail, extraction and public artifact views & public read \\
+search & keyword, feature-hashing, dense, and hybrid retrieval with evidence/diagnostics & public read \\
+ask & transient generation; persisted history/review operations separated & public transient; protected persistence \\
+recommendations & transient evidence-only/full profile-driven results & public transient \\
+topics/authors & explorer overview/detail and related papers; rebuild separated & public read; protected rebuild \\
+artifacts & public reviewed-safe output; generation/review operations & mixed public/protected \\
+evaluation & evaluation state, corpus/index freshness, and public-safe results & public read \\
+admin & review queues, mutations, events, corrections & reviewer/admin bearer \\
+health/readiness & liveness and database/index completeness state & public read \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Exact paths and schemas should be generated from the running FastAPI OpenAPI document for a release; this appendix intentionally avoids asserting a frozen public API version.
+FastAPI's generated OpenAPI document is available only in local-demo mode. Production disables interactive docs unless an operator creates an explicit boundary. Public serializers redact local paths, private reviewer notes, draft corrections, and restricted source text where appropriate.
+
+\section{Review-state semantics}
+
+\texttt{needs\_review} denotes unreviewed content; \texttt{ai\_reviewed} denotes declared AI formative review; \texttt{needs\_reprocess} denotes preserved content that cannot be safely reproduced under current configuration; \texttt{reviewed}, \texttt{approved}, and \texttt{rejected} require a human actor with an appropriate role. Structural grounding remains separate from every review state.

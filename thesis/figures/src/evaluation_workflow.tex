@@ -7,12 +7,12 @@
 
   \node[flowbox, below=15mm of questions] (qa) {50 QA cases; 81 answer points;\\atomic claim/source inspection};
   \node[flowbox, right=of qa] (outputs) {Offline answers, 28-profile Finder,\\60-case topics, stored outputs};
-  \node[flowbox, right=of outputs] (automatic) {Claim/citation/coverage and\\criterion-level proxy judgments};
+  \node[flowbox, right=of outputs] (automatic) {Claim, citation and coverage\\criterion-level proxy judgments};
   \node[flowbox, right=of automatic, fill=PaleTeal, draw=Teal!80!black] (reviewed) {Reviewer type=AI; raw rationales,\\evidence, failures and manifests};
 
   \node[flowbox, below=15mm of qa] (engineering) {Tests, route/E2E/security checks,\\cold/warm performance probes};
   \node[flowbox, right=of engineering] (release) {Sanitized release and\\one-command reproduction};
-  \node[flowbox, right=of release] (analysis) {RQ traceability, bounded claims,\\construct/internal/external threats};
+  \node[flowbox, right=of release] (analysis) {RQ traceability and bounded claims;\\validity threats};
   \node[flowbox, right=of analysis, fill=PaleGold, draw=Gold!80!black] (external) {External-only: human usefulness, REC,\\rights, venue checker/attestations};
 
   \draw[arrow] (questions) -- (retrieval);

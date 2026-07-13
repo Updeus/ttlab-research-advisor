@@ -1,0 +1,9 @@
+stage,label,cold_median,cold_p95,warm_median,warm_p95,failure_count
+dense_index,Dense indexing,145.005,145.020,66.169,134.066,0
+retrieval_keyword,Keyword retrieval,9.809,10.126,8.091,9.526,0
+retrieval_dense,Dense retrieval,84.487,86.265,12.215,78.342,0
+retrieval_hybrid,Hybrid retrieval,93.355,93.616,20.326,86.385,0
+answer_offline,Offline answer,83.355,83.736,9.842,75.800,0
+recommendation_offline,Recommendation,83.604,85.675,10.482,76.668,0
+api_asgi,ASGI endpoint set,79.606,81.178,3.948,72.397,0
+frontend_page_load,Frontend route set,12.496,12.807,12.463,12.631,0

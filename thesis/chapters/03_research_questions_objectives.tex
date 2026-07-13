@@ -1,38 +1,38 @@
 \chapter{Research Questions and Objectives}
 \label{ch:rqs}
 
-The research questions are framed so that the current repository can answer implementation and characterization questions without manufacturing effectiveness results.
+The research questions span the data pipeline, retrieval and RAG quality, recommendation structure, research discovery and governance, and reproducibility. Each question is answered by a method--evidence--result--conclusion chain rather than by implementation claims alone.
 
 \begin{description}[leftmargin=16mm,style=multiline]
-  \item[RQ1] With what coverage and observable failure modes can the publication snapshot be converted into page-aware full-text chunks?
-  \item[RQ2] How does the implemented retrieval and question-answering workflow preserve traceability under the currently active index?
-  \item[RQ3] How does the thesis-extension workflow distinguish source-supported baseline work and gaps from system-generated suggestions?
-  \item[RQ4] How are topics, authors, metadata, and generated outputs made inspectable and reviewable, and what data-quality risks remain?
-  \item[RQ5] To what extent can the prototype and its current evidence be reproduced and audited, and what evaluation is still required before effectiveness claims?
+  \item[RQ1] With what coverage, structural quality, and observable failure modes can the catalog snapshot be transformed into an eligible page-aware corpus and complete authoritative indexes?
+  \item[RQ2] How do keyword, feature-hashing, learned dense, heuristic hybrid, and development-tuned hybrid retrieval compare on held-out source-derived questions, and which heuristic terms materially change rankings?
+  \item[RQ3] To what extent does the offline extractive answerer produce source-supported claims, correct and complete citations, answer-point coverage, and appropriate abstention?
+  \item[RQ4] What does AI-assisted proxy review reveal about the evidence fidelity and limitations of thesis-extension recommendations, controlled topic labels, publication-derived author links, and persisted generated outputs?
+  \item[RQ5] To what extent is the bounded artefact reproducible and reviewable on documented local hardware, externally format-compatible, and governed by privacy-minimizing, authenticated, accessible evidence interfaces without redistributing restricted PDFs?
 \end{description}
 
-\section{Question-to-evidence design}
+\section{Research-question design}
+
+\Cref{tab:rq-plan} states the authoritative evidence and bounded conclusion type for each question.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Research-question traceability plan.}
+\caption{Research questions connected to executed method, evidence, and conclusion type.}
 \label{tab:rq-plan}
-\begin{tabularx}{\textwidth}{P{9mm}P{34mm}P{40mm}Y}
+\begin{tabularx}{\textwidth}{P{9mm}P{39mm}P{48mm}Y}
 \toprule
-RQ & Method & Evidence & Bounded conclusion type \\
+RQ & Method & Authoritative evidence & Conclusion type \\
 \midrule
-1 & repository and corpus audit & seed, PDF/text/chunk manifests, extraction diagnostics, SQLite counts & coverage and observed ingestion limitations \\
-2 & code inspection and disposable runtime probes & retrieval code, active index, search and Ask responses, citation verifier & traceability mechanics, not answer accuracy \\
-3 & schema/algorithm inspection and recommendation probe & weights, evidence fields, verifier, persisted/run-time outputs & structural separation, not educational usefulness \\
-4 & database/UI inspection & topic and author links, review API, screenshots, review-event count & inspectability and defects, not validated expertise \\
-5 & isolated tests, builds, hashes, build artefacts & test/build logs, scripts, generated snapshots, PDF QA & reproducibility of the audited snapshot \\
+1 & corpus eligibility audit; extraction diagnostics; section silver review; manifest validation & Phase 1 evidence; database integrity; three index manifests; 40 section cases & coverage, integrity, and observed data failures \\
+2 & 30/20 development/test evaluation; baselines; tuning; ablations; paired statistics & raw per-query rankings; retrieval summary/statistics/errors & bounded offline retrieval quality and term sensitivity \\
+3 & 50-case atomic claim/citation/answer-point review; answerability checks & 400 claim labels; 81 answer points; case-bootstrap intervals; error taxonomy & bounded offline RAG evidence quality, not human-perceived usefulness \\
+4 & paired 28-profile recommendation comparison; 60-case topic comparison; identity audit; complete stored-output review & 168 recommendation arm outputs; topic predictions/metrics; author audit; 48 append-only review events & advisory/discovery behavior, not student benefit, endorsement, or human approval \\
+5 & repeated performance benchmark; automated verification; review-state and interface checks; external open-corpus sanity check; release scan & Phase 6 raw results; test/build logs; review evidence; Europe PMC manifest; release checksums & bounded reproducibility, reviewability, format compatibility, and evidence-interface governance \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The full evidence-result-conclusion matrix appears in \cref{app:traceability}. This structure prevents a passing software test from being used as evidence for a user-facing quality claim.
+\section{Claim boundaries}
 
-\section{Propositions not yet tested}
-
-The following plausible propositions are intentionally not converted into conclusions: hybrid retrieval improves relevance over keyword search; page citations improve trust; extension recommendations help students choose feasible work; and administrative review improves public-output quality. Testing them requires labelled baselines and/or human participants. \authorinput{confirm whether these should become formal hypotheses and supply the approved evaluation protocol}.
+RQ2 tests retrieval against AI-silver evidence and does not establish broader-corpus performance. RQ3 tests extractive answers against AI-silver evidence but does not establish human-perceived answer quality. RQ4 combines AI-proxy recommendation, controlled-label, identity, and review evidence; novelty, feasibility, data access, supervisor fit, expertise, and availability remain externally confirmable. RQ5 reports local concurrency-one performance, attributable review and interface controls, restricted-PDF exclusion, and a three-article external format sanity check; it does not establish production capacity or broad generalisation. The complete mapping appears in \cref{app:traceability}.

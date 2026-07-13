@@ -54,7 +54,12 @@ def write_results(result: dict[str, Any], output_path: Path) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evaluate Ask TTLAB citation behavior against manually reviewed questions.")
     parser.add_argument("--questions", default="data/evaluation/qa_questions.jsonl")
-    parser.add_argument("--mode", choices=["keyword", "semantic", "hybrid"], default="hybrid")
+    parser.add_argument(
+        "--mode",
+        choices=["keyword", "feature_hashing", "dense", "hybrid", "semantic"],
+        default="hybrid",
+        help="Use 'semantic' only as the deprecated compatibility alias for feature hashing.",
+    )
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--out", default="data/evaluation/qa_eval_results.json")
     return parser

@@ -110,6 +110,7 @@ describe("evidence and responsible-AI interfaces", () => {
     expect((await screen.findAllByText("Ollama unavailable")).length).toBeGreaterThan(0);
     await user.click(screen.getByRole("button", { name: "Ask" }));
     expect(await screen.findByText(/transient answer/)).toBeInTheDocument();
+    expect(screen.getByText(/does not establish entailment or factual correctness/i)).toBeInTheDocument();
     expect(screen.getAllByText("Chunk paper-1-0001").length).toBeGreaterThan(0);
     expect(screen.getAllByText("A source-grounded passage about retrieval.").length).toBeGreaterThan(0);
   });

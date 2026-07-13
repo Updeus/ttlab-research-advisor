@@ -313,6 +313,11 @@ export type LocalLlmStatus = {
   default_model: string;
   model_count: number;
   models: LocalLlmModel[];
+  candidate_pulls: {
+    name: string;
+    purpose: string;
+    fit: string;
+  }[];
   recommended_pulls: {
     name: string;
     purpose: string;

@@ -1,1 +1,1 @@
-"""API routers for the Phase 1 backend."""
+"""Public discovery, generation, evaluation, and protected review API routers."""

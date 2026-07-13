@@ -213,7 +213,7 @@ def ask_diagnostics(session: Session) -> dict[str, Any]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Ask source-grounded questions over indexed TTLAB chunks.")
+    parser = argparse.ArgumentParser(description="Ask source-cited questions over indexed TTLAB chunks.")
     subparsers = parser.add_subparsers(dest="command")
     ask = subparsers.add_parser("ask")
     ask.add_argument("question")

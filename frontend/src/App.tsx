@@ -123,7 +123,7 @@ export function App() {
         <div className="brand-block">
           <p className="eyebrow">TTLAB Research Intelligence</p>
           <h1>Research Intelligence Platform</h1>
-          <p className="app-subtitle">Full-paper discovery, grounded answers, thesis ideas, and review-ready outputs.</p>
+          <p className="app-subtitle">Full-paper discovery, source-cited answers, thesis ideas, and review-ready outputs.</p>
           <SecurityMode status={serviceStatus} />
         </div>
         <nav className="tabs" aria-label="Primary">

@@ -250,7 +250,7 @@ def score_answer(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Benchmark local Ollama models for source-grounded Ask TTLAB answers.")
+    parser = argparse.ArgumentParser(description="Benchmark local Ollama models for source-cited Ask TTLAB answers.")
     parser.add_argument("--models", nargs="+", default=["installed"], help="Use 'installed' or pass one or more Ollama model names.")
     parser.add_argument("--questions", type=Path, default=None, help="Optional JSONL cases file.")
     parser.add_argument("--out", type=Path, default=BENCHMARK_RESULTS_PATH)

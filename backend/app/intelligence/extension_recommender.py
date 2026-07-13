@@ -558,7 +558,11 @@ def build_mvp_scope(request: ExtensionFinderRequest, candidate: dict[str, Any]) 
 
 def build_stretch_goals(request: ExtensionFinderRequest) -> list[str]:
     if request.project_type == "software prototype":
-        return ["Add a review workflow for outputs.", "Compare keyword and semantic retrieval quality.", "Package the prototype for a supervisor demo."]
+        return [
+            "Add a review workflow for outputs.",
+            "Compare keyword, learned-dense, and feature-hashing retrieval quality.",
+            "Package the prototype for a supervisor demo.",
+        ]
     if request.project_type == "ML experiment":
         return ["Add ablation tests.", "Compare against a second baseline.", "Analyze failure cases by topic or data source."]
     if request.project_type == "dashboard/visualization":

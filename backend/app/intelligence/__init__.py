@@ -1,1 +1,1 @@
-"""Provider abstraction placeholders for later grounded AI features."""
+"""Source-traceable answering, recommendation, summarization, and review services."""

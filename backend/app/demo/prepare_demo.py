@@ -115,7 +115,7 @@ def demo_summary(session: Session) -> dict[str, Any]:
     from app.indexing.keyword_search import diagnostics as keyword_diagnostics
 
     keyword = keyword_diagnostics(session)
-    semantic = index_diagnostics(session)
+    feature_hashing = index_diagnostics(session)
     return {
         "papers_imported": session.exec(select(func.count()).select_from(Paper)).one(),
         "pdfs_downloaded": session.exec(
@@ -126,7 +126,8 @@ def demo_summary(session: Session) -> dict[str, Any]:
         ).one(),
         "chunks": session.exec(select(func.count()).select_from(Chunk)).one(),
         "keyword_indexed_chunks": keyword["keyword_indexed_chunks"],
-        "semantic_indexed_chunks": semantic["semantic_indexed_chunks"],
+        "feature_hashing_indexed_chunks": feature_hashing["indexed_chunks"],
+        "semantic_indexed_chunks": feature_hashing["semantic_indexed_chunks"],  # deprecated compatibility field
         "topics": session.exec(select(func.count()).select_from(Topic)).one(),
         "authors": session.exec(select(func.count()).select_from(Author)).one(),
         "artifacts": session.exec(select(func.count()).select_from(PaperArtifact)).one(),

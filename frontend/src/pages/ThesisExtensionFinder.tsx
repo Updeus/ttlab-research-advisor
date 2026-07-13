@@ -264,6 +264,9 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
               <span>{response.model}</span>
               <span>Generated {new Date(response.created_at).toLocaleString()}</span>
             </div>
+            <p className="paper-card__status">
+              Grounding status reports structural citations and weak lexical overlap; it does not establish entailment or factual correctness.
+            </p>
             <h3>Recommendation Run</h3>
             <p>
               Generated {response.recommendations.length} transient structured recommendations from indexed TTLAB source chunks. This public run was not saved or human-reviewed.

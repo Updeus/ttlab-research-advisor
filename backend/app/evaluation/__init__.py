@@ -1,1 +1,1 @@
-"""Evaluation module placeholders for later retrieval and grounding metrics."""
+"""Executed retrieval, grounding, recommendation, and performance evaluation tools."""

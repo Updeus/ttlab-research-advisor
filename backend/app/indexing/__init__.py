@@ -1,1 +1,1 @@
-"""Placeholders for Phase 3 search and indexing modules."""
+"""Authoritative keyword, feature-hashing, and learned-dense indexing services."""

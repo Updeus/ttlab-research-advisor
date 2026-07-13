@@ -9,7 +9,14 @@ from sqlmodel import Session, SQLModel, create_engine, func, select
 from app.db import get_session
 from app.demo import prepare_demo as prepare_demo_module
 from app.demo.smoke_check import run_smoke_check
-from app.intelligence.topic_explorer import author_detail, get_related_papers, normalize_topic, rebuild_topic_index
+from app.intelligence import topic_explorer as topic_explorer_module
+from app.intelligence.topic_explorer import (
+    author_detail,
+    feature_hashing_related_scores,
+    get_related_papers,
+    normalize_topic,
+    rebuild_topic_index,
+)
 from app.main import app
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, Topic
 
@@ -215,6 +222,35 @@ def test_author_topic_aggregation_and_related_paper_reasons_work() -> None:
     assert related[0]["paper_id"] == "related-paper"
     assert "shared author" in related[0]["reason"]
     assert "shared topic" in related[0]["reason"]
+
+
+def test_related_paper_vector_signal_uses_explicit_feature_hashing_mode(monkeypatch) -> None:
+    engine = build_explorer_engine()
+    captured: dict[str, object] = {}
+
+    def fake_retrieve(_session, query: str, *, mode: str, top_k: int):
+        captured.update({"query": query, "mode": mode, "top_k": top_k})
+        return {
+            "results": [
+                {
+                    "paper_id": "related-paper",
+                    "scores": {"semantic": 0.99, "vector": 0.42},
+                }
+            ]
+        }
+
+    monkeypatch.setattr(topic_explorer_module, "retrieve", fake_retrieve)
+    with Session(engine) as session:
+        paper = session.get(Paper, "rag-paper")
+        assert paper is not None
+        scores = feature_hashing_related_scores(session, paper, limit=5)
+
+    assert captured == {
+        "query": "Retrieval Augmented Generation for Research Discovery",
+        "mode": "feature_hashing",
+        "top_k": 5,
+    }
+    assert scores == {"related-paper": 0.42}
 
 
 def test_explorer_api_endpoints_and_stats_work() -> None:

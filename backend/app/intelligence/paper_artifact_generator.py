@@ -347,7 +347,10 @@ def build_intelligence_bundle(paper: Paper, source_pack: list[dict[str, Any]]) -
         "paper_title": paper.title,
         "authors": paper.authors,
         "year": paper.year,
-        "generated_notice": "AI-assisted and unreviewed. Source-grounded where citations are available.",
+        "generated_notice": (
+            "AI-assisted and unreviewed. Grounding status reports citation locators and weak lexical overlap; "
+            "it does not establish entailment or factual correctness."
+        ),
         "public_summary": public_summary,
         "technical_summary": technical_summary,
         "contribution": contribution,
@@ -850,7 +853,7 @@ def dedupe_preserve_order(values: list[str]) -> list[str]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Generate source-grounded paper intelligence artifacts.")
+    parser = argparse.ArgumentParser(description="Generate source-cited paper intelligence artifacts.")
     subparsers = parser.add_subparsers(dest="command")
     generate = subparsers.add_parser("generate")
     generate.add_argument("--paper-id", required=True)

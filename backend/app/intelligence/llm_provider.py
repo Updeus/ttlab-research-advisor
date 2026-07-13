@@ -202,7 +202,7 @@ def build_ollama_prompt(
         )
     context = "\n\n".join(compact_chunks)
     return (
-        "You are Ask TTLAB, a source-grounded research assistant.\n"
+        "You are Ask TTLAB, a source-cited research assistant.\n"
         "Answer only from the provided TTLAB paper chunks. Do not add outside facts.\n"
         "If the chunks only answer part of the question, answer that supported part and state what is not supported.\n"
         "Do not say there is no evidence if any source chunk directly supports part of the question.\n"

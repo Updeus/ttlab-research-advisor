@@ -10,74 +10,46 @@ from app.config import get_settings
 
 BENCHMARK_RESULTS_PATH = Path("data/evaluation/ollama_benchmark_results.json")
 
+CONFIGURED_MODEL_NAMES = (
+    "qwen3:4b-instruct-2507-q4_K_M",
+    "gemma3:4b-it-q4_K_M",
+    "phi3.5:3.8b-mini-instruct-q4_K_M",
+    "ministral-3:3b-instruct-2512-q4_K_M",
+    "llama3.2:3b",
+    "phi3:mini",
+    "smollm2:1.7b",
+    "smollm2:360m",
+    "qwen2.5:0.5b",
+)
 MODEL_REGISTRY: dict[str, dict[str, str]] = {
-    "qwen3:4b-instruct-2507-q4_K_M": {
-        "color": "green",
-        "quality_tier": "recommended",
-        "rationale": "Best default candidate from the installed small instruct models for paper Q&A.",
-    },
-    "gemma3:4b-it-q4_K_M": {
-        "color": "green",
-        "quality_tier": "recommended",
-        "rationale": "Strong general-purpose 4B instruction model that should fit comfortably on the RTX 3080.",
-    },
-    "phi3.5:3.8b-mini-instruct-q4_K_M": {
-        "color": "light_green",
-        "quality_tier": "good",
-        "rationale": "Compact instruction model likely to be fast and useful for concise grounded answers.",
-    },
-    "ministral-3:3b-instruct-2512-q4_K_M": {
-        "color": "light_green",
-        "quality_tier": "good",
-        "rationale": "Small instruct model that should be quick enough for interactive demos.",
-    },
-    "llama3.2:3b": {
-        "color": "light_green",
-        "quality_tier": "good",
-        "rationale": "Reliable small baseline model for local answer composition.",
-    },
-    "phi3:mini": {
+    name: {
         "color": "yellow",
-        "quality_tier": "usable",
-        "rationale": "Older compact model; useful as a baseline but not the first recommendation.",
-    },
-    "smollm2:1.7b": {
-        "color": "yellow",
-        "quality_tier": "usable",
-        "rationale": "Very lightweight; useful for speed comparisons but likely weaker on academic synthesis.",
-    },
-    "smollm2:360m": {
-        "color": "red",
-        "quality_tier": "not_recommended",
-        "rationale": "Tiny model; useful as a speed floor but not recommended for thesis-quality answers.",
-    },
-    "qwen2.5:0.5b": {
-        "color": "red",
-        "quality_tier": "not_recommended",
-        "rationale": "Very small model; likely too weak for reliable grounded research Q&A.",
-    },
+        "quality_tier": "not_evaluated",
+        "rationale": "Configured candidate only; no versioned local quality or hardware-fit result is available.",
+    }
+    for name in CONFIGURED_MODEL_NAMES
 }
 
-RECOMMENDED_PULLS: list[dict[str, str]] = [
+CANDIDATE_PULLS: list[dict[str, str]] = [
     {
         "name": "bge-m3",
-        "purpose": "Recommended retrieval/embedding upgrade for smarter semantic search.",
-        "fit": "Comfortable on 32 GB RAM and RTX 3080 when used for embeddings.",
+        "purpose": "Candidate learned-dense embedding upgrade for retrieval experiments.",
+        "fit": "Not acquired or benchmarked here; verify license, dimensions, latency, and memory before use.",
     },
     {
         "name": "qwen3:8b-q4_K_M",
-        "purpose": "Higher-quality local answer model candidate.",
-        "fit": "Likely practical with controlled context and quantization.",
+        "purpose": "Local answer-model comparison candidate.",
+        "fit": "No local service, digest, or fit measurement is available; acquire explicitly before testing.",
     },
     {
         "name": "mistral-nemo:12b",
-        "purpose": "Quality candidate for deeper synthesis benchmarks.",
-        "fit": "Test carefully with 4K-8K context because 10 GB VRAM may be tight.",
+        "purpose": "Local answer-model comparison candidate.",
+        "fit": "Hardware fit and answer quality were not measured; benchmark before use.",
     },
     {
         "name": "gemma3:12b",
-        "purpose": "Quality candidate for comparison against the installed 4B model.",
-        "fit": "May be tight on 10 GB VRAM; benchmark before demo use.",
+        "purpose": "Local answer-model comparison candidate.",
+        "fit": "Hardware fit and answer quality were not measured; benchmark before use.",
     },
 ]
 
@@ -85,29 +57,10 @@ RECOMMENDED_PULLS: list[dict[str, str]] = [
 def model_metadata(model_name: str) -> dict[str, str]:
     if model_name in MODEL_REGISTRY:
         return MODEL_REGISTRY[model_name]
-    lowered = model_name.lower()
-    if any(marker in lowered for marker in ("0.5b", "360m")):
-        return {
-            "color": "red",
-            "quality_tier": "not_recommended",
-            "rationale": "Very small model; use only for speed comparisons.",
-        }
-    if any(marker in lowered for marker in ("1.7b", "mini")):
-        return {
-            "color": "yellow",
-            "quality_tier": "usable",
-            "rationale": "Compact model; useful for baseline testing but review answer quality carefully.",
-        }
-    if any(marker in lowered for marker in ("3b", "4b")):
-        return {
-            "color": "light_green",
-            "quality_tier": "good",
-            "rationale": "Small instruct-class model likely practical for local demos.",
-        }
     return {
         "color": "yellow",
-        "quality_tier": "unknown",
-        "rationale": "Model was discovered locally but has not been categorized yet.",
+        "quality_tier": "not_evaluated",
+        "rationale": "Model availability may be reported by Ollama, but no versioned local quality or fit result is available.",
     }
 
 
@@ -194,6 +147,9 @@ def local_llm_status() -> dict[str, Any]:
     settings = get_settings()
     models, warnings, available = list_ollama_models(base_url=settings.ollama_base_url)
     benchmark_summary = benchmark_by_model()
+    warnings.append(
+        "Configured model names and pull candidates are unranked inventory suggestions; no quality or hardware-fit claim is made without a versioned benchmark."
+    )
     enriched = []
     for model in models:
         metadata = model_metadata(model["name"])
@@ -211,7 +167,8 @@ def local_llm_status() -> dict[str, Any]:
         "default_model": settings.ollama_default_model,
         "model_count": sum(1 for model in enriched if model.get("installed")),
         "models": enriched,
-        "recommended_pulls": RECOMMENDED_PULLS,
+        "candidate_pulls": CANDIDATE_PULLS,
+        "recommended_pulls": CANDIDATE_PULLS,  # deprecated response key retained for client compatibility
         "benchmark": read_latest_benchmark(),
         "warnings": warnings,
     }

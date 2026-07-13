@@ -221,6 +221,9 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
               <span>Generated {new Date(response.created_at).toLocaleString()}</span>
               {response.paper_id ? <span>Single paper scope</span> : null}
             </div>
+            <p className="paper-card__status">
+              Grounding status reports structural citations and weak lexical overlap; it does not establish entailment or factual correctness.
+            </p>
             <p className="notice notice--warning">
               This transient answer was generated from indexed TTLAB paper chunks and was not saved or human-reviewed. Check every claim against the cited sources.
             </p>

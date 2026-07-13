@@ -754,7 +754,7 @@ def get_related_papers(session: Session, paper_id: str, *, limit: int = 5) -> li
     all_papers = [candidate for candidate in eligible_papers(session) if candidate.paper_id != paper_id]
     base_topics = topics_for_paper(session, paper.paper_id)
     base_authors = set(paper.authors)
-    semantic_scores = semantic_related_scores(session, paper, limit=max(limit * 4, limit))
+    feature_hashing_scores = feature_hashing_related_scores(session, paper, limit=max(limit * 4, limit))
     results: list[dict[str, Any]] = []
     for candidate in all_papers:
         candidate_topics = topics_for_paper(session, candidate.paper_id)
@@ -784,10 +784,10 @@ def get_related_papers(session: Session, paper_id: str, *, limit: int = 5) -> li
             score += min(keyword_overlap * 0.2, 1.0)
             reasons.append("shared title/topic keywords")
             source_basis.append("metadata_keywords")
-        if candidate.paper_id in semantic_scores:
-            score += semantic_scores[candidate.paper_id]
-            reasons.append("semantic retrieval similarity")
-            source_basis.append("hashing_semantic_index")
+        if candidate.paper_id in feature_hashing_scores:
+            score += feature_hashing_scores[candidate.paper_id]
+            reasons.append("feature-hashing retrieval similarity")
+            source_basis.append("feature_hashing_index")
         if score <= 0:
             continue
         results.append(
@@ -803,16 +803,16 @@ def get_related_papers(session: Session, paper_id: str, *, limit: int = 5) -> li
     return sorted(results, key=lambda item: (item["score"], item["year"] or 0, item["title"]), reverse=True)[:limit]
 
 
-def semantic_related_scores(session: Session, paper: Paper, *, limit: int) -> dict[str, float]:
+def feature_hashing_related_scores(session: Session, paper: Paper, *, limit: int) -> dict[str, float]:
     try:
-        response = retrieve(session, paper.title, mode="semantic", top_k=limit)
+        response = retrieve(session, paper.title, mode="feature_hashing", top_k=limit)
     except Exception:
         return {}
     scores: dict[str, float] = {}
     for result in response.get("results", []):
         other_id = result.get("paper_id")
         if other_id and other_id != paper.paper_id:
-            scores[other_id] = max(scores.get(other_id, 0.0), float(result.get("scores", {}).get("semantic") or 0.0))
+            scores[other_id] = max(scores.get(other_id, 0.0), float(result.get("scores", {}).get("vector") or 0.0))
     return scores
 
 

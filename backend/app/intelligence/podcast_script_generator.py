@@ -68,7 +68,7 @@ def generate_podcast_script(
         },
         {
             "speaker": "Host",
-            "text": "That is a source-grounded draft, not a reviewed production script. Check the cited paper chunks before using it publicly.",
+            "text": "That is a source-cited draft, not a reviewed production script. Check the cited paper chunks before using it publicly.",
         },
     ]
 

@@ -224,7 +224,7 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
         ) : <span className="section-kicker">Generation requires a reviewer credential.</span>}
       </div>
       <p className="notice notice--warning">
-        {bundle?.generated_notice ?? "These outputs are AI-assisted and source-grounded where possible. Check their current review and grounding status before use."}
+        {bundle?.generated_notice ?? "These outputs are AI-assisted and source-cited where possible. Grounding status reports structural citations and weak lexical overlap, not entailment or factual correctness; check every source before use."}
       </p>
       {artifactLoading && (bundle || podcast) ? <InlineProgress label="Refreshing paper intelligence while keeping the current artifacts visible..." /> : null}
       {artifactError ? <p className="notice notice--error">{artifactError}</p> : null}
@@ -345,7 +345,7 @@ function renderArtifactTab(
   podcast: PodcastScriptArtifact | null,
 ) {
   if (!bundle && activeTab !== "podcast_script") {
-    return <EmptyState title="Generate the paper intelligence bundle" body="This section appears after source-grounded artifacts are generated for the paper." />;
+    return <EmptyState title="Generate the paper intelligence bundle" body="This section appears after source-cited artifacts are generated for the paper." />;
   }
   if (activeTab === "public_summary") {
     return <SectionArtifact title="Public Summary" section={bundle?.public_summary} />;

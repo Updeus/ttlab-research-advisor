@@ -5,9 +5,14 @@ The narrative protocol and current evidence status are maintained in
 operator sequence.
 
 The committed performance evidence has passed its full-profile validator (17
-stages, 102 samples/RSS records, zero failures). The exact final commit still
-must pass this checklist's full one-command run and clean-release verification;
-the scripts alone are not completion evidence.
+stages, 102 samples/RSS records, zero failures). The exact final commit is
+accepted only after this checklist's full one-command run and clean-release
+verification pass; the scripts alone are not completion evidence.
+
+The current standalone manuscript outputs are an 8-Letter-page IEEEtran paper
+and a 74-A4-page thesis. They are available now; the full run below rebuilds and
+preflights both PDFs so their presence is not mistaken for proof that the
+exact-final-commit gate has passed.
 
 This checklist distinguishes a distributable verification run from the
 authorized full-corpus experiment. The earlier 25-record demo launcher remains

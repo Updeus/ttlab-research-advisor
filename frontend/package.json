@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:unit": "vitest run --exclude src/test/accessibility.test.tsx",
     "test:a11y": "vitest run src/test/accessibility.test.tsx",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "capture:routes": "node scripts/capture-primary-routes.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",

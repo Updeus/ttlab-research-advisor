@@ -125,6 +125,8 @@ def should_include(relative: Path) -> tuple[bool, str | None]:
         return False, "restricted_or_binary_extension"
     if parts[:2] in {("data", "pdfs"), ("data", "extracted_text"), ("data", "chunks"), ("data", "indexes"), ("data", "generated")}:
         return False, "restricted_runtime_corpus"
+    if parts[:3] == ("thesis", "figures", "screenshots"):
+        return False, "source_bearing_interface_screenshot"
     if parts[:2] == ("artifacts", "baseline"):
         return False, "local_baseline_environment"
     if parts[:3] == ("artifacts", "phase6", "release"):
@@ -261,7 +263,7 @@ Source commit: `{commit}`
 
 This bundle contains source code, dependency locks, schemas, redistributable
 metadata, sanitized evaluation records, aggregate/raw metric artifacts, prompts,
-figure sources, and reproduction instructions. First verify the unpacked
+code-native figure sources, and reproduction instructions. First verify the unpacked
 payload from this directory with `sha256sum -c SHA256SUMS`.
 
 This tarball is not a Git worktree and therefore cannot preserve the detached-
@@ -272,8 +274,10 @@ target. Full reproduction additionally requires separately authorized local
 corpus inputs; those inputs are not supplied by this bundle.
 
 The bundle intentionally excludes all PDFs, SQLite databases, extracted/chunk
-text, vector indexes, secrets, `.env` files, private AI-review prompts, and raw
-Europe PMC XML. TTLAB project authorization does not establish permission to
+text, vector indexes, interface screenshots, secrets, `.env` files, private
+AI-review prompts, and raw Europe PMC XML. Screenshots are excluded as binary
+files because they can contain rendered source or answer text that cannot be
+field-sanitized. TTLAB project authorization does not establish permission to
 redistribute every third-party publication. Fields containing source or answer
 text in included JSON/JSONL records are replaced with hashes and lengths.
 
@@ -381,6 +385,7 @@ def build_release(
             "secrets and environment files",
             "private raw review prompts/inputs",
             "raw Europe PMC XML cache",
+            "source-bearing interface screenshots",
         ],
         "verification": {
             "payload_sha256_file": "SHA256SUMS",

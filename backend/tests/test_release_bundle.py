@@ -16,6 +16,10 @@ def test_release_policy_excludes_runtime_corpus_and_all_pdfs() -> None:
     assert should_include(Path("data/pdfs/paper.pdf"))[0] is False
     assert should_include(Path("build/thesis.pdf"))[0] is False
     assert should_include(Path("data/papers.db"))[0] is False
+    assert should_include(Path("thesis/figures/screenshots/ask-answer.png")) == (
+        False,
+        "source_bearing_interface_screenshot",
+    )
     assert should_include(Path("backend/app/main.py"))[0] is True
 
 
@@ -85,6 +89,7 @@ def test_release_is_deterministic_and_verifies_every_payload_checksum(tmp_path: 
     (root / "frontend").mkdir(parents=True)
     (root / "data/seed").mkdir(parents=True)
     (root / "artifacts/phase4/recommendation_proxy_v1").mkdir(parents=True)
+    (root / "thesis/figures/screenshots").mkdir(parents=True)
     (root / "backend/app/main.py").write_text("print('safe')\n")
     (root / "backend/requirements-lock.txt").write_text("safe==1.0\n")
     (root / "frontend/package-lock.json").write_text("{}\n")
@@ -96,6 +101,9 @@ def test_release_is_deterministic_and_verifies_every_payload_checksum(tmp_path: 
     (root / "artifacts/phase4/recommendation_proxy_v1/raw_outputs.jsonl").write_text(
         json.dumps({"claim": "derived claim wording", "paper_focus": "publication focus wording"}) + "\n",
         encoding="utf-8",
+    )
+    (root / "thesis/figures/screenshots/answer.png").write_bytes(
+        b"binary screenshot containing rendered restricted passage"
     )
     _git(root, "init")
     _git(root, "config", "user.email", "test@example.invalid")
@@ -113,6 +121,7 @@ def test_release_is_deterministic_and_verifies_every_payload_checksum(tmp_path: 
     assert len(first["source_tree"]) == 40
     assert first["archive_verification"]["status"] == "valid"
     with tarfile.open(archive, "r:gz") as bundle:
+        assert not any("figures/screenshots" in item.name for item in bundle.getmembers())
         member = next(item for item in bundle.getmembers() if item.name.endswith("/raw_outputs.jsonl"))
         extracted = bundle.extractfile(member)
         row = json.loads(extracted.read().decode("utf-8")) if extracted else {}

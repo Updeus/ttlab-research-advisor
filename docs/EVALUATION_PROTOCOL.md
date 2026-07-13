@@ -241,20 +241,21 @@ human approval.
 
 ## Performance and external-validity protocol
 
-The full benchmark must run three process-cold and three warm repetitions at
-concurrency one. For each stage it records elapsed time, processed units,
-seconds/unit, success/failure, and process maximum RSS where measurable;
-aggregates are median and linearly interpolated p95. Hardware, versions, corpus
-counts, database hash, commit, and dirty state must be embedded. Three
-repetitions provide a coarse p95 and cannot support a service-level objective,
-multi-user capacity claim, or asymptotic scaling claim.
+The validated full benchmark ran three process-cold and three warm repetitions
+at concurrency one for each of 17 stages. All 102 samples include elapsed time,
+processed units, success/failure, and process maximum RSS; aggregates are median
+and linearly interpolated p95. The artifact records WSL2, AMD Ryzen 7 5800X,
+16 logical CPUs, 3.8 GiB RAM, software/lock versions, corpus counts, unchanged
+database SHA-256, clean source commit `5ccf22e`, and provenance digest
+`61378b9a...`. All 102 samples succeeded. Three repetitions provide a coarse
+p95 and cannot support a service-level objective, multi-user capacity claim,
+or asymptotic scaling claim.
 
-The benchmark implementation exists, but a committed full result does not yet
-exist at this snapshot. The absence is a failed evidence gate, not a zero-
-latency result. The external Europe PMC sanity check is complete: three pinned
-CC BY XML documents were reacquired from the official API and the fixed lexical
-check produced 3/3 expected top-one matches. Its claim is format compatibility
-and trivial discrimination only.
+The external Europe PMC sanity check reacquired three pinned CC BY JATS/XML
+documents, verified their license evidence, mapped them into the production
+chunker contract, and produced 3/3 expected fixed lexical top-one matches. It
+did not exercise the main PDF-ingestion path and is not cross-domain retrieval-
+quality evidence.
 
 ## Error analysis and reporting rules
 

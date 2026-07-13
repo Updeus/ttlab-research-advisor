@@ -93,6 +93,12 @@ production chunker contract and obtained 3/3 fixed lexical top-one matches. It
 did not exercise the main PDF acquisition/extraction path and is neither a
 cross-domain retrieval-quality result nor broad external validation.
 
+The current editable manuscript sources compile to an 8-Letter-page IEEEtran
+paper at `build/ieee-paper.pdf` and a 74-A4-page thesis at
+`build/thesis.pdf`. These standalone document builds do not replace the
+exact-final-commit reproduction, PDF preflight, and clean-release acceptance
+gates described below.
+
 See [Methodology](docs/METHODOLOGY.md), [Evaluation
 Protocol](docs/EVALUATION_PROTOCOL.md), and [Final Status](docs/FINAL_STATUS.md)
 for methods, intervals, raw evidence paths, and limitations.
@@ -280,9 +286,9 @@ make release
 The full path requires a separately authorized database/PDF set and the pinned
 dense model. The quick path cannot recreate restricted corpus-dependent
 experiments. The full performance artifact is committed and independently
-validated; it is not a scalability claim. Delivery still requires `make
-reproduce` and `make release` to pass from the final clean commit. Those commands
-are fail-loud gates rather than evidence inferred from an earlier run. See
+validated; it is not a scalability claim. Exact-final-commit delivery runs
+`make reproduce` and `make release` before tag/push. Those commands are
+fail-loud gates rather than evidence inferred from an earlier run. See
 [Reproducibility](docs/REPRODUCIBILITY.md), [Data and Artifact
 Availability](docs/DATA_AND_ARTIFACT_AVAILABILITY.md), and [Final
 Status](docs/FINAL_STATUS.md) for the final recorded outcomes.
@@ -301,8 +307,10 @@ make thesis
 ```
 
 Engineering verification is separate from quality evaluation. Exact final test
-counts and PDF preflight results belong in `docs/FINAL_STATUS.md` only after the
-final commit is rerun.
+counts and acceptance-gate PDF preflight results are recorded in
+`docs/FINAL_STATUS.md`; the exact committed candidate is rerun before tag/push.
+The existing 8-Letter-page paper and 74-A4-page thesis are current manuscript
+outputs rather than substitutes for that clean-commit gate.
 
 ## API highlights
 

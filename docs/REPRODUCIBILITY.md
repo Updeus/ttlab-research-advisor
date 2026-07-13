@@ -189,6 +189,11 @@ and yields a clean-source archive whose adjacent manifest/checksum and embedded
 manifest all verify. Those executed outputs, rather than an earlier local audit
 bundle, are authoritative.
 
+The current standalone manuscript outputs are `build/ieee-paper.pdf` at 8
+Letter pages and `build/thesis.pdf` at 74 A4 pages. Their availability closes
+the earlier manuscript-drafting gap; exact-final-commit acceptance separately
+rebuilds and preflights both PDFs.
+
 ## Inspecting outputs
 
 After a successful run, inspect:
@@ -223,8 +228,9 @@ PYTHONPATH=backend .venv/bin/python -m app.reproducibility.release verify \
 ```
 
 Automated PDF page rendering proves that every page can be rasterized; it does
-not prove readable layout. Final delivery still requires visual inspection of
-every rendered page and primary frontend route.
+not prove readable layout. Acceptance therefore includes a recorded visual
+inspection of every rendered page and primary frontend route; the automated
+gate alone must not be described as that inspection.
 
 ## Non-reproducible and external-only elements
 

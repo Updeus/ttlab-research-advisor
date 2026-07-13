@@ -25,7 +25,8 @@ hash-linked sanitized records can be bundled without exposing the papers.
 | Restricted source payload | PDFs, substantial extracted/chunk text, runtime SQLite DB, vector indexes | Local/ignored; excluded |
 | Private operational content | questions/profile history, bearer tokens, private prompts containing full source passages, logs with content | Local/protected; excluded |
 | Reacquirable open sanity input | Europe PMC CC BY XML | Raw cache ignored; manifest retains ID, license evidence, source URL, and hash |
-| Compiled manuscripts | thesis and IEEE PDFs | Built separately; omitted from sanitized code/data tarball by policy |
+| Compiled manuscripts | current 8-Letter-page IEEE paper and 74-A4-page thesis | Built separately under `build/`; omitted from sanitized code/data tarball by policy |
+| Interface screenshots | local implementation evidence that can render source/answer text | Tracked with manuscript materials where applicable; all excluded from the sanitized tarball because binary content cannot be field-redacted |
 
 ## Committed evidence inventory
 
@@ -96,16 +97,20 @@ payload are replaced with hash-and-length records. IDs, labels, numeric metrics,
 configurations, and provenance hashes remain available. The scanner rejects
 unsafe archive paths, PDF files or PDF magic bytes, SQLite/index payloads,
 environment/credential files, absolute local user paths, private keys, and
-recognized bearer/API-token patterns.
+recognized bearer/API-token patterns. The allowlist excludes the entire tracked
+interface-screenshot directory because raster images may contain rendered
+source passages, answers, or contact data that the JSON field sanitizer cannot
+inspect reliably.
 
 ## Current release state
 
-Only a bundle built from the final clean, tagged source commit is authoritative.
-The final closure therefore rebuilds from that exact commit, verifies the
-adjacent SHA-256 and every archive member, and records the versioned path in the
-closure report. Earlier local audit bundles are non-authoritative even when
-their scans pass. The builder prepares `v0.1.0-remediation`; it does not itself
-create a tag, publish the repository, or change visibility.
+Only a bundle built and verified from the exact final clean source commit is
+authoritative. The final closure therefore rebuilds from that commit, verifies
+the adjacent SHA-256 and every archive member, records the versioned path in the
+closure report, and creates the release tag only after the gate passes. Earlier
+local audit bundles are non-authoritative even when their scans pass. The
+builder prepares `v0.1.0-remediation`; it does not itself create a tag, publish
+the repository, or change visibility.
 
 ## Reproduction levels
 

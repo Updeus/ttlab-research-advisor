@@ -31,11 +31,12 @@ establish:
   or
 - a right to infer sensitive or current facts about an author.
 
-The sanitized release excludes local PDFs, the runtime database, private
-histories, secrets, model caches, and unlicensed full text. Catalogue metadata,
-source hashes, bounded evidence summaries, schemas, AI-reviewed silver labels,
-raw experimental rankings/judgments, and aggregate results are included only
-to the extent supported by the repository's release review.
+The sanitized release excludes local PDFs, the runtime database, interface
+screenshots, private histories, secrets, model caches, and unlicensed full
+text. Catalogue metadata, source hashes, bounded evidence summaries, schemas,
+AI-reviewed silver labels, raw experimental rankings/judgments, and aggregate
+results are included only to the extent supported by the repository's release
+review.
 
 ## Responsible-AI boundaries
 

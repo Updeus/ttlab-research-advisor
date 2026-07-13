@@ -164,8 +164,9 @@ support a cross-domain retrieval-quality or broad external-validity claim.
 
 `backend/app/reproducibility/` constructs local run manifests and an allowlist-
 based deterministic release. Restricted passages in otherwise permitted JSON
-are replaced with hash/length records. PDFs, databases, indexes, private
-prompts/histories, local paths, and secrets are excluded and scanned.
+are replaced with hash/length records. PDFs, databases, indexes, interface
+screenshots, private prompts/histories, local paths, and secrets are excluded
+and scanned.
 The final clean commit is accepted for delivery only after the fail-loud full
 reproduction and sanitized-release commands complete; a prior benchmark or
 candidate bundle is not substituted for that gate.

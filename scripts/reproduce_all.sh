@@ -127,6 +127,7 @@ run_in_source release-verify "$PYTHON" -m app.reproducibility.release verify "$R
 
 run_in_source external-sanity "$PYTHON" -m app.evaluation.external_sanity \
   --out-dir "$WORK/artifacts/external_sanity"
+run_in_source documentation-validation "$PYTHON" scripts/validate_documentation.py
 
 run_in_source backend-tests "$PYTHON" -m pytest
 run_logged frontend-unit npm --prefix "$RUN_ROOT/frontend" test

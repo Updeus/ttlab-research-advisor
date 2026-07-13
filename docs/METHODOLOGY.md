@@ -38,9 +38,10 @@ provenance with correctness.
   reveal about the evidence fidelity and limitations of thesis-extension
   recommendations, controlled topic labels, publication-derived author links,
   and persisted generated outputs?
-- **RQ5 — Engineering readiness:** To what extent is the artefact reproducible,
-  reviewable, privacy-minimizing, secure by default, accessible in automated
-  checks, and measurable on documented local hardware?
+- **RQ5 — Engineering readiness:** To what extent is the bounded artefact
+  reproducible and reviewable on documented local hardware, externally
+  format-compatible, and governed by privacy-minimizing, authenticated,
+  accessible evidence interfaces without redistributing restricted PDFs?
 
 ## Objectives and contributions
 
@@ -208,20 +209,23 @@ pass produced zero changes.
 
 ### Performance and external sanity
 
-The performance harness defines three process-cold and three warm repetitions,
-concurrency one, median and interpolated p95, failures, processed units, and
-maximum resident set size where available. It covers discovery, import,
-extraction, chunking, three index builds, four retrieval modes, answering,
-recommendation, API probes, frontend build, and Chromium page load. OS caches
-are not flushed. At this documentation snapshot, no committed full-profile
-result exists; therefore no performance number or scalability conclusion is
-reported.
+The committed full profile contains all 17 required stages, three process-cold
+and three warm samples per stage, 102 RSS-bearing samples, and zero failures.
+It ran at concurrency one on WSL2 with an AMD Ryzen 7 5800X, 16 logical CPUs,
+and 3.8 GiB available RAM. The artifact is bound to clean source commit
+`5ccf22e`, unchanged standalone-database SHA-256 `a8153f53...`, and provenance
+digest `61378b9a...`. Dense indexing had cold median/p95
+145.005/145.020 seconds, warm median/p95 66.169/134.066 seconds, and 751.5 MiB
+peak process RSS; eight-route rendering had 12.496/12.807 and
+12.463/12.631 seconds, respectively. OS caches were not flushed. These are
+bounded single-machine latency/resource observations, not capacity, load, or
+service-level evidence.
 
-The external sanity check reacquired three pinned CC BY JATS XML articles from
-the official Europe PMC API, verified embedded license evidence, and achieved
-3/3 expected top-one matches with a trivial fixed lexical-overlap check. This
-establishes bounded format compatibility only, not TTLAB effectiveness or broad
-cross-domain validity.
+The external sanity harness reacquired three pinned CC BY JATS/XML articles
+from the official Europe PMC API, verified embedded license evidence, mapped
+them into the production chunker contract, and achieved 3/3 fixed lexical
+top-one matches. It did not validate the main PDF-ingestion path, TTLAB
+effectiveness, or cross-domain retrieval quality.
 
 ## Research-question traceability
 
@@ -231,7 +235,7 @@ cross-domain validity.
 | RQ2 | 30/20 development/test silver retrieval experiment, ablations, bootstrap, paired tests | `artifacts/phase2/retrieval/` | Keyword led held-out MRR (0.9474); tuned hybrid MRR was 0.8596. No tuned-vs-baseline contrast survived family correction. Hybrid superiority is not demonstrated. |
 | RQ3 | Atomic-claim/citation/answer-point AI review with clustered bootstrap | `artifacts/phase3/qa/` | Claim support was high (0.995), but citation correctness was 0.625, strict answer-point coverage 0.1358, and all four unanswerable cases failed to abstain. Traceability did not ensure completeness. |
 | RQ4 | Synthetic-profile proxy review, topic split comparison, author audit, full persisted-output review | `artifacts/phase4/` | Full-Finder relevance exceeded evidence-only by only 0.0238 (95% CI -0.0238 to 0.0714); lexical topics traded recall for higher precision; 27 stale RAG answers require reprocessing. No human usefulness claim follows. |
-| RQ5 | Security/privacy/accessibility tests, reproducibility/release tooling, performance protocol, external sanity | code/tests, `docs/FRONTEND_REQUIREMENTS.md`, `artifacts/phase6/` | Fail-closed protected routes, transient public inputs, route/accessibility coverage, and release scanning are implemented. Full performance and final full reproduction remain unproven until their artifacts exist. |
+| RQ5 | Security/privacy/accessibility tests, clean-commit reproduction/release verification, full performance profile, external sanity | code/tests, `docs/FRONTEND_REQUIREMENTS.md`, `artifacts/phase6/`, final reproduction manifest | The validated 17-stage profile completed 102/102 samples without failure; the clean-commit reproduction and sanitized-release verifiers passed while excluding restricted inputs. Public inputs are transient and mutations authenticated. Automated accessibility regressions passed but do not establish WCAG conformance or assistive-technology usability; the three-document JATS/XML check is only a chunker-contract sanity result. |
 
 ## Validity, ethics, and reproducibility controls
 

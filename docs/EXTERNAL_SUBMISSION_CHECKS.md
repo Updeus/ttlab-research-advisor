@@ -18,7 +18,9 @@ rather than shown as red placeholders or filled with invented text.
 
 - [ ] Supply the student identification number if required by the approved
   thesis template.
-- [ ] Confirm the exact MSc degree/programme title.
+- [ ] Confirm any official institutional degree nomenclature or title-page
+  formula required by the approved template. The manuscript uses the
+  user-supported non-formal descriptor `MSc Data Science Project`.
 - [ ] Confirm the supervisor name and any co-supervisor name.
 - [ ] Confirm the submission month and year required on the title page.
 - [ ] Supply or approve the University declaration, copyright statement,

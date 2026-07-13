@@ -28,7 +28,7 @@ interval procedures, exact results, and evidence paths are in
 | RQ2 retrieval | keyword, feature-hashing, dense, heuristic/tuned hybrid; dev tuning; test; ablation/sensitivity/statistics | Executed | keyword is the strongest held-out MRR baseline; tuned hybrid superiority is not established |
 | RQ3 RAG | atomic claim, citation-link, completeness, answer-point, unsupported knowledge, abstention review | Executed | source support is high but citation correctness, completeness of answers, and abstention need improvement |
 | RQ4 advisory/discovery | evidence-only vs full Finder, topic lexical-vs-dense, author audit, full stored-output review | Executed | advisory improvement is not demonstrated; publication evidence and AI-review boundaries must remain visible |
-| RQ5 engineering readiness | backend/frontend/security/accessibility tests, performance, reproduction, release scan, PDF preflight | Performance executed; delivery gate pending | validated 17-stage local performance evidence is available, while final clean-commit reproduction/release and document closure remain separate gates |
+| RQ5 engineering readiness | backend/frontend/security/accessibility tests, performance, reproduction, release scan, PDF preflight | Performance and manuscript builds executed; exact candidate accepted only by the recorded full gate | validated 17-stage local performance evidence and current 8-Letter-page paper/74-A4-page thesis are available; final clean-commit reproduction and release are separately verified before tag/push |
 
 ## Executed datasets
 

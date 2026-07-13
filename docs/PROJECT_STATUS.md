@@ -46,10 +46,12 @@ broad external-validity evidence. Automated accessibility checks likewise do
 not establish WCAG or assistive-technology conformance.
 
 No human usefulness/usability study, broad external validation, or production-
-scale capacity claim exists. Final clean-commit reproduction, sanitized
-release/tag, and manuscript/PDF closure remain active delivery gates. The
-reproduction and release commands must fail loudly rather than inherit success
-from the earlier benchmark.
+scale capacity claim exists. The current editable sources compile to an
+8-Letter-page IEEEtran paper and a 74-A4-page thesis. Their standalone builds
+are present; they are not pending research results. Exact-final-commit full
+reproduction and the clean sanitized release are fail-loud delivery acceptance
+gates executed before tag/push; they rebuild and preflight those documents
+rather than inherit success from the earlier benchmark or document build.
 
 ## Local demo
 

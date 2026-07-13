@@ -57,8 +57,9 @@ experiments.
   not novelty or feasibility guarantees.
 - OCR is optional; the frozen corpus records no OCR-processed pages, so OCR
   quality/performance is not evaluated.
-- The sanitized release excludes PDFs, substantial extracted text, SQLite
-  databases, runtime indexes, private prompts/histories, and secrets.
+- The sanitized release excludes PDFs, substantial extracted text, interface
+  screenshots, SQLite databases, runtime indexes, private prompts/histories,
+  and secrets.
 - Automated axe, keyboard, route, responsive-overflow, and Chromium checks are
   regression evidence, not WCAG or assistive-technology conformance.
 - The full performance profile is a single-host, concurrency-one baseline; it
@@ -75,11 +76,11 @@ supervisor approval.
 
 ## Remaining work versus future work
 
-Remaining local remediation gates are part of the current delivery: final
-clean-commit reproduction and sanitized release/tag, paper/thesis
-synchronization, and complete PDF/route verification. The reproduction and
-release commands are fail-loud delivery gates; the validated performance run
-does not by itself prove the final commit passes them.
+The current manuscript sources produce an 8-Letter-page IEEEtran paper and a
+74-A4-page thesis. Exact-final-commit acceptance uses the full reproduction and
+clean sanitized release gates before tag/push. Those fail-loud gates rebuild
+and preflight the documents; neither the validated performance run nor the
+existing standalone manuscript builds substitutes for them.
 
 Potential future extensions outside the current evidence include:
 

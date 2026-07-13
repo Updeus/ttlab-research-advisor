@@ -186,7 +186,7 @@ The frozen corpus contains no OCR-completed paper, so the OCR stage records zero
 
 The external sanity harness reacquires three pinned CC BY JATS/XML articles from the official Europe PMC API, validates embedded license evidence, maps them into the production chunker contract (70 chunks), and achieves 3/3 fixed lexical top-one matches. It does not validate the main PDF-ingestion pipeline or cross-domain retrieval quality.
 
-`make release` produces a versioned deterministic sanitized bundle with manifest and checksums. The allowlist includes code/tests, schemas, redistributable metadata, evaluation labels/sanitized results, prompts/configurations, figures, manuscript sources, and reproduction instructions. The scanner rejects every PDF, SQLite database, runtime index, extracted/chunk text, private full-text prompt, raw external XML, secret, unsafe archive path, and absolute local path.
+`make release` produces a versioned deterministic sanitized bundle with manifest and checksums. The allowlist includes code/tests, schemas, redistributable metadata, evaluation labels/sanitized results, prompts/configurations, code-native figure sources, manuscript sources, and reproduction instructions. The scanner rejects every PDF, SQLite database, runtime index, extracted/chunk text, interface screenshot, private full-text prompt, raw external XML, secret, unsafe archive path, and absolute local path. Raster captures remain outside the bundle because they can contain rendered source or answer text that cannot be field-redacted reliably.
 
 ## Reproducibility and verification commands
 

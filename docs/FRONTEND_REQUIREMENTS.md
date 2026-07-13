@@ -57,8 +57,10 @@ The target is WCAG 2.2 AA where practical. Required behavior includes:
 - reduced-motion handling for transitions, spinners, and skeletons;
 - no horizontal document overflow at 360, 768, 1024, or 1440 CSS pixels.
 
-Automated axe checks are a regression aid, not proof of conformance. Manual
-screen-reader, zoom/reflow, contrast, and keyboard review remain release gates.
+Automated axe, keyboard, and viewport checks are regression evidence, not proof
+of accessibility conformance. Manual screen-reader, platform-specific
+zoom/reflow, and contrast sampling remain pre-deployment external validation;
+they are not represented as completed local release gates.
 
 ## Retrieval terminology and freshness
 
@@ -150,6 +152,8 @@ npm run test:a11y
 npx playwright install chromium
 npm run test:e2e
 npm audit --audit-level=high
+# With the real backend/frontend already running:
+npm run capture:routes
 ```
 
 Vitest, React Testing Library, user-event, jest-axe, and jsdom cover route,
@@ -159,7 +163,10 @@ keyboard skip navigation, anonymous admin protection, source citation display,
 and overflow assertions at 360/768/1024/1440. API responses in frontend tests
 are explicit deterministic fixtures; those tests do not claim that a mocked
 metric was measured. Backend contract and persistence/security tests remain
-separate gates.
+separate gates. The live route capture records desktop/mobile screenshots,
+SHA-256 hashes, response/title data, console/page errors, and horizontal-
+overflow status for every primary route plus discovered paper/topic/author
+detail routes. Visual inspection remains required after that machine gate.
 
 ## Known residual limitations
 

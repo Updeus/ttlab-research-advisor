@@ -24,6 +24,19 @@ STALE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("obsolete partial-index ratio", re.compile(r"(?:25\s+of\s+756|25/756|25-of-756)", re.IGNORECASE)),
     ("obsolete unknown-section ratio", re.compile(r"(?:249/756|32\.94\\?%)", re.IGNORECASE)),
     ("obsolete backend test count", re.compile(r"\b71\s+(?:passing\s+)?backend tests?\b", re.IGNORECASE)),
+    ("temporary performance fallback", re.compile(r"(?:measurement\s+pending|benchmark\s+pending)", re.IGNORECASE)),
+)
+
+VISIBLE_PDF_MARKERS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("AUTHOR INPUT REQUIRED", re.compile(r"AUTHOR\s+INPUT\s+REQUIRED", re.IGNORECASE)),
+    ("measurement pending", re.compile(r"measurement\s+pending", re.IGNORECASE)),
+    ("Benchmark pending", re.compile(r"benchmark\s+pending", re.IGNORECASE)),
+)
+
+FONT_ROW_SUFFIX = re.compile(
+    r"\s+(?P<embedded>yes|no)\s+(?P<subset>yes|no)\s+(?P<unicode>yes|no)"
+    r"\s+(?P<object_number>\d+)\s+(?P<object_generation>\d+)\s*$",
+    re.IGNORECASE,
 )
 
 
@@ -37,8 +50,16 @@ def run(*command: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def paper_tex_sources() -> list[Path]:
+    return sorted((ROOT / "paper").rglob("*.tex"))
+
+
+def thesis_tex_sources() -> list[Path]:
+    return sorted(THESIS_ROOT.rglob("*.tex"))
+
+
 def tex_sources() -> list[Path]:
-    return [PAPER_SOURCE, *sorted(THESIS_ROOT.rglob("*.tex"))]
+    return [*paper_tex_sources(), *thesis_tex_sources()]
 
 
 def read_sources() -> dict[Path, str]:
@@ -111,14 +132,21 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         "jarod.esareesingh@my.uwi.edu",
         "Trinidad and Tobago",
     )
-    for value in required_identity:
-        if value not in combined:
-            errors.append(f"verified author metadata missing: {value}")
-    if re.search(r"\bPort of Spain\b", combined, re.IGNORECASE):
-        errors.append("city must not appear in manuscript metadata: Port of Spain")
+    manuscript_groups = {
+        "paper": "\n".join(sources[path] for path in paper_tex_sources()),
+        "thesis": "\n".join(sources[path] for path in thesis_tex_sources()),
+    }
+    for manuscript, text in manuscript_groups.items():
+        for value in required_identity:
+            if value not in text:
+                errors.append(f"verified author metadata missing from {manuscript}: {value}")
+        if re.search(r"\bPort of Spain\b", text, re.IGNORECASE):
+            errors.append(f"city must not appear in {manuscript} metadata: Port of Spain")
 
     return errors, {
         "source_files": len(sources),
+        "paper_source_files": len(paper_tex_sources()),
+        "thesis_source_files": len(thesis_tex_sources()),
         "float_labels": len(labels),
         "citation_occurrences": len(citation_keys),
         "bibliography_entries": len(bib_keys),
@@ -171,8 +199,10 @@ def pdf_checks() -> tuple[list[str], dict[str, Any]]:
         text_result = run("pdftotext", str(path), "-")
         if text_result.returncode != 0:
             errors.append(f"pdftotext failed for {label}: {text_result.stderr.strip()}")
-        elif "AUTHOR INPUT REQUIRED" in text_result.stdout.upper():
-            errors.append(f"{label} PDF contains a visible AUTHOR INPUT REQUIRED marker")
+        else:
+            for description, pattern in VISIBLE_PDF_MARKERS:
+                if pattern.search(text_result.stdout):
+                    errors.append(f"{label} PDF contains a visible {description} marker")
 
         fonts = run("pdffonts", str(path))
         if fonts.returncode != 0:
@@ -181,7 +211,10 @@ def pdf_checks() -> tuple[list[str], dict[str, Any]]:
             font_lines = fonts.stdout.splitlines()[2:]
             if any(re.search(r"\bType 3\b", line, re.IGNORECASE) for line in font_lines):
                 errors.append(f"{label} PDF contains Type 3 fonts")
-            if any(re.search(r"\bno\s+no\s*$", line, re.IGNORECASE) for line in font_lines):
+            parsed_font_rows = [FONT_ROW_SUFFIX.search(line) for line in font_lines if line.strip()]
+            if any(match is None for match in parsed_font_rows):
+                errors.append(f"{label} PDF contains an unparseable pdffonts row")
+            elif any(match.group("embedded").casefold() == "no" for match in parsed_font_rows if match):
                 errors.append(f"{label} PDF contains an unembedded font")
 
         log_path = ROOT / "build" / ("ieee-paper.log" if label == "paper" else "thesis.log")

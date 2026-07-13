@@ -101,8 +101,8 @@ The complete provenance hash is
 `61378b9aa78ae1c25a1172d62c8501b7603106d3c98142e8370c6c51fa282e8a`.
 
 The recorded host was WSL2 Linux on an AMD Ryzen 7 5800X with 16 logical CPUs,
-4,012,360 KiB visible RAM, CPU execution, Python 3.12.3, Node 20.20.2, and npm
-10.8.2. The controller dispatched one probe process at a time; PyTorch reported
+4,012,360 KiB visible RAM, CPU execution, Python 3.12.3, Node 24.14.1, and npm
+11.11.0. The controller dispatched one probe process at a time; PyTorch reported
 eight intra-op and 16 inter-op threads. Times below are seconds. Peak RSS is
 the larger cold/warm process maximum in MiB. “Failures” is failed attempts out
 of the six cold-plus-warm attempts.
@@ -188,8 +188,9 @@ and answer histories therefore remain unchanged.
 `backend/app/evaluation/external_sanity.py` uses the official Europe PMC
 Articles RESTful API to reacquire three pinned full-text XML articles. Every
 response must contain its expected PMCID/title and machine-verifiable CC BY
-license URL before it is processed. The documents are chunked with the project
-chunker and tested with three fixed lexical-discrimination queries.
+license URL before it is processed. A dedicated JATS parser maps the documents
+into the production chunker's extraction contract, after which three fixed
+lexical-discrimination queries are run.
 
 Europe PMC documents that its full-text XML endpoint as serving its Open Access
 subset and warns that individual license terms still govern reuse:
@@ -198,10 +199,12 @@ subset and warns that individual license terms still govern reuse:
 
 The raw XML cache is ignored and excluded from the release. The committed
 manifest retains official identifiers, titles, DOI where present, CC BY URL,
-file hash, counts, acquisition status, and smoke-check result. This check only
-demonstrates JATS-format compatibility and trivial lexical discrimination on
-three life-science documents. It is not TTLAB evidence, a cross-domain quality
-evaluation, or proof of broad external validity.
+file hash, counts, acquisition status, and smoke-check result. This check shows
+only that the dedicated parser mapped three life-science JATS/XML documents
+into the chunker contract and that the fixed lexical discriminators behaved as
+expected. It did not exercise the main PDF-ingestion path and is not TTLAB
+evidence, cross-domain retrieval-quality evaluation, or proof of broad external
+validity.
 
 ## Threats to validity
 

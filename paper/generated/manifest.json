@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "generator": "paper/scripts/generate_paper_assets.py",
+  "generator_sha256": "fecc9182d5abebbc2e2e2120edc68eb6313a4838b9cae038a00e1cbf3a91e808",
+  "sources": {
+    "phase1": {
+      "path": "artifacts/phase1/phase1_evidence.json",
+      "sha256": "bef831edcd4ec81df3ea4a94fbae2e9042de07a5bba525a450f59df1173aa50c"
+    },
+    "section_metrics": {
+      "path": "artifacts/phase1/section_quality_metrics.json",
+      "sha256": "2e56ec94e9cf22610606d9f86be48d01efde7c211aa32f6feb0a9cfdf8f75169"
+    },
+    "retrieval": {
+      "path": "artifacts/phase2/retrieval/summary.json",
+      "sha256": "791130cf879b29f9b85dcfbbb3b88ebb1d5e9eb1539bf24bf79aa52a19ee3617"
+    },
+    "qa": {
+      "path": "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json",
+      "sha256": "a62d0ecfc5a2e0a71bb412e8b6fb1e1a300709a21a0f6b3f0bed0782641f5f51"
+    },
+    "recommendation": {
+      "path": "artifacts/phase4/recommendation_proxy_v1/aggregate_results.json",
+      "sha256": "b9bc05cf9f0a6cefbfa93fb672fb2ccc3438faef906b8bb0a6c1f43eeef524e1"
+    },
+    "topics": {
+      "path": "artifacts/phase4/topic_author/topic_metrics.json",
+      "sha256": "00b06f7c22c05b5b4d12c68657f636cf41c747c4f93dbbecec7b13904f8b1fa3"
+    },
+    "author_audit": {
+      "path": "artifacts/phase4/topic_author/author_identity_audit.json",
+      "sha256": "c67cbc2b8a326912aee18021aff17a6cf7581c80f54e04a8ef421f0af918880d"
+    },
+    "review": {
+      "path": "artifacts/phase4/generated_output_review/generated_output_review_summary.json",
+      "sha256": "f6102bbec33c8b7793a8c1d48482ec9d4883ed399c85dfd68f4690aef256eb46"
+    },
+    "retrieval_error": {
+      "path": "artifacts/phase2/retrieval/error_taxonomy.json",
+      "sha256": "57f02a4d3b989e6a31f1cbe93af38b9d58199140c948a736cc5d2a5e4bfc43ff"
+    },
+    "section_cases": {
+      "path": "data/evaluation/section_quality_silver_v1.jsonl",
+      "sha256": "98bc6ebfb63be918db48f5edb0c596895af6b8f349ee97e857e3fbd87836801e"
+    },
+    "performance": {
+      "path": "artifacts/phase6/performance/performance_full_results.json",
+      "sha256": "8642812aa50891c533d238a6ca5f3b6d7870d96ff8c1cf303d8ef9075cbed01e"
+    }
+  },
+  "outputs": {
+    "metrics": {
+      "path": "paper/generated/metrics.tex",
+      "sha256": "cfdff2086d4aef0ca02e74dc284afde69f2d8733c0d984a27ef36a72a5d2467b"
+    },
+    "retrieval_rows": {
+      "path": "paper/generated/retrieval_rows.tex",
+      "sha256": "fdbbd380bcff2f80e2d6994eafb8c47ce1aefa3936ecb7547acaadcbfb6a3621"
+    },
+    "performance_summary": {
+      "path": "paper/generated/performance_summary.tex",
+      "sha256": "3de0a0fff2bc7a903088e28757734624b19e356e9503b84702f3f30ac46379a9"
+    }
+  },
+  "performance_included": true
+}

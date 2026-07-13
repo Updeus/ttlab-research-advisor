@@ -3,7 +3,7 @@ PYTHON ?= .venv/bin/python
 PERFORMANCE_ARTIFACT ?= artifacts/phase6/performance/performance_full_results.json
 PERFORMANCE_VALIDATION ?= artifacts/phase6/performance/performance_validation.json
 
-.PHONY: all thesis thesis-assets thesis-assets-frozen thesis-compile paper paper-assets paper-compile evidence benchmark benchmark-resume performance-validate reproduce reproduce-quick release clean
+.PHONY: all thesis thesis-assets thesis-assets-frozen thesis-compile paper paper-assets paper-compile evidence docs-validate benchmark benchmark-resume performance-validate reproduce reproduce-quick release clean
 
 all: thesis paper
 
@@ -42,6 +42,9 @@ paper: paper-assets paper-compile
 evidence:
 	PYTHONPATH=backend "$(PYTHON)" thesis/scripts/collect_evidence.py
 	PYTHONPATH=backend "$(PYTHON)" thesis/scripts/runtime_probe.py
+
+docs-validate:
+	"$(PYTHON)" scripts/validate_documentation.py
 
 benchmark:
 	PYTHONPATH=backend "$(PYTHON)" -m app.evaluation.performance_benchmark --profile full --repetitions 3 --database data/papers.db --runtime-root . --out "$(PERFORMANCE_ARTIFACT)"

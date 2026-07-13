@@ -277,3 +277,64 @@ results may refine a choice, but an earlier entry is not silently rewritten.
 - **Consequence:** Final delivery must rebuild, scan, checksum, and verify a new
   bundle from the final commit, then record or create the prepared tag without
   changing repository visibility.
+
+### D-025 — Reject benchmark evidence when a read path changes the corpus file
+
+- **Decision:** Replace the FTS5 capability probe's temporary table
+  creation/deletion with SQLite's read-only compile-option query, retain the
+  failed 17-stage run only as ignored diagnostic evidence, and restart the full
+  profile from an integrity-checked standalone database snapshot.
+- **Rationale:** The former probe changed the SQLite schema cookie and physical
+  file hash during keyword retrieval even though row counts were unchanged.
+  Treating that as harmless would defeat the benchmark's source-boundary gate.
+- **Consequence:** A regression test and a real six-query probe now require an
+  unchanged database SHA-256. Only a newly sealed run may support performance
+  claims.
+
+### D-026 — Use the programme description without inventing a degree formula
+
+- **Decision:** Use the user-supported descriptor `MSc Data Science Project`
+  but omit a formal “submitted for the degree of” formula.
+- **Rationale:** The project context is author-provided, whereas no approved
+  university template or official degree nomenclature was supplied.
+- **Consequence:** The thesis title page remains informative without claiming
+  an unverified institutional submission formula; any required official
+  wording remains in the external submission checklist.
+
+### D-027 — Narrow accessibility and external-format conclusions to executed evidence
+
+- **Decision:** State that automated accessibility regression checks passed
+  without claiming WCAG conformance or assistive-technology usability. Describe
+  the external check as three CC BY JATS/XML records mapped into the production
+  chunker contract, not as validation of the main PDF-ingestion pipeline or
+  cross-domain retrieval quality.
+- **Rationale:** Automated axe, keyboard, viewport, and Chromium checks do not
+  replace human assistive-technology assessment. The external harness has a
+  dedicated JATS parser before the shared chunker.
+- **Consequence:** RQ5 remains answerable as a bounded engineering-readiness
+  question while its conclusions preserve the actual test boundary.
+
+### D-028 — Make final document and route inspection reproducible
+
+- **Decision:** Add fail-loud manuscript checks for temporary performance text
+  and correctly parsed font embedding, validate repository-local documentation
+  links, and capture every primary live route at desktop and mobile widths with
+  image hashes and overflow/error status.
+- **Rationale:** Source compilation and mocked tests alone cannot establish that
+  final PDFs and live routes are readable or free of visible stale state.
+- **Consequence:** Final closure requires both automated gates and visual
+  inspection. The PDFs remain untagged under the available toolchain, so no PDF
+  accessibility-conformance claim follows.
+
+### D-029 — Exclude binary interface screenshots from the sanitized release
+
+- **Decision:** Exclude the complete tracked interface-screenshot directory
+  from the sanitized reproducibility archive while retaining code-native figure
+  sources and sanitized numeric evidence.
+- **Rationale:** Screenshots can render verbatim paper passages, generated
+  answers, or contact data. The JSON field sanitizer cannot reliably inspect or
+  redact text embedded in a raster image.
+- **Consequence:** Manuscript screenshots remain subject to the separate
+  Git/manuscript distribution review, and the sanitized archive does not claim
+  to be a standalone manuscript-build bundle. A release regression test checks
+  that no screenshot-directory member enters the archive.

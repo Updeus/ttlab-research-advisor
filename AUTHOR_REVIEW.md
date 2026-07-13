@@ -18,7 +18,9 @@ institution/venue items are maintained in
 ## Institution and submission fields
 
 - [ ] Supply a student ID only if the approved thesis template requires it.
-- [ ] Confirm the exact MSc degree/programme title.
+- [ ] Confirm any official institutional degree nomenclature or title-page
+  formula required by the approved template. The user-provided project context
+  supports the non-formal descriptor `MSc Data Science Project`.
 - [ ] Confirm supervisor/co-supervisor names and permitted attribution.
 - [ ] Confirm the required submission month/year.
 - [ ] Supply the approved University declaration, copyright/originality wording,
@@ -73,7 +75,9 @@ results. The current claim boundary is:
   zero;
 - AI-reviewed topic/recommendation/generated-output results, not human ratings;
   and
-- no committed full performance result at this documentation snapshot.
+- a validated full local performance profile: 17 stages, 102 cold/warm samples,
+  zero failures, on the documented WSL2/Ryzen host; this is not a production
+  capacity or service-level result.
 
 Do not reinterpret runtime `grounded` as factual correctness, feature hashing
 as learned semantic retrieval, AI proxy usefulness as student usefulness, author
@@ -91,14 +95,8 @@ privacy/retention controls, and newly versioned results.
 
 ## Final factual sign-off
 
-- [ ] Confirm the precursor paper's final bibliographic record against its
-  primary source.
 - [ ] Review the final title, abstract, contributions, limitations, and
   availability statement for institutional accuracy.
-- [ ] Confirm final screenshots contain no sensitive/private data and show the
-  final authoritative evaluation state.
-- [ ] Confirm the sanitized release boundary and any separately distributed
-  compiled PDFs.
 - [ ] Proofread the final paper/thesis under required institutional spelling and
   formatting conventions.
 

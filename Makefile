@@ -1,6 +1,7 @@
 TECTONIC ?= $(shell command -v tectonic 2>/dev/null || { test -x "$(HOME)/.local/bin/tectonic" && printf '%s' "$(HOME)/.local/bin/tectonic"; })
 PYTHON ?= .venv/bin/python
 PERFORMANCE_ARTIFACT ?= artifacts/phase6/performance/performance_full_results.json
+PERFORMANCE_VALIDATION ?= artifacts/phase6/performance/performance_validation.json
 
 .PHONY: all thesis thesis-assets thesis-assets-frozen thesis-compile paper paper-assets paper-compile evidence benchmark benchmark-resume performance-validate reproduce reproduce-quick release clean
 
@@ -15,6 +16,8 @@ thesis-assets-frozen:
 	@test -s artifacts/phase2/retrieval/summary.json
 	@test -s artifacts/phase3/qa/qa_faithfulness_metrics_v1.json
 	@test -s artifacts/phase4/recommendation_proxy_v1/aggregate_results.json
+	@test -s artifacts/phase6/performance/performance_full_results.json
+	@test -s artifacts/phase6/performance/performance_validation.json
 	PYTHONPATH=backend "$(PYTHON)" thesis/scripts/generate_manuscript_assets.py
 
 thesis-compile:
@@ -49,7 +52,7 @@ benchmark-resume:
 	$(MAKE) performance-validate PERFORMANCE_ARTIFACT="$(PERFORMANCE_ARTIFACT)" PYTHON="$(PYTHON)"
 
 performance-validate:
-	PYTHONPATH=backend "$(PYTHON)" -m app.evaluation.performance_validator "$(PERFORMANCE_ARTIFACT)" --expected-profile full --expected-repetitions 3
+	PYTHONPATH=backend "$(PYTHON)" -m app.evaluation.performance_validator "$(PERFORMANCE_ARTIFACT)" --expected-profile full --expected-repetitions 3 --out "$(PERFORMANCE_VALIDATION)"
 
 reproduce:
 	./scripts/reproduce_all.sh --mode full

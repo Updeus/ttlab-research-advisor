@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
@@ -30,18 +31,11 @@ def command_version(root: Path, *command: str) -> str | None:
     return output[0].strip() if output else None
 
 
-def manifest(
-    root: Path,
-    work: Path,
-    mode: str,
-    *,
-    source_commit: str | None = None,
-    source_tree: str | None = None,
-    source_clean_at_start: bool | None = None,
-) -> dict[str, Any]:
+def workspace_inventory(work: Path) -> tuple[list[dict[str, Any]], int, list[str], list[str]]:
     files: list[dict[str, Any]] = []
     excluded_runtime_payloads = 0
     excluded_runtime_directories: list[str] = []
+    excluded_runtime_files: list[str] = []
     candidates: list[Path] = []
     excluded_directory_names = {".git", ".pytest_cache", ".venv", "__pycache__", "node_modules"}
     for directory, directory_names, file_names in os.walk(work, followlinks=False):
@@ -54,7 +48,12 @@ def manifest(
             else:
                 retained_directories.append(name)
         directory_names[:] = retained_directories
-        candidates.extend(directory_path / name for name in sorted(file_names))
+        for name in sorted(file_names):
+            candidate = directory_path / name
+            if name == ".git" or candidate.is_symlink():
+                excluded_runtime_files.append(candidate.relative_to(work).as_posix())
+            else:
+                candidates.append(candidate)
     for path in sorted(candidates):
         if path.name in {"reproduction_manifest.json", "REPRODUCTION_SHA256SUMS"}:
             continue
@@ -73,6 +72,19 @@ def manifest(
                 "restricted_runtime_payload": is_restricted_runtime,
             }
         )
+    return files, excluded_runtime_payloads, excluded_runtime_directories, excluded_runtime_files
+
+
+def manifest(
+    root: Path,
+    work: Path,
+    mode: str,
+    *,
+    source_commit: str | None = None,
+    source_tree: str | None = None,
+    source_clean_at_start: bool | None = None,
+) -> dict[str, Any]:
+    files, excluded_runtime_payloads, excluded_runtime_directories, excluded_runtime_files = workspace_inventory(work)
     post_status = git(root, "status", "--porcelain", "--untracked-files=all").splitlines()
     resolved_commit = source_commit or git(root, "rev-parse", "HEAD")
     resolved_tree = source_tree or git(root, "rev-parse", f"{resolved_commit}^{{tree}}")
@@ -120,6 +132,7 @@ def manifest(
         "file_count": len(files),
         "restricted_runtime_payload_count": excluded_runtime_payloads,
         "excluded_runtime_directories": excluded_runtime_directories,
+        "excluded_runtime_files": excluded_runtime_files,
         "files": files,
         "claim_boundary": (
             "This manifest proves command/artifact execution in the recorded local environment. "
@@ -139,6 +152,37 @@ def write_manifest_and_checksums(value: dict[str, Any], output: Path, work: Path
     entries.append(f"{sha256_path(output)}  {output.relative_to(work).as_posix()}")
     checksum_path.write_text("\n".join(entries) + "\n", encoding="utf-8")
     return checksum_path
+
+
+def verify_manifest_and_checksums(
+    value: dict[str, Any],
+    output: Path,
+    checksum_path: Path,
+    work: Path,
+) -> dict[str, Any]:
+    current_files, _, _, _ = workspace_inventory(work)
+    if current_files != value.get("files"):
+        raise ValueError("Reproduction workspace inventory changed before final checksum verification")
+    persisted = json.loads(output.read_text(encoding="utf-8"))
+    if persisted != value:
+        raise ValueError("Persisted reproduction manifest differs from the in-memory attestation")
+    entries: dict[str, str] = {}
+    for line_number, line in enumerate(checksum_path.read_text(encoding="utf-8").splitlines(), start=1):
+        if "  " not in line:
+            raise ValueError(f"Malformed reproduction checksum line {line_number}")
+        digest, relative = line.split("  ", 1)
+        if not re.fullmatch(r"[0-9a-f]{64}", digest) or not relative or relative in entries:
+            raise ValueError(f"Invalid reproduction checksum entry at line {line_number}")
+        entries[relative] = digest
+    manifest_relative = output.relative_to(work).as_posix()
+    expected_paths = {row["path"] for row in value["files"]} | {manifest_relative}
+    if set(entries) != expected_paths:
+        raise ValueError("Reproduction checksum inventory does not match the final manifest inventory")
+    for relative, digest in entries.items():
+        path = work / relative
+        if not path.is_file() or sha256_path(path) != digest:
+            raise ValueError(f"Reproduction checksum mismatch: {relative}")
+    return {"status": "valid", "inventory_files": len(current_files), "checksum_entries": len(entries)}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -164,6 +208,7 @@ def main() -> None:
         source_clean_at_start=True if args.source_clean_at_start else None,
     )
     checksum_path = write_manifest_and_checksums(value, args.out, args.work.resolve())
+    verification = verify_manifest_and_checksums(value, args.out, checksum_path, args.work.resolve())
     print(
         json.dumps(
             {
@@ -171,6 +216,7 @@ def main() -> None:
                 "files": value["file_count"],
                 "out": str(args.out),
                 "checksums": str(checksum_path),
+                "verification": verification,
             },
             indent=2,
         )

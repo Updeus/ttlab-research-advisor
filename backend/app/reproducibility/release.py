@@ -52,22 +52,41 @@ EXCLUDED_SUFFIXES = {".db", ".sqlite", ".sqlite3", ".pdf", ".pyc", ".pyo", ".pem
 EXCLUDED_NAMES = {".env", ".env.local", ".env.production", "narine-rtsi.pdf"}
 TEXT_BEARING_KEYS = {
     "answer",
+    "baseline_work",
+    "claim",
     "chunk_text",
     "context",
     "corrected_text",
+    "evidence_summary",
+    "evaluation_plan",
+    "extension_summary",
+    "extension_title",
+    "future_work",
+    "identified_gap",
+    "license_evidence_excerpt",
+    "mvp_scope",
     "page_text",
+    "paper_focus",
+    "problem",
     "raw_prompt",
+    "review_note",
     "snippet",
     "source_excerpt",
     "source_text",
+    "why_it_fits_student",
 }
-LOCAL_PATH_PATTERN = re.compile(r"(?:/mnt/[a-z]/|/home/[^/]+/|[A-Za-z]:\\Users\\)")
+LOCAL_PATH_PATTERN = re.compile(
+    r"(?:/(?:mnt/[a-z]|home/[^/]+|Users/[^/]+|root|tmp)/|[A-Za-z]:\\Users\\)"
+)
 SECRET_PATTERNS = {
     "github_token": re.compile(r"\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b"),
     "openai_key": re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
     "private_key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
     "bearer_token": re.compile(r"(?i)authorization\s*:\s*bearer\s+[A-Za-z0-9._~+/-]{16,}"),
 }
+MAX_ARCHIVE_MEMBERS = 10_000
+MAX_ARCHIVE_FILE_BYTES = 50 * 1024 * 1024
+MAX_ARCHIVE_TOTAL_BYTES = 500 * 1024 * 1024
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -108,6 +127,8 @@ def should_include(relative: Path) -> tuple[bool, str | None]:
         return False, "restricted_runtime_corpus"
     if parts[:2] == ("artifacts", "baseline"):
         return False, "local_baseline_environment"
+    if parts[:3] == ("artifacts", "phase6", "release"):
+        return False, "release_attestation_output"
     return True, None
 
 
@@ -137,8 +158,9 @@ def sanitize_json(value: Any, *, path: tuple[str, ...] = ()) -> tuple[Any, list[
                 sanitized[key] = redaction(rendered, "unreviewed_scrape_payload")
                 events.append({"json_path": ".".join(next_path), "reason": "unreviewed_scrape_payload"})
                 continue
-            if isinstance(item, str) and (lowered in TEXT_BEARING_KEYS or lowered == "text"):
-                sanitized[key] = redaction(item, "source_or_answer_text_not_redistributed")
+            if item is not None and (lowered in TEXT_BEARING_KEYS or lowered == "text"):
+                rendered = item if isinstance(item, str) else json.dumps(item, sort_keys=True, ensure_ascii=False)
+                sanitized[key] = redaction(rendered, "source_or_answer_text_not_redistributed")
                 events.append({"json_path": ".".join(next_path), "reason": "source_or_answer_text_not_redistributed"})
                 continue
             sanitized_item, child_events = sanitize_json(item, path=next_path)
@@ -239,9 +261,15 @@ Source commit: `{commit}`
 
 This bundle contains source code, dependency locks, schemas, redistributable
 metadata, sanitized evaluation records, aggregate/raw metric artifacts, prompts,
-figure sources, and reproduction instructions. Run `make reproduce-quick` for
-the dependency and artifact gates, or `make reproduce` with separately
-authorized local corpus inputs for the full pipeline.
+figure sources, and reproduction instructions. First verify the unpacked
+payload from this directory with `sha256sum -c SHA256SUMS`.
+
+This tarball is not a Git worktree and therefore cannot preserve the detached-
+commit checks performed by `make reproduce-quick` or `make reproduce`. To run
+those one-command gates, obtain an authorized Git checkout, check out source
+commit `{commit}`, install the tracked dependency locks, and then run the make
+target. Full reproduction additionally requires separately authorized local
+corpus inputs; those inputs are not supplied by this bundle.
 
 The bundle intentionally excludes all PDFs, SQLite databases, extracted/chunk
 text, vector indexes, secrets, `.env` files, private AI-review prompts, and raw
@@ -274,6 +302,9 @@ def build_release(
     archive_path = output_root / f"{release_name}.tar.gz"
     manifest_copy_path = output_root / f"{release_name}.manifest.json"
     checksum_path = output_root / f"{release_name}.sha256"
+    existing_outputs = [path.name for path in (archive_path, manifest_copy_path, checksum_path) if path.exists()]
+    if existing_outputs:
+        raise FileExistsError(f"Refusing to overwrite existing release outputs: {existing_outputs}")
     excluded: list[dict[str, str]] = []
     entries: dict[PurePosixPath, bytes] = {}
     provenance: list[dict[str, Any]] = []
@@ -357,21 +388,18 @@ def build_release(
             "absolute_path_scan": True,
             "pdf_magic_scan": True,
         },
-        "dependency_locks": {
-            "python": {
-                "path": "backend/requirements-lock.txt",
-                "sha256": sha256_path(root / "backend/requirements-lock.txt")
-                if (root / "backend/requirements-lock.txt").is_file()
-                else None,
-            },
-            "frontend": {
-                "path": "frontend/package-lock.json",
-                "sha256": sha256_path(root / "frontend/package-lock.json")
-                if (root / "frontend/package-lock.json").is_file()
-                else None,
-            },
-        },
+        "dependency_locks": {},
     }
+    for lock_name, lock_path in {
+        "python": "backend/requirements-lock.txt",
+        "frontend": "frontend/package-lock.json",
+    }.items():
+        row = next((item for item in provenance if item["path"] == lock_path), None)
+        manifest["dependency_locks"][lock_name] = {
+            "path": lock_path,
+            "source_sha256": row["source_sha256"] if row else None,
+            "sha256": row["released_sha256"] if row else None,
+        }
     manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
     entries[PurePosixPath(release_name) / "RELEASE_MANIFEST.json"] = manifest_bytes
 
@@ -422,6 +450,11 @@ def verify_release(archive_path: Path) -> dict[str, Any]:
     members = 0
     with tarfile.open(archive_path, "r:gz") as archive:
         archive_members = archive.getmembers()
+        if len(archive_members) > MAX_ARCHIVE_MEMBERS:
+            raise RuntimeError(f"Release has too many archive members: {len(archive_members)}")
+        total_declared_bytes = sum(member.size for member in archive_members if member.isfile())
+        if total_declared_bytes > MAX_ARCHIVE_TOTAL_BYTES:
+            raise RuntimeError(f"Release exceeds the uncompressed size limit: {total_declared_bytes}")
         names = [member.name for member in archive_members if member.isfile()]
         if len(names) != len(set(names)):
             raise RuntimeError("Release contains duplicate archive member names")
@@ -438,10 +471,23 @@ def verify_release(archive_path: Path) -> dict[str, Any]:
         payloads: dict[str, bytes] = {}
         for member in archive_members:
             path = PurePosixPath(member.name)
-            if path.is_absolute() or ".." in path.parts:
+            if (
+                path.is_absolute()
+                or ".." in path.parts
+                or len(path.parts) < 2
+                or "\\" in member.name
+                or "//" in member.name
+                or member.name.startswith("./")
+                or member.name != path.as_posix()
+                or any(ord(character) < 32 for character in member.name)
+            ):
                 findings.append({"path": member.name, "finding": "unsafe_archive_path"})
                 continue
             if not member.isfile():
+                findings.append({"path": member.name, "finding": "unsupported_archive_member_type"})
+                continue
+            if member.size > MAX_ARCHIVE_FILE_BYTES:
+                findings.append({"path": member.name, "finding": "archive_member_too_large"})
                 continue
             members += 1
             extracted = archive.extractfile(member)
@@ -476,6 +522,7 @@ def verify_release(archive_path: Path) -> dict[str, Any]:
             content = payloads.get(relative)
             if content is not None and sha256_bytes(content) != expected_digest:
                 findings.append({"path": relative, "finding": "checksum_mismatch"})
+        findings.extend(_embedded_manifest_findings(payloads, release_root))
     if findings:
         raise RuntimeError(f"Release verification failed: {findings[:10]}")
     return {
@@ -484,6 +531,140 @@ def verify_release(archive_path: Path) -> dict[str, Any]:
         "checksum_entries_verified": len(checksum_entries),
         "archive_sha256": sha256_path(archive_path),
     }
+
+
+def _embedded_manifest_findings(payloads: dict[str, bytes], release_root: str) -> list[dict[str, str]]:
+    """Bind the embedded release attestation to the archive it describes."""
+
+    findings: list[dict[str, str]] = []
+
+    def reject(finding: str) -> None:
+        findings.append({"path": "RELEASE_MANIFEST.json", "finding": f"embedded_manifest:{finding}"})
+
+    try:
+        manifest = json.loads(payloads.get("RELEASE_MANIFEST.json", b"").decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        reject("invalid_json")
+        return findings
+    if not isinstance(manifest, dict):
+        reject("not_an_object")
+        return findings
+    if manifest.get("schema_version") != 1:
+        reject("schema_version")
+    if manifest.get("release_name") != release_root:
+        reject("release_root_mismatch")
+    version = manifest.get("version")
+    source_commit = manifest.get("source_commit")
+    source_tree = manifest.get("source_tree")
+    if not isinstance(version, str) or not version:
+        reject("invalid_version")
+    elif manifest.get("prepared_tag") != f"v{version}":
+        reject("prepared_tag_mismatch")
+    if not isinstance(source_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", source_commit):
+        reject("invalid_source_commit")
+    if not isinstance(source_tree, str) or not re.fullmatch(r"[0-9a-f]{40}", source_tree):
+        reject("invalid_source_tree")
+    if not isinstance(manifest.get("source_worktree_dirty"), bool):
+        reject("invalid_source_worktree_dirty")
+    if not isinstance(manifest.get("tag_created"), bool):
+        reject("invalid_tag_created")
+    try:
+        generated_at = datetime.fromisoformat(str(manifest.get("generated_at")))
+        if generated_at.tzinfo is None:
+            raise ValueError
+    except ValueError:
+        reject("invalid_generated_at")
+    if isinstance(version, str) and isinstance(source_commit, str):
+        expected_root = f"ttlab-research-advisor-{version}-{source_commit[:12]}"
+        if release_root != expected_root:
+            reject("release_name_provenance_mismatch")
+    if manifest.get("included_file_count") != len(payloads):
+        reject("included_file_count_mismatch")
+
+    rows = manifest.get("files")
+    if not isinstance(rows, list):
+        reject("files_not_a_list")
+        return findings
+    described: set[str] = set()
+    source_paths: set[str] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            reject(f"file_row_{index}_not_an_object")
+            continue
+        relative = row.get("path")
+        source_path = row.get("source_path")
+        if not isinstance(relative, str) or not relative:
+            reject(f"file_row_{index}_invalid_path")
+            continue
+        relative_path = PurePosixPath(relative)
+        if (
+            relative_path.is_absolute()
+            or ".." in relative_path.parts
+            or relative_path.as_posix() != relative
+            or "\\" in relative
+            or "//" in relative
+            or any(ord(character) < 32 for character in relative)
+        ):
+            reject(f"file_row_{index}_unsafe_path")
+            continue
+        if relative in described:
+            reject(f"duplicate_file_path:{relative}")
+        described.add(relative)
+        if not isinstance(source_path, str) or not source_path:
+            reject(f"file_row_{index}_invalid_source_path")
+        elif PurePosixPath(source_path).as_posix() != source_path or PurePosixPath(source_path).is_absolute() or ".." in PurePosixPath(source_path).parts:
+            reject(f"file_row_{index}_unsafe_source_path")
+        elif source_path in source_paths:
+            reject(f"duplicate_source_path:{source_path}")
+        else:
+            source_paths.add(source_path)
+        content = payloads.get(relative)
+        if content is None:
+            reject(f"described_payload_missing:{relative}")
+            continue
+        if row.get("bytes") != len(content):
+            reject(f"payload_size_mismatch:{relative}")
+        if row.get("released_sha256") != sha256_bytes(content):
+            reject(f"payload_hash_mismatch:{relative}")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(row.get("source_sha256", ""))):
+            reject(f"invalid_source_hash:{relative}")
+        redactions = row.get("sanitization_event_count")
+        if not isinstance(redactions, int) or redactions < 0:
+            reject(f"invalid_redaction_count:{relative}")
+
+    generated = {"REPRODUCE.md", "SHA256SUMS", "RELEASE_MANIFEST.json"}
+    expected_described = set(payloads) - generated
+    if described != expected_described:
+        missing = sorted(expected_described - described)
+        unexpected = sorted(described - expected_described)
+        reject(f"file_inventory_mismatch:missing={missing[:5]}:unexpected={unexpected[:5]}")
+    redaction_total = sum(
+        row.get("sanitization_event_count", 0)
+        for row in rows
+        if isinstance(row, dict) and isinstance(row.get("sanitization_event_count"), int)
+    )
+    if manifest.get("sanitization_event_count") != redaction_total:
+        reject("sanitization_event_count_mismatch")
+
+    locks = manifest.get("dependency_locks")
+    if not isinstance(locks, dict):
+        reject("dependency_locks_missing")
+    else:
+        for name in ("python", "frontend"):
+            lock = locks.get(name)
+            if not isinstance(lock, dict):
+                reject(f"dependency_lock_missing:{name}")
+                continue
+            lock_path = lock.get("path")
+            expected_hash = lock.get("sha256")
+            if lock_path not in payloads:
+                reject(f"dependency_lock_payload_missing:{name}")
+            elif expected_hash != sha256_bytes(payloads[lock_path]):
+                reject(f"dependency_lock_hash_mismatch:{name}")
+            described_row = next((row for row in rows if isinstance(row, dict) and row.get("path") == lock_path), None)
+            if described_row is None or lock.get("source_sha256") != described_row.get("source_sha256"):
+                reject(f"dependency_lock_source_hash_mismatch:{name}")
+    return findings
 
 
 def build_parser() -> argparse.ArgumentParser:

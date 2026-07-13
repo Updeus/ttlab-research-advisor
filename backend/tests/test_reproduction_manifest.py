@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app.reproducibility.manifest import manifest, write_manifest_and_checksums
+import pytest
+
+from app.reproducibility.manifest import manifest, verify_manifest_and_checksums, write_manifest_and_checksums
 
 
 def test_manifest_hashes_outputs_and_marks_private_runtime_payloads(tmp_path: Path) -> None:
@@ -18,6 +20,8 @@ def test_manifest_hashes_outputs_and_marks_private_runtime_payloads(tmp_path: Pa
     (work / "data/pdfs/paper.pdf").write_bytes(b"%PDF-test")
     (work / ".venv/lib").mkdir(parents=True)
     (work / ".venv/lib/ignored.py").write_text("ignored\n")
+    (work / "source").mkdir()
+    (work / "source/.git").write_text("gitdir: /outside/worktree\n")
     result = manifest(
         root,
         work,
@@ -29,6 +33,8 @@ def test_manifest_hashes_outputs_and_marks_private_runtime_payloads(tmp_path: Pa
     assert result["file_count"] == 2
     assert result["restricted_runtime_payload_count"] == 1
     assert result["excluded_runtime_directories"] == [".venv"]
+    assert result["excluded_runtime_files"] == ["source/.git"]
+    assert all(row["path"] != "source/.git" for row in result["files"])
     assert all(row["sha256"] for row in result["files"])
     assert result["work_directory"] == "."
     assert result["source_snapshot"] == {
@@ -45,3 +51,12 @@ def test_manifest_hashes_outputs_and_marks_private_runtime_payloads(tmp_path: Pa
     checksums = checksum_path.read_text().splitlines()
     assert any(line.endswith("  logs/test.log") for line in checksums)
     assert any(line.endswith("  reproduction_manifest.json") for line in checksums)
+    assert verify_manifest_and_checksums(result, output, checksum_path, work) == {
+        "status": "valid",
+        "inventory_files": 2,
+        "checksum_entries": 3,
+    }
+
+    (work / "logs/test.log").write_text("changed after manifest\n")
+    with pytest.raises(ValueError, match="inventory changed"):
+        verify_manifest_and_checksums(result, output, checksum_path, work)

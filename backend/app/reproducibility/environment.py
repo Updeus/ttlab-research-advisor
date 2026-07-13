@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\s;]+)$")
+ALLOWED_INDEX_DIRECTIVE = re.compile(r"^--extra-index-url\s+https://[^\s]+$")
 
 
 def normalize_name(value: str) -> str:
@@ -25,10 +26,17 @@ def sha256_path(path: Path) -> str:
 
 def locked_packages(path: Path) -> dict[str, str]:
     packages: dict[str, str] = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
-        match = PIN.fullmatch(line.strip())
-        if not match:
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
             continue
+        if ALLOWED_INDEX_DIRECTIVE.fullmatch(stripped):
+            continue
+        match = PIN.fullmatch(stripped)
+        if not match:
+            raise ValueError(
+                f"Unsupported or non-exact requirement at {path.name}:{line_number}: {stripped!r}"
+            )
         name, version = match.groups()
         normalized = normalize_name(name)
         if normalized in packages:

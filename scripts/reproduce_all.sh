@@ -106,6 +106,7 @@ run_in_source() {
 if ((INSTALL)); then
   run_logged install-python "$PYTHON" -m pip install -r "$RUN_ROOT/backend/requirements-lock.txt"
   run_logged install-frontend npm --prefix "$RUN_ROOT/frontend" ci
+  run_logged install-browser "$RUN_ROOT/frontend/node_modules/.bin/playwright" install chromium
 fi
 
 run_logged dependency-imports "$PYTHON" -c \
@@ -136,7 +137,9 @@ if [[ "$MODE" == "full" ]]; then
   [[ -s "$SOURCE_DB" ]] || die "full mode requires an authorized source database: $SOURCE_DB"
   PDF_COUNT="$(find "$ROOT/data/pdfs" -maxdepth 1 -type f -name '*.pdf' | wc -l)"
   ((PDF_COUNT > 0)) || die "full mode requires separately authorized local PDFs under data/pdfs"
-  cp "$SOURCE_DB" "$RUN_ROOT/data/papers.db"
+  run_in_source database-snapshot "$PYTHON" -m app.reproducibility.database_snapshot \
+    --source "$SOURCE_DB" --target "$RUN_ROOT/data/papers.db" \
+    --evidence "$WORK/artifacts/database_snapshot.json"
   cp -a "$ROOT/data/pdfs/." "$RUN_ROOT/data/pdfs/"
   export TTLAB_DATABASE_URL="sqlite:///$RUN_ROOT/data/papers.db"
 
@@ -157,7 +160,13 @@ if [[ "$MODE" == "full" ]]; then
     --out "$WORK/artifacts/performance/performance_full_results.json"
   run_in_source performance-full-validation "$PYTHON" -m app.evaluation.performance_validator \
     "$WORK/artifacts/performance/performance_full_results.json" \
-    --expected-profile full --expected-repetitions 3
+    --expected-profile full --expected-repetitions 3 \
+    --out "$WORK/artifacts/performance/performance_validation.json"
+  mkdir -p "$RUN_ROOT/artifacts/phase6/performance"
+  install -m 0644 "$WORK/artifacts/performance/performance_full_results.json" \
+    "$RUN_ROOT/artifacts/phase6/performance/performance_full_results.json"
+  install -m 0644 "$WORK/artifacts/performance/performance_validation.json" \
+    "$RUN_ROOT/artifacts/phase6/performance/performance_validation.json"
 
   run_in_source phase1-evidence "$PYTHON" scripts/capture_phase1_evidence.py \
     --database "$RUN_ROOT/data/papers.db" --out "$RUN_ROOT/artifacts/phase1/phase1_evidence.json"
@@ -208,7 +217,8 @@ else
     --stage import --stage frontend_build
   run_in_source performance-quick-validation "$PYTHON" -m app.evaluation.performance_validator \
     "$WORK/artifacts/performance/performance_quick_results.json" \
-    --expected-profile quick --expected-repetitions 3 --stage import --stage frontend_build
+    --expected-profile quick --expected-repetitions 3 --stage import --stage frontend_build \
+    --out "$WORK/artifacts/performance/performance_quick_validation.json"
 fi
 
 run_logged paper-build make -C "$RUN_ROOT" paper PYTHON="$PYTHON"
@@ -238,12 +248,21 @@ for document in ieee-paper thesis; do
   [[ "$PAGE_COUNT" == "$EXPECTED_PAGES" ]] || die "rendered page count mismatch for $document"
 done
 
-run_in_source reproduction-manifest "$PYTHON" -m app.reproducibility.manifest \
-  --root "$RUN_ROOT" --work "$WORK" --mode "$MODE" --out "$WORK/reproduction_manifest.json" \
-  --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" --source-clean-at-start
+run_in_source reproduced-release-build "$PYTHON" -m app.reproducibility.release build \
+  --version "${RELEASE_VERSION}-reproduced" --out-dir "$WORK/artifacts/reproduced_release_bundle" \
+  --evidence-dir "$WORK/artifacts/reproduced_release" --allow-dirty
+REPRODUCED_RELEASE_ARCHIVE="$WORK/artifacts/reproduced_release_bundle/ttlab-research-advisor-${RELEASE_VERSION}-reproduced-${SOURCE_COMMIT:0:12}.tar.gz"
+run_in_source reproduced-release-verify "$PYTHON" -m app.reproducibility.release verify \
+  "$REPRODUCED_RELEASE_ARCHIVE"
 
-run_logged reproduction-checksums "$PYTHON" -c \
-  "import hashlib,pathlib; root=pathlib.Path('$WORK'); lines=(root/'REPRODUCTION_SHA256SUMS').read_text().splitlines(); assert lines; [(lambda p,h: (_ for _ in ()).throw(AssertionError(p)) if hashlib.sha256(p.read_bytes()).hexdigest()!=h else None)(root/path, digest) for digest,path in (line.split('  ',1) for line in lines)]; print(f'checksums=valid entries={len(lines)}')"
+log "final reproduction manifest (no output files are created after this gate)"
+(cd "$RUN_ROOT" && "$PYTHON" -m app.reproducibility.manifest \
+  --root "$RUN_ROOT" --work "$WORK" --mode "$MODE" --out "$WORK/reproduction_manifest.json" \
+  --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" --source-clean-at-start)
+
+log "independent reproduction checksum verification"
+(cd "$WORK" && sha256sum -c --quiet REPRODUCTION_SHA256SUMS)
+printf 'checksums=valid\n'
 
 log "Reproduction completed: mode=$MODE source_commit=$SOURCE_COMMIT work=$WORK"
 if ((KEEP_WORK == 0)); then

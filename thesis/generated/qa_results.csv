@@ -1,0 +1,7 @@
+metric,estimate,ci_low,ci_high
+Supported-claim rate,0.995,0.987,1.000
+Citation correctness,0.625,0.564,0.691
+Citation completeness,1.000,1.000,1.000
+Answer-point coverage,0.136,0.067,0.211
+Answerability decision accuracy,0.920,0.840,0.980
+Unanswerable abstention,0.000,0.000,0.000

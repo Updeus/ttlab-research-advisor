@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "generator": "thesis/scripts/generate_manuscript_assets.py",
+  "sources": {
+    "phase1": {
+      "path": "artifacts/phase1/phase1_evidence.json",
+      "sha256": "bef831edcd4ec81df3ea4a94fbae2e9042de07a5bba525a450f59df1173aa50c"
+    },
+    "retrieval": {
+      "path": "artifacts/phase2/retrieval/summary.json",
+      "sha256": "791130cf879b29f9b85dcfbbb3b88ebb1d5e9eb1539bf24bf79aa52a19ee3617"
+    },
+    "retrieval_labels": {
+      "path": "data/evaluation/retrieval_silver_v1.jsonl",
+      "sha256": "ccd16f6428c9f37da3eb507b02c3fe97867877cc7fbaa99977f3043949a3cbe1"
+    },
+    "qa": {
+      "path": "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json",
+      "sha256": "a62d0ecfc5a2e0a71bb412e8b6fb1e1a300709a21a0f6b3f0bed0782641f5f51"
+    },
+    "recommendation": {
+      "path": "artifacts/phase4/recommendation_proxy_v1/aggregate_results.json",
+      "sha256": "b9bc05cf9f0a6cefbfa93fb672fb2ccc3438faef906b8bb0a6c1f43eeef524e1"
+    },
+    "topics": {
+      "path": "artifacts/phase4/topic_author/topic_metrics.json",
+      "sha256": "00b06f7c22c05b5b4d12c68657f636cf41c747c4f93dbbecec7b13904f8b1fa3"
+    }
+  },
+  "outputs": {
+    "macros": {
+      "path": "thesis/generated/evidence_macros.tex",
+      "sha256": "4fb8cc7b2d114647a333119b78c87f7507ef839fa67286c058ec332bc22cdd71"
+    },
+    "retrieval_csv": {
+      "path": "thesis/generated/retrieval_results.csv",
+      "sha256": "830dd1d6753ee7799462ea8174b9ecc1eac8d7dc4a13a7af9792b8181f308cf5"
+    },
+    "qa_csv": {
+      "path": "thesis/generated/qa_results.csv",
+      "sha256": "d39465ad3957d474fa936a593669b3b4ae60b2f539b3d34a503075e6a3aa29f1"
+    },
+    "topic_csv": {
+      "path": "thesis/generated/topic_results.csv",
+      "sha256": "7630763822dfb36b16a2b33eab70c61d305b69bdbcc76b372d90757a605b81ef"
+    }
+  },
+  "values": {
+    "CorpusSnapshotId": "corpus-04a010207327069a",
+    "CatalogPaperCount": 134,
+    "AvailablePdfCount": 98,
+    "EligiblePaperCount": 96,
+    "NoTextPaperCount": 36,
+    "MismatchPaperCount": 2,
+    "RawChunkCount": 735,
+    "EligibleChunkCount": 719,
+    "EligibleUnknownChunkCount": 199,
+    "SectionSilverAccuracy": "0.900",
+    "RetrievalCaseCount": 50,
+    "RetrievalDevCount": 30,
+    "RetrievalTestCount": 20,
+    "RetrievalAnswerableTestCount": 19,
+    "RetrievalUnanswerableTestCount": 1,
+    "QaCaseCount": 50,
+    "QaClaimCount": 400,
+    "QaSupportedClaimRate": "0.995",
+    "QaSupportedClaimRateLow": "0.987",
+    "QaSupportedClaimRateHigh": "1.000",
+    "QaCitationCorrectness": "0.625",
+    "QaCitationCorrectnessLow": "0.564",
+    "QaCitationCorrectnessHigh": "0.691",
+    "QaCitationCompleteness": "1.000",
+    "QaAnswerPointCoverage": "0.136",
+    "QaAnswerPointCoverageLow": "0.067",
+    "QaAnswerPointCoverageHigh": "0.211",
+    "QaUnanswerableAbstentionRate": "0.000",
+    "RecommendationProfileCount": 28,
+    "RecommendationEvidenceRelevance": "0.631",
+    "RecommendationFullRelevance": "0.655",
+    "RecommendationRelevanceDifference": "0.024",
+    "RecommendationDifferenceLow": "-0.024",
+    "RecommendationDifferenceHigh": "0.071",
+    "TopicCaseCount": 60,
+    "TopicTestCount": 24,
+    "TopicLexicalPrecision": "0.652",
+    "TopicLexicalRecall": "0.484",
+    "TopicLexicalFone": "0.556",
+    "TopicLexicalCoverage": "0.875",
+    "TopicDensePrecision": "0.417",
+    "TopicDenseRecall": "0.694",
+    "TopicDenseFone": "0.521",
+    "TopicDenseCoverage": "0.958",
+    "RetrievalKeywordRecallThree": "0.939",
+    "RetrievalKeywordRecallTen": "1.000",
+    "RetrievalKeywordMrr": "0.947",
+    "RetrievalKeywordNdcgTen": "0.958",
+    "RetrievalFeatureHashingRecallThree": "0.654",
+    "RetrievalFeatureHashingRecallTen": "0.704",
+    "RetrievalFeatureHashingMrr": "0.588",
+    "RetrievalFeatureHashingNdcgTen": "0.582",
+    "RetrievalDenseRecallThree": "0.916",
+    "RetrievalDenseRecallTen": "0.989",
+    "RetrievalDenseMrr": "0.939",
+    "RetrievalDenseNdcgTen": "0.939",
+    "RetrievalHeuristicHybridRecallThree": "0.795",
+    "RetrievalHeuristicHybridRecallTen": "0.917",
+    "RetrievalHeuristicHybridMrr": "0.813",
+    "RetrievalHeuristicHybridNdcgTen": "0.829",
+    "RetrievalTunedHybridRecallThree": "0.856",
+    "RetrievalTunedHybridRecallTen": "0.925",
+    "RetrievalTunedHybridMrr": "0.860",
+    "RetrievalTunedHybridNdcgTen": "0.871"
+  }
+}

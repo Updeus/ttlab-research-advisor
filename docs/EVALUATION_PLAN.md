@@ -28,7 +28,7 @@ interval procedures, exact results, and evidence paths are in
 | RQ2 retrieval | keyword, feature-hashing, dense, heuristic/tuned hybrid; dev tuning; test; ablation/sensitivity/statistics | Executed | keyword is the strongest held-out MRR baseline; tuned hybrid superiority is not established |
 | RQ3 RAG | atomic claim, citation-link, completeness, answer-point, unsupported knowledge, abstention review | Executed | source support is high but citation correctness, completeness of answers, and abstention need improvement |
 | RQ4 advisory/discovery | evidence-only vs full Finder, topic lexical-vs-dense, author audit, full stored-output review | Executed | advisory improvement is not demonstrated; publication evidence and AI-review boundaries must remain visible |
-| RQ5 engineering readiness | backend/frontend/security/accessibility tests, performance, reproduction, release scan, PDF preflight | Partially executed | implemented controls are testable; full performance/reproduction/final release/PDF closure still require evidence |
+| RQ5 engineering readiness | backend/frontend/security/accessibility tests, performance, reproduction, release scan, PDF preflight | Performance executed; delivery gate pending | validated 17-stage local performance evidence is available, while final clean-commit reproduction/release and document closure remain separate gates |
 
 ## Executed datasets
 
@@ -112,19 +112,30 @@ interval procedures, exact results, and evidence paths are in
 
 ### External sanity and performance
 
-- Europe PMC acquisition/check completed for three pinned CC BY JATS XML
-  documents; 3/3 fixed lexical top-one matches. This is format compatibility,
-  not cross-domain quality validation.
-- Full performance harness implemented for pipeline, retrieval, intelligence,
-  API, frontend build, and page load with process-cold/warm repeats, median,
-  interpolated p95, failure rate, and RSS where measurable.
-- No committed full performance result exists at this snapshot. Performance and
-  scaling claims remain prohibited until that artifact is executed, validated,
-  and committed.
+- The external sanity procedure reacquired three pinned CC BY JATS XML
+  documents and mapped them into the production chunker contract; all three
+  fixed lexical queries returned the intended document at rank one. This checks
+  a narrow JATS/XML-to-chunker contract and trivial lexical discrimination. It
+  did not exercise the main PDF acquisition/extraction path and is not
+  cross-domain retrieval-quality evidence or broad external validation.
+- The full performance profile covered discovery, ingestion, PDF/OCR handling,
+  chunking, three indexes, four retrieval modes, offline answering and
+  recommendation, ASGI requests, frontend build, and eight rendered routes.
+  Independent validation accepted all 17 stages, 102 timed samples, 102 RSS
+  records, and zero failures.
+- The run used WSL2 Linux on an AMD Ryzen 7 5800X with 16 logical CPUs,
+  4,012,360 KiB visible RAM, CPU execution, Python 3.12.3, Node 24.14.1, and npm
+  11.11.0. It used one probe process at a time and three process-cold plus three
+  warm repetitions per stage. OS caches were not flushed, and the interpolated
+  p95 over three observations is descriptive rather than a stable tail estimate.
+- This bounded local baseline does not establish capacity, saturation,
+  concurrency, endurance, asymptotic scaling, or production service levels.
+  Evidence: `artifacts/phase6/performance/performance_full_results.json` and
+  `artifacts/phase6/performance/performance_validation.json`.
 
 ## Engineering verification plan
 
-The final gate runs:
+From the final clean commit, the delivery gate runs:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m pytest
@@ -135,14 +146,17 @@ npm --prefix frontend run test:e2e
 npm --prefix frontend audit --audit-level=high
 PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 make reproduce
+make release
 make paper
 make thesis
 ```
 
 It additionally runs every evaluation validator, dependency audits, manuscript
 source validation, qpdf/pdfinfo/pdffonts/text checks, page rendering, and visual
-inspection. Exact final commands and outcomes belong in
-`docs/FINAL_STATUS.md`; a partial command cannot prove the wider gate.
+inspection. `make reproduce` and `make release` are fail-loud delivery gates;
+neither a prior performance run nor a partial command proves that the final
+clean commit passes them. Exact final commands and outcomes belong in
+`docs/FINAL_STATUS.md`.
 
 ## Legacy scaffold files
 
@@ -164,6 +178,7 @@ and AI-assisted offline procedure. They do not establish:
 - recommendation novelty or real-world feasibility;
 - comprehensive researcher expertise or availability;
 - production capacity/security/accreditation;
+- WCAG or assistive-technology conformance from automated accessibility checks;
 - human inter-rater reliability; or
 - broad external validity.
 

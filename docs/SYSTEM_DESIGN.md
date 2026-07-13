@@ -149,10 +149,26 @@ proxy review, topic/author comparison, generated-output review, external sanity,
 and performance measurement. Aggregate results are accepted only with their raw
 cases, input/config hashes, and validators.
 
+The committed full performance artifact independently validates 17 required
+stages, 102 timed samples, 102 RSS records, and zero failures on WSL2 Linux with
+an AMD Ryzen 7 5800X, 16 logical CPUs, 4,012,360 KiB visible RAM, and CPU
+execution. The harness dispatches one probe process at a time and uses only
+three cold and three warm repetitions. It is a bounded local latency/resource
+baseline, not a capacity, saturation, concurrency, endurance, or production
+service-level test.
+
+The external sanity path maps three pinned CC BY JATS XML documents into the
+production chunker contract and checks three fixed lexical top-one matches. It
+does not exercise the main PDF acquisition/extraction pipeline and does not
+support a cross-domain retrieval-quality or broad external-validity claim.
+
 `backend/app/reproducibility/` constructs local run manifests and an allowlist-
 based deterministic release. Restricted passages in otherwise permitted JSON
 are replaced with hash/length records. PDFs, databases, indexes, private
 prompts/histories, local paths, and secrets are excluded and scanned.
+The final clean commit is accepted for delivery only after the fail-loud full
+reproduction and sanitized-release commands complete; a prior benchmark or
+candidate bundle is not substituted for that gate.
 
 ## Data contracts
 
@@ -292,8 +308,8 @@ API docs or the insecure demo bypass.
   partial and answer-point coverage/abstention were poor.
 - Recommendation and topic results are AI-assisted proxy/silver evidence, not
   human validation.
-- Full performance/scalability remains unreported until a committed full
-  benchmark result exists.
+- The full benchmark completed without sample failures, but its single-host,
+  concurrency-one design does not establish scalability or production capacity.
 
 See `docs/METHODOLOGY.md`, `docs/EVALUATION_PROTOCOL.md`, and
 `docs/FRONTEND_REQUIREMENTS.md` for the executed research design and detailed

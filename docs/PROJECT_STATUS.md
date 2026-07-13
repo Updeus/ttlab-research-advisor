@@ -19,8 +19,9 @@ Authoritative current status is maintained in
   review events;
 - AI-reviewed retrieval, QA, recommendation, topic/author, section, and
   generated-output evidence; and
-- reproducibility, benchmark, sanitized-release, security, privacy,
-  accessibility, deployment, and manuscript tooling.
+- a validated 17-stage/102-sample full performance baseline plus
+  reproducibility, sanitized-release, security, privacy, accessibility,
+  deployment, and manuscript tooling.
 
 ## Evidence-calibrated status
 
@@ -31,10 +32,24 @@ abstentions on the recorded unanswerable cases. Recommendation improvement over
 evidence-only retrieval was not demonstrated. These negative findings are part
 of the project result.
 
+The independently validated full performance profile completed all 17 required
+stages and 102 timed samples with zero failures on WSL2 Linux using an AMD Ryzen
+7 5800X, 16 logical CPUs, 4,012,360 KiB visible RAM, and CPU execution. It was a
+single-process, concurrency-one local baseline with three cold and three warm
+repetitions, not a capacity, scaling, endurance, or production service-level
+test.
+
+The external sanity check mapped three pinned CC BY JATS XML documents into the
+production chunker contract and returned 3/3 fixed lexical top-one matches. It
+did not exercise the main PDF ingestion path and is not cross-domain quality or
+broad external-validity evidence. Automated accessibility checks likewise do
+not establish WCAG or assistive-technology conformance.
+
 No human usefulness/usability study, broad external validation, or production-
-scale capacity claim exists. A committed full performance result, complete full
-reproduction manifest, final current-commit release bundle/tag, and final
-manuscript/PDF closure remain active remediation gates at this snapshot.
+scale capacity claim exists. Final clean-commit reproduction, sanitized
+release/tag, and manuscript/PDF closure remain active delivery gates. The
+reproduction and release commands must fail loudly rather than inherit success
+from the earlier benchmark.
 
 ## Local demo
 

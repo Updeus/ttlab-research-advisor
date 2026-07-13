@@ -22,7 +22,8 @@
 | Admin review | role-protected corrections/state transitions | `/admin` | auth/admin/security tests | Institutional identity/lifecycle remains deployment-specific |
 | Review audit trail | attributed, hash-chained, append-only event rows | Admin | trigger/hash/idempotence tests | DB owner can still rewrite the file; not WORM storage |
 | Evaluation dashboard | result availability, schema state, metrics/freshness | `/evaluation` | dashboard/frontend tests | AI silver/proxy results; missing files remain `not_run` |
-| Route/accessibility states | BrowserRouter, focus/skip/404, responsive/error states | all primary routes | Vitest/axe/Playwright/overflow | Automated Chromium checks are not full WCAG conformance |
+| Route/accessibility states | BrowserRouter, focus/skip/404, responsive/error states | all primary routes | Vitest/axe/Playwright/overflow | Automated single-browser checks are neither WCAG nor assistive-technology conformance |
 | Security/privacy | bearer roles, fail-closed production, limits, CORS/hosts, transient public inputs | API/Admin notices | targeted backend/frontend tests | TLS, proxy, monitoring, retention, incident process external |
-| Reproducibility/release | isolated one-command runner and deterministic sanitized bundle | documentation/build outputs | release/reproduction tests | Full run needs authorized PDFs/model; current final full run pending |
-| Performance harness | required pipeline/API/frontend stages, cold/warm/RSS | evidence only | benchmark tests | No committed full-profile result at this snapshot |
+| Reproducibility/release | isolated one-command runner and deterministic sanitized bundle | documentation/build outputs | release/reproduction tests | Full run needs authorized PDFs/model; final clean-commit fail-loud gate pending |
+| Performance harness | required pipeline/API/frontend stages, cold/warm/RSS | evidence only | full artifact + independent validator: 17 stages/102 samples/0 failures | Single WSL2 host, concurrency one, three repeats; no capacity/scaling/SLO claim |
+| External JATS sanity | pinned CC BY JATS XML mapped into production chunker contract | evidence only | 3/3 fixed lexical top-one matches | Does not exercise main PDF ingestion or establish cross-domain retrieval quality |

@@ -3,10 +3,11 @@
 **From a publication archive to a source-traceable research-intelligence
 platform.**
 
-This MSc Data Science project ingests and inspects TTLAB publications, searches
-full-paper content, answers questions with paper/chunk/page evidence, discovers
-publication-derived topics and authors, and generates explicitly labeled thesis
-extension suggestions and paper-intelligence drafts. It extends *Automating the
+Developed as an MSc Data Science project, this platform ingests and inspects
+TTLAB publications, searches full-paper content, answers questions with paper/
+chunk/page evidence, discovers publication-derived topics and authors, and
+generates explicitly labeled thesis-extension suggestions and paper-
+intelligence drafts. It extends *Automating the
 Collection, Display, Summarization and Podcasting of Academic Research* beyond
 metadata and abstracts into full-text retrieval, source-traceable RAG,
 administrative review, and controlled offline evaluation.
@@ -78,6 +79,19 @@ abstentions on four unanswerable cases. The 28-profile recommendation proxy
 study found a full-minus-evidence-only relevance difference of 0.0238 (95% CI
 -0.0238 to 0.0714), which does not demonstrate improvement. These are AI-
 reviewed formative/proxy results, not human ratings.
+
+The validated full performance profile completed all 17 required stages with
+102 timed samples, 102 maximum-RSS records, and zero failures. It ran on WSL2
+Linux using an AMD Ryzen 7 5800X, 16 logical CPUs, 4,012,360 KiB visible RAM,
+CPU execution, Python 3.12.3, Node 24.14.1, and npm 11.11.0. This is a bounded,
+single-process, concurrency-one local baseline; three repetitions give only
+descriptive medians/p95 values and do not establish capacity, saturation,
+multi-user behaviour, or production service levels.
+
+The external sanity check mapped three pinned CC BY JATS XML documents into the
+production chunker contract and obtained 3/3 fixed lexical top-one matches. It
+did not exercise the main PDF acquisition/extraction path and is neither a
+cross-domain retrieval-quality result nor broad external validation.
 
 See [Methodology](docs/METHODOLOGY.md), [Evaluation
 Protocol](docs/EVALUATION_PROTOCOL.md), and [Final Status](docs/FINAL_STATUS.md)
@@ -265,10 +279,13 @@ make release
 
 The full path requires a separately authorized database/PDF set and the pinned
 dense model. The quick path cannot recreate restricted corpus-dependent
-experiments. At this snapshot, no committed full-profile performance result or
-complete full-reproduction manifest exists, so performance/scalability is not
-claimed. See [Reproducibility](docs/REPRODUCIBILITY.md) and [Data and Artifact
-Availability](docs/DATA_AND_ARTIFACT_AVAILABILITY.md).
+experiments. The full performance artifact is committed and independently
+validated; it is not a scalability claim. Delivery still requires `make
+reproduce` and `make release` to pass from the final clean commit. Those commands
+are fail-loud gates rather than evidence inferred from an earlier run. See
+[Reproducibility](docs/REPRODUCIBILITY.md), [Data and Artifact
+Availability](docs/DATA_AND_ARTIFACT_AVAILABILITY.md), and [Final
+Status](docs/FINAL_STATUS.md) for the final recorded outcomes.
 
 ## Verification
 
@@ -321,6 +338,11 @@ committed. Token mode does not use cookies; reverse proxy, TLS, monitoring,
 retention, incident response, and institutional identity remain deployment
 responsibilities.
 
+Automated axe, keyboard, route, responsive-overflow, and Chromium checks provide
+regression evidence only. They do not establish WCAG conformance or conformance
+with screen readers, magnification, voice control, or other assistive
+technologies.
+
 ## Limitations
 
 - One laboratory and small held-out cohorts limit external validity.
@@ -335,9 +357,9 @@ responsibilities.
 - Topic/author evidence is publication-bounded; 13 possible identity merges
   remain unresolved.
 - Current corpus evidence reports no OCR-processed pages and no OCR accuracy.
-- Full performance, capacity, multi-browser/manual assistive-technology review,
-  public deployment, and human advisory validation are not established by the
-  committed evidence.
+- The full performance result is a single-host, concurrency-one baseline;
+  capacity, scaling, multi-browser/manual assistive-technology conformance,
+  public deployment, and human advisory validation are not established.
 - No audio/TTS pipeline is implemented; podcast output is a cited text draft.
 
 Unknown information is omitted or retained as uncertainty. It is never filled

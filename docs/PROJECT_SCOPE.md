@@ -2,8 +2,9 @@
 
 ## Product and research scope
 
-The TTLAB Research Intelligence Platform is a bounded, local-first MSc research
-artefact for a single laboratory publication corpus. It supports full-text
+The TTLAB Research Intelligence Platform is a bounded, local-first research
+artefact developed as an MSc Data Science project for a single laboratory
+publication corpus. It supports full-text
 discovery, source-traceable question answering, publication-derived topic/
 author exploration, structured extension suggestions, generated paper-
 intelligence drafts, administrative review, and offline evaluation.
@@ -32,8 +33,8 @@ deployment.
 - role-protected admin review and attributable append-only audit events;
 - AI-reviewed silver/proxy evaluations for sections, retrieval, QA,
   recommendations, topics/authors, and stored generated outputs; and
-- performance/reproduction/release, security/privacy, and document-build
-  tooling.
+- a validated bounded full-profile performance baseline plus reproduction/
+  release, security/privacy, and document-build tooling.
 
 The frozen experimental boundary contains 96 eligible papers and 719 eligible
 chunks from 134 catalogue records. Thirty-six no-text records and two
@@ -58,6 +59,10 @@ experiments.
   quality/performance is not evaluated.
 - The sanitized release excludes PDFs, substantial extracted text, SQLite
   databases, runtime indexes, private prompts/histories, and secrets.
+- Automated axe, keyboard, route, responsive-overflow, and Chromium checks are
+  regression evidence, not WCAG or assistive-technology conformance.
+- The full performance profile is a single-host, concurrency-one baseline; it
+  does not establish capacity, scaling, endurance, or production service levels.
 
 ## Research evaluation boundary
 
@@ -70,9 +75,11 @@ supervisor approval.
 
 ## Remaining work versus future work
 
-Remaining local remediation gates are part of the current delivery: full
-performance execution, full reproduction, final current-commit release/tag,
-paper/thesis synchronization, and complete PDF/route verification.
+Remaining local remediation gates are part of the current delivery: final
+clean-commit reproduction and sanitized release/tag, paper/thesis
+synchronization, and complete PDF/route verification. The reproduction and
+release commands are fail-loud delivery gates; the validated performance run
+does not by itself prove the final commit passes them.
 
 Potential future extensions outside the current evidence include:
 

@@ -306,6 +306,8 @@ def _artifact_path(value: Path, *, runtime_root: Path) -> str:
 def _sanitize_command(command: str, *, database: Path, runtime_root: Path) -> str:
     replacements = sorted(
         {
+            str(Path(sys.executable).absolute()): "<python>",
+            str(Path(sys.executable).resolve()): "<python>",
             str(database.resolve()): _artifact_path(database, runtime_root=runtime_root),
             str(runtime_root.resolve()): ".",
             str(ROOT.resolve()): ".",

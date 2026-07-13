@@ -7,6 +7,7 @@ import pytest
 
 from app.evaluation import performance_benchmark as benchmark_module
 from app.evaluation.performance_benchmark import (
+    _sanitize_command,
     atomic_write_json,
     benchmark,
     execution_source_manifest,
@@ -53,6 +54,15 @@ def test_atomic_write_json_replaces_complete_document(tmp_path: Path) -> None:
 
     assert json.loads(output.read_text()) == {"status": "complete", "completed": 2}
     assert list(tmp_path.glob(".checkpoint.json.*.tmp")) == []
+
+
+def test_artifact_command_redacts_external_python_and_runtime_paths(tmp_path: Path) -> None:
+    database = tmp_path / "runtime/data/papers.db"
+    command = f"{benchmark_module.sys.executable} -m probe --database {database}"
+    result = _sanitize_command(command, database=database, runtime_root=tmp_path / "runtime")
+    assert str(Path(benchmark_module.sys.executable).resolve()) not in result
+    assert str(tmp_path) not in result
+    assert result.startswith("<python> -m probe")
 
 
 def _fixed_source(source_hash: str = "a" * 64) -> dict[str, object]:

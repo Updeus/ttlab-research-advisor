@@ -264,6 +264,7 @@ def base_run_config(
     run_id: str,
     split: str,
     config: RetrieverConfig,
+    execution_commit: str,
 ) -> dict[str, Any]:
     case_ids = [str(question["case_id"]) for question in questions]
     return {
@@ -278,7 +279,7 @@ def base_run_config(
         "retriever_config_sha256": canonical_hash(config.to_dict()),
         "retrieval_depth": RETRIEVAL_DEPTH,
         "candidate_depth": CANDIDATE_DEPTH,
-        "git_commit_at_execution": git_commit(),
+        "git_commit_at_execution": execution_commit,
         "experiment_code_sha256": sha256_file(Path(__file__)),
     }
 
@@ -295,6 +296,7 @@ def run_configuration(
     provider: str | None,
     config: RetrieverConfig,
     bootstrap_repetitions: int,
+    execution_commit: str,
 ) -> dict[str, Any]:
     started = time.perf_counter()
     result = evaluate_retrieval(
@@ -315,6 +317,7 @@ def run_configuration(
             run_id=run_id,
             split=split,
             config=config,
+            execution_commit=execution_commit,
         ),
     )
     result["run_config"]["elapsed_seconds"] = round(time.perf_counter() - started, 6)
@@ -555,6 +558,7 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
     dev, test = split_questions(questions)
     validator = load_result_schema(args.schema)
     all_runs: dict[str, dict[str, Any]] = {}
+    execution_commit = git_commit()
 
     create_db_and_tables()
     with Session(engine) as session:
@@ -579,6 +583,7 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
                 provider=provider,
                 config=config,
                 bootstrap_repetitions=args.bootstrap_repetitions,
+                execution_commit=execution_commit,
             )
             errors = sorted(validator.iter_errors(result), key=lambda error: list(error.path))
             if errors:
@@ -790,7 +795,7 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
     manifest = write_manifest(
         output_dir,
         {
-            "source_git_commit_at_execution": git_commit(),
+            "source_git_commit_at_execution": execution_commit,
             "command": (
                 "PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_experiment "
                 f"--questions {questions_path.as_posix()} --output {output_dir.as_posix()} "

@@ -82,11 +82,11 @@ def tokenize(query: str) -> list[str]:
 
 
 def supports_fts5(session: Session) -> bool:
+    """Detect FTS5 without creating/dropping schema objects on a read path."""
+
     try:
-        session.exec(text("CREATE VIRTUAL TABLE IF NOT EXISTS fts5_probe USING fts5(value)"))
-        session.exec(text("DROP TABLE IF EXISTS fts5_probe"))
-        session.commit()
-        return True
+        enabled = session.execute(text("SELECT sqlite_compileoption_used('ENABLE_FTS5')")).scalar_one()
+        return bool(enabled)
     except Exception:
         session.rollback()
         return False

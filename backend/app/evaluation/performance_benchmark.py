@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -77,7 +78,6 @@ def summarize_samples(samples: list[dict[str, Any]]) -> dict[str, Any]:
 def sha256_path(path: Path) -> str | None:
     if not path.is_file():
         return None
-    import hashlib
 
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -134,24 +134,101 @@ def hardware_manifest() -> dict[str, Any]:
     }
 
 
-def execution_source_manifest() -> dict[str, Any]:
+def _git_status_path(row: str) -> str:
+    value = row[3:] if len(row) > 3 else row
+    return value.rsplit(" -> ", 1)[-1].strip('"')
+
+
+def execution_source_manifest(*, ignore_paths: tuple[Path, ...] = ()) -> dict[str, Any]:
     """Freeze the source state that governs a benchmark execution.
 
-    The performance result is written only after this function's end-state
-    counterpart is captured, so the result file itself cannot make the
-    worktree appear dirty. Recording both boundaries detects concurrent edits
+    The checkpoint path may be excluded because it is an output rather than
+    governing source. Recording both boundaries detects concurrent edits
     during long CPU-bound runs.
     """
 
     status = git_value("status", "--porcelain", "--untracked-files=all")
+    ignored: set[str] = set()
+    for path in ignore_paths:
+        try:
+            ignored.add(path.resolve().relative_to(ROOT.resolve()).as_posix())
+        except ValueError:
+            continue
+    dirty_paths = [
+        row
+        for row in status.splitlines()
+        if _git_status_path(row) not in ignored
+    ]
+    dirty_state = []
+    for row in dirty_paths:
+        relative = _git_status_path(row)
+        candidate = ROOT / relative
+        dirty_state.append(
+            {
+                "status": row[:2],
+                "path": relative,
+                "sha256": sha256_path(candidate),
+            }
+        )
     benchmark_source = Path(__file__).resolve()
     return {
         "commit": git_value("rev-parse", "HEAD"),
-        "dirty": bool(status),
-        "dirty_paths": status.splitlines(),
+        "dirty": bool(dirty_paths),
+        "dirty_paths": dirty_paths,
+        "dirty_state_sha256": _canonical_sha256(dirty_state),
         "benchmark_source_sha256": sha256_path(benchmark_source),
         "benchmark_source_path": benchmark_source.relative_to(ROOT).as_posix(),
     }
+
+
+def atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
+    """Durably replace a JSON checkpoint without exposing a partial file."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, ensure_ascii=False)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
+
+
+def _canonical_sha256(value: Any) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _artifact_path(value: Path, *, runtime_root: Path) -> str:
+    resolved = value.resolve()
+    for base, label in ((runtime_root.resolve(), "."), (ROOT.resolve(), "."), (Path.home().resolve(), "~")):
+        try:
+            relative = resolved.relative_to(base)
+        except ValueError:
+            continue
+        return label if relative == Path(".") else f"{label}/{relative.as_posix()}"
+    return f"<external>/{resolved.name}"
+
+
+def _sanitize_command(command: str, *, database: Path, runtime_root: Path) -> str:
+    replacements = sorted(
+        {
+            str(database.resolve()): _artifact_path(database, runtime_root=runtime_root),
+            str(runtime_root.resolve()): ".",
+            str(ROOT.resolve()): ".",
+            str(Path.home().resolve()): "~",
+        }.items(),
+        key=lambda row: len(row[0]),
+        reverse=True,
+    )
+    sanitized = command
+    for source, replacement in replacements:
+        sanitized = sanitized.replace(source, replacement)
+    return sanitized
 
 
 def command_version(command: list[str]) -> str | None:
@@ -642,6 +719,11 @@ def invoke_probe(
         if rss_path.is_file() and rss_path.read_text().strip().isdigit():
             max_rss = int(rss_path.read_text().strip())
     if result.returncode != 0:
+        error = _sanitize_command(
+            (result.stderr or result.stdout)[-1000:],
+            database=database,
+            runtime_root=runtime_root,
+        )
         return (
             {
                 "stage": stage,
@@ -650,18 +732,135 @@ def invoke_probe(
                         "status": "failed",
                         "elapsed_seconds": 0.0,
                         "error_type": "SubprocessError",
-                        "error": (result.stderr or result.stdout)[-1000:],
+                        "error": error,
                     }
                 ],
             },
             max_rss,
-            " ".join(command),
+            _sanitize_command(" ".join(command), database=database, runtime_root=runtime_root),
         )
     try:
         payload = json.loads(result.stdout)
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"Benchmark probe {stage} returned invalid JSON: {result.stdout[-1000:]}") from exc
-    return payload, max_rss, " ".join(command)
+    return payload, max_rss, _sanitize_command(" ".join(command), database=database, runtime_root=runtime_root)
+
+
+def benchmark_configuration(
+    *,
+    profile: str,
+    repetitions: int,
+    document_limit: int | None,
+    stages: list[str],
+    runtime_root: Path,
+) -> dict[str, Any]:
+    return {
+        "profile": profile,
+        "repetitions": repetitions,
+        "document_limit": document_limit,
+        "stages": stages,
+        "process_concurrency": 1,
+        "runtime_root": _artifact_path(runtime_root, runtime_root=runtime_root),
+    }
+
+
+def _methodology(configuration: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "cold_definition": (
+            "Each repetition uses a fresh Python process. OS page caches are not flushed, so these are process-cold, not machine-cold runs."
+        ),
+        "warm_definition": "All repetitions run sequentially in one Python process so module/model caches may be reused.",
+        "summary": "Linear-interpolation p95 and median over successful repetitions; failures remain in the denominator.",
+        "repetitions": configuration["repetitions"],
+        "document_limit": configuration["document_limit"],
+        "process_concurrency": configuration["process_concurrency"],
+        "concurrency_note": (
+            "One benchmark probe process runs at a time; dense numerical kernels may use the recorded "
+            "PyTorch/OpenMP worker-thread configuration."
+        ),
+        "runtime_root": configuration["runtime_root"],
+        "network_discovery": "one TTLAB archive page per repetition; network and remote-server latency are included",
+        "memory": "GNU time maximum resident set size (KiB) for the probe process, where available",
+    }
+
+
+def _limitations() -> list[str]:
+    return [
+        "Process-cold runs do not flush the Linux page cache or model files from the operating-system cache.",
+        "The benchmark uses one local process and concurrency one; it is not a capacity, saturation, or multi-user load test.",
+        "ASGI timings use FastAPI TestClient and exclude network/TLS latency; browser page timings are recorded separately.",
+        "Discovery includes uncontrollable network/server latency and should not be compared directly with local stages.",
+        "Maximum RSS is process-level and does not isolate transient shared-library or operating-system cache memory.",
+    ]
+
+
+def _checkpoint_payload(
+    *,
+    status: str,
+    profile: str,
+    generated_at: str,
+    configuration: dict[str, Any],
+    hardware: dict[str, Any],
+    corpus: dict[str, Any],
+    execution_start: dict[str, Any],
+    execution_end: dict[str, Any] | None,
+    results: dict[str, Any],
+    stages: list[str],
+    completed_stages: list[str],
+) -> dict[str, Any]:
+    provenance = {
+        "source": execution_start,
+        "corpus": corpus,
+        "configuration": configuration,
+        "hardware": hardware,
+    }
+    next_stage = stages[len(completed_stages)] if len(completed_stages) < len(stages) else None
+    now = datetime.now(UTC).isoformat()
+    return {
+        "schema_version": 2,
+        "status": status,
+        "benchmark_id": f"ttlab-performance-{profile}-v1",
+        "generated_at": generated_at,
+        "updated_at": now,
+        "completed_at": now if status == "complete" else None,
+        "profile": profile,
+        "run_provenance_sha256": _canonical_sha256(provenance),
+        "run_provenance": provenance,
+        "progress": {
+            "completed_stages": completed_stages,
+            "completed_stage_count": len(completed_stages),
+            "total_stage_count": len(stages),
+            "next_stage": next_stage,
+        },
+        "methodology": _methodology(configuration),
+        "hardware": hardware,
+        "corpus": corpus,
+        "execution_source": {"start": execution_start, "end": execution_end},
+        "results": results,
+        "limitations": _limitations(),
+    }
+
+
+def _resume_results(checkpoint: dict[str, Any], *, stages: list[str]) -> tuple[dict[str, Any], list[str]]:
+    if checkpoint.get("schema_version") != 2:
+        raise ValueError("Resume checkpoint schema_version must be 2")
+    if checkpoint.get("status") not in {"in_progress", "complete"}:
+        raise ValueError("Resume checkpoint status must be in_progress or complete")
+    progress = checkpoint.get("progress")
+    if not isinstance(progress, dict) or not isinstance(progress.get("completed_stages"), list):
+        raise ValueError("Resume checkpoint is missing progress.completed_stages")
+    completed_stages = [str(stage) for stage in progress["completed_stages"]]
+    if completed_stages != stages[: len(completed_stages)]:
+        raise ValueError("Resume checkpoint stages are not an ordered prefix of the requested stages")
+    results = checkpoint.get("results")
+    if not isinstance(results, dict):
+        raise ValueError("Resume checkpoint is missing results")
+    measured = [stage for stage in results if stage != "ocr"]
+    if measured != completed_stages:
+        raise ValueError("Resume checkpoint result keys do not match completed_stages")
+    if checkpoint["status"] == "complete" and completed_stages != stages:
+        raise ValueError("Complete resume checkpoint does not contain every requested stage")
+    return dict(results), completed_stages
 
 
 def benchmark(
@@ -672,10 +871,66 @@ def benchmark(
     document_limit: int | None,
     stages: list[str],
     runtime_root: Path = ROOT,
+    checkpoint_path: Path | None = None,
+    resume: bool = False,
 ) -> dict[str, Any]:
-    execution_start = execution_source_manifest()
+    if resume and checkpoint_path is None:
+        raise ValueError("resume requires checkpoint_path")
+    ignored_paths = (checkpoint_path,) if checkpoint_path is not None else ()
+    execution_start = execution_source_manifest(ignore_paths=ignored_paths)
+    corpus = corpus_manifest(database)
+    hardware = hardware_manifest()
+    configuration = benchmark_configuration(
+        profile=profile,
+        repetitions=repetitions,
+        document_limit=document_limit,
+        stages=stages,
+        runtime_root=runtime_root,
+    )
+    provenance = {
+        "source": execution_start,
+        "corpus": corpus,
+        "configuration": configuration,
+        "hardware": hardware,
+    }
+    generated_at = datetime.now(UTC).isoformat()
     results: dict[str, Any] = {}
-    for stage in stages:
+    completed_stages: list[str] = []
+
+    if checkpoint_path is not None and checkpoint_path.exists():
+        if not resume:
+            raise FileExistsError(f"Checkpoint already exists; use --resume or remove it: {checkpoint_path}")
+        checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+        if checkpoint.get("run_provenance") != provenance:
+            raise ValueError("Resume refused: source, corpus, configuration, or hardware provenance changed")
+        if checkpoint.get("run_provenance_sha256") != _canonical_sha256(provenance):
+            raise ValueError("Resume refused: stored provenance checksum is invalid")
+        results, completed_stages = _resume_results(checkpoint, stages=stages)
+        generated_at = str(checkpoint["generated_at"])
+        if checkpoint["status"] == "complete":
+            return checkpoint
+    elif resume:
+        raise FileNotFoundError(f"Resume checkpoint does not exist: {checkpoint_path}")
+
+    if checkpoint_path is not None and not completed_stages:
+        atomic_write_json(
+            checkpoint_path,
+            _checkpoint_payload(
+                status="in_progress",
+                profile=profile,
+                generated_at=generated_at,
+                configuration=configuration,
+                hardware=hardware,
+                corpus=corpus,
+                execution_start=execution_start,
+                execution_end=None,
+                results=results,
+                stages=stages,
+                completed_stages=completed_stages,
+            ),
+        )
+
+    for stage in stages[len(completed_stages) :]:
         print(f"[performance] stage={stage}", file=sys.stderr, flush=True)
         cold_samples: list[dict[str, Any]] = []
         cold_commands: list[str] = []
@@ -709,53 +964,53 @@ def benchmark(
             "warm": {"summary": summarize_samples(warm_samples), "samples": warm_samples},
             "commands": {"cold": cold_commands, "warm": warm_command},
         }
+        completed_stages.append(stage)
+        if checkpoint_path is not None:
+            atomic_write_json(
+                checkpoint_path,
+                _checkpoint_payload(
+                    status="in_progress",
+                    profile=profile,
+                    generated_at=generated_at,
+                    configuration=configuration,
+                    hardware=hardware,
+                    corpus=corpus,
+                    execution_start=execution_start,
+                    execution_end=None,
+                    results=results,
+                    stages=stages,
+                    completed_stages=completed_stages,
+                ),
+            )
 
-    corpus = corpus_manifest(database)
-    execution_end = execution_source_manifest()
-    if execution_start["commit"] != execution_end["commit"]:
-        raise RuntimeError("Git commit changed while the performance benchmark was running")
-    if execution_start["benchmark_source_sha256"] != execution_end["benchmark_source_sha256"]:
-        raise RuntimeError("Performance benchmark source changed while the benchmark was running")
+    corpus_end = corpus_manifest(database)
+    if corpus != corpus_end:
+        raise RuntimeError("Benchmark corpus changed while the performance benchmark was running")
+    execution_end = execution_source_manifest(ignore_paths=ignored_paths)
+    if execution_start != execution_end:
+        raise RuntimeError("Source state changed while the performance benchmark was running")
     results["ocr"] = {
         "status": "not_applicable",
         "reason": "No eligible corpus paper used OCR in the frozen snapshot; no OCR latency metric is reported.",
         "ocr_completed_papers": corpus["ocr_completed_papers"],
         "ocr_pages": corpus["ocr_pages"],
     }
-    return {
-        "schema_version": 1,
-        "benchmark_id": f"ttlab-performance-{profile}-v1",
-        "generated_at": datetime.now(UTC).isoformat(),
-        "profile": profile,
-        "methodology": {
-            "cold_definition": (
-                "Each repetition uses a fresh Python process. OS page caches are not flushed, so these are process-cold, not machine-cold runs."
-            ),
-            "warm_definition": "All repetitions run sequentially in one Python process so module/model caches may be reused.",
-            "summary": "Linear-interpolation p95 and median over successful repetitions; failures remain in the denominator.",
-            "repetitions": repetitions,
-            "document_limit": document_limit,
-            "process_concurrency": 1,
-            "concurrency_note": (
-                "One benchmark probe process runs at a time; dense numerical kernels may use the recorded "
-                "PyTorch/OpenMP worker-thread configuration."
-            ),
-            "runtime_root": str(runtime_root),
-            "network_discovery": "one TTLAB archive page per repetition; network and remote-server latency are included",
-            "memory": "GNU time maximum resident set size (KiB) for the probe process, where available",
-        },
-        "hardware": hardware_manifest(),
-        "corpus": corpus,
-        "execution_source": {"start": execution_start, "end": execution_end},
-        "results": results,
-        "limitations": [
-            "Process-cold runs do not flush the Linux page cache or model files from the operating-system cache.",
-            "The benchmark uses one local process and concurrency one; it is not a capacity, saturation, or multi-user load test.",
-            "ASGI timings use FastAPI TestClient and exclude network/TLS latency; browser page timings are recorded separately.",
-            "Discovery includes uncontrollable network/server latency and should not be compared directly with local stages.",
-            "Maximum RSS is process-level and does not isolate transient shared-library or operating-system cache memory.",
-        ],
-    }
+    final = _checkpoint_payload(
+        status="complete",
+        profile=profile,
+        generated_at=generated_at,
+        configuration=configuration,
+        hardware=hardware,
+        corpus=corpus,
+        execution_start=execution_start,
+        execution_end=execution_end,
+        results=results,
+        stages=stages,
+        completed_stages=completed_stages,
+    )
+    if checkpoint_path is not None:
+        atomic_write_json(checkpoint_path, final)
+    return final
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -767,6 +1022,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--document-limit", type=int, default=None)
     parser.add_argument("--stage", action="append", choices=sorted(PROBES), dest="stages")
     parser.add_argument("--runtime-root", type=Path, default=ROOT)
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume an atomic in-progress checkpoint only when source, corpus, configuration, and hardware match exactly.",
+    )
     parser.add_argument("--probe", choices=sorted(PROBES), help=argparse.SUPPRESS)
     parser.add_argument("--temperature", choices=["cold", "warm"], default="warm", help=argparse.SUPPRESS)
     return parser
@@ -775,6 +1035,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     if args.probe:
+        if args.resume:
+            raise SystemExit("--resume is valid only for the benchmark controller, not --probe")
         payload = run_probe(
             args.probe,
             args.database.resolve(),
@@ -794,9 +1056,9 @@ def main() -> None:
         document_limit=document_limit,
         stages=stages,
         runtime_root=args.runtime_root.resolve(),
+        checkpoint_path=args.out.resolve(),
+        resume=args.resume,
     )
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     failures = sum(
         mode["summary"]["failures"]
         for stage in result["results"].values()
@@ -804,6 +1066,8 @@ def main() -> None:
         for mode in (stage["cold"], stage["warm"])
     )
     print(json.dumps({"status": "complete", "profile": args.profile, "stages": len(stages), "failures": failures, "out": str(args.out)}, indent=2))
+    if failures:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,22 @@
+\begin{tikzpicture}[
+  node distance=3.5mm and 4.5mm,
+  box/.style={draw=Navy,rounded corners=1pt,thick,fill=PaleBlue,align=center,text width=17.2mm,minimum height=9mm,font=\tiny},
+  rec/.style={box,fill=PaleGold,draw=Gold!80!black},
+  store/.style={box,fill=PaleTeal,draw=Teal!80!black},
+  arr/.style={-{Latex[length=1.5mm]},thick,draw=Slate}
+]
+  \node[box] (q) {Question or transient profile};
+  \node[box, right=of q] (r) {Retrieve eligible chunks};
+  \node[store, right=of r] (e) {Paper/chunk/page evidence};
+  \node[box, right=of e] (a) {Extract answer or paper facts};
+  \node[rec, right=of a] (s) {Optional system suggestion};
+  \node[box, right=of s] (v) {Verify structure; attach warnings};
+  \node[store, right=of v] (u) {Return evidence, provenance, review state};
+  \draw[arr] (q) -- (r);
+  \draw[arr] (r) -- (e);
+  \draw[arr] (e) -- (a);
+  \draw[arr] (a) -- node[above,font=\tiny]{Finder only} (s);
+  \draw[arr] (s) -- (v);
+  \draw[arr] (v) -- (u);
+  \draw[-{Latex[length=1.5mm]},thick,dashed,draw=Slate] (e.south) to[bend right=20] node[below,font=\tiny]{evidence-only path} (u.south);
+\end{tikzpicture}

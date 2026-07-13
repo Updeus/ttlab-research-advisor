@@ -4,15 +4,15 @@
   \node[datastore, right=of discover] (seed) {Seed JSON\\134 records};
   \node[flowbox, right=of seed] (import) {Upsert Paper and\\raw Author strings};
 
-  \node[flowbox, below=14mm of import] (download) {Direct-PDF check,\\signature validation};
+  \node[flowbox, below=14mm of import] (download) {Allowlisted URL/IP/redirect,\\size and PDF-signature checks};
   \node[decision, left=12mm of download] (available) {PDF\\available?};
-  \node[flowbox, left=12mm of available] (extract) {PyMuPDF page text +\\diagnostics + hash};
+  \node[flowbox, left=12mm of available] (extract) {PyMuPDF page text; optional\\OCR status/provenance; hash};
   \node[flowbox, left=of extract] (chunk) {Sentence/page chunks\\850 words, overlap 125};
 
-  \node[datastore, below=14mm of chunk] (db) {SQLite\\Paper + Chunk};
-  \node[flowbox, right=of db] (fts) {SQLite FTS5\\756 rows};
-  \node[flowbox, right=of fts] (hash) {256-d feature hashing\\active index: 25 rows};
-  \node[flowbox, right=of hash] (topics) {Rule-based topic and\\author aggregation};
+  \node[datastore, below=14mm of chunk] (db) {Frozen corpus\\96 papers; 719 chunks};
+  \node[flowbox, right=of db] (fts) {SQLite FTS5\\719/719 eligible chunks};
+  \node[flowbox, right=of fts] (vectors) {Feature hashing + pinned dense\\719/719 each; atomic manifests};
+  \node[flowbox, right=of vectors] (topics) {Controlled topics and canonical\\publication-derived author links};
 
   \draw[arrow] (archive) -- (discover);
   \draw[arrow] (discover) -- (seed);
@@ -23,7 +23,7 @@
   \draw[arrow] (extract) -- (chunk);
   \draw[arrow] (chunk) -- (db);
   \draw[arrow] (db) -- (fts);
-  \draw[arrow] (fts) -- (hash);
-  \draw[arrow] (hash) -- (topics);
-  \draw[dashedarrow] (available.south) -- ++(0,-8mm) -| node[pos=0.25,right,font=\scriptsize]{no: missing/failed status} (db.north);
+  \draw[arrow] (fts) -- (vectors);
+  \draw[arrow] (vectors) -- (topics);
+  \draw[dashedarrow] (available.south) -- ++(0,-8mm) -| node[pos=0.25,right,font=\scriptsize]{no: reason taxonomy; needs review} (db.north);
 \end{tikzpicture}

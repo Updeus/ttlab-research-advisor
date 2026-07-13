@@ -4,8 +4,8 @@
   width=0.96\linewidth,
   height=58mm,
   xmin=0,
-  xmax=820,
-  symbolic y coords={Active hashing,DB-marked hashing,Keyword FTS},
+  xmax=780,
+  symbolic y coords={Learned dense,Feature hashing,Keyword FTS},
   ytick=data,
   xlabel={Chunk records},
   nodes near coords,
@@ -16,6 +16,6 @@
   grid=major,
   grid style={gray!15}
 ]
-\addplot[fill=Blue!60,draw=Blue!90!black] coordinates {(25,Active hashing) (300,DB-marked hashing) (756,Keyword FTS)};
+\addplot[fill=Blue!60,draw=Blue!90!black] coordinates {(719,Learned dense) (719,Feature hashing) (719,Keyword FTS)};
 \end{axis}
 \end{tikzpicture}

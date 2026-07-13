@@ -1,28 +1,28 @@
 \begingroup\hfuzz=100pt
 \begin{tikzpicture}[node distance=8mm and 10mm]
-  \node[flowbox] (questions) {Manually reviewed questions\\and gold paper IDs};
-  \node[flowbox, right=of questions] (retrieval) {Run keyword, hashing,\\and hybrid retrieval};
-  \node[flowbox, right=of retrieval] (metrics) {Hit-based Recall@3/5\\and MRR};
-  \node[flowbox, right=of metrics, fill=PaleGold, draw=Gold!80!black] (missing) {Current state:\\gold labels absent; not run};
+  \node[flowbox] (questions) {50 source-derived cases;\\two-pass AI-reviewed silver};
+  \node[flowbox, right=of questions] (retrieval) {Development-only tuning;\\held-out baseline/ablation runs};
+  \node[flowbox, right=of retrieval] (metrics) {Set Recall/Hit/Precision;\\MRR; nDCG; abstention};
+  \node[flowbox, right=of metrics, fill=PaleTeal, draw=Teal!80!black] (stats) {Per-query rankings; bootstrap CIs;\\paired tests; error taxonomy};
 
-  \node[flowbox, below=15mm of questions] (qa) {Reviewed QA cases +\\required answer points};
-  \node[flowbox, right=of qa] (outputs) {Answers, recommendations,\\summaries and citations};
-  \node[flowbox, right=of outputs] (automatic) {Citation presence, warning\\and structural status counts};
-  \node[flowbox, right=of automatic, fill=PaleGold, draw=Gold!80!black] (placeholder) {Current state:\\one placeholder case per\\extension/artifact evaluation};
+  \node[flowbox, below=15mm of questions] (qa) {50 QA cases; 81 answer points;\\atomic claim/source inspection};
+  \node[flowbox, right=of qa] (outputs) {Offline answers, 28-profile Finder,\\60-case topics, stored outputs};
+  \node[flowbox, right=of outputs] (automatic) {Claim/citation/coverage and\\criterion-level proxy judgments};
+  \node[flowbox, right=of automatic, fill=PaleTeal, draw=Teal!80!black] (reviewed) {Reviewer type=AI; raw rationales,\\evidence, failures and manifests};
 
-  \node[flowbox, below=15mm of qa] (rubric) {Human rubric:\\faithfulness, usefulness,\\citation correctness, feasibility};
-  \node[flowbox, right=of rubric] (review) {Independent reviewers +\\adjudication and\\reliability};
-  \node[flowbox, right=of review] (analysis) {Error taxonomy, intervals,\\comparisons and conclusions};
-  \node[flowbox, right=of analysis, fill=PaleGold, draw=Gold!80!black] (notdone) {Current state:\\templates only; zero reviews};
+  \node[flowbox, below=15mm of qa] (engineering) {Tests, route/E2E/security checks,\\cold/warm performance probes};
+  \node[flowbox, right=of engineering] (release) {Sanitized release and\\one-command reproduction};
+  \node[flowbox, right=of release] (analysis) {RQ traceability, bounded claims,\\construct/internal/external threats};
+  \node[flowbox, right=of analysis, fill=PaleGold, draw=Gold!80!black] (external) {External-only: human usefulness, REC,\\rights, venue checker/attestations};
 
   \draw[arrow] (questions) -- (retrieval);
   \draw[arrow] (retrieval) -- (metrics);
-  \draw[arrow] (metrics) -- (missing);
+  \draw[arrow] (metrics) -- (stats);
   \draw[arrow] (qa) -- (outputs);
   \draw[arrow] (outputs) -- (automatic);
-  \draw[arrow] (automatic) -- (placeholder);
-  \draw[dashedarrow] (rubric) -- (review);
-  \draw[dashedarrow] (review) -- (analysis);
-  \draw[dashedarrow] (analysis) -- (notdone);
+  \draw[arrow] (automatic) -- (reviewed);
+  \draw[arrow] (engineering) -- (release);
+  \draw[arrow] (release) -- (analysis);
+  \draw[dashedarrow] (analysis) -- (external);
 \end{tikzpicture}
 \endgroup

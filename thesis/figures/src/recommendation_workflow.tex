@@ -11,8 +11,8 @@
   \node[flowbox, left=of draft] (verify) {Check citation membership,\\gap status and warnings};
 
   \node[datastore, text width=28mm, below=15mm of verify] (persist) {Thesis\\Recommendation\\partial, grounded,\\unsupported; needs review};
-  \node[flowbox, right=of persist] (ui) {Ranked, cited output with\\facts separated from suggestions};
-  \node[flowbox, right=of ui, fill=PaleGold, draw=Gold!80!black] (human) {Supervisor/student review\\relevance, novelty, feasibility};
+  \node[flowbox, right=of persist] (ui) {Ranked, cited output or\\evidence-only paper/passages};
+  \node[flowbox, right=of ui, fill=PaleTeal, draw=Teal!80!black] (proxy) {28-profile AI proxy review\\with source rationales};
 
   \draw[arrow] (profile) -- (query);
   \draw[arrow] (query) -- (retrieve);
@@ -23,6 +23,6 @@
   \draw[arrow] (draft) -- (verify);
   \draw[arrow] (verify) -- (persist);
   \draw[arrow] (persist) -- (ui);
-  \draw[dashedarrow] (ui) -- node[above,font=\scriptsize]{not yet executed} (human);
+  \draw[arrow] (ui) -- (proxy);
 \end{tikzpicture}
 \endgroup

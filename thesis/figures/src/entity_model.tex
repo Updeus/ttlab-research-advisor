@@ -5,11 +5,11 @@
 
   \node[entity, below=of paper] (artifact) {\textbf{PaperArtifact}\\\underline{artifact\_id}\\paper\_id (FK)\\generated/citation JSON\\grounding/review status};
   \node[entity, below=of chunk] (recommendation) {\textbf{ThesisRecommendation}\\\underline{recommendation\_id}\\student request JSON\\recommendations/citations\\grounding/review status};
-  \node[entity, below=of answer] (review) {\textbf{ReviewEvent}\\\underline{review\_event\_id}\\item\_type + item\_id\\previous/new status\\notes and diff JSON};
+  \node[entity, below=of answer] (review) {\textbf{ReviewEvent}\\\underline{review\_event\_id}\\item\_type + item\_id\\actor type/role + request ID\\status, diff, prior/event hashes};
 
   \node[entity, below=12mm of artifact] (topic) {\textbf{Topic}\\\underline{topic\_id}\\normalized name\\source, review status};
   \node[entity, right=of topic] (papertopic) {\textbf{PaperTopic}\\\underline{link\_id}\\paper\_id + topic\_id\\score, evidence JSON};
-  \node[entity, right=of papertopic] (authortopic) {\textbf{Author / AuthorTopic}\\raw name identity\\topic link, paper count\\score, evidence JSON};
+  \node[entity, right=of papertopic] (authortopic) {\textbf{Canonical Author / Alias / Topic}\\identity and merge state\\publication link, paper count\\score, evidence JSON};
 
   \draw[arrow] (paper) -- node[above,font=\scriptsize]{1:N} (chunk);
   \draw[dashedarrow] (chunk) -- node[above,font=\scriptsize]{IDs in JSON} (answer);

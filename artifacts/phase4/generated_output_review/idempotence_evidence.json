@@ -1,0 +1,58 @@
+{
+  "status": "PASS",
+  "database_input_sha256": "9c496d600ba46bc83edd3e37b5b5a55ac1b54827d1c38573f3e17f5c541699d5",
+  "compatibility": {
+    "status": "compatible",
+    "migration_required": false,
+    "review_status": "ai_reviewed is stored as a distinct string state",
+    "append_only_review_events": true
+  },
+  "planned": {
+    "total": 48,
+    "by_item_type": {
+      "rag_answer": 27,
+      "thesis_recommendation": 7,
+      "paper_artifact": 14
+    },
+    "by_target_status": {
+      "needs_reprocess": 27,
+      "ai_reviewed": 21
+    },
+    "by_item_type_and_status": {
+      "paper_artifact:ai_reviewed": 14,
+      "rag_answer:needs_reprocess": 27,
+      "thesis_recommendation:ai_reviewed": 7
+    },
+    "items_with_corrections": 48,
+    "citation_evidence_locator_count": 269
+  },
+  "first_pass": {
+    "created_events": 48,
+    "changed_records": 48,
+    "skipped_existing": 0,
+    "review_event_integrity": {
+      "status": "verified",
+      "verified_events": 48,
+      "legacy_unverified_events": 0,
+      "invalid_event_ids": []
+    }
+  },
+  "second_pass": {
+    "created_events": 0,
+    "changed_records": 0,
+    "skipped_existing": 48,
+    "review_event_integrity": {
+      "status": "verified",
+      "verified_events": 48,
+      "legacy_unverified_events": 0,
+      "invalid_event_ids": []
+    }
+  },
+  "final_counts": {
+    "rag_answer": 27,
+    "thesis_recommendation": 7,
+    "paper_artifact": 14,
+    "review_event": 48
+  },
+  "live_database_mutated": false
+}

@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-13T00:55:25.942925+00:00",
+  "review_version": "phase4-generated-output-review-v1",
+  "reviewer_id": "codex-ai-review",
+  "reviewer_type": "ai",
+  "human_validation": false,
+  "review_notice": "AI-reviewed for source locators, output structure, and explicit suggestion boundaries; not human-approved, author-validated, or supervisor-endorsed.",
+  "counts": {
+    "total": 48,
+    "by_item_type": {
+      "rag_answer": 27,
+      "thesis_recommendation": 7,
+      "paper_artifact": 14
+    },
+    "by_target_status": {
+      "needs_reprocess": 27,
+      "ai_reviewed": 21
+    },
+    "by_item_type_and_status": {
+      "paper_artifact:ai_reviewed": 14,
+      "rag_answer:needs_reprocess": 27,
+      "thesis_recommendation:ai_reviewed": 7
+    },
+    "items_with_corrections": 48,
+    "citation_evidence_locator_count": 269
+  },
+  "compatibility": {
+    "status": "compatible",
+    "migration_required": false,
+    "review_status": "ai_reviewed is stored as a distinct string state",
+    "append_only_review_events": true
+  },
+  "apply_result": {
+    "created_events": 48,
+    "changed_records": 48,
+    "skipped_existing": 0,
+    "review_event_integrity": {
+      "status": "verified",
+      "verified_events": 48,
+      "legacy_unverified_events": 0,
+      "invalid_event_ids": []
+    },
+    "events": [
+      {
+        "item_type": "rag_answer",
+        "item_id": "0715b3d5-0496-4927-a83e-6be5dc74512d",
+        "event_id": "47a49200-8005-4f24-984d-791b9f2cbe6c",
+        "event_hash": "0a8e3d00fcc2d835b8866f2b1a50bcd561953c41eb4e8ee74ae3ebc00f383787",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "08e13961-c66a-4d88-85bf-d1d7076da46d",
+        "event_id": "ed2884c6-588f-4ad5-a10d-be6da1fcbbd1",
+        "event_hash": "22e080333578999eb9a464fcf2609f5ff0a65937c8163eaf610f36d3dc185153",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "11f3e12f-fc66-4891-a833-47e65ad9acf8",
+        "event_id": "946be13d-922c-450a-9c7c-369d1f064851",
+        "event_hash": "4ed06dc0026dc2fcf80f16c04204e4ab9d7960e2c2d2b160b9b9197393822afc",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "18ec0804-7ede-44ee-995e-9c3db91f28dd",
+        "event_id": "f85db66c-8f81-4e7e-b2b0-c78e8da38c1f",
+        "event_hash": "1f70e716b30ebe78defb213ded3cdff150ebbd095cae60b9a65543c27e03cbc7",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "202c0374-44a9-4e54-925d-4f6482006f80",
+        "event_id": "221e1698-5595-42da-bd84-5d8ea7cde716",
+        "event_hash": "f8472626443c02704ef75c32860a0b91eb37ae5a18e850ee3c366e8ed64ad0c2",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "293bb9ed-7950-4bd8-a57d-58d59f781a9e",
+        "event_id": "87ac80e6-b440-41f2-ad46-b3728b2aec50",
+        "event_hash": "55c6b14497fb18888f464c98459e25b68bbc97f401004193f41b5fb4300929d0",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "29ef8bd3-98b7-4c19-975e-f1a963f94121",
+        "event_id": "58c59b1a-174f-4f3c-8c5f-1363c318fb13",
+        "event_hash": "e1fdeba3c0876bc1f747703ef1420bd667486d8b1a6994e5fb169ce26a249e62",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "4bbcc852-f5a7-4621-9d15-7d7ff0291d87",
+        "event_id": "f369c837-d4cc-455d-ad99-a1ac4827a5b4",
+        "event_hash": "bf826c9535037d98375926efc5bfc17221a2af10e2256a712d2e4f54de58f028",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "5aaac55b-81fb-4284-a0e8-9d4c48450aef",
+        "event_id": "223edcf6-1be5-4503-93ba-e7ca82d8cd47",
+        "event_hash": "ec863f891317c58b42d6133e0e4b18c6cd913d41697015a7605b0abb65464459",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "6550214f-3a39-4667-913b-17077b5272a9",
+        "event_id": "8c3fd1ae-9ff6-4f5f-9cf0-9cbd0b0d087b",
+        "event_hash": "f4bd20cecf99fa8c81619e80448f0a120b679d9b7d9f79713778a198b58352df",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "671fe124-c6fc-4f2a-82de-c63ae9e65f5c",
+        "event_id": "961c28d8-e2ff-4ee6-ac3d-94cd1fd0cf33",
+        "event_hash": "7b6553c99025ed78b36c0e75cbfadefaa9f652ab071c80706c85e609db04fa75",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "721748ba-11d5-462f-b2db-cc86681075b7",
+        "event_id": "16a45e1e-9d72-4652-bbd0-cab2cdd3f0b6",
+        "event_hash": "1ae9a499c5bcfd83b55ccdc4ce8a50bd1662ae1a3732c5829b7d4b3dc3629aeb",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "7767506e-71d9-449c-87bd-4a041fdd9ab3",
+        "event_id": "e235d69c-b3d6-4cde-b99a-03370786a9bf",
+        "event_hash": "fae1962ca5baa5e4f4f152cc07de2047986215352a3a7ec73ee439e173bae5f4",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "78dff9a2-d73a-403f-90f2-6c2c0f5080bb",
+        "event_id": "c702018d-70ef-4ef4-b68d-764a5c43ccaa",
+        "event_hash": "7339a3a5723f5b48f685f8d45732145fb432ae0fca06bfbba0d123d471ab381c",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "7e8eb874-bc2e-4257-8abc-8d5e07933d41",
+        "event_id": "34731aa4-cb06-450c-a152-361745c791b8",
+        "event_hash": "bfaa5868810d5b36672e434c43375a68dd5b8506ee7d80ac897392af4859d1d9",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "83097e1c-058e-4207-a1b1-dc3838d817c4",
+        "event_id": "bfe7a9e4-7c51-42c2-96ea-e6025a93a901",
+        "event_hash": "0017fd6ef58cc645c97af48fa09fb4ef100f404be66484a1eb397ac717c240df",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "8441c682-b858-400c-af82-eaca1cbc2ec1",
+        "event_id": "86243b2f-58f8-4ed3-8024-df36fc6e9dc1",
+        "event_hash": "b1410d4e4d388479cb995d7fb9f54c0d335ec69435843aa10795445132749cbb",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "87492694-941c-4699-95b3-6eeae95955ab",
+        "event_id": "7c06948e-7d57-42fc-8611-e0f443d13a6d",
+        "event_hash": "5a64b2d86bf01bf209812e65b757b8e52be4171e5c96e06951b8400a92133eb0",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "929305e8-caeb-4761-9638-6a348c897bca",
+        "event_id": "a52e7d1c-2a4e-4b15-ad0a-c6f2d97f5a29",
+        "event_hash": "68f61f55c629f33ec4ef5e3235bd6004120da8c48aa8af576fff92256a91b567",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "92f70fd5-2240-4c87-ad40-8dd5c1b5ca81",
+        "event_id": "86f30a97-7a09-46b2-b054-060d23f0fe18",
+        "event_hash": "d40b1358fae323cb8ae405475306083564112421f42e04b444a9e6f7f01f7183",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "941150d2-003f-4a7d-821b-e88d4cba4216",
+        "event_id": "74e5a47b-44cb-474e-a1da-c902ab5b5b0f",
+        "event_hash": "ef66068c53bdfff4e614cf1f5749c2b37827d258b8ca4b7d6f0318c32200ee3c",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "c11972c5-8926-49b2-9529-055fa1fa7119",
+        "event_id": "ccfe81ec-da15-4085-a1f4-bd4527097948",
+        "event_hash": "f87208ffb4f74e8043b9a65caff1d78d05dde0916dce4641baad674e76e32583",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "c5718724-6759-438e-a639-05b215c70c62",
+        "event_id": "15ec5bdd-b970-47bb-920d-da94ea1833b1",
+        "event_hash": "0da3694aa02477de7875bee4ca3fed0cb8f8aee8e52a03f6b38be7d3ddd9178c",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "c79a17bd-7dbb-4416-a3b6-4c46d6b89e4f",
+        "event_id": "c2d462b8-1ace-4430-9a6c-7fe9103433ff",
+        "event_hash": "ee44e1e7c1b008abf68325135fee91705b03d48f99b4405be64632aa7fc68372",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "d99c9936-b86d-4f65-9db6-fae1b9706266",
+        "event_id": "63573e6b-b385-482f-8b72-08f866480691",
+        "event_hash": "805ec8abdec34f95972f0dcbfc1159d370b14a6dd538200e131d1d7af646c253",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "e50adeea-30b6-486a-9b40-6e17d0375cf9",
+        "event_id": "502bfec4-b151-44c9-bb99-e96e0ea9f74d",
+        "event_hash": "2e1ef844778bf2df87db24905cfa6396b6d2b51e6ab205fde7668ac1c2b1affb",
+        "result": "created"
+      },
+      {
+        "item_type": "rag_answer",
+        "item_id": "e6d1fdf3-1cb6-41fd-a716-2bf1c37a45a3",
+        "event_id": "2be94272-a26f-4457-88cb-3707cbe6a233",
+        "event_hash": "020e6aeca30dfc91957b66bf3d67d21ecadd3ebb8a833b05ff5ecf0704b29209",
+        "result": "created"
+      },
+      {
+        "item_type": "thesis_recommendation",
+        "item_id": "0ea72406-5298-4408-a7eb-3ca20ca9eb2e",
+        "event_id": "65f9cc7c-f89e-441c-9bd4-b52a180790bb",
+        "event_hash": "75708f8daa80dcd0aa8692be783b1ee3e435a01792cea4ba5a8d7b9bc6b9f7ca",
+        "result": "created"
+      },
+      {
+        "item_type": "thesis_recommendation",
+        "item_id": "12a503d7-33ec-4ae9-8b0b-684aed33d08e",
+        "event_id": "e0d92c2a-a42c-4d60-aa62-b3576f91aaa4",
+        "event_hash": "dab2915202786ef9946bd3a74ff6e750dcf2e7932f59fe1b9403949097623265",
+        "result": "created"
+      },
+      {
+        "item_type": "thesis_recommendation",
+        "item_id": "566c8a03-4f3d-4266-8255-54adf106b536",
+        "event_id": "22dca629-523a-4b23-bec5-84716c22cccd",
+        "event_hash": "7561b755cbcbb2922b70df6fee636a9be9b7adb9d948c0fd9cde9e4397162174",
+        "result": "created"
+      },
+      {
+        "item_type": "thesis_recommendation",
+        "item_id": "675b6e42-dddc-41b4-bbe9-99b2bf86c4e2",
+        "event_id": "e83e680e-4f0c-43d5-a355-8f63c4d262d6",
+        "event_hash": "e309f35c3a2c2baab42862abfc7fd3e4808de37bc13e9b57397778b471be467a",
+        "result": "created"
+      },
+      {
+        "item_type": "thesis_recommendation",
+        "item_id": "7078638e-feb4-4ad7-867d-cbbb481daa63",
+        "event_id": "5dc941ac-75c9-4d27-9c20-8ddf991d004c",
+        "event_hash": "0b151ca0075a38f1682e2b93556202a1fad9b0287465fcb2abc3f29da30260fa",
+        "result": "created"
+      },
+      {
+        "item_type": "thesis_recommendation",
+        "item_id": "aa311dde-c0e1-443f-9d9a-0a2341f0acfb",
+        "event_id": "046fb6c6-3c4a-4b39-ae29-880756fe99ce",
+        "event_hash": "6f8681d92c84f2532570c1c953e7946da28623286849f7dc810db1f3e0c16f50",
+        "result": "created"
+      },
+      {
+        "item_type": "thesis_recommendation",
+        "item_id": "dd7f8265-6522-4e92-8315-9f31619de6cf",
+        "event_id": "a65e5dee-a4e9-407e-9f37-2f3295d3f18e",
+        "event_hash": "2e08959bc42b0ea0ebb425f3c952d667bfcdc6f9506108ae86c584d161207b6c",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "125bef48-9c62-45b0-8980-5a351407cdcc",
+        "event_id": "1c6c2fbc-0b09-4129-9ad9-96de772e8705",
+        "event_hash": "67cf540618935314d626e5e63beac15571e4dd729868a8d9233649b3547082de",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "1c21e7e7-7175-420a-8c36-2b5bb4786335",
+        "event_id": "d51c3671-9134-4bad-a84d-cd3f5edc5fee",
+        "event_hash": "4939a94e84ae2453edc45a4231b509f22adf9d0da59a97aac7f536d02ff96856",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "2b1623c0-0b57-48ee-a356-8d98ce00ae98",
+        "event_id": "b14ce64f-763d-4aeb-aa12-ea179e9233a7",
+        "event_hash": "f6137416529b1f3f14d4e6464308c45b96f333836fa719e8f07b63af983f1024",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "35d3d9a8-7e17-480e-a377-691bbdf55794",
+        "event_id": "610191ed-006c-4541-964f-4c2210e3bc81",
+        "event_hash": "8ac57dbf1c47632a3af5d97b5d482a71650adbfc56480f8d7985530abb33deef",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "3c2916fa-5e4e-4445-8008-5d8b01c796c7",
+        "event_id": "4403f11b-6eaa-4b8c-8694-131dfea23418",
+        "event_hash": "39b26cdb84947a3d1f38ac537088b405375256963ad7a3269a807cb5d64b359a",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "7d95ddeb-3032-48f7-9658-ae72d1bf3cd7",
+        "event_id": "24e9a2b6-368a-41cc-84f4-065e6a71ad3c",
+        "event_hash": "a63f648a4ce68369ca73ca54423806849be754d0e757c4839945ece3d41c6e5b",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "84b9a0fc-ec3d-4c62-a184-ff7dc23bc9c2",
+        "event_id": "45ce4f9f-2e44-4d00-970a-1a1e0098aef7",
+        "event_hash": "9b40a523412fa6f94fd65e661f65f3eb501202d1592a48ce796441374532c2ae",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "a7bb27b4-b73f-4863-a09e-2a8f3209e10e",
+        "event_id": "6af58308-c037-46f1-965a-a1cdca84fe06",
+        "event_hash": "385e3b4c8cee2f4109fcdb1d806e480c1b07adf7b2bbeaf8eb22d0fb53a420c1",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "abf3271e-5808-4f5a-930b-c76812785626",
+        "event_id": "3939004c-eb12-4609-8c56-cd6299f882eb",
+        "event_hash": "b85e489c582654132876fac76b677a2b183594cb07b11ecde7d4c969c97ef7ad",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "b132c60a-ed72-4d92-8349-0b95a8e12144",
+        "event_id": "9b0f4869-26b4-4d6d-b97b-ab07fd3c8020",
+        "event_hash": "d2de8aad69c602fc400f820eb51f8fe7a24f86272c99307c82755ee8aa9ca824",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "c5900a90-cb2a-44dc-bfcd-61593904a8c0",
+        "event_id": "520ebb24-f701-4bbf-b81c-1ec5cd48de8c",
+        "event_hash": "ad3550bfac7ca2018d2cf9cfb1c0480dd877996da5efe72b9853ed649a34eadd",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "c9182284-0c65-4e1d-b200-d40fba8d58fe",
+        "event_id": "3c248b20-738b-4f8b-814f-9bd70f4fa157",
+        "event_hash": "c992890de48ae4aa2be695ac8962635ad1ad474033642e0cab2b5cf4cc7b3c4a",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "ce3f510c-51c2-428e-9fad-c554809896bb",
+        "event_id": "d072186b-7f01-40fe-bbc9-4aeebb4d04f8",
+        "event_hash": "e4297dee9dd1e473430864481809b04f63be58caae6bc0d1377753dd3c8fdcd7",
+        "result": "created"
+      },
+      {
+        "item_type": "paper_artifact",
+        "item_id": "e71b8cff-22ce-4757-960f-43c0bbb10645",
+        "event_id": "a0f783bd-a399-4d0d-9cae-1c969ed6c2d8",
+        "event_hash": "efebcd0e3a5a95e9a4e61059cdb58cd4c20142a586e6f60335b7f6bc0819b0e1",
+        "result": "created"
+      }
+    ],
+    "live_second_pass": {
+      "created_events": 0,
+      "changed_records": 0,
+      "skipped_existing": 48,
+      "review_event_integrity": {
+        "status": "verified",
+        "verified_events": 48,
+        "legacy_unverified_events": 0,
+        "invalid_event_ids": []
+      }
+    }
+  },
+  "residual_limitations": [
+    "AI review is not human approval, author validation, supervisor endorsement, or a user study.",
+    "Citation-locator and lexical checks do not prove complete semantic entailment.",
+    "Outputs marked needs_reprocess remain stored for audit history and must not be presented as reviewed guidance.",
+    "Recommendations and possible extensions remain heuristic suggestions whose novelty, feasibility, data access, and supervisor fit require external confirmation."
+  ]
+}

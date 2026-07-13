@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-13T00:55:25.951543+00:00",
+  "review_version": "phase4-generated-output-review-v1",
+  "code_commit": "47e9dfc89fda0d18adf4d0f228ddc88019401b37",
+  "review_code_sha256": "ac40d161276855d4614583e2e9478ce0d23b31949f8669177b906f535c268fc6",
+  "database_sha256_before": "9c496d600ba46bc83edd3e37b5b5a55ac1b54827d1c38573f3e17f5c541699d5",
+  "database_sha256_after": "eabea922b6e9585312e598877979d5cef8f04ea73a2c312e557e18391ea46a91",
+  "database_bytes_redistributed": false,
+  "reviewer_type": "ai",
+  "human_validation": false,
+  "outputs": {
+    "generated_output_reviews.jsonl": "121526c19b2c32233a8a93a9a9adc72b861f8a853d7b2c104bc27781866539d4",
+    "generated_output_review_summary.json": "f6102bbec33c8b7793a8c1d48482ec9d4883ed399c85dfd68f4690aef256eb46",
+    "idempotence_evidence.json": "126053ac04b830f62e7188e512d6c1c5776ce0241c2979aa98281d7955fcf1aa"
+  }
+}

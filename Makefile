@@ -3,7 +3,7 @@ PYTHON ?= .venv/bin/python
 PERFORMANCE_ARTIFACT ?= artifacts/phase6/performance/performance_full_results.json
 PERFORMANCE_VALIDATION ?= artifacts/phase6/performance/performance_validation.json
 
-.PHONY: all thesis thesis-assets thesis-assets-frozen thesis-compile paper paper-assets paper-compile evidence docs-validate benchmark benchmark-resume performance-validate reproduce reproduce-quick release clean
+.PHONY: all thesis thesis-assets thesis-assets-frozen thesis-compile thesis-word thesis-word-validate paper paper-assets paper-compile evidence docs-validate benchmark benchmark-resume performance-validate reproduce reproduce-quick release clean
 
 all: thesis paper
 
@@ -27,6 +27,13 @@ thesis-compile:
 	@test -s build/thesis.pdf
 
 thesis: thesis-assets thesis-compile
+
+thesis-word: thesis
+	"$(PYTHON)" thesis/scripts/build_word.py
+	"$(PYTHON)" thesis/scripts/validate_word.py build/thesis-editable.docx
+
+thesis-word-validate: thesis-word
+	"$(PYTHON)" thesis/scripts/validate_word.py build/thesis-editable.docx --render --render-dir tmp/pdfs/thesis-word-validation
 
 paper-assets:
 	PYTHONPATH=backend "$(PYTHON)" paper/scripts/generate_paper_assets.py
@@ -67,5 +74,5 @@ release:
 	PYTHONPATH=backend "$(PYTHON)" -m app.reproducibility.release build --version 0.1.0-remediation
 
 clean:
-	rm -f build/thesis.aux build/thesis.bbl build/thesis.blg build/thesis.log build/thesis.out build/thesis.toc build/thesis.lof build/thesis.lot build/thesis.pdf
+	rm -f build/thesis.aux build/thesis.bbl build/thesis.blg build/thesis.log build/thesis.out build/thesis.toc build/thesis.lof build/thesis.lot build/thesis.pdf build/thesis-editable.docx
 	rm -f build/ieee-paper.aux build/ieee-paper.bbl build/ieee-paper.blg build/ieee-paper.log build/ieee-paper.out build/ieee-paper.pdf

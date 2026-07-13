@@ -95,7 +95,11 @@ cross-domain retrieval-quality result nor broad external validation.
 
 The current editable manuscript sources compile to an 8-Letter-page IEEEtran
 paper at `build/ieee-paper.pdf` and a 74-A4-page thesis at
-`build/thesis.pdf`. These standalone document builds do not replace the
+`build/thesis.pdf`. An editable Word derivative is available at
+`build/thesis-editable.docx`; it preserves native Word text, tables, equations,
+styles, contents/list fields, and IEEE references while embedding the
+code-rendered diagrams as images. LaTeX remains the canonical source. These
+standalone document builds do not replace the
 exact-final-commit reproduction, PDF preflight, and clean-release acceptance
 gates described below.
 
@@ -304,6 +308,8 @@ npm --prefix frontend audit --audit-level=high
 PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 make paper
 make thesis
+make thesis-word
+make thesis-word-validate
 ```
 
 Engineering verification is separate from quality evaluation. Exact final test
@@ -311,6 +317,9 @@ counts and acceptance-gate PDF preflight results are recorded in
 `docs/FINAL_STATUS.md`; the exact committed candidate is rerun before tag/push.
 The existing 8-Letter-page paper and 74-A4-page thesis are current manuscript
 outputs rather than substitutes for that clean-commit gate.
+
+See [`thesis/word/README.md`](thesis/word/README.md) for Word editing,
+field-update, figure-source, and rebuild guidance.
 
 ## API highlights
 

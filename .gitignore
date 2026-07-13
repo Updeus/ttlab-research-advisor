@@ -42,6 +42,7 @@ narine-rtsi.pdf
 build/*
 !build/thesis.pdf
 !build/ieee-paper.pdf
+!build/thesis-editable.docx
 
 # Local, restricted baseline backups. Commit only the generated checksum
 # manifest under artifacts/baseline, never database/index bytes.

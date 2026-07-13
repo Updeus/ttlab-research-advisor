@@ -194,6 +194,15 @@ Letter pages and `build/thesis.pdf` at 74 A4 pages. Their availability closes
 the earlier manuscript-drafting gap; exact-final-commit acceptance separately
 rebuilds and preflights both PDFs.
 
+`make thesis-word` creates the editable derivative
+`build/thesis-editable.docx` from the canonical LaTeX and current compiled AUX
+labels. `make thesis-word-validate` additionally opens the DOCX through
+LibreOffice, checks the rendered A4 PDF, and verifies headings, figures, native
+tables/equations, IEEE references, page sections, fields, metadata, embedded
+media, traceability-row identifiers, and forbidden unresolved markers. The
+DOCX is intended for convenient editing; it is not part of the exact-final-
+commit PDF acceptance gate unless that gate is explicitly expanded.
+
 ## Inspecting outputs
 
 After a successful run, inspect:
@@ -215,7 +224,8 @@ tmp/reproduce/<mode>/source/build/thesis.pdf
 
 These are reproduction-workspace paths. A standalone `make release` instead
 writes `build/releases/`, while standalone `make thesis` and `make paper` write
-the repository-root `build/` directory.
+the repository-root `build/` directory. The standalone Word target also writes
+`build/thesis-editable.docx`.
 
 For the release archive, verify the adjacent SHA-256, run the release verifier,
 and inspect the allowlist/field-sanitization counts in the manifest:

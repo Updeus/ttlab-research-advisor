@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-13T00:37:46.466415+00:00",
+  "generated_at": "2026-07-13T01:12:24.678036+00:00",
   "source": {
     "name": "Europe PMC Articles RESTful API",
     "base_url": "https://www.ebi.ac.uk/europepmc/webservices/rest",

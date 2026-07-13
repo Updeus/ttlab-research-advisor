@@ -1,0 +1,16 @@
+{
+  "status": "valid",
+  "lock_path": "backend/requirements-lock.txt",
+  "lock_sha256": "b5bd4039083539c77e33c68d986a2efd0678841a0ed75cefefd35c1d211e69a6",
+  "locked_package_count": 92,
+  "installed_package_count": 97,
+  "extra_package_count": 5,
+  "extra_packages": [
+    "pdfminer-six",
+    "pdfplumber",
+    "pypdf",
+    "pypdfium2",
+    "reportlab"
+  ],
+  "claim_boundary": "Every tracked exact pin is installed at the locked version. Extra packages are reported because the shared development environment may contain document-inspection tools outside the application closure."
+}

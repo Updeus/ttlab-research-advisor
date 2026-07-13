@@ -18,7 +18,7 @@ hash-linked sanitized records can be bundled without exposing the papers.
 
 | Class | Examples | Repository/release treatment |
 |---|---|---|
-| Source code | FastAPI/React code, tests, build and evaluation scripts | Tracked; included in sanitized release |
+| Source code | FastAPI/React code, tests, build/evaluation scripts, resolved Python and npm locks | Tracked; included in sanitized release |
 | Redistributable metadata | paper IDs/titles/authors/source URLs where present, schemas | Tracked; allowlisted after field scan |
 | Evaluation evidence | silver labels, rationales, source locators, per-case rankings, metrics, prompts without full text | Tracked; included or field-sanitized |
 | Derived aggregate evidence | corpus counts, hashes, manifests, result summaries, figures | Tracked; included |
@@ -41,13 +41,17 @@ The evidence-backed snapshot comprises:
 - a 60-paper topic/author silver evaluation and author identity audit;
 - a sanitized 48-output generated-content review with event-chain evidence;
 - a three-document Europe PMC external format-sanity manifest; and
+- a validated 17-stage performance artifact with 102 zero-failure timed/RSS
+  samples plus a post-run exact-lock environment validation; and
 - manuscript figure/table generators and evidence hashes.
 
 The relevant directories are `data/evaluation/`, `artifacts/phase1/`,
-`artifacts/phase2/`, `artifacts/phase3/qa/`, `artifacts/phase4/`, and
-`artifacts/phase6/external_sanity/`. A full Phase 6 performance result is not
-committed at this documentation snapshot and must not be inferred from the
-benchmark implementation.
+`artifacts/phase2/`, `artifacts/phase3/qa/`, `artifacts/phase4/`,
+`artifacts/phase6/external_sanity/`, `artifacts/phase6/performance/`, and
+`artifacts/phase6/reproduction/`. The performance validator binds the raw
+samples to the clean source commit, immutable corpus hash, complete stage list,
+resolved environment, and zero-failure condition; it is not inferred from the
+harness implementation.
 
 ## Sanitized release construction
 
@@ -71,6 +75,21 @@ manifest. Inside the archive, `SHA256SUMS` covers payload members and
 zeroed UID/GID, source-commit timestamp, and a zero gzip timestamp make builds
 deterministic for the same source commit and evidence inputs.
 
+The independent verifier rejects non-regular or non-canonical archive members,
+payloads outside the single archive root, checksum inventory disagreement,
+local paths/secrets/restricted binary types, and any disagreement between the
+embedded manifest and the actual archive root, source commit/tree, payload
+inventory, released sizes/hashes, redaction totals, or dependency-lock hashes.
+Existing commit-named release outputs are never silently overwritten.
+
+A standalone `make release` writes under `build/releases/`. The one-command
+reproduction instead constructs the same clean-source bundle under
+`tmp/reproduce/<mode>/artifacts/release_bundle/`, keeping run-local evidence
+separate from repository-root delivery artifacts. After experiments and
+manuscript builds, it creates a second, explicitly suffixed
+`*-reproduced-*` bundle under `artifacts/reproduced_release_bundle/`; this is a
+sanitized record of regenerated tracked outputs, not a clean-source claim.
+
 JSON/JSONL fields containing source passages, generated text that may quote a
 publication, absolute local paths, private prompt content, or other restricted
 payload are replaced with hash-and-length records. IDs, labels, numeric metrics,
@@ -81,26 +100,28 @@ recognized bearer/API-token patterns.
 
 ## Current release state
 
-A local bundle exists for source commit
-`d0d84aa6101a28c2f189b599b114650ebcdd38fd`, but the documentation snapshot is
-newer. That bundle is a provisional builder proof, not the final release for the
-current branch. Final delivery requires rebuilding from the final clean commit,
-verifying the adjacent SHA-256, scanning every member, and recording the final
-path and prepared tag in the closure report. The builder prepares
-`v0.1.0-remediation`; it does not create a tag, publish the repository, or
-change visibility.
+Only a bundle built from the final clean, tagged source commit is authoritative.
+The final closure therefore rebuilds from that exact commit, verifies the
+adjacent SHA-256 and every archive member, and records the versioned path in the
+closure report. Earlier local audit bundles are non-authoritative even when
+their scans pass. The builder prepares `v0.1.0-remediation`; it does not itself
+create a tag, publish the repository, or change visibility.
 
 ## Reproduction levels
 
 - `make reproduce-quick` verifies distributable code and existing sanitized
   evidence, runs bounded engineering checks, builds manuscripts, preflights
-  PDFs, and constructs a release. It cannot recreate or validate the restricted
-  corpus-dependent experiments.
-- `make reproduce` copies an authorized source database into
-  `tmp/reproduce/full`, requires the referenced permitted PDFs and pinned dense
-  model, rebuilds derived state, runs evaluations/tests/builds/preflight, and
-  emits a local manifest. The isolated database, extracted text, chunks, and
-  indexes remain restricted and are not copied into the tarball.
+  PDFs, and constructs a release from a clean detached source worktree. It
+  cannot recreate or validate the restricted corpus-dependent experiments.
+- `make reproduce` creates a clean detached worktree under
+  `tmp/reproduce/full/source`, snapshots an authorized source database with
+  SQLite's backup API, copies PDFs only into ignored runtime paths, requires
+  the pinned dense model, rebuilds
+  derived state, runs evaluations/tests/builds/preflight, and emits a local
+  manifest. The manifest separately records the clean starting commit/tree and
+  expected post-execution generated-output changes. The isolated database,
+  extracted text, chunks, and indexes remain restricted and are not copied
+  into the tarball.
 
 A recipient without lawful access to the source papers can audit the released
 code, schemas, sanitized judgments, aggregate and raw rankings, configurations,

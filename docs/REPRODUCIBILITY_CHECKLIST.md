@@ -4,6 +4,11 @@ The narrative protocol and current evidence status are maintained in
 [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md). This checklist remains the concise
 operator sequence.
 
+The committed performance evidence has passed its full-profile validator (17
+stages, 102 samples/RSS records, zero failures). The exact final commit still
+must pass this checklist's full one-command run and clean-release verification;
+the scripts alone are not completion evidence.
+
 This checklist distinguishes a distributable verification run from the
 authorized full-corpus experiment. The earlier 25-record demo launcher remains
 useful for product demonstration, but it is not the research reproduction
@@ -15,9 +20,9 @@ entry point and its output must not support full-corpus claims.
 git clone https://github.com/Updeus/ttlab-research-advisor.git
 cd ttlab-research-advisor
 python -m venv .venv
-.venv/bin/python -m pip install -r backend/requirements.txt \
-  -r backend/requirements-dense.txt -r backend/requirements-ocr.txt
+.venv/bin/python -m pip install -r backend/requirements-lock.txt
 npm --prefix frontend ci
+frontend/node_modules/.bin/playwright install chromium
 ```
 
 Required system tools are Git, Node/npm, Tectonic, Poppler (`pdfinfo`,
@@ -33,8 +38,10 @@ make reproduce-quick
 This fail-loud command runs dependency probes, the official Europe PMC CC BY
 sanity acquisition, backend/frontend/unit/E2E tests, a bounded benchmark,
 paper/thesis builds, PDF structural/font/text/page-render preflight, sanitized
-release construction, and a hash manifest. It does not recreate or claim the
-restricted full corpus.
+release construction from a clean detached source snapshot, and a hash
+manifest. It does not recreate or claim the restricted full corpus. Use
+`scripts/reproduce_all.sh --mode quick --install --work-dir <fresh-path>` to
+create an isolated locked environment as part of the run.
 
 ## 3. Supply authorized full-corpus inputs
 
@@ -65,16 +72,22 @@ scripts/reproduce_all.sh \
 
 The command performs, in order:
 
-1. dependency/version checks;
-2. disposable DB copy, seed upsert, author repair, and PDF identity audit;
-3. full PDF extraction and deterministic chunking;
-4. complete keyword, feature-hashing, and learned-dense indexes;
-5. retrieval, QA-label, recommendation-proxy, topic/author, external-sanity,
-   and performance evaluation gates;
-6. backend/frontend/unit/E2E builds and tests;
-7. paper/thesis compilation and PDF preflight/page rendering;
-8. sanitized release creation and archive scan;
-9. a final file-level SHA-256 reproduction manifest.
+1. clean detached source snapshot, dependency-lock validation, package
+   integrity, and security audits;
+2. clean-source sanitized release construction and independent archive scan;
+3. external sanity plus backend/frontend/unit/E2E gates;
+4. integrity-checked SQLite backup with source-drift rejection, seed upsert,
+   author repair, PDF identity audit, full extraction, and deterministic
+   chunking;
+5. complete keyword, feature-hashing, and learned-dense indexes;
+6. strict three-cold/three-warm performance benchmark and independent
+   zero-failure validator;
+7. retrieval, QA-label, recommendation-proxy, topic/author, and persisted-output
+   evaluation gates;
+8. paper/thesis compilation and PDF preflight/page rendering; and
+9. a separately named post-experiment sanitized release; and
+10. a final exact file-level SHA-256 reproduction manifest and checksum
+    verification, with no subsequently created log file.
 
 The working database, extracted text, chunks, and indexes remain under
 `tmp/reproduce/full` and are labeled restricted runtime payloads in the local
@@ -85,9 +98,14 @@ manifest. They are never inserted into the release archive.
 - Reproduction workspace: `tmp/reproduce/<mode>/`
 - Command logs: `tmp/reproduce/<mode>/logs/`
 - Local run manifest: `tmp/reproduce/<mode>/reproduction_manifest.json`
-- Sanitized tarball and adjacent manifest/checksum: `build/releases/`
+- Reproduction release tarball/manifest/checksum:
+  `tmp/reproduce/<mode>/artifacts/release_bundle/`
+- Post-experiment sanitized tarball/manifest/checksum:
+  `tmp/reproduce/<mode>/artifacts/reproduced_release_bundle/`
+- Standalone `make release` output: `build/releases/`
 - Committed performance evidence: `artifacts/phase6/performance/`
 - External sanity evidence: `artifacts/phase6/external_sanity/`
+- Reproduction-built PDFs: `tmp/reproduce/<mode>/source/build/`
 
 Review every final PDF page visually after the automated rendered-page gate.
 Automated page generation proves renderability, not human-readable layout.

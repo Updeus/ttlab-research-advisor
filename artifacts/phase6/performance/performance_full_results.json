@@ -1,0 +1,3861 @@
+{
+  "schema_version": 2,
+  "status": "complete",
+  "benchmark_id": "ttlab-performance-full-v1",
+  "generated_at": "2026-07-13T06:11:59.183355+00:00",
+  "updated_at": "2026-07-13T07:07:17.600686+00:00",
+  "completed_at": "2026-07-13T07:07:17.600686+00:00",
+  "profile": "full",
+  "run_provenance_sha256": "61378b9aa78ae1c25a1172d62c8501b7603106d3c98142e8370c6c51fa282e8a",
+  "run_provenance": {
+    "source": {
+      "commit": "5ccf22ec39cb33bf179cdff6954bfc9e0ce8dbc4",
+      "dirty": false,
+      "dirty_paths": [],
+      "dirty_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "benchmark_source_sha256": "f6fd1fb308419244fd39f108c4da77de699bcf4526f70f40b14a8af9e105bb9a",
+      "benchmark_source_path": "backend/app/evaluation/performance_benchmark.py"
+    },
+    "corpus": {
+      "database_sha256": "a8153f53fec2e97b6c9cdb31d2ab061e7e825eddfc550f9581a0903d170f35b4",
+      "database_bytes": 17256448,
+      "paper_rows": 134,
+      "eligible_papers": 96,
+      "eligible_papers_with_pdf": 96,
+      "raw_chunks": 735,
+      "eligible_chunks": 719,
+      "ocr_completed_papers": 0,
+      "ocr_pages": 0
+    },
+    "configuration": {
+      "profile": "full",
+      "repetitions": 3,
+      "document_limit": null,
+      "stages": [
+        "discovery",
+        "import",
+        "pdf_extraction",
+        "ocr_extraction",
+        "chunking",
+        "keyword_index",
+        "feature_hashing_index",
+        "dense_index",
+        "retrieval_keyword",
+        "retrieval_feature_hashing",
+        "retrieval_dense",
+        "retrieval_hybrid",
+        "answer_offline",
+        "recommendation_offline",
+        "api_asgi",
+        "frontend_build",
+        "frontend_page_load"
+      ],
+      "process_concurrency": 1,
+      "runtime_root": "."
+    },
+    "hardware": {
+      "platform": "Linux-5.15.133.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+      "kernel_release": "5.15.133.1-microsoft-standard-WSL2",
+      "machine": "x86_64",
+      "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
+      "logical_cpu_count": 16,
+      "memory_total_kib": 4012360,
+      "python": "3.12.3",
+      "node": "v24.14.1",
+      "npm": "11.11.0",
+      "dependency_locks": {
+        "python": {
+          "path": "backend/requirements-lock.txt",
+          "bytes": 2038,
+          "sha256": "b5bd4039083539c77e33c68d986a2efd0678841a0ed75cefefd35c1d211e69a6"
+        },
+        "frontend": {
+          "path": "frontend/package-lock.json",
+          "bytes": 133298,
+          "sha256": "158b84934d11f0b2caf6660d5d5ac6795a43d6707132a41183c000b9e3c29264"
+        }
+      },
+      "resolved_environments": {
+        "python_package_count": 96,
+        "python_packages": {
+          "annotated-doc": "0.0.4",
+          "annotated-types": "0.7.0",
+          "anyio": "4.14.1",
+          "attrs": "26.1.0",
+          "beautifulsoup4": "4.12.3",
+          "boolean.py": "5.0",
+          "cachecontrol": "0.14.4",
+          "certifi": "2026.6.17",
+          "cffi": "2.0.0",
+          "charset-normalizer": "3.4.7",
+          "click": "8.4.2",
+          "cryptography": "49.0.0",
+          "cyclonedx-python-lib": "11.11.0",
+          "defusedxml": "0.7.1",
+          "fastapi": "0.139.0",
+          "filelock": "3.29.7",
+          "fsspec": "2026.6.0",
+          "greenlet": "3.5.3",
+          "h11": "0.16.0",
+          "hf-xet": "1.5.1",
+          "httpcore": "1.0.9",
+          "httptools": "0.8.0",
+          "httpx": "0.28.1",
+          "huggingface-hub": "1.23.0",
+          "idna": "3.18",
+          "iniconfig": "2.3.0",
+          "jinja2": "3.1.6",
+          "joblib": "1.5.3",
+          "jsonschema": "4.26.0",
+          "jsonschema-specifications": "2025.9.1",
+          "license-expression": "30.4.4",
+          "markdown-it-py": "4.2.0",
+          "markupsafe": "3.0.3",
+          "mdurl": "0.1.2",
+          "mpmath": "1.3.0",
+          "msgpack": "1.2.1",
+          "narwhals": "2.23.0",
+          "networkx": "3.6.1",
+          "numpy": "2.5.1",
+          "packageurl-python": "0.17.6",
+          "packaging": "26.2",
+          "pdfminer.six": "20260107",
+          "pdfplumber": "0.11.10",
+          "pillow": "12.3.0",
+          "pip": "26.1.2",
+          "pip-api": "0.0.34",
+          "pip-audit": "2.10.1",
+          "pip-requirements-parser": "32.0.1",
+          "platformdirs": "4.10.0",
+          "pluggy": "1.6.0",
+          "py-serializable": "2.1.0",
+          "pycparser": "3.0",
+          "pydantic": "2.13.4",
+          "pydantic-core": "2.46.4",
+          "pydantic-settings": "2.7.1",
+          "pygments": "2.20.0",
+          "pymupdf": "1.25.1",
+          "pyparsing": "3.3.2",
+          "pypdf": "6.14.2",
+          "pypdfium2": "5.11.0",
+          "pytest": "9.1.1",
+          "python-dotenv": "1.2.2",
+          "pyyaml": "6.0.3",
+          "referencing": "0.37.0",
+          "regex": "2026.7.10",
+          "reportlab": "5.0.0",
+          "requests": "2.34.2",
+          "rich": "15.0.0",
+          "rpds-py": "2026.6.3",
+          "safetensors": "0.8.0",
+          "scikit-learn": "1.9.0",
+          "scipy": "1.18.0",
+          "sentence-transformers": "5.6.0",
+          "setuptools": "83.0.0",
+          "shellingham": "1.5.4",
+          "sortedcontainers": "2.4.0",
+          "soupsieve": "2.8.4",
+          "sqlalchemy": "2.0.51",
+          "sqlmodel": "0.0.22",
+          "starlette": "1.3.1",
+          "sympy": "1.14.0",
+          "threadpoolctl": "3.6.0",
+          "tokenizers": "0.22.2",
+          "tomli": "2.4.1",
+          "tomli-w": "1.2.0",
+          "torch": "2.13.0+cpu",
+          "tqdm": "4.68.4",
+          "transformers": "5.13.1",
+          "typer": "0.26.8",
+          "typing-extensions": "4.15.0",
+          "typing-inspection": "0.4.2",
+          "urllib3": "2.7.0",
+          "uvicorn": "0.34.0",
+          "uvloop": "0.22.1",
+          "watchfiles": "1.2.0",
+          "websockets": "16.0"
+        },
+        "python_packages_sha256": "fcfc8cdabc3e37e49a65d1b64df4f45ff261fea2d346c9676ec35cb9216335d9",
+        "frontend_top_level_packages": {
+          "@adobe/css-tools": "4.5.0",
+          "@asamuzakjp/css-color": "5.1.11",
+          "@asamuzakjp/dom-selector": "7.1.1",
+          "@asamuzakjp/generational-cache": "1.0.1",
+          "@asamuzakjp/nwsapi": "2.3.9",
+          "@babel/code-frame": "7.29.7",
+          "@babel/core": "7.29.7",
+          "@babel/helper-string-parser": "7.29.7",
+          "@babel/helper-validator-identifier": "7.29.7",
+          "@babel/parser": "7.29.7",
+          "@babel/plugin-transform-react-jsx-self": "7.29.7",
+          "@babel/plugin-transform-react-jsx-source": "7.29.7",
+          "@babel/runtime": "7.29.7",
+          "@babel/types": "7.29.7",
+          "@bramus/specificity": "2.4.2",
+          "@csstools/color-helpers": "6.1.0",
+          "@csstools/css-calc": "3.2.1",
+          "@csstools/css-color-parser": "4.1.9",
+          "@csstools/css-parser-algorithms": "4.0.0",
+          "@csstools/css-syntax-patches-for-csstree": "1.1.6",
+          "@csstools/css-tokenizer": "4.0.0",
+          "@exodus/bytes": "1.15.1",
+          "@jest/diff-sequences": "30.4.0",
+          "@jest/expect-utils": "30.4.1",
+          "@jest/get-type": "30.1.0",
+          "@jest/pattern": "30.4.0",
+          "@jest/schemas": "30.4.1",
+          "@jest/types": "30.4.1",
+          "@jridgewell/sourcemap-codec": "1.5.5",
+          "@playwright/test": "1.61.1",
+          "@rolldown/pluginutils": "1.0.0-beta.27",
+          "@sinclair/typebox": "0.34.52",
+          "@standard-schema/spec": "1.1.0",
+          "@testing-library/dom": "10.4.1",
+          "@testing-library/jest-dom": "6.9.1",
+          "@testing-library/react": "16.3.2",
+          "@testing-library/user-event": "14.6.1",
+          "@types/aria-query": "5.0.4",
+          "@types/babel__core": "7.20.5",
+          "@types/babel__generator": "7.27.0",
+          "@types/babel__template": "7.4.4",
+          "@types/babel__traverse": "7.28.0",
+          "@types/chai": "5.2.3",
+          "@types/deep-eql": "4.0.2",
+          "@types/estree": "1.0.9",
+          "@types/istanbul-lib-coverage": "2.0.6",
+          "@types/istanbul-lib-report": "3.0.3",
+          "@types/istanbul-reports": "3.0.4",
+          "@types/jest": "30.0.0",
+          "@types/jest-axe": "3.5.9",
+          "@types/node": "26.1.1",
+          "@types/react": "19.2.17",
+          "@types/react-dom": "19.2.3",
+          "@types/stack-utils": "2.0.3",
+          "@types/yargs": "17.0.35",
+          "@types/yargs-parser": "21.0.3",
+          "@vitejs/plugin-react": "4.7.0",
+          "@vitest/expect": "4.1.10",
+          "@vitest/mocker": "4.1.10",
+          "@vitest/pretty-format": "4.1.10",
+          "@vitest/runner": "4.1.10",
+          "@vitest/snapshot": "4.1.10",
+          "@vitest/spy": "4.1.10",
+          "@vitest/utils": "4.1.10",
+          "ansi-regex": "5.0.1",
+          "ansi-styles": "4.3.0",
+          "aria-query": "5.3.0",
+          "assertion-error": "2.0.1",
+          "axe-core": "3.5.6",
+          "bidi-js": "1.0.3",
+          "chai": "6.2.2",
+          "chalk": "4.1.2",
+          "ci-info": "4.4.0",
+          "color-convert": "2.0.1",
+          "color-name": "1.1.4",
+          "convert-source-map": "2.0.0",
+          "cookie": "1.1.1",
+          "css-tree": "3.2.1",
+          "css.escape": "1.5.1",
+          "csstype": "3.2.3",
+          "data-urls": "7.0.0",
+          "decimal.js": "10.6.0",
+          "dequal": "2.0.3",
+          "diff-sequences": "29.6.3",
+          "dom-accessibility-api": "0.5.16",
+          "entities": "8.0.0",
+          "es-module-lexer": "2.3.1",
+          "escape-string-regexp": "2.0.0",
+          "estree-walker": "3.0.3",
+          "expect": "30.4.1",
+          "expect-type": "1.4.0",
+          "fdir": "6.5.0",
+          "graceful-fs": "4.2.11",
+          "has-flag": "4.0.0",
+          "html-encoding-sniffer": "6.0.0",
+          "indent-string": "4.0.0",
+          "is-potential-custom-element-name": "1.0.1",
+          "jest-axe": "10.0.0",
+          "jest-diff": "30.4.1",
+          "jest-get-type": "29.6.3",
+          "jest-matcher-utils": "30.4.1",
+          "jest-message-util": "30.4.1",
+          "jest-mock": "30.4.1",
+          "jest-regex-util": "30.4.0",
+          "jest-util": "30.4.1",
+          "js-tokens": "4.0.0",
+          "jsdom": "29.0.0",
+          "lodash.merge": "4.6.2",
+          "lru-cache": "11.5.2",
+          "lucide-react": "1.23.0",
+          "lz-string": "1.5.0",
+          "magic-string": "0.30.21",
+          "mdn-data": "2.27.1",
+          "min-indent": "1.0.1",
+          "obug": "2.1.3",
+          "parse5": "8.0.1",
+          "pathe": "2.0.3",
+          "picocolors": "1.1.1",
+          "picomatch": "4.0.5",
+          "playwright": "1.61.1",
+          "playwright-core": "1.61.1",
+          "pretty-format": "27.5.1",
+          "punycode": "2.3.1",
+          "react": "19.2.7",
+          "react-dom": "19.2.7",
+          "react-is": "17.0.2",
+          "react-is-18": "18.3.1",
+          "react-is-19": "19.2.7",
+          "react-refresh": "0.17.0",
+          "react-router": "7.18.1",
+          "react-router-dom": "7.18.1",
+          "redent": "3.0.0",
+          "require-from-string": "2.0.2",
+          "saxes": "6.0.0",
+          "scheduler": "0.27.0",
+          "set-cookie-parser": "2.7.2",
+          "siginfo": "2.0.0",
+          "slash": "3.0.0",
+          "source-map-js": "1.2.1",
+          "stack-utils": "2.0.6",
+          "stackback": "0.0.2",
+          "std-env": "4.2.0",
+          "strip-indent": "3.0.0",
+          "supports-color": "7.2.0",
+          "symbol-tree": "3.2.4",
+          "tinybench": "2.9.0",
+          "tinyexec": "1.2.4",
+          "tinyglobby": "0.2.17",
+          "tinyrainbow": "3.1.0",
+          "tldts": "7.4.8",
+          "tldts-core": "7.4.8",
+          "tough-cookie": "6.0.2",
+          "tr46": "6.0.0",
+          "typescript": "5.9.3",
+          "undici": "7.28.0",
+          "undici-types": "8.3.0",
+          "vite": "6.4.3",
+          "vitest": "4.1.10",
+          "w3c-xmlserializer": "5.0.0",
+          "webidl-conversions": "8.0.1",
+          "whatwg-mimetype": "5.0.0",
+          "whatwg-url": "16.0.1",
+          "why-is-node-running": "2.3.0",
+          "xml-name-validator": "5.0.0",
+          "xmlchars": "2.2.0"
+        },
+        "frontend_top_level_packages_sha256": "87a35d3285ab6f74a8f245cb103d12c5f2cf09ded6a4e14f64c28e7019b443f7"
+      },
+      "tool_versions": {
+        "git": "git version 2.43.0",
+        "qpdf": "qpdf version 11.9.0",
+        "pdftoppm": "pdftoppm version 24.02.0",
+        "pdftotext": "pdftotext version 24.02.0",
+        "tesseract": "tesseract 5.3.4",
+        "tectonic": "Tectonic 0.16.9",
+        "playwright": "Version 1.61.1",
+        "chromium": "Google Chrome for Testing 149.0.7827.55"
+      },
+      "benchmark_assets": {
+        "frontend_page_script": {
+          "path": "frontend/scripts/benchmark-pages.mjs",
+          "bytes": 4114,
+          "sha256": "7eb05ae1dd318cdf7e6b130d23a70b63950bb3379b3993f3d88c9f5d835af24b"
+        }
+      },
+      "process_concurrency": 1,
+      "numerical_kernel_threads": {
+        "omp_num_threads": null,
+        "mkl_num_threads": null,
+        "torch_intraop_threads": 8,
+        "torch_interop_threads": 16
+      },
+      "device": "CPU"
+    }
+  },
+  "progress": {
+    "completed_stages": [
+      "discovery",
+      "import",
+      "pdf_extraction",
+      "ocr_extraction",
+      "chunking",
+      "keyword_index",
+      "feature_hashing_index",
+      "dense_index",
+      "retrieval_keyword",
+      "retrieval_feature_hashing",
+      "retrieval_dense",
+      "retrieval_hybrid",
+      "answer_offline",
+      "recommendation_offline",
+      "api_asgi",
+      "frontend_build",
+      "frontend_page_load"
+    ],
+    "completed_stage_count": 17,
+    "total_stage_count": 17,
+    "next_stage": null
+  },
+  "methodology": {
+    "cold_definition": "Each repetition uses a fresh Python process. OS page caches are not flushed, so these are process-cold, not machine-cold runs.",
+    "warm_definition": "All repetitions run sequentially in one Python process so module/model caches may be reused.",
+    "summary": "Linear-interpolation p95 and median over successful repetitions; failures remain in the denominator.",
+    "repetitions": 3,
+    "document_limit": null,
+    "process_concurrency": 1,
+    "concurrency_note": "One benchmark probe process runs at a time; dense numerical kernels may use the recorded PyTorch/OpenMP worker-thread configuration.",
+    "runtime_root": ".",
+    "network_discovery": "one TTLAB archive page per repetition; network and remote-server latency are included",
+    "memory": "GNU time maximum resident set size (KiB) for the probe process, where available"
+  },
+  "hardware": {
+    "platform": "Linux-5.15.133.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "kernel_release": "5.15.133.1-microsoft-standard-WSL2",
+    "machine": "x86_64",
+    "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
+    "logical_cpu_count": 16,
+    "memory_total_kib": 4012360,
+    "python": "3.12.3",
+    "node": "v24.14.1",
+    "npm": "11.11.0",
+    "dependency_locks": {
+      "python": {
+        "path": "backend/requirements-lock.txt",
+        "bytes": 2038,
+        "sha256": "b5bd4039083539c77e33c68d986a2efd0678841a0ed75cefefd35c1d211e69a6"
+      },
+      "frontend": {
+        "path": "frontend/package-lock.json",
+        "bytes": 133298,
+        "sha256": "158b84934d11f0b2caf6660d5d5ac6795a43d6707132a41183c000b9e3c29264"
+      }
+    },
+    "resolved_environments": {
+      "python_package_count": 96,
+      "python_packages": {
+        "annotated-doc": "0.0.4",
+        "annotated-types": "0.7.0",
+        "anyio": "4.14.1",
+        "attrs": "26.1.0",
+        "beautifulsoup4": "4.12.3",
+        "boolean.py": "5.0",
+        "cachecontrol": "0.14.4",
+        "certifi": "2026.6.17",
+        "cffi": "2.0.0",
+        "charset-normalizer": "3.4.7",
+        "click": "8.4.2",
+        "cryptography": "49.0.0",
+        "cyclonedx-python-lib": "11.11.0",
+        "defusedxml": "0.7.1",
+        "fastapi": "0.139.0",
+        "filelock": "3.29.7",
+        "fsspec": "2026.6.0",
+        "greenlet": "3.5.3",
+        "h11": "0.16.0",
+        "hf-xet": "1.5.1",
+        "httpcore": "1.0.9",
+        "httptools": "0.8.0",
+        "httpx": "0.28.1",
+        "huggingface-hub": "1.23.0",
+        "idna": "3.18",
+        "iniconfig": "2.3.0",
+        "jinja2": "3.1.6",
+        "joblib": "1.5.3",
+        "jsonschema": "4.26.0",
+        "jsonschema-specifications": "2025.9.1",
+        "license-expression": "30.4.4",
+        "markdown-it-py": "4.2.0",
+        "markupsafe": "3.0.3",
+        "mdurl": "0.1.2",
+        "mpmath": "1.3.0",
+        "msgpack": "1.2.1",
+        "narwhals": "2.23.0",
+        "networkx": "3.6.1",
+        "numpy": "2.5.1",
+        "packageurl-python": "0.17.6",
+        "packaging": "26.2",
+        "pdfminer.six": "20260107",
+        "pdfplumber": "0.11.10",
+        "pillow": "12.3.0",
+        "pip": "26.1.2",
+        "pip-api": "0.0.34",
+        "pip-audit": "2.10.1",
+        "pip-requirements-parser": "32.0.1",
+        "platformdirs": "4.10.0",
+        "pluggy": "1.6.0",
+        "py-serializable": "2.1.0",
+        "pycparser": "3.0",
+        "pydantic": "2.13.4",
+        "pydantic-core": "2.46.4",
+        "pydantic-settings": "2.7.1",
+        "pygments": "2.20.0",
+        "pymupdf": "1.25.1",
+        "pyparsing": "3.3.2",
+        "pypdf": "6.14.2",
+        "pypdfium2": "5.11.0",
+        "pytest": "9.1.1",
+        "python-dotenv": "1.2.2",
+        "pyyaml": "6.0.3",
+        "referencing": "0.37.0",
+        "regex": "2026.7.10",
+        "reportlab": "5.0.0",
+        "requests": "2.34.2",
+        "rich": "15.0.0",
+        "rpds-py": "2026.6.3",
+        "safetensors": "0.8.0",
+        "scikit-learn": "1.9.0",
+        "scipy": "1.18.0",
+        "sentence-transformers": "5.6.0",
+        "setuptools": "83.0.0",
+        "shellingham": "1.5.4",
+        "sortedcontainers": "2.4.0",
+        "soupsieve": "2.8.4",
+        "sqlalchemy": "2.0.51",
+        "sqlmodel": "0.0.22",
+        "starlette": "1.3.1",
+        "sympy": "1.14.0",
+        "threadpoolctl": "3.6.0",
+        "tokenizers": "0.22.2",
+        "tomli": "2.4.1",
+        "tomli-w": "1.2.0",
+        "torch": "2.13.0+cpu",
+        "tqdm": "4.68.4",
+        "transformers": "5.13.1",
+        "typer": "0.26.8",
+        "typing-extensions": "4.15.0",
+        "typing-inspection": "0.4.2",
+        "urllib3": "2.7.0",
+        "uvicorn": "0.34.0",
+        "uvloop": "0.22.1",
+        "watchfiles": "1.2.0",
+        "websockets": "16.0"
+      },
+      "python_packages_sha256": "fcfc8cdabc3e37e49a65d1b64df4f45ff261fea2d346c9676ec35cb9216335d9",
+      "frontend_top_level_packages": {
+        "@adobe/css-tools": "4.5.0",
+        "@asamuzakjp/css-color": "5.1.11",
+        "@asamuzakjp/dom-selector": "7.1.1",
+        "@asamuzakjp/generational-cache": "1.0.1",
+        "@asamuzakjp/nwsapi": "2.3.9",
+        "@babel/code-frame": "7.29.7",
+        "@babel/core": "7.29.7",
+        "@babel/helper-string-parser": "7.29.7",
+        "@babel/helper-validator-identifier": "7.29.7",
+        "@babel/parser": "7.29.7",
+        "@babel/plugin-transform-react-jsx-self": "7.29.7",
+        "@babel/plugin-transform-react-jsx-source": "7.29.7",
+        "@babel/runtime": "7.29.7",
+        "@babel/types": "7.29.7",
+        "@bramus/specificity": "2.4.2",
+        "@csstools/color-helpers": "6.1.0",
+        "@csstools/css-calc": "3.2.1",
+        "@csstools/css-color-parser": "4.1.9",
+        "@csstools/css-parser-algorithms": "4.0.0",
+        "@csstools/css-syntax-patches-for-csstree": "1.1.6",
+        "@csstools/css-tokenizer": "4.0.0",
+        "@exodus/bytes": "1.15.1",
+        "@jest/diff-sequences": "30.4.0",
+        "@jest/expect-utils": "30.4.1",
+        "@jest/get-type": "30.1.0",
+        "@jest/pattern": "30.4.0",
+        "@jest/schemas": "30.4.1",
+        "@jest/types": "30.4.1",
+        "@jridgewell/sourcemap-codec": "1.5.5",
+        "@playwright/test": "1.61.1",
+        "@rolldown/pluginutils": "1.0.0-beta.27",
+        "@sinclair/typebox": "0.34.52",
+        "@standard-schema/spec": "1.1.0",
+        "@testing-library/dom": "10.4.1",
+        "@testing-library/jest-dom": "6.9.1",
+        "@testing-library/react": "16.3.2",
+        "@testing-library/user-event": "14.6.1",
+        "@types/aria-query": "5.0.4",
+        "@types/babel__core": "7.20.5",
+        "@types/babel__generator": "7.27.0",
+        "@types/babel__template": "7.4.4",
+        "@types/babel__traverse": "7.28.0",
+        "@types/chai": "5.2.3",
+        "@types/deep-eql": "4.0.2",
+        "@types/estree": "1.0.9",
+        "@types/istanbul-lib-coverage": "2.0.6",
+        "@types/istanbul-lib-report": "3.0.3",
+        "@types/istanbul-reports": "3.0.4",
+        "@types/jest": "30.0.0",
+        "@types/jest-axe": "3.5.9",
+        "@types/node": "26.1.1",
+        "@types/react": "19.2.17",
+        "@types/react-dom": "19.2.3",
+        "@types/stack-utils": "2.0.3",
+        "@types/yargs": "17.0.35",
+        "@types/yargs-parser": "21.0.3",
+        "@vitejs/plugin-react": "4.7.0",
+        "@vitest/expect": "4.1.10",
+        "@vitest/mocker": "4.1.10",
+        "@vitest/pretty-format": "4.1.10",
+        "@vitest/runner": "4.1.10",
+        "@vitest/snapshot": "4.1.10",
+        "@vitest/spy": "4.1.10",
+        "@vitest/utils": "4.1.10",
+        "ansi-regex": "5.0.1",
+        "ansi-styles": "4.3.0",
+        "aria-query": "5.3.0",
+        "assertion-error": "2.0.1",
+        "axe-core": "3.5.6",
+        "bidi-js": "1.0.3",
+        "chai": "6.2.2",
+        "chalk": "4.1.2",
+        "ci-info": "4.4.0",
+        "color-convert": "2.0.1",
+        "color-name": "1.1.4",
+        "convert-source-map": "2.0.0",
+        "cookie": "1.1.1",
+        "css-tree": "3.2.1",
+        "css.escape": "1.5.1",
+        "csstype": "3.2.3",
+        "data-urls": "7.0.0",
+        "decimal.js": "10.6.0",
+        "dequal": "2.0.3",
+        "diff-sequences": "29.6.3",
+        "dom-accessibility-api": "0.5.16",
+        "entities": "8.0.0",
+        "es-module-lexer": "2.3.1",
+        "escape-string-regexp": "2.0.0",
+        "estree-walker": "3.0.3",
+        "expect": "30.4.1",
+        "expect-type": "1.4.0",
+        "fdir": "6.5.0",
+        "graceful-fs": "4.2.11",
+        "has-flag": "4.0.0",
+        "html-encoding-sniffer": "6.0.0",
+        "indent-string": "4.0.0",
+        "is-potential-custom-element-name": "1.0.1",
+        "jest-axe": "10.0.0",
+        "jest-diff": "30.4.1",
+        "jest-get-type": "29.6.3",
+        "jest-matcher-utils": "30.4.1",
+        "jest-message-util": "30.4.1",
+        "jest-mock": "30.4.1",
+        "jest-regex-util": "30.4.0",
+        "jest-util": "30.4.1",
+        "js-tokens": "4.0.0",
+        "jsdom": "29.0.0",
+        "lodash.merge": "4.6.2",
+        "lru-cache": "11.5.2",
+        "lucide-react": "1.23.0",
+        "lz-string": "1.5.0",
+        "magic-string": "0.30.21",
+        "mdn-data": "2.27.1",
+        "min-indent": "1.0.1",
+        "obug": "2.1.3",
+        "parse5": "8.0.1",
+        "pathe": "2.0.3",
+        "picocolors": "1.1.1",
+        "picomatch": "4.0.5",
+        "playwright": "1.61.1",
+        "playwright-core": "1.61.1",
+        "pretty-format": "27.5.1",
+        "punycode": "2.3.1",
+        "react": "19.2.7",
+        "react-dom": "19.2.7",
+        "react-is": "17.0.2",
+        "react-is-18": "18.3.1",
+        "react-is-19": "19.2.7",
+        "react-refresh": "0.17.0",
+        "react-router": "7.18.1",
+        "react-router-dom": "7.18.1",
+        "redent": "3.0.0",
+        "require-from-string": "2.0.2",
+        "saxes": "6.0.0",
+        "scheduler": "0.27.0",
+        "set-cookie-parser": "2.7.2",
+        "siginfo": "2.0.0",
+        "slash": "3.0.0",
+        "source-map-js": "1.2.1",
+        "stack-utils": "2.0.6",
+        "stackback": "0.0.2",
+        "std-env": "4.2.0",
+        "strip-indent": "3.0.0",
+        "supports-color": "7.2.0",
+        "symbol-tree": "3.2.4",
+        "tinybench": "2.9.0",
+        "tinyexec": "1.2.4",
+        "tinyglobby": "0.2.17",
+        "tinyrainbow": "3.1.0",
+        "tldts": "7.4.8",
+        "tldts-core": "7.4.8",
+        "tough-cookie": "6.0.2",
+        "tr46": "6.0.0",
+        "typescript": "5.9.3",
+        "undici": "7.28.0",
+        "undici-types": "8.3.0",
+        "vite": "6.4.3",
+        "vitest": "4.1.10",
+        "w3c-xmlserializer": "5.0.0",
+        "webidl-conversions": "8.0.1",
+        "whatwg-mimetype": "5.0.0",
+        "whatwg-url": "16.0.1",
+        "why-is-node-running": "2.3.0",
+        "xml-name-validator": "5.0.0",
+        "xmlchars": "2.2.0"
+      },
+      "frontend_top_level_packages_sha256": "87a35d3285ab6f74a8f245cb103d12c5f2cf09ded6a4e14f64c28e7019b443f7"
+    },
+    "tool_versions": {
+      "git": "git version 2.43.0",
+      "qpdf": "qpdf version 11.9.0",
+      "pdftoppm": "pdftoppm version 24.02.0",
+      "pdftotext": "pdftotext version 24.02.0",
+      "tesseract": "tesseract 5.3.4",
+      "tectonic": "Tectonic 0.16.9",
+      "playwright": "Version 1.61.1",
+      "chromium": "Google Chrome for Testing 149.0.7827.55"
+    },
+    "benchmark_assets": {
+      "frontend_page_script": {
+        "path": "frontend/scripts/benchmark-pages.mjs",
+        "bytes": 4114,
+        "sha256": "7eb05ae1dd318cdf7e6b130d23a70b63950bb3379b3993f3d88c9f5d835af24b"
+      }
+    },
+    "process_concurrency": 1,
+    "numerical_kernel_threads": {
+      "omp_num_threads": null,
+      "mkl_num_threads": null,
+      "torch_intraop_threads": 8,
+      "torch_interop_threads": 16
+    },
+    "device": "CPU"
+  },
+  "corpus": {
+    "database_sha256": "a8153f53fec2e97b6c9cdb31d2ab061e7e825eddfc550f9581a0903d170f35b4",
+    "database_bytes": 17256448,
+    "paper_rows": 134,
+    "eligible_papers": 96,
+    "eligible_papers_with_pdf": 96,
+    "raw_chunks": 735,
+    "eligible_chunks": 719,
+    "ocr_completed_papers": 0,
+    "ocr_pages": 0
+  },
+  "execution_source": {
+    "start": {
+      "commit": "5ccf22ec39cb33bf179cdff6954bfc9e0ce8dbc4",
+      "dirty": false,
+      "dirty_paths": [],
+      "dirty_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "benchmark_source_sha256": "f6fd1fb308419244fd39f108c4da77de699bcf4526f70f40b14a8af9e105bb9a",
+      "benchmark_source_path": "backend/app/evaluation/performance_benchmark.py"
+    },
+    "end": {
+      "commit": "5ccf22ec39cb33bf179cdff6954bfc9e0ce8dbc4",
+      "dirty": false,
+      "dirty_paths": [],
+      "dirty_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "benchmark_source_sha256": "f6fd1fb308419244fd39f108c4da77de699bcf4526f70f40b14a8af9e105bb9a",
+      "benchmark_source_path": "backend/app/evaluation/performance_benchmark.py"
+    }
+  },
+  "results": {
+    "discovery": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 3.2403,
+            "p95": 3.916675,
+            "minimum": 3.089669,
+            "maximum": 3.991828
+          },
+          "seconds_per_unit": {
+            "median": 0.054920332,
+            "p95": 0.066384324
+          },
+          "max_rss_kib": 56196
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 3.991827983991243,
+            "units": 59,
+            "unit": "publication records",
+            "seconds_per_unit": 0.06765810142358039,
+            "details": {
+              "source": "https://lab.tt/index.php/category/pub/",
+              "pages": 1,
+              "http_status": 200,
+              "http_final_url": "https://lab.tt/index.php/category/pub/",
+              "content_type": "text/html; charset=UTF-8",
+              "etag": null,
+              "last_modified": null,
+              "response_bytes": 263699,
+              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "record_ids": [
+                "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
+                "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
+                "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
+                "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+                "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+                "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb",
+                "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+                "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea",
+                "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18",
+                "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+                "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+                "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+                "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+                "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
+                "a-simple-approach-to-synthetic-time-series-generation-66bcf71f",
+                "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0",
+                "optical-lens-inventory-optimization-model-0f6a1d23",
+                "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+                "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+                "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+                "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24",
+                "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982",
+                "weighted-eligibility-based-product-recommendation-system-11db29fb",
+                "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88",
+                "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541",
+                "understanding-climate-action-perceptions-in-the-caribbean-harnessing-mac-06ce61d3",
+                "a-data-centric-approach-to-school-discipline-1b433321",
+                "predicting-the-probability-of-critical-illness-claims-ffffb207",
+                "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+                "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+                "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f",
+                "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
+                "data-journey-map-a-process-for-co-creating-data-requirements-for-health--b9d5bca6",
+                "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+                "credit-a-credible-trust-framework-for-dynamic-mobile-data-pricing-enforc-d64dd067",
+                "a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81",
+                "bilingual-dialect-classification-using-nlp-f02e3cc3",
+                "an-optimization-based-supervised-learning-algorithm-for-pxrd-phase-fract-61ceb2ca",
+                "a-cross-slice-resource-orchestration-framework-for-5g-network-services-62fc2ab3",
+                "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+                "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+                "weed-and-water-stress-detection-using-drone-video-03885d3b",
+                "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+                "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+                "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f",
+                "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038",
+                "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+                "a-cost-reward-optimization-approach-to-bank-loan-approvals-42d84790",
+                "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+                "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+                "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482",
+                "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
+                "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
+                "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
+                "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+                "premium-rate-services-fraud-detection-37e69fcf",
+                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+              ],
+              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "next_page_present": true
+            },
+            "max_rss_kib": 55912
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 3.2402995619922876,
+            "units": 59,
+            "unit": "publication records",
+            "seconds_per_unit": 0.054920331559191314,
+            "details": {
+              "source": "https://lab.tt/index.php/category/pub/",
+              "pages": 1,
+              "http_status": 200,
+              "http_final_url": "https://lab.tt/index.php/category/pub/",
+              "content_type": "text/html; charset=UTF-8",
+              "etag": null,
+              "last_modified": null,
+              "response_bytes": 263699,
+              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "record_ids": [
+                "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
+                "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
+                "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
+                "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+                "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+                "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb",
+                "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+                "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea",
+                "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18",
+                "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+                "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+                "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+                "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+                "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
+                "a-simple-approach-to-synthetic-time-series-generation-66bcf71f",
+                "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0",
+                "optical-lens-inventory-optimization-model-0f6a1d23",
+                "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+                "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+                "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+                "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24",
+                "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982",
+                "weighted-eligibility-based-product-recommendation-system-11db29fb",
+                "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88",
+                "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541",
+                "understanding-climate-action-perceptions-in-the-caribbean-harnessing-mac-06ce61d3",
+                "a-data-centric-approach-to-school-discipline-1b433321",
+                "predicting-the-probability-of-critical-illness-claims-ffffb207",
+                "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+                "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+                "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f",
+                "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
+                "data-journey-map-a-process-for-co-creating-data-requirements-for-health--b9d5bca6",
+                "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+                "credit-a-credible-trust-framework-for-dynamic-mobile-data-pricing-enforc-d64dd067",
+                "a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81",
+                "bilingual-dialect-classification-using-nlp-f02e3cc3",
+                "an-optimization-based-supervised-learning-algorithm-for-pxrd-phase-fract-61ceb2ca",
+                "a-cross-slice-resource-orchestration-framework-for-5g-network-services-62fc2ab3",
+                "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+                "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+                "weed-and-water-stress-detection-using-drone-video-03885d3b",
+                "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+                "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+                "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f",
+                "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038",
+                "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+                "a-cost-reward-optimization-approach-to-bank-loan-approvals-42d84790",
+                "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+                "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+                "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482",
+                "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
+                "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
+                "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
+                "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+                "premium-rate-services-fraud-detection-37e69fcf",
+                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+              ],
+              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "next_page_present": true
+            },
+            "max_rss_kib": 55692
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 3.0896689550136216,
+            "units": 59,
+            "unit": "publication records",
+            "seconds_per_unit": 0.05236727042395969,
+            "details": {
+              "source": "https://lab.tt/index.php/category/pub/",
+              "pages": 1,
+              "http_status": 200,
+              "http_final_url": "https://lab.tt/index.php/category/pub/",
+              "content_type": "text/html; charset=UTF-8",
+              "etag": null,
+              "last_modified": null,
+              "response_bytes": 263699,
+              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "record_ids": [
+                "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
+                "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
+                "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
+                "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+                "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+                "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb",
+                "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+                "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea",
+                "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18",
+                "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+                "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+                "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+                "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+                "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
+                "a-simple-approach-to-synthetic-time-series-generation-66bcf71f",
+                "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0",
+                "optical-lens-inventory-optimization-model-0f6a1d23",
+                "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+                "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+                "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+                "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24",
+                "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982",
+                "weighted-eligibility-based-product-recommendation-system-11db29fb",
+                "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88",
+                "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541",
+                "understanding-climate-action-perceptions-in-the-caribbean-harnessing-mac-06ce61d3",
+                "a-data-centric-approach-to-school-discipline-1b433321",
+                "predicting-the-probability-of-critical-illness-claims-ffffb207",
+                "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+                "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+                "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f",
+                "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
+                "data-journey-map-a-process-for-co-creating-data-requirements-for-health--b9d5bca6",
+                "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+                "credit-a-credible-trust-framework-for-dynamic-mobile-data-pricing-enforc-d64dd067",
+                "a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81",
+                "bilingual-dialect-classification-using-nlp-f02e3cc3",
+                "an-optimization-based-supervised-learning-algorithm-for-pxrd-phase-fract-61ceb2ca",
+                "a-cross-slice-resource-orchestration-framework-for-5g-network-services-62fc2ab3",
+                "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+                "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+                "weed-and-water-stress-detection-using-drone-video-03885d3b",
+                "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+                "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+                "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f",
+                "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038",
+                "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+                "a-cost-reward-optimization-approach-to-bank-loan-approvals-42d84790",
+                "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+                "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+                "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482",
+                "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
+                "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
+                "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
+                "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+                "premium-rate-services-fraud-detection-37e69fcf",
+                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+              ],
+              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "next_page_present": true
+            },
+            "max_rss_kib": 56196
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 0.970021,
+            "p95": 2.833254,
+            "minimum": 0.95837,
+            "maximum": 3.04028
+          },
+          "seconds_per_unit": {
+            "median": 0.016441033,
+            "p95": 0.048021248
+          },
+          "max_rss_kib": 66812
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 3.0402795170084573,
+            "units": 59,
+            "unit": "publication records",
+            "seconds_per_unit": 0.05153016130522809,
+            "details": {
+              "source": "https://lab.tt/index.php/category/pub/",
+              "pages": 1,
+              "http_status": 200,
+              "http_final_url": "https://lab.tt/index.php/category/pub/",
+              "content_type": "text/html; charset=UTF-8",
+              "etag": null,
+              "last_modified": null,
+              "response_bytes": 263699,
+              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "record_ids": [
+                "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
+                "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
+                "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
+                "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+                "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+                "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb",
+                "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+                "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea",
+                "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18",
+                "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+                "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+                "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+                "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+                "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
+                "a-simple-approach-to-synthetic-time-series-generation-66bcf71f",
+                "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0",
+                "optical-lens-inventory-optimization-model-0f6a1d23",
+                "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+                "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+                "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+                "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24",
+                "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982",
+                "weighted-eligibility-based-product-recommendation-system-11db29fb",
+                "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88",
+                "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541",
+                "understanding-climate-action-perceptions-in-the-caribbean-harnessing-mac-06ce61d3",
+                "a-data-centric-approach-to-school-discipline-1b433321",
+                "predicting-the-probability-of-critical-illness-claims-ffffb207",
+                "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+                "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+                "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f",
+                "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
+                "data-journey-map-a-process-for-co-creating-data-requirements-for-health--b9d5bca6",
+                "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+                "credit-a-credible-trust-framework-for-dynamic-mobile-data-pricing-enforc-d64dd067",
+                "a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81",
+                "bilingual-dialect-classification-using-nlp-f02e3cc3",
+                "an-optimization-based-supervised-learning-algorithm-for-pxrd-phase-fract-61ceb2ca",
+                "a-cross-slice-resource-orchestration-framework-for-5g-network-services-62fc2ab3",
+                "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+                "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+                "weed-and-water-stress-detection-using-drone-video-03885d3b",
+                "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+                "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+                "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f",
+                "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038",
+                "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+                "a-cost-reward-optimization-approach-to-bank-loan-approvals-42d84790",
+                "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+                "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+                "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482",
+                "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
+                "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
+                "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
+                "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+                "premium-rate-services-fraud-detection-37e69fcf",
+                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+              ],
+              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "next_page_present": true
+            },
+            "max_rss_kib": 66812
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 0.9583697990165092,
+            "units": 59,
+            "unit": "publication records",
+            "seconds_per_unit": 0.016243555915534055,
+            "details": {
+              "source": "https://lab.tt/index.php/category/pub/",
+              "pages": 1,
+              "http_status": 200,
+              "http_final_url": "https://lab.tt/index.php/category/pub/",
+              "content_type": "text/html; charset=UTF-8",
+              "etag": null,
+              "last_modified": null,
+              "response_bytes": 263699,
+              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "record_ids": [
+                "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
+                "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
+                "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
+                "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+                "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+                "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb",
+                "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+                "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea",
+                "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18",
+                "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+                "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+                "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+                "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+                "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
+                "a-simple-approach-to-synthetic-time-series-generation-66bcf71f",
+                "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0",
+                "optical-lens-inventory-optimization-model-0f6a1d23",
+                "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+                "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+                "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+                "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24",
+                "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982",
+                "weighted-eligibility-based-product-recommendation-system-11db29fb",
+                "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88",
+                "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541",
+                "understanding-climate-action-perceptions-in-the-caribbean-harnessing-mac-06ce61d3",
+                "a-data-centric-approach-to-school-discipline-1b433321",
+                "predicting-the-probability-of-critical-illness-claims-ffffb207",
+                "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+                "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+                "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f",
+                "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
+                "data-journey-map-a-process-for-co-creating-data-requirements-for-health--b9d5bca6",
+                "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+                "credit-a-credible-trust-framework-for-dynamic-mobile-data-pricing-enforc-d64dd067",
+                "a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81",
+                "bilingual-dialect-classification-using-nlp-f02e3cc3",
+                "an-optimization-based-supervised-learning-algorithm-for-pxrd-phase-fract-61ceb2ca",
+                "a-cross-slice-resource-orchestration-framework-for-5g-network-services-62fc2ab3",
+                "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+                "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+                "weed-and-water-stress-detection-using-drone-video-03885d3b",
+                "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+                "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+                "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f",
+                "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038",
+                "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+                "a-cost-reward-optimization-approach-to-bank-loan-approvals-42d84790",
+                "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+                "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+                "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482",
+                "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
+                "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
+                "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
+                "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+                "premium-rate-services-fraud-detection-37e69fcf",
+                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+              ],
+              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "next_page_present": true
+            },
+            "max_rss_kib": 66812
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 0.9700209519942291,
+            "units": 59,
+            "unit": "publication records",
+            "seconds_per_unit": 0.016441033084647953,
+            "details": {
+              "source": "https://lab.tt/index.php/category/pub/",
+              "pages": 1,
+              "http_status": 200,
+              "http_final_url": "https://lab.tt/index.php/category/pub/",
+              "content_type": "text/html; charset=UTF-8",
+              "etag": null,
+              "last_modified": null,
+              "response_bytes": 263699,
+              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "record_ids": [
+                "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
+                "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
+                "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
+                "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+                "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+                "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb",
+                "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+                "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea",
+                "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18",
+                "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+                "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+                "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+                "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+                "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
+                "a-simple-approach-to-synthetic-time-series-generation-66bcf71f",
+                "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0",
+                "optical-lens-inventory-optimization-model-0f6a1d23",
+                "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+                "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+                "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+                "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24",
+                "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982",
+                "weighted-eligibility-based-product-recommendation-system-11db29fb",
+                "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88",
+                "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541",
+                "understanding-climate-action-perceptions-in-the-caribbean-harnessing-mac-06ce61d3",
+                "a-data-centric-approach-to-school-discipline-1b433321",
+                "predicting-the-probability-of-critical-illness-claims-ffffb207",
+                "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+                "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+                "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f",
+                "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
+                "data-journey-map-a-process-for-co-creating-data-requirements-for-health--b9d5bca6",
+                "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
+                "credit-a-credible-trust-framework-for-dynamic-mobile-data-pricing-enforc-d64dd067",
+                "a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81",
+                "bilingual-dialect-classification-using-nlp-f02e3cc3",
+                "an-optimization-based-supervised-learning-algorithm-for-pxrd-phase-fract-61ceb2ca",
+                "a-cross-slice-resource-orchestration-framework-for-5g-network-services-62fc2ab3",
+                "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+                "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+                "weed-and-water-stress-detection-using-drone-video-03885d3b",
+                "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+                "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+                "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f",
+                "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038",
+                "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+                "a-cost-reward-optimization-approach-to-bank-loan-approvals-42d84790",
+                "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+                "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+                "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482",
+                "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
+                "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
+                "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
+                "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+                "premium-rate-services-fraud-detection-37e69fcf",
+                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+              ],
+              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "next_page_present": true
+            },
+            "max_rss_kib": 66812
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe discovery --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe discovery --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe discovery --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe discovery --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "import": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 5.514558,
+            "p95": 5.538043,
+            "minimum": 5.351609,
+            "maximum": 5.540653
+          },
+          "seconds_per_unit": {
+            "median": 0.041153419,
+            "p95": 0.041328682
+          },
+          "max_rss_kib": 102604
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 5.540652839001268,
+            "units": 134,
+            "unit": "publication records",
+            "seconds_per_unit": 0.041348155514934835,
+            "details": {
+              "created": 134,
+              "updated": 0,
+              "skipped": 0,
+              "missing_pdf": 34,
+              "authors": 123,
+              "authors_recovered": 12
+            },
+            "max_rss_kib": 102492
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 5.514558141003363,
+            "units": 134,
+            "unit": "publication records",
+            "seconds_per_unit": 0.041153418962711664,
+            "details": {
+              "created": 134,
+              "updated": 0,
+              "skipped": 0,
+              "missing_pdf": 34,
+              "authors": 123,
+              "authors_recovered": 12
+            },
+            "max_rss_kib": 102604
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 5.351609335979447,
+            "units": 134,
+            "unit": "publication records",
+            "seconds_per_unit": 0.03993738310432423,
+            "details": {
+              "created": 134,
+              "updated": 0,
+              "skipped": 0,
+              "missing_pdf": 34,
+              "authors": 123,
+              "authors_recovered": 12
+            },
+            "max_rss_kib": 102360
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 2.099371,
+            "p95": 4.968867,
+            "minimum": 2.035799,
+            "maximum": 5.2877
+          },
+          "seconds_per_unit": {
+            "median": 0.01566695,
+            "p95": 0.037081097
+          },
+          "max_rss_kib": 107292
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 5.287699909007642,
+            "units": 134,
+            "unit": "publication records",
+            "seconds_per_unit": 0.039460447082146584,
+            "details": {
+              "created": 134,
+              "updated": 0,
+              "skipped": 0,
+              "missing_pdf": 34,
+              "authors": 123,
+              "authors_recovered": 12
+            },
+            "max_rss_kib": 107292
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 2.03579912398709,
+            "units": 134,
+            "unit": "publication records",
+            "seconds_per_unit": 0.01519253077602306,
+            "details": {
+              "created": 134,
+              "updated": 0,
+              "skipped": 0,
+              "missing_pdf": 34,
+              "authors": 123,
+              "authors_recovered": 12
+            },
+            "max_rss_kib": 107292
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 2.0993712689960375,
+            "units": 134,
+            "unit": "publication records",
+            "seconds_per_unit": 0.015666949768627147,
+            "details": {
+              "created": 134,
+              "updated": 0,
+              "skipped": 0,
+              "missing_pdf": 34,
+              "authors": 123,
+              "authors_recovered": 12
+            },
+            "max_rss_kib": 107292
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe import --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe import --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe import --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe import --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "pdf_extraction": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 15.465891,
+            "p95": 15.917322,
+            "minimum": 15.322214,
+            "maximum": 15.967481
+          },
+          "seconds_per_unit": {
+            "median": 0.161103035,
+            "p95": 0.165805435
+          },
+          "max_rss_kib": 113852
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 15.967480741004692,
+            "units": 96,
+            "unit": "PDF documents",
+            "seconds_per_unit": 0.16632792438546554,
+            "details": {
+              "statuses": {
+                "extracted": 96
+              },
+              "ocr": false
+            },
+            "max_rss_kib": 113660
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 15.32221397900139,
+            "units": 96,
+            "unit": "PDF documents",
+            "seconds_per_unit": 0.1596063956145978,
+            "details": {
+              "statuses": {
+                "extracted": 96
+              },
+              "ocr": false
+            },
+            "max_rss_kib": 113592
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 15.465891319006914,
+            "units": 96,
+            "unit": "PDF documents",
+            "seconds_per_unit": 0.1611030345729887,
+            "details": {
+              "statuses": {
+                "extracted": 96
+              },
+              "ocr": false
+            },
+            "max_rss_kib": 113852
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 12.873937,
+            "p95": 14.993162,
+            "minimum": 12.816012,
+            "maximum": 15.228632
+          },
+          "seconds_per_unit": {
+            "median": 0.134103509,
+            "p95": 0.156178772
+          },
+          "max_rss_kib": 115296
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 15.228631546982797,
+            "units": 96,
+            "unit": "PDF documents",
+            "seconds_per_unit": 0.15863157861440413,
+            "details": {
+              "statuses": {
+                "extracted": 96
+              },
+              "ocr": false
+            },
+            "max_rss_kib": 115296
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 12.816011566988891,
+            "units": 96,
+            "unit": "PDF documents",
+            "seconds_per_unit": 0.1335001204894676,
+            "details": {
+              "statuses": {
+                "extracted": 96
+              },
+              "ocr": false
+            },
+            "max_rss_kib": 115296
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 12.873936846008291,
+            "units": 96,
+            "unit": "PDF documents",
+            "seconds_per_unit": 0.13410350881258637,
+            "details": {
+              "statuses": {
+                "extracted": 96
+              },
+              "ocr": false
+            },
+            "max_rss_kib": 115296
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe pdf_extraction --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe pdf_extraction --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe pdf_extraction --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe pdf_extraction --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "ocr_extraction": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 2.632537,
+            "p95": 2.8382,
+            "minimum": 2.528622,
+            "maximum": 2.861051
+          },
+          "seconds_per_unit": {
+            "median": null,
+            "p95": null
+          },
+          "max_rss_kib": 89268
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 2.86105131500517,
+            "units": 0,
+            "unit": "OCR documents",
+            "seconds_per_unit": null,
+            "details": {
+              "status": "not_applicable",
+              "ocr_pages_completed": 0
+            },
+            "max_rss_kib": 89096
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 2.632537104014773,
+            "units": 0,
+            "unit": "OCR documents",
+            "seconds_per_unit": null,
+            "details": {
+              "status": "not_applicable",
+              "ocr_pages_completed": 0
+            },
+            "max_rss_kib": 88996
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 2.528621634992305,
+            "units": 0,
+            "unit": "OCR documents",
+            "seconds_per_unit": null,
+            "details": {
+              "status": "not_applicable",
+              "ocr_pages_completed": 0
+            },
+            "max_rss_kib": 89268
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 0.150742,
+            "p95": 2.293939,
+            "minimum": 0.149245,
+            "maximum": 2.532072
+          },
+          "seconds_per_unit": {
+            "median": null,
+            "p95": null
+          },
+          "max_rss_kib": 92296
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 2.5320718889997806,
+            "units": 0,
+            "unit": "OCR documents",
+            "seconds_per_unit": null,
+            "details": {
+              "status": "not_applicable",
+              "ocr_pages_completed": 0
+            },
+            "max_rss_kib": 92296
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 0.14924493999569677,
+            "units": 0,
+            "unit": "OCR documents",
+            "seconds_per_unit": null,
+            "details": {
+              "status": "not_applicable",
+              "ocr_pages_completed": 0
+            },
+            "max_rss_kib": 92296
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 0.15074181501404382,
+            "units": 0,
+            "unit": "OCR documents",
+            "seconds_per_unit": null,
+            "details": {
+              "status": "not_applicable",
+              "ocr_pages_completed": 0
+            },
+            "max_rss_kib": 92296
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe ocr_extraction --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe ocr_extraction --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe ocr_extraction --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe ocr_extraction --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "chunking": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 10.40448,
+            "p95": 10.773374,
+            "minimum": 10.182584,
+            "maximum": 10.814362
+          },
+          "seconds_per_unit": {
+            "median": 0.108380002,
+            "p95": 0.112222643
+          },
+          "max_rss_kib": 63184
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 10.814361861004727,
+            "units": 96,
+            "unit": "extracted documents",
+            "seconds_per_unit": 0.11264960271879924,
+            "details": {
+              "chunks_built": 719
+            },
+            "max_rss_kib": 63184
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 10.404480158991646,
+            "units": 96,
+            "unit": "extracted documents",
+            "seconds_per_unit": 0.10838000165616297,
+            "details": {
+              "chunks_built": 719
+            },
+            "max_rss_kib": 62732
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 10.182583739981055,
+            "units": 96,
+            "unit": "extracted documents",
+            "seconds_per_unit": 0.10606858062480266,
+            "details": {
+              "chunks_built": 719
+            },
+            "max_rss_kib": 62792
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 8.279899,
+            "p95": 9.853491,
+            "minimum": 8.275378,
+            "maximum": 10.028335
+          },
+          "seconds_per_unit": {
+            "median": 0.086248948,
+            "p95": 0.102640532
+          },
+          "max_rss_kib": 64004
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 10.028334678994725,
+            "units": 96,
+            "unit": "extracted documents",
+            "seconds_per_unit": 0.10446181957286171,
+            "details": {
+              "chunks_built": 719
+            },
+            "max_rss_kib": 64004
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 8.275378003017977,
+            "units": 96,
+            "unit": "extracted documents",
+            "seconds_per_unit": 0.08620185419810393,
+            "details": {
+              "chunks_built": 719
+            },
+            "max_rss_kib": 64004
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 8.279898972978117,
+            "units": 96,
+            "unit": "extracted documents",
+            "seconds_per_unit": 0.08624894763518871,
+            "details": {
+              "chunks_built": 719
+            },
+            "max_rss_kib": 64004
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe chunking --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe chunking --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe chunking --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe chunking --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "keyword_index": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 2.280738,
+            "p95": 2.289659,
+            "minimum": 2.258618,
+            "maximum": 2.290651
+          },
+          "seconds_per_unit": {
+            "median": 0.003172098,
+            "p95": 0.003184505
+          },
+          "max_rss_kib": 88040
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 2.2586178119818214,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.003141332144620058,
+            "details": {
+              "fts_available": true,
+              "indexed_chunks": 719,
+              "eligible_chunks": 719,
+              "eligible_papers": 96,
+              "corpus_snapshot_id": "corpus-04a010207327069a",
+              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "completeness_status": "complete",
+              "last_indexed_at": "2026-07-13T06:15:24.477003+00:00"
+            },
+            "max_rss_kib": 88040
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 2.280738242989173,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.003172097695395234,
+            "details": {
+              "fts_available": true,
+              "indexed_chunks": 719,
+              "eligible_chunks": 719,
+              "eligible_papers": 96,
+              "corpus_snapshot_id": "corpus-04a010207327069a",
+              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "completeness_status": "complete",
+              "last_indexed_at": "2026-07-13T06:15:26.986991+00:00"
+            },
+            "max_rss_kib": 87828
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 2.290650659997482,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.003185884089009015,
+            "details": {
+              "fts_available": true,
+              "indexed_chunks": 719,
+              "eligible_chunks": 719,
+              "eligible_papers": 96,
+              "corpus_snapshot_id": "corpus-04a010207327069a",
+              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "completeness_status": "complete",
+              "last_indexed_at": "2026-07-13T06:15:29.523340+00:00"
+            },
+            "max_rss_kib": 87876
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 0.457034,
+            "p95": 2.07849,
+            "minimum": 0.435771,
+            "maximum": 2.258651
+          },
+          "seconds_per_unit": {
+            "median": 0.000635652,
+            "p95": 0.002890806
+          },
+          "max_rss_kib": 91088
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 2.258651418000227,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.003141378884562207,
+            "details": {
+              "fts_available": true,
+              "indexed_chunks": 719,
+              "eligible_chunks": 719,
+              "eligible_papers": 96,
+              "corpus_snapshot_id": "corpus-04a010207327069a",
+              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "completeness_status": "complete",
+              "last_indexed_at": "2026-07-13T06:15:32.056503+00:00"
+            },
+            "max_rss_kib": 91088
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 0.45703374399454333,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.000635651938796305,
+            "details": {
+              "fts_available": true,
+              "indexed_chunks": 719,
+              "eligible_chunks": 719,
+              "eligible_papers": 96,
+              "corpus_snapshot_id": "corpus-04a010207327069a",
+              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "completeness_status": "complete",
+              "last_indexed_at": "2026-07-13T06:15:32.513905+00:00"
+            },
+            "max_rss_kib": 91088
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 0.4357707510062028,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.0006060789304675977,
+            "details": {
+              "fts_available": true,
+              "indexed_chunks": 719,
+              "eligible_chunks": 719,
+              "eligible_papers": 96,
+              "corpus_snapshot_id": "corpus-04a010207327069a",
+              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "completeness_status": "complete",
+              "last_indexed_at": "2026-07-13T06:15:32.949259+00:00"
+            },
+            "max_rss_kib": 91088
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe keyword_index --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe keyword_index --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe keyword_index --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe keyword_index --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "feature_hashing_index": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 2.868915,
+            "p95": 2.900079,
+            "minimum": 2.835156,
+            "maximum": 2.903542
+          },
+          "seconds_per_unit": {
+            "median": 0.003990145,
+            "p95": 0.00403349
+          },
+          "max_rss_kib": 96272
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 2.90354212699458,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.0040383061571551875,
+            "details": {
+              "provider": "feature_hashing",
+              "indexed_chunks": 719,
+              "dimensions": 256,
+              "model_name": "sha256-signed-token-hashing-v1",
+              "model_revision": "1",
+              "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
+            },
+            "max_rss_kib": 96272
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 2.868914606020553,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.003990145488206611,
+            "details": {
+              "provider": "feature_hashing",
+              "indexed_chunks": 719,
+              "dimensions": 256,
+              "model_name": "sha256-signed-token-hashing-v1",
+              "model_revision": "1",
+              "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
+            },
+            "max_rss_kib": 95752
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 2.8351556609850377,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.003943192852552208,
+            "details": {
+              "provider": "feature_hashing",
+              "indexed_chunks": 719,
+              "dimensions": 256,
+              "model_name": "sha256-signed-token-hashing-v1",
+              "model_revision": "1",
+              "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
+            },
+            "max_rss_kib": 96132
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 0.978415,
+            "p95": 2.601882,
+            "minimum": 0.936294,
+            "maximum": 2.782267
+          },
+          "seconds_per_unit": {
+            "median": 0.0013608,
+            "p95": 0.00361875
+          },
+          "max_rss_kib": 98820
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 2.782266693015117,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.003869633787225476,
+            "details": {
+              "provider": "feature_hashing",
+              "indexed_chunks": 719,
+              "dimensions": 256,
+              "model_name": "sha256-signed-token-hashing-v1",
+              "model_revision": "1",
+              "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
+            },
+            "max_rss_kib": 98820
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 0.9784153049986344,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.001360800146034262,
+            "details": {
+              "provider": "feature_hashing",
+              "indexed_chunks": 719,
+              "dimensions": 256,
+              "model_name": "sha256-signed-token-hashing-v1",
+              "model_revision": "1",
+              "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
+            },
+            "max_rss_kib": 98820
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 0.9362937819969375,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.0013022166648079799,
+            "details": {
+              "provider": "feature_hashing",
+              "indexed_chunks": 719,
+              "dimensions": 256,
+              "model_name": "sha256-signed-token-hashing-v1",
+              "model_revision": "1",
+              "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
+            },
+            "max_rss_kib": 98820
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe feature_hashing_index --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe feature_hashing_index --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe feature_hashing_index --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe feature_hashing_index --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "dense_index": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 145.00531,
+            "p95": 145.020029,
+            "minimum": 143.995703,
+            "maximum": 145.021665
+          },
+          "seconds_per_unit": {
+            "median": 0.20167637,
+            "p95": 0.201696842
+          },
+          "max_rss_kib": 744028
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 145.0053098979988,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.20167636981641004,
+            "details": {
+              "provider": "dense",
+              "indexed_chunks": 719,
+              "dimensions": 384,
+              "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+              "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+              "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
+            },
+            "max_rss_kib": 740216
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 143.99570296800812,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.20027218771628388,
+            "details": {
+              "provider": "dense",
+              "indexed_chunks": 719,
+              "dimensions": 384,
+              "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+              "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+              "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
+            },
+            "max_rss_kib": 744028
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 145.0216646839981,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.2016991163894271,
+            "details": {
+              "provider": "dense",
+              "indexed_chunks": 719,
+              "dimensions": 384,
+              "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+              "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+              "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
+            },
+            "max_rss_kib": 741360
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 66.169363,
+            "p95": 134.066006,
+            "minimum": 65.891447,
+            "maximum": 141.610077
+          },
+          "seconds_per_unit": {
+            "median": 0.092029712,
+            "p95": 0.18646176
+          },
+          "max_rss_kib": 769552
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 141.61007694801083,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.1969542099416006,
+            "details": {
+              "provider": "dense",
+              "indexed_chunks": 719,
+              "dimensions": 384,
+              "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+              "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+              "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
+            },
+            "max_rss_kib": 769552
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 66.16936308599543,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.09202971221974329,
+            "details": {
+              "provider": "dense",
+              "indexed_chunks": 719,
+              "dimensions": 384,
+              "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+              "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+              "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
+            },
+            "max_rss_kib": 769552
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 65.89144696900621,
+            "units": 719,
+            "unit": "eligible chunks",
+            "seconds_per_unit": 0.09164318076356914,
+            "details": {
+              "provider": "dense",
+              "indexed_chunks": 719,
+              "dimensions": 384,
+              "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+              "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+              "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
+            },
+            "max_rss_kib": 769552
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe dense_index --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe dense_index --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe dense_index --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe dense_index --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "retrieval_keyword": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 9.808771,
+            "p95": 10.12629,
+            "minimum": 9.649595,
+            "maximum": 10.16157
+          },
+          "seconds_per_unit": {
+            "median": 1.634795195,
+            "p95": 1.68771497
+          },
+          "max_rss_kib": 109732
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 10.161569668998709,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.6935949448331182,
+            "details": {
+              "mode": "keyword",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 109732
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 9.808771168987732,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.6347951948312887,
+            "details": {
+              "mode": "keyword",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 108964
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 9.649594885995612,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.6082658143326019,
+            "details": {
+              "mode": "keyword",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 109548
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 8.091362,
+            "p95": 9.525965,
+            "minimum": 8.066776,
+            "maximum": 9.685365
+          },
+          "seconds_per_unit": {
+            "median": 1.348560257,
+            "p95": 1.587660751
+          },
+          "max_rss_kib": 114472
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 9.685364833014319,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.614227472169053,
+            "details": {
+              "mode": "keyword",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 114472
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 8.066776264022337,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.3444627106703895,
+            "details": {
+              "mode": "keyword",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 114472
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 8.091361544007668,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.3485602573346114,
+            "details": {
+              "mode": "keyword",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 114472
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_keyword --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_keyword --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_keyword --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe retrieval_keyword --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "retrieval_feature_hashing": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 10.323142,
+            "p95": 10.369091,
+            "minimum": 10.304272,
+            "maximum": 10.374197
+          },
+          "seconds_per_unit": {
+            "median": 1.72052373,
+            "p95": 1.72818191
+          },
+          "max_rss_kib": 102148
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 10.374196916003712,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.729032819333952,
+            "details": {
+              "mode": "feature_hashing",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 101524
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 10.323142379987985,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.7205237299979974,
+            "details": {
+              "mode": "feature_hashing",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 102016
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 10.304271951987175,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.7173786586645292,
+            "details": {
+              "mode": "feature_hashing",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 102148
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 8.13722,
+            "p95": 10.176257,
+            "minimum": 7.659391,
+            "maximum": 10.402817
+          },
+          "seconds_per_unit": {
+            "median": 1.356203278,
+            "p95": 1.696042899
+          },
+          "max_rss_kib": 105204
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 10.402817144000437,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.7338028573334061,
+            "details": {
+              "mode": "feature_hashing",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 105204
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 8.137219666998135,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.3562032778330224,
+            "details": {
+              "mode": "feature_hashing",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 105204
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 7.659391250985209,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.2765652084975347,
+            "details": {
+              "mode": "feature_hashing",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 105204
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_feature_hashing --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_feature_hashing --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_feature_hashing --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe retrieval_feature_hashing --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "retrieval_dense": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 84.486818,
+            "p95": 86.265354,
+            "minimum": 84.140294,
+            "maximum": 86.462969
+          },
+          "seconds_per_unit": {
+            "median": 14.081136354,
+            "p95": 14.377558965
+          },
+          "max_rss_kib": 574152
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 86.46296886200435,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 14.410494810334058,
+            "details": {
+              "mode": "dense",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 574152
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 84.48681812599534,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 14.081136354332557,
+            "details": {
+              "mode": "dense",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 573240
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 84.14029375300743,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 14.023382292167904,
+            "details": {
+              "mode": "dense",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 567116
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 12.214692,
+            "p95": 78.342303,
+            "minimum": 11.84906,
+            "maximum": 85.689816
+          },
+          "seconds_per_unit": {
+            "median": 2.035782013,
+            "p95": 13.057050529
+          },
+          "max_rss_kib": 577028
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 85.68981551998877,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 14.281635919998129,
+            "details": {
+              "mode": "dense",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 577028
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 12.214692075009225,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 2.0357820125015373,
+            "details": {
+              "mode": "dense",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 577028
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 11.849059982021572,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 1.9748433303369286,
+            "details": {
+              "mode": "dense",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 577028
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_dense --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_dense --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_dense --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe retrieval_dense --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "retrieval_hybrid": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 93.355339,
+            "p95": 93.616085,
+            "minimum": 92.125005,
+            "maximum": 93.645057
+          },
+          "seconds_per_unit": {
+            "median": 15.55922321,
+            "p95": 15.602680824
+          },
+          "max_rss_kib": 578592
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 93.3553392610047,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 15.55922321016745,
+            "details": {
+              "mode": "hybrid",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 571708
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 92.12500511299004,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 15.354167518831673,
+            "details": {
+              "mode": "hybrid",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 578592
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 93.64505668499623,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 15.607509447499373,
+            "details": {
+              "mode": "hybrid",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 575472
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 20.325805,
+            "p95": 86.384963,
+            "minimum": 19.381599,
+            "maximum": 93.72487
+          },
+          "seconds_per_unit": {
+            "median": 3.38763418,
+            "p95": 14.397493898
+          },
+          "max_rss_kib": 582544
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 93.72486986598233,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 15.620811644330388,
+            "details": {
+              "mode": "hybrid",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 582544
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 20.32580508000683,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 3.3876341800011383,
+            "details": {
+              "mode": "hybrid",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 582544
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 19.381599043990718,
+            "units": 6,
+            "unit": "queries",
+            "seconds_per_unit": 3.230266507331786,
+            "details": {
+              "mode": "hybrid",
+              "result_counts": [
+                10,
+                10,
+                10,
+                10,
+                10,
+                10
+              ]
+            },
+            "max_rss_kib": 582544
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_hybrid --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_hybrid --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe retrieval_hybrid --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe retrieval_hybrid --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "answer_offline": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 83.354851,
+            "p95": 83.736424,
+            "minimum": 82.891678,
+            "maximum": 83.778821
+          },
+          "seconds_per_unit": {
+            "median": 27.784950355,
+            "p95": 27.912141348
+          },
+          "max_rss_kib": 583516
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 83.77882104201126,
+            "units": 3,
+            "unit": "answers",
+            "seconds_per_unit": 27.92627368067042,
+            "details": {
+              "provider": "offline_extractive",
+              "statuses": {
+                "grounded": 3
+              }
+            },
+            "max_rss_kib": 575820
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 82.89167768598418,
+            "units": 3,
+            "unit": "answers",
+            "seconds_per_unit": 27.630559228661394,
+            "details": {
+              "provider": "offline_extractive",
+              "statuses": {
+                "grounded": 3
+              }
+            },
+            "max_rss_kib": 579664
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 83.35485106401029,
+            "units": 3,
+            "unit": "answers",
+            "seconds_per_unit": 27.784950354670098,
+            "details": {
+              "provider": "offline_extractive",
+              "statuses": {
+                "grounded": 3
+              }
+            },
+            "max_rss_kib": 583516
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 9.841607,
+            "p95": 75.799684,
+            "minimum": 9.642166,
+            "maximum": 83.128359
+          },
+          "seconds_per_unit": {
+            "median": 3.280535825,
+            "p95": 25.266561301
+          },
+          "max_rss_kib": 585584
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 83.12835906099644,
+            "units": 3,
+            "unit": "answers",
+            "seconds_per_unit": 27.70945302033215,
+            "details": {
+              "provider": "offline_extractive",
+              "statuses": {
+                "grounded": 3
+              }
+            },
+            "max_rss_kib": 585584
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 9.841607473994372,
+            "units": 3,
+            "unit": "answers",
+            "seconds_per_unit": 3.2805358246647907,
+            "details": {
+              "provider": "offline_extractive",
+              "statuses": {
+                "grounded": 3
+              }
+            },
+            "max_rss_kib": 585584
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 9.642165980010759,
+            "units": 3,
+            "unit": "answers",
+            "seconds_per_unit": 3.214055326670253,
+            "details": {
+              "provider": "offline_extractive",
+              "statuses": {
+                "grounded": 3
+              }
+            },
+            "max_rss_kib": 585584
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe answer_offline --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe answer_offline --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe answer_offline --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe answer_offline --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "recommendation_offline": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 83.603565,
+            "p95": 85.675136,
+            "minimum": 83.572059,
+            "maximum": 85.90531
+          },
+          "seconds_per_unit": {
+            "median": 27.867855038,
+            "p95": 28.55837865
+          },
+          "max_rss_kib": 571088
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 85.90531048801495,
+            "units": 3,
+            "unit": "student profiles",
+            "seconds_per_unit": 28.635103496004984,
+            "details": {
+              "recommendation_counts": [
+                3,
+                3,
+                3
+              ],
+              "persistence": false
+            },
+            "max_rss_kib": 566728
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 83.57205928399344,
+            "units": 3,
+            "unit": "student profiles",
+            "seconds_per_unit": 27.85735309466448,
+            "details": {
+              "recommendation_counts": [
+                3,
+                3,
+                3
+              ],
+              "persistence": false
+            },
+            "max_rss_kib": 569924
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 83.60356511300779,
+            "units": 3,
+            "unit": "student profiles",
+            "seconds_per_unit": 27.867855037669262,
+            "details": {
+              "recommendation_counts": [
+                3,
+                3,
+                3
+              ],
+              "persistence": false
+            },
+            "max_rss_kib": 571088
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 10.482148,
+            "p95": 76.667746,
+            "minimum": 10.21255,
+            "maximum": 84.021701
+          },
+          "seconds_per_unit": {
+            "median": 3.494049488,
+            "p95": 25.555915182
+          },
+          "max_rss_kib": 576056
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 84.02170077801566,
+            "units": 3,
+            "unit": "student profiles",
+            "seconds_per_unit": 28.007233592671884,
+            "details": {
+              "recommendation_counts": [
+                3,
+                3,
+                3
+              ],
+              "persistence": false
+            },
+            "max_rss_kib": 576056
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 10.482148465001956,
+            "units": 3,
+            "unit": "student profiles",
+            "seconds_per_unit": 3.494049488333985,
+            "details": {
+              "recommendation_counts": [
+                3,
+                3,
+                3
+              ],
+              "persistence": false
+            },
+            "max_rss_kib": 576056
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 10.21255039400421,
+            "units": 3,
+            "unit": "student profiles",
+            "seconds_per_unit": 3.4041834646680704,
+            "details": {
+              "recommendation_counts": [
+                3,
+                3,
+                3
+              ],
+              "persistence": false
+            },
+            "max_rss_kib": 576056
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe recommendation_offline --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe recommendation_offline --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe recommendation_offline --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe recommendation_offline --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "api_asgi": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 79.605999,
+            "p95": 81.178027,
+            "minimum": 79.261164,
+            "maximum": 81.352697
+          },
+          "seconds_per_unit": {
+            "median": 11.372285535,
+            "p95": 11.596861001
+          },
+          "max_rss_kib": 611536
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 81.35269681698992,
+            "units": 7,
+            "unit": "ASGI requests",
+            "seconds_per_unit": 11.62181383099856,
+            "details": {
+              "status_codes": [
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200
+              ],
+              "transport": "FastAPI TestClient"
+            },
+            "max_rss_kib": 611536
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 79.60599874600302,
+            "units": 7,
+            "unit": "ASGI requests",
+            "seconds_per_unit": 11.37228553514329,
+            "details": {
+              "status_codes": [
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200
+              ],
+              "transport": "FastAPI TestClient"
+            },
+            "max_rss_kib": 609332
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 79.26116393200937,
+            "units": 7,
+            "unit": "ASGI requests",
+            "seconds_per_unit": 11.323023418858481,
+            "details": {
+              "status_codes": [
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200
+              ],
+              "transport": "FastAPI TestClient"
+            },
+            "max_rss_kib": 609888
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 3.947942,
+            "p95": 72.397143,
+            "minimum": 3.83355,
+            "maximum": 80.002609
+          },
+          "seconds_per_unit": {
+            "median": 0.56399165,
+            "p95": 10.342448947
+          },
+          "max_rss_kib": 656568
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 80.00260941899614,
+            "units": 7,
+            "unit": "ASGI requests",
+            "seconds_per_unit": 11.428944202713735,
+            "details": {
+              "status_codes": [
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200
+              ],
+              "transport": "FastAPI TestClient"
+            },
+            "max_rss_kib": 656568
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 3.833550267998362,
+            "units": 7,
+            "unit": "ASGI requests",
+            "seconds_per_unit": 0.5476500382854803,
+            "details": {
+              "status_codes": [
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200
+              ],
+              "transport": "FastAPI TestClient"
+            },
+            "max_rss_kib": 656568
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 3.9479415510140825,
+            "units": 7,
+            "unit": "ASGI requests",
+            "seconds_per_unit": 0.563991650144869,
+            "details": {
+              "status_codes": [
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200
+              ],
+              "transport": "FastAPI TestClient"
+            },
+            "max_rss_kib": 656568
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe api_asgi --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe api_asgi --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe api_asgi --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe api_asgi --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "frontend_build": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 31.145462,
+            "p95": 33.201494,
+            "minimum": 30.970344,
+            "maximum": 33.429942
+          },
+          "seconds_per_unit": {
+            "median": 31.14546169,
+            "p95": 33.201494093
+          },
+          "max_rss_kib": 472272
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 33.429942137998296,
+            "units": 1,
+            "unit": "production builds",
+            "seconds_per_unit": 33.429942137998296,
+            "details": {
+              "assets": 2,
+              "dist_bytes": 371160
+            },
+            "max_rss_kib": 472272
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 30.97034415899543,
+            "units": 1,
+            "unit": "production builds",
+            "seconds_per_unit": 30.97034415899543,
+            "details": {
+              "assets": 2,
+              "dist_bytes": 371160
+            },
+            "max_rss_kib": 457108
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 31.145461690000957,
+            "units": 1,
+            "unit": "production builds",
+            "seconds_per_unit": 31.145461690000957,
+            "details": {
+              "assets": 2,
+              "dist_bytes": 371160
+            },
+            "max_rss_kib": 454092
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 30.763089,
+            "p95": 31.269726,
+            "minimum": 30.739633,
+            "maximum": 31.326019
+          },
+          "seconds_per_unit": {
+            "median": 30.763089387,
+            "p95": 31.269725989
+          },
+          "max_rss_kib": 470124
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 30.763089387008222,
+            "units": 1,
+            "unit": "production builds",
+            "seconds_per_unit": 30.763089387008222,
+            "details": {
+              "assets": 2,
+              "dist_bytes": 371160
+            },
+            "max_rss_kib": 470124
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 31.326018945022952,
+            "units": 1,
+            "unit": "production builds",
+            "seconds_per_unit": 31.326018945022952,
+            "details": {
+              "assets": 2,
+              "dist_bytes": 371160
+            },
+            "max_rss_kib": 470124
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 30.73963290901156,
+            "units": 1,
+            "unit": "production builds",
+            "seconds_per_unit": 30.73963290901156,
+            "details": {
+              "assets": 2,
+              "dist_bytes": 371160
+            },
+            "max_rss_kib": 470124
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe frontend_build --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe frontend_build --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe frontend_build --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe frontend_build --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "frontend_page_load": {
+      "cold": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 12.496218,
+            "p95": 12.807251,
+            "minimum": 12.365719,
+            "maximum": 12.841811
+          },
+          "seconds_per_unit": {
+            "median": 1.562027208,
+            "p95": 1.600906437
+          },
+          "max_rss_kib": 460660
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 12.365718828999999,
+            "units": 8,
+            "unit": "rendered routes",
+            "seconds_per_unit": 1.5457148536249998,
+            "details": {
+              "temperature": "cold",
+              "route_elapsed_ms": {
+                "/": 1245.766,
+                "/papers": 1178.614,
+                "/search": 1669.421,
+                "/ask": 1735.884,
+                "/extensions": 1186.862,
+                "/explorer": 2975.6,
+                "/evaluation": 1275.226,
+                "/admin": 1098.345
+              },
+              "failures": [],
+              "browser": "Playwright Chromium",
+              "viewport": "1440x900",
+              "wait_condition": "networkidle and visible main landmark",
+              "backend_port": 36233,
+              "frontend_port": 54777
+            },
+            "max_rss_kib": 460660
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 12.496217662000001,
+            "units": 8,
+            "unit": "rendered routes",
+            "seconds_per_unit": 1.5620272077500001,
+            "details": {
+              "temperature": "cold",
+              "route_elapsed_ms": {
+                "/": 1259.182,
+                "/papers": 1150.305,
+                "/search": 1702.855,
+                "/ask": 1818.623,
+                "/extensions": 1206.284,
+                "/explorer": 2970.243,
+                "/evaluation": 1266.964,
+                "/admin": 1121.761
+              },
+              "failures": [],
+              "browser": "Playwright Chromium",
+              "viewport": "1440x900",
+              "wait_condition": "networkidle and visible main landmark",
+              "backend_port": 48699,
+              "frontend_port": 54305
+            },
+            "max_rss_kib": 457540
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 12.841810809,
+            "units": 8,
+            "unit": "rendered routes",
+            "seconds_per_unit": 1.605226351125,
+            "details": {
+              "temperature": "cold",
+              "route_elapsed_ms": {
+                "/": 1288.835,
+                "/papers": 1196.322,
+                "/search": 1710.31,
+                "/ask": 1778.673,
+                "/extensions": 1240.816,
+                "/explorer": 3221.676,
+                "/evaluation": 1274.882,
+                "/admin": 1130.297
+              },
+              "failures": [],
+              "browser": "Playwright Chromium",
+              "viewport": "1440x900",
+              "wait_condition": "networkidle and visible main landmark",
+              "backend_port": 50471,
+              "frontend_port": 60507
+            },
+            "max_rss_kib": 456192
+          }
+        ]
+      },
+      "warm": {
+        "summary": {
+          "repetitions_attempted": 3,
+          "repetitions_succeeded": 3,
+          "failures": 0,
+          "failure_rate": 0.0,
+          "elapsed_seconds": {
+            "median": 12.463381,
+            "p95": 12.63072,
+            "minimum": 12.308595,
+            "maximum": 12.649313
+          },
+          "seconds_per_unit": {
+            "median": 1.557922672,
+            "p95": 1.578840001
+          },
+          "max_rss_kib": 469244
+        },
+        "samples": [
+          {
+            "repetition": 1,
+            "status": "ok",
+            "elapsed_seconds": 12.649313189999999,
+            "units": 8,
+            "unit": "rendered routes",
+            "seconds_per_unit": 1.5811641487499999,
+            "details": {
+              "temperature": "warm",
+              "route_elapsed_ms": {
+                "/": 1247.065,
+                "/papers": 1162.634,
+                "/search": 1720.44,
+                "/ask": 1780.643,
+                "/extensions": 1196.533,
+                "/explorer": 3145.833,
+                "/evaluation": 1273.612,
+                "/admin": 1122.554
+              },
+              "failures": [],
+              "browser": "Playwright Chromium",
+              "viewport": "1440x900",
+              "wait_condition": "networkidle and visible main landmark",
+              "backend_port": 38479,
+              "frontend_port": 45325
+            },
+            "max_rss_kib": 469244
+          },
+          {
+            "repetition": 2,
+            "status": "ok",
+            "elapsed_seconds": 12.308594824999995,
+            "units": 8,
+            "unit": "rendered routes",
+            "seconds_per_unit": 1.5385743531249993,
+            "details": {
+              "temperature": "warm",
+              "route_elapsed_ms": {
+                "/": 1158.034,
+                "/papers": 1141.479,
+                "/search": 1668.644,
+                "/ask": 1639.476,
+                "/extensions": 1204.526,
+                "/explorer": 3073.128,
+                "/evaluation": 1253.861,
+                "/admin": 1169.447
+              },
+              "failures": [],
+              "browser": "Playwright Chromium",
+              "viewport": "1440x900",
+              "wait_condition": "networkidle and visible main landmark",
+              "backend_port": 38479,
+              "frontend_port": 45325
+            },
+            "max_rss_kib": 469244
+          },
+          {
+            "repetition": 3,
+            "status": "ok",
+            "elapsed_seconds": 12.463381373999997,
+            "units": 8,
+            "unit": "rendered routes",
+            "seconds_per_unit": 1.5579226717499997,
+            "details": {
+              "temperature": "warm",
+              "route_elapsed_ms": {
+                "/": 1222.476,
+                "/papers": 1217.248,
+                "/search": 1702.365,
+                "/ask": 1680.193,
+                "/extensions": 1183.418,
+                "/explorer": 3062.445,
+                "/evaluation": 1275.63,
+                "/admin": 1119.607
+              },
+              "failures": [],
+              "browser": "Playwright Chromium",
+              "viewport": "1440x900",
+              "wait_condition": "networkidle and visible main landmark",
+              "backend_port": 38479,
+              "frontend_port": 45325
+            },
+            "max_rss_kib": 469244
+          }
+        ]
+      },
+      "commands": {
+        "cold": [
+          "<python> -m app.evaluation.performance_benchmark --probe frontend_page_load --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe frontend_page_load --database ./data/papers.db --repetitions 1 --temperature cold",
+          "<python> -m app.evaluation.performance_benchmark --probe frontend_page_load --database ./data/papers.db --repetitions 1 --temperature cold"
+        ],
+        "warm": "<python> -m app.evaluation.performance_benchmark --probe frontend_page_load --database ./data/papers.db --repetitions 3 --temperature warm"
+      }
+    },
+    "ocr": {
+      "status": "not_applicable",
+      "reason": "No eligible corpus paper used OCR in the frozen snapshot; the OCR stage records zero applicable units.",
+      "stage": "ocr_extraction",
+      "ocr_completed_papers": 0,
+      "ocr_pages": 0
+    }
+  },
+  "limitations": [
+    "Three repetitions make the linearly interpolated p95 descriptive and unstable; it is not a tail-latency estimate.",
+    "Process-cold runs do not flush the Linux page cache or model files from the operating-system cache.",
+    "The benchmark uses one local process and concurrency one; it is not a capacity, saturation, or multi-user load test.",
+    "ASGI timings use FastAPI TestClient and exclude network/TLS latency; browser page timings are recorded separately.",
+    "Discovery includes uncontrollable network/server latency and should not be compared directly with local stages.",
+    "Maximum RSS is process-level and does not isolate transient shared-library or operating-system cache memory."
+  ]
+}

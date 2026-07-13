@@ -1,0 +1,10 @@
+{
+  "status": "valid",
+  "profile": "full",
+  "stages": 17,
+  "samples": 102,
+  "rss_samples": 102,
+  "failures": 0,
+  "source_commit": "5ccf22ec39cb33bf179cdff6954bfc9e0ce8dbc4",
+  "provenance_sha256": "61378b9aa78ae1c25a1172d62c8501b7603106d3c98142e8370c6c51fa282e8a"
+}

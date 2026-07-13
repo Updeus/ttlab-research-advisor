@@ -1,0 +1,39 @@
+{
+  "claim_boundary": "The record proves an integrity-checked SQLite backup of one source state. It does not establish redistribution rights for the database or its source documents.",
+  "generated_at": "2026-07-13T06:09:37.331061+00:00",
+  "method": "sqlite3.Connection.backup",
+  "missing_core_tables": [],
+  "schema_version": 1,
+  "snapshot": {
+    "bytes": 17256448,
+    "integrity_check": "ok",
+    "journal_mode": "delete",
+    "label": "papers.db",
+    "sha256": "a8153f53fec2e97b6c9cdb31d2ab061e7e825eddfc550f9581a0903d170f35b4"
+  },
+  "source": {
+    "bytes_after": 17256448,
+    "bytes_before": 17256448,
+    "data_version_after": 1,
+    "data_version_before": 1,
+    "journal_mode_after": "delete",
+    "journal_mode_before": "delete",
+    "label": "papers.db",
+    "sha256_after": "dc33ad9c723c65725d6bb4e1c73b6e2d9f1a7edccd3d6e17dc2dfc6457029974",
+    "sha256_before": "dc33ad9c723c65725d6bb4e1c73b6e2d9f1a7edccd3d6e17dc2dfc6457029974"
+  },
+  "status": "valid",
+  "table_row_counts": {
+    "author": 136,
+    "authoralias": 133,
+    "authortopic": 313,
+    "chunk": 735,
+    "paper": 134,
+    "paperartifact": 14,
+    "papertopic": 170,
+    "raganswer": 27,
+    "reviewevent": 48,
+    "thesisrecommendation": 7,
+    "topic": 39
+  }
+}

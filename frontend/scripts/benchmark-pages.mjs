@@ -15,7 +15,7 @@ const routes = ["/", "/papers", "/search", "/ask", "/extensions", "/explorer", "
 if (!Number.isInteger(repetitions) || repetitions < 1) throw new Error("--repetitions must be positive");
 if (!["cold", "warm"].includes(temperature)) throw new Error("--temperature must be cold or warm");
 
-const preview = spawn("npm", ["run", "preview", "--", "--host", "127.0.0.1", "--port", String(port)], {
+const preview = spawn("npm", ["run", "preview", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
   cwd: new URL("..", import.meta.url),
   stdio: ["ignore", "ignore", "pipe"],
   shell: false,
@@ -25,9 +25,15 @@ preview.stderr.on("data", (chunk) => { previewError += chunk.toString(); });
 
 async function waitForPreview() {
   for (let attempt = 0; attempt < 80; attempt += 1) {
+    if (preview.exitCode !== null) {
+      throw new Error(`Vite preview exited before readiness: ${previewError.slice(-500)}`);
+    }
     try {
       const response = await fetch(baseUrl);
-      if (response.ok) return;
+      if (response.ok && preview.exitCode === null) {
+        const html = await response.text();
+        if (html.includes('id="root"')) return;
+      }
     } catch { /* retry */ }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }

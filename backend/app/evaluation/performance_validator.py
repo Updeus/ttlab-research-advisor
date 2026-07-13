@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,122 @@ def _strings(value: Any):
             yield from _strings(item)
 
 
+def expected_units(stage: str, corpus: dict[str, Any], document_limit: int | None) -> int | None:
+    expected = {
+        "discovery": None,
+        "import": int(corpus.get("paper_rows", 0)),
+        "pdf_extraction": int(corpus.get("eligible_papers_with_pdf", 0)),
+        "ocr_extraction": int(corpus.get("ocr_completed_papers", 0)),
+        "chunking": int(corpus.get("eligible_papers", 0)),
+        "keyword_index": int(corpus.get("eligible_chunks", 0)),
+        "feature_hashing_index": int(corpus.get("eligible_chunks", 0)),
+        "dense_index": int(corpus.get("eligible_chunks", 0)),
+        "retrieval_keyword": 6,
+        "retrieval_feature_hashing": 6,
+        "retrieval_dense": 6,
+        "retrieval_hybrid": 6,
+        "answer_offline": 3,
+        "recommendation_offline": 3,
+        "api_asgi": 7,
+        "frontend_build": 1,
+        "frontend_page_load": 8,
+    }[stage]
+    if document_limit is None or expected is None or stage in {
+        "retrieval_keyword",
+        "retrieval_feature_hashing",
+        "retrieval_dense",
+        "retrieval_hybrid",
+        "answer_offline",
+        "recommendation_offline",
+        "api_asgi",
+        "frontend_build",
+        "frontend_page_load",
+    }:
+        return expected
+    return min(expected, document_limit)
+
+
+def validate_sample_details(
+    stage: str,
+    sample: dict[str, Any],
+    corpus: dict[str, Any],
+    document_limit: int | None,
+    require,
+) -> None:
+    units = sample.get("units")
+    expected = expected_units(stage, corpus, document_limit)
+    require(isinstance(units, int), f"{stage}: sample units must be an integer")
+    if isinstance(units, int):
+        if expected is None:
+            require(units > 0, f"{stage}: sample units must be positive")
+        else:
+            require(units == expected, f"{stage}: expected {expected} units, found {units}")
+    elapsed = sample.get("elapsed_seconds")
+    require(
+        isinstance(elapsed, (int, float)) and math.isfinite(float(elapsed)) and float(elapsed) > 0,
+        f"{stage}: elapsed_seconds must be positive and finite",
+    )
+    per_unit = sample.get("seconds_per_unit")
+    if expected == 0 and stage == "ocr_extraction":
+        require(per_unit is None, "ocr_extraction: zero-unit seconds_per_unit must be null")
+    else:
+        require(
+            isinstance(per_unit, (int, float)) and math.isfinite(float(per_unit)) and float(per_unit) > 0,
+            f"{stage}: seconds_per_unit must be positive and finite",
+        )
+    rss = sample.get("max_rss_kib")
+    require(isinstance(rss, int) and rss > 0, f"{stage}: measurable max_rss_kib is required")
+    details = sample.get("details")
+    require(isinstance(details, dict), f"{stage}: sample details missing")
+    if not isinstance(details, dict):
+        return
+    if stage == "discovery":
+        require(details.get("http_status") == 200, "discovery: HTTP status must be 200")
+        require(len(details.get("record_ids") or []) == units, "discovery: record ID count mismatch")
+        require(bool(re.fullmatch(r"[0-9a-f]{64}", str(details.get("response_sha256", "")))), "discovery: response SHA-256 invalid")
+        require(bool(re.fullmatch(r"[0-9a-f]{64}", str(details.get("records_sha256", "")))), "discovery: records SHA-256 invalid")
+    elif stage == "import":
+        require(int(details.get("processed", details.get("created", 0) + details.get("updated", 0))) == units, "import: processed-record count mismatch")
+    elif stage == "pdf_extraction":
+        require(details.get("ocr") is False, "pdf_extraction: native extraction must not silently use OCR")
+        require(sum(int(value) for value in (details.get("statuses") or {}).values()) == units, "pdf_extraction: status count mismatch")
+    elif stage == "ocr_extraction":
+        require(details.get("status") == ("not_applicable" if expected == 0 else "measured"), "ocr_extraction: applicability status mismatch")
+    elif stage == "chunking":
+        chunks_built = details.get("chunks_built")
+        require(isinstance(chunks_built, int) and chunks_built > 0, "chunking: positive built chunk count required")
+        if document_limit is None:
+            require(chunks_built == int(corpus.get("eligible_chunks", 0)), "chunking: eligible chunk count mismatch")
+    elif stage in {"keyword_index", "feature_hashing_index", "dense_index"}:
+        indexed = details.get("indexed_chunks", details.get("eligible_chunks"))
+        require(indexed == expected, f"{stage}: indexed chunk count mismatch")
+        if stage == "feature_hashing_index":
+            require(details.get("provider") == "feature_hashing" and details.get("dimensions") == 256, "feature_hashing_index: provider/dimensions mismatch")
+        if stage == "dense_index":
+            require(details.get("provider") == "dense" and details.get("dimensions") == 384, "dense_index: provider/dimensions mismatch")
+            require(bool(details.get("model_revision")) and bool(details.get("model_artifact_sha256")), "dense_index: model provenance missing")
+    elif stage.startswith("retrieval_"):
+        require(len(details.get("result_counts") or []) == 6, f"{stage}: retrieval workload size mismatch")
+        require(all(int(value) > 0 for value in details.get("result_counts") or []), f"{stage}: retrieval returned an empty query result")
+    elif stage == "answer_offline":
+        require(details.get("provider") == "offline_extractive", "answer_offline: provider mismatch")
+        require(sum(int(value) for value in (details.get("statuses") or {}).values()) == 3, "answer_offline: answer status count mismatch")
+    elif stage == "recommendation_offline":
+        counts = details.get("recommendation_counts") or []
+        require(len(counts) == 3 and all(int(value) > 0 for value in counts), "recommendation_offline: profile result counts mismatch")
+        require(details.get("persistence") is False, "recommendation_offline: benchmark must not persist")
+    elif stage == "api_asgi":
+        require(details.get("status_codes") == [200] * 7, "api_asgi: endpoint status workload mismatch")
+        require(details.get("transport") == "FastAPI TestClient", "api_asgi: transport mismatch")
+    elif stage == "frontend_build":
+        require(int(details.get("assets", 0)) > 0 and int(details.get("dist_bytes", 0)) > 0, "frontend_build: empty production output")
+    elif stage == "frontend_page_load":
+        require(len(details.get("route_elapsed_ms") or {}) == 8, "frontend_page_load: route workload mismatch")
+        require(details.get("failures") == [], "frontend_page_load: route failures present")
+        require(details.get("browser") == "Playwright Chromium", "frontend_page_load: browser identity mismatch")
+        require(isinstance(details.get("backend_port"), int) and isinstance(details.get("frontend_port"), int), "frontend_page_load: dynamic port provenance missing")
+
+
 def validate_performance_artifact(
     payload: dict[str, Any],
     *,
@@ -50,6 +167,10 @@ def validate_performance_artifact(
     require(payload.get("schema_version") == 2, "schema_version must be 2")
     require(payload.get("status") == "complete", "status must be complete")
     require(payload.get("profile") == expected_profile, f"profile must be {expected_profile}")
+    require(
+        payload.get("benchmark_id") == f"ttlab-performance-{expected_profile}-v1",
+        "benchmark_id/profile mismatch",
+    )
     require(payload.get("completed_at") is not None, "completed_at is required")
 
     methodology = payload.get("methodology")
@@ -76,6 +197,12 @@ def validate_performance_artifact(
             payload.get("run_provenance_sha256") == _canonical_sha256(provenance),
             "run_provenance_sha256 mismatch",
         )
+        require(
+            provenance.get("source") == (payload.get("execution_source") or {}).get("start"),
+            "top-level execution source differs from run provenance",
+        )
+        require(provenance.get("corpus") == payload.get("corpus"), "top-level corpus differs from run provenance")
+        require(provenance.get("hardware") == payload.get("hardware"), "top-level hardware differs from run provenance")
         configuration = provenance.get("configuration")
         require(isinstance(configuration, dict), "run provenance configuration missing")
         if isinstance(configuration, dict):
@@ -104,6 +231,7 @@ def validate_performance_artifact(
     measured_stages: list[str] = []
     total_samples = 0
     max_rss_samples = 0
+    document_limit = methodology.get("document_limit") if isinstance(methodology, dict) else None
     if isinstance(results, dict):
         measured_stages = [stage for stage in results if stage != "ocr"]
         require(measured_stages == expected_stages, "result stages mismatch")
@@ -137,10 +265,21 @@ def validate_performance_artifact(
                 total_samples += len(samples)
                 failed = [sample for sample in samples if sample.get("status") != "ok"]
                 require(not failed, f"{stage}/{temperature}: {len(failed)} failed samples")
+                for sample in samples:
+                    if isinstance(sample, dict) and sample.get("status") == "ok":
+                        validate_sample_details(
+                            stage,
+                            sample,
+                            payload.get("corpus") or {},
+                            document_limit,
+                            require,
+                        )
                 max_rss_samples += sum(sample.get("max_rss_kib") is not None for sample in samples)
                 require(summary == summarize_samples(samples), f"{stage}/{temperature}: summary does not match samples")
         ocr = results.get("ocr")
         require(isinstance(ocr, dict), "OCR applicability record missing")
+        if isinstance(ocr, dict) and int((payload.get("corpus") or {}).get("ocr_completed_papers", 0)) == 0:
+            require(ocr.get("status") == "not_applicable", "zero-OCR corpus must report OCR as not_applicable")
 
     hardware = payload.get("hardware")
     require(isinstance(hardware, dict), "hardware must be an object")
@@ -233,19 +372,29 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--expected-profile", choices=["quick", "full"], default="full")
     parser.add_argument("--expected-repetitions", type=int, default=3)
     parser.add_argument("--stage", action="append", choices=sorted(PROBES), dest="stages")
+    parser.add_argument("--out", type=Path)
     return parser
+
+
+def resolved_stages(profile: str, stages: list[str] | None) -> list[str]:
+    if profile == "full" and stages is not None:
+        raise ValueError("A full-profile validation cannot override the complete required stage list")
+    return stages or list(FULL_REQUIRED_STAGES)
 
 
 def main() -> None:
     args = build_parser().parse_args()
     payload = json.loads(args.artifact.read_text(encoding="utf-8"))
-    stages = args.stages or list(FULL_REQUIRED_STAGES)
+    stages = resolved_stages(args.expected_profile, args.stages)
     summary = validate_performance_artifact(
         payload,
         expected_profile=args.expected_profile,
         expected_repetitions=args.expected_repetitions,
         expected_stages=stages,
     )
+    if args.out is not None:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2))
 
 

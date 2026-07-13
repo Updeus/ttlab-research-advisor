@@ -8,6 +8,7 @@ import os
 import platform
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -350,8 +351,12 @@ def corpus_manifest(database: Path) -> dict[str, Any]:
             "eligible_chunks": scalar(
                 "SELECT COUNT(*) FROM chunk JOIN paper USING(paper_id) WHERE paper.corpus_eligibility_status='eligible'"
             ),
-            "ocr_completed_papers": scalar("SELECT COUNT(*) FROM paper WHERE ocr_status='completed'"),
-            "ocr_pages": scalar("SELECT COALESCE(SUM(ocr_pages_count), 0) FROM paper"),
+            "ocr_completed_papers": scalar(
+                "SELECT COUNT(*) FROM paper WHERE corpus_eligibility_status='eligible' AND ocr_status='completed'"
+            ),
+            "ocr_pages": scalar(
+                "SELECT COALESCE(SUM(ocr_pages_count), 0) FROM paper WHERE corpus_eligibility_status='eligible'"
+            ),
         }
     finally:
         connection.close()
@@ -369,16 +374,34 @@ def _limit(values: list[Any], limit: int | None) -> list[Any]:
 
 def probe_discovery(_database: Path, limit: int | None, temporary: Path) -> tuple[int, str, dict[str, Any]]:
     from app.config import get_settings
-    from app.ingestion.ttlab_page import discover_publications, write_seed
+    from app.ingestion.ttlab_page import TTLABDiscoveryClient, parse_publications_from_html, write_seed
 
-    records = discover_publications(
-        get_settings().ttlab_publications_url,
-        max_pages=1,
-        check_content_type=False,
-    )
+    source = get_settings().ttlab_publications_url
+    client = TTLABDiscoveryClient()
+    try:
+        response = client._request("GET", source)  # benchmark records response metadata unavailable from get_text()
+        response.raise_for_status()
+        html = response.text
+    finally:
+        client.close()
+    records, next_url = parse_publications_from_html(html, source, check_content_type=False)
     records = _limit(records, limit)
     write_seed(records, temporary / "discovered.json")
-    return len(records), "publication records", {"source": get_settings().ttlab_publications_url, "pages": 1}
+    record_ids = [str(record.get("paper_id")) for record in records]
+    return len(records), "publication records", {
+        "source": source,
+        "pages": 1,
+        "http_status": response.status_code,
+        "http_final_url": str(response.url),
+        "content_type": response.headers.get("content-type"),
+        "etag": response.headers.get("etag"),
+        "last_modified": response.headers.get("last-modified"),
+        "response_bytes": len(response.content),
+        "response_sha256": hashlib.sha256(response.content).hexdigest(),
+        "record_ids": record_ids,
+        "records_sha256": _canonical_sha256(records),
+        "next_page_present": next_url is not None,
+    }
 
 
 def probe_import(_database: Path, limit: int | None, temporary: Path) -> tuple[int, str, dict[str, Any]]:
@@ -430,6 +453,35 @@ def probe_extraction(database: Path, limit: int | None, temporary: Path) -> tupl
         status = str(result.get("extraction_status") or "unknown")
         statuses[status] = statuses.get(status, 0) + 1
     return len(papers), "PDF documents", {"statuses": statuses, "ocr": False}
+
+
+def probe_ocr_extraction(database: Path, limit: int | None, temporary: Path) -> tuple[int, str, dict[str, Any]]:
+    from app.ingestion.pdf_parser import extract_pdf_text
+
+    papers = [paper for paper in _eligible_papers(database, require_pdf=True) if paper.ocr_status == "completed"]
+    papers = _limit(papers, limit)
+    if not papers:
+        return 0, "OCR documents", {"status": "not_applicable", "ocr_pages_completed": 0}
+    statuses: dict[str, int] = {}
+    ocr_pages = 0
+    for paper in papers:
+        result = extract_pdf_text(
+            paper.paper_id,
+            Path(str(paper.local_pdf_path)),
+            temporary / "ocr-extracted",
+            overwrite=True,
+            run_ocr=True,
+            expected_title=paper.title,
+        )
+        diagnostics = result.get("diagnostics") or {}
+        status = str(diagnostics.get("ocr_status") or "unknown")
+        statuses[status] = statuses.get(status, 0) + 1
+        ocr_pages += int(diagnostics.get("ocr_pages_count") or 0)
+    return len(papers), "OCR documents", {
+        "status": "measured",
+        "ocr_statuses": statuses,
+        "ocr_pages_completed": ocr_pages,
+    }
 
 
 def probe_chunking(database: Path, limit: int | None, _temporary: Path) -> tuple[int, str, dict[str, Any]]:
@@ -608,6 +660,12 @@ def probe_frontend_page_load(
     """Measure rendered primary routes against an isolated DB-backed API."""
 
     runtime_root = Path.cwd()
+    backend_port = available_loopback_port()
+    frontend_port = available_loopback_port()
+    while frontend_port == backend_port:
+        frontend_port = available_loopback_port()
+    backend_base = f"http://127.0.0.1:{backend_port}"
+    frontend_origin = f"http://127.0.0.1:{frontend_port}"
     with tempfile.TemporaryDirectory(prefix="ttlab-perf-browser-") as temporary_name:
         temporary = Path(temporary_name)
         copied = temporary / "browser.db"
@@ -617,10 +675,10 @@ def probe_frontend_page_load(
             {
                 "PYTHONPATH": str(ROOT / "backend"),
                 "TTLAB_DATABASE_URL": f"sqlite:///{copied}",
-                "TTLAB_CORS_ORIGINS": '["http://127.0.0.1:5173"]',
-                "TTLAB_FRONTEND_URL": "http://127.0.0.1:5173",
+                "TTLAB_CORS_ORIGINS": json.dumps([frontend_origin]),
+                "TTLAB_FRONTEND_URL": frontend_origin,
                 "TTLAB_ALLOW_INSECURE_LOCAL_DEMO": "false",
-                "VITE_API_BASE": "http://127.0.0.1:8000",
+                "VITE_API_BASE": backend_base,
             }
         )
         build = subprocess.run(
@@ -634,7 +692,16 @@ def probe_frontend_page_load(
         if build.returncode != 0:
             raise RuntimeError((build.stderr or build.stdout)[-1000:])
         backend = subprocess.Popen(
-            [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"],
+            [
+                sys.executable,
+                "-m",
+                "uvicorn",
+                "app.main:app",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(backend_port),
+            ],
             cwd=runtime_root,
             env=env,
             stdout=subprocess.DEVNULL,
@@ -645,14 +712,19 @@ def probe_frontend_page_load(
             import httpx
 
             for _ in range(100):
-                try:
-                    if httpx.get("http://127.0.0.1:8000/health", timeout=0.5).status_code == 200:
-                        break
-                except Exception:
-                    pass
                 if backend.poll() is not None:
                     error = backend.stderr.read() if backend.stderr else ""
                     raise RuntimeError(f"Benchmark API exited: {error[-1000:]}")
+                try:
+                    response = httpx.get(f"{backend_base}/health", timeout=0.5)
+                    if (
+                        response.status_code == 200
+                        and response.json().get("service") == "ttlab-research-intelligence"
+                        and backend.poll() is None
+                    ):
+                        break
+                except Exception:
+                    pass
                 time.sleep(0.1)
             else:
                 raise RuntimeError("Benchmark API did not become healthy")
@@ -665,7 +737,7 @@ def probe_frontend_page_load(
                     "--temperature",
                     temperature,
                     "--port",
-                    "5173",
+                    str(frontend_port),
                 ],
                 cwd=ROOT / "frontend",
                 env=env,
@@ -704,16 +776,25 @@ def probe_frontend_page_load(
                     "browser": "Playwright Chromium",
                     "viewport": "1440x900",
                     "wait_condition": "networkidle and visible main landmark",
+                    "backend_port": backend_port,
+                    "frontend_port": frontend_port,
                 },
             }
         )
     return {"stage": "frontend_page_load", "samples": samples}
 
 
+def available_loopback_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as handle:
+        handle.bind(("127.0.0.1", 0))
+        return int(handle.getsockname()[1])
+
+
 PROBES: dict[str, Callable[[Path, int | None, Path], tuple[int, str, dict[str, Any]]]] = {
     "discovery": probe_discovery,
     "import": probe_import,
     "pdf_extraction": probe_extraction,
+    "ocr_extraction": probe_ocr_extraction,
     "chunking": probe_chunking,
     "keyword_index": probe_keyword_index,
     "feature_hashing_index": probe_feature_hashing_index,
@@ -877,6 +958,7 @@ def _methodology(configuration: dict[str, Any]) -> dict[str, Any]:
 
 def _limitations() -> list[str]:
     return [
+        "Three repetitions make the linearly interpolated p95 descriptive and unstable; it is not a tail-latency estimate.",
         "Process-cold runs do not flush the Linux page cache or model files from the operating-system cache.",
         "The benchmark uses one local process and concurrency one; it is not a capacity, saturation, or multi-user load test.",
         "ASGI timings use FastAPI TestClient and exclude network/TLS latency; browser page timings are recorded separately.",
@@ -1080,9 +1162,16 @@ def benchmark(
     execution_end = execution_source_manifest(ignore_paths=ignored_paths)
     if execution_start != execution_end:
         raise RuntimeError("Source state changed while the performance benchmark was running")
+    if corpus["ocr_completed_papers"]:
+        ocr_status = "measured"
+        ocr_reason = "OCR timing is reported by the ocr_extraction stage for the OCR-used corpus subset."
+    else:
+        ocr_status = "not_applicable"
+        ocr_reason = "No eligible corpus paper used OCR in the frozen snapshot; the OCR stage records zero applicable units."
     results["ocr"] = {
-        "status": "not_applicable",
-        "reason": "No eligible corpus paper used OCR in the frozen snapshot; no OCR latency metric is reported.",
+        "status": ocr_status,
+        "reason": ocr_reason,
+        "stage": "ocr_extraction",
         "ocr_completed_papers": corpus["ocr_completed_papers"],
         "ocr_pages": corpus["ocr_pages"],
     }

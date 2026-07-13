@@ -5,7 +5,7 @@ import copy
 import pytest
 
 from app.evaluation.performance_benchmark import _canonical_sha256, summarize_samples
-from app.evaluation.performance_validator import validate_performance_artifact
+from app.evaluation.performance_validator import resolved_stages, validate_performance_artifact
 
 
 def _artifact() -> dict:
@@ -17,6 +17,8 @@ def _artifact() -> dict:
             "elapsed_seconds": float(repetition),
             "seconds_per_unit": float(repetition),
             "max_rss_kib": 100 + repetition,
+            "units": 2,
+            "details": {"processed": 2},
         }
         for repetition in range(1, 4)
     ]
@@ -30,7 +32,9 @@ def _artifact() -> dict:
     }
     corpus = {
         "database_sha256": "d" * 64,
+        "paper_rows": 2,
         "eligible_papers": 2,
+        "eligible_papers_with_pdf": 1,
         "eligible_chunks": 3,
         "ocr_completed_papers": 0,
         "ocr_pages": 0,
@@ -132,6 +136,10 @@ def test_validator_accepts_complete_zero_failure_artifact() -> None:
             lambda value: value["results"]["import"]["warm"]["samples"][0].update(status="failed"),
             "failed samples",
         ),
+        (
+            lambda value: value["results"]["import"]["warm"]["samples"][0].update(units=0),
+            "expected 2 units",
+        ),
         (lambda value: value["execution_source"]["end"].update(commit="f" * 40), "start/end"),
         (lambda value: value["methodology"].update(runtime_root="/home/user/project"), "runtime_root"),
     ],
@@ -146,3 +154,9 @@ def test_validator_rejects_incomplete_failed_or_unfrozen_artifacts(mutate, messa
             expected_repetitions=3,
             expected_stages=["import"],
         )
+
+
+def test_full_profile_cannot_validate_a_caller_selected_stage_subset() -> None:
+    with pytest.raises(ValueError, match="cannot override"):
+        resolved_stages("full", ["import"])
+    assert resolved_stages("quick", ["import"]) == ["import"]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import socket
 from pathlib import Path
 
 import pytest
@@ -8,12 +9,20 @@ import pytest
 from app.evaluation import performance_benchmark as benchmark_module
 from app.evaluation.performance_benchmark import (
     _sanitize_command,
+    available_loopback_port,
     atomic_write_json,
     benchmark,
     execution_source_manifest,
     percentile,
     summarize_samples,
 )
+
+
+def test_available_loopback_port_returns_a_bindable_dynamic_port() -> None:
+    port = available_loopback_port()
+    assert 0 < port < 65536
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as handle:
+        handle.bind(("127.0.0.1", port))
 
 
 def test_percentile_uses_linear_interpolation() -> None:

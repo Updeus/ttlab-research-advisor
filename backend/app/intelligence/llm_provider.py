@@ -116,7 +116,8 @@ class OllamaProvider:
         except Exception as exc:
             fallback = OfflineExtractiveProvider().generate_answer(question, context_chunks, audience, max_words)
             fallback.warnings.append(
-                f"Ollama model {self.model} was unavailable or failed; used offline extractive fallback. Reason: {exc}"
+                f"Ollama model {self.model} was unavailable or failed; used offline extractive fallback. "
+                f"Reason: {type(exc).__name__}."
             )
             return fallback
 
@@ -151,22 +152,29 @@ class OptionalOpenAIProvider:
 
 
 def get_provider(provider_name: str = "auto", model_name: str | None = None) -> LLMProvider:
-    if provider_name in {"auto", "offline_extractive", "extractive_mock"}:
-        if provider_name == "auto" and os.getenv("TTLAB_DEFAULT_LLM_PROVIDER", "offline_extractive") == "ollama":
-            return OllamaProvider(model_name=model_name)
-        if provider_name == "auto" and OptionalOpenAIProvider().available:
-            return OptionalOpenAIProvider()
+    normalized = (provider_name or "auto").strip().lower()
+    settings = get_settings()
+    allowed = {provider.strip().lower() for provider in settings.allowed_llm_providers}
+    if normalized == "extractive_mock":
+        normalized = "offline_extractive"
+    if normalized == "auto":
+        preferred = os.getenv("TTLAB_DEFAULT_LLM_PROVIDER", "offline_extractive").strip().lower()
+        normalized = preferred if preferred in allowed else "offline_extractive"
+    if normalized not in allowed:
+        raise ValueError(f"LLM provider '{normalized}' is not in TTLAB_ALLOWED_LLM_PROVIDERS")
+    if normalized == "offline_extractive":
         return OfflineExtractiveProvider()
-    if provider_name == "ollama":
+    if normalized == "ollama":
         return OllamaProvider(model_name=model_name)
-    if provider_name == "openai":
+    if normalized == "openai":
         openai = OptionalOpenAIProvider()
         return openai if openai.available else OfflineExtractiveProvider()
     raise ValueError(f"Unknown LLM provider: {provider_name}")
 
 
 def external_provider_available() -> bool:
-    return OptionalOpenAIProvider().available
+    settings = get_settings()
+    return "openai" in {provider.strip().lower() for provider in settings.allowed_llm_providers} and OptionalOpenAIProvider().available
 
 
 def build_ollama_prompt(

@@ -26,10 +26,11 @@ REVISIONS: dict[str, dict[str, Any]] = {
         "add_evidence": [
             {
                 "paper_id": "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
-                "chunk_id": "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6-chunk-0003-c6666cec71b8",
+                "chunk_id": "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6-chunk-0003-bd4732938ae8",
                 "page_start": 3,
-                "page_end": 3,
+                "page_end": 4,
                 "section": "Methodology",
+                "source_hash": "cd2f53b74a6ec6fd1bb887999891938f9de366df74949fe6cabcec6ad8a7555b",
                 "evidence_summary": "The implemented extraction stage uses SkillNER, a spaCy-based NER pipeline, to normalize technical and soft skills before topic analysis.",
             }
         ],
@@ -42,18 +43,20 @@ REVISIONS: dict[str, dict[str, Any]] = {
         "replace_evidence": [
             {
                 "paper_id": "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
-                "chunk_id": "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce-chunk-0001-b23ace62200e",
+                "chunk_id": "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce-chunk-0001-d69fcfdd3f19",
                 "page_start": 1,
                 "page_end": 2,
-                "section": "Unknown",
+                "section": "Literature Review",
+                "source_hash": "89c1dcb73143deae5b328c1936e9fcd8059c1e046aebf3e19cafc52fa58f04fd",
                 "evidence_summary": "The paper describes prescription-label scanning for auto-fill, expiry-ordered medication stock, security questions for edits, and an offline-first design; verification codes and contact alerts are identified as planned.",
             },
             {
                 "paper_id": "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
-                "chunk_id": "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce-chunk-0003-9c22b6b1adb5",
+                "chunk_id": "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce-chunk-0003-5eff5a326e90",
                 "page_start": 3,
                 "page_end": 4,
                 "section": "Unknown",
+                "source_hash": "b067cd8c57b808910b2ad30242b12e34e5766cb77c1f8df4d0e2887b06b0fbb1",
                 "evidence_summary": "The implemented workflows include expiry-ordered stock, soft deletion, and security-question gates; the backend is FastAPI, while stronger OAuth/JWT protection and OCR parsing are described as planned.",
             },
         ],
@@ -66,10 +69,11 @@ REVISIONS: dict[str, dict[str, Any]] = {
         "add_evidence": [
             {
                 "paper_id": "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
-                "chunk_id": "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71-chunk-0004-1e6316e65b60",
-                "page_start": 3,
+                "chunk_id": "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71-chunk-0004-d79d5897dc9e",
+                "page_start": 4,
                 "page_end": 4,
-                "section": "Methodology",
+                "section": "Discussion",
+                "source_hash": "97d4affa14109af1d8f80831e1f55154042c72c7c8699333c3bdc8245be3ad2b",
                 "evidence_summary": "The complete multi-step table and discussion show recursive wins for tomato, ginger, and cabbage and direct wins for the other seven crops, with per-crop MAPE values.",
             }
         ],
@@ -83,10 +87,11 @@ REVISIONS: dict[str, dict[str, Any]] = {
         "add_evidence": [
             {
                 "paper_id": "weed-and-water-stress-detection-using-drone-video-03885d3b",
-                "chunk_id": "weed-and-water-stress-detection-using-drone-video-03885d3b-chunk-0000-90b1478af03b",
+                "chunk_id": "weed-and-water-stress-detection-using-drone-video-03885d3b-chunk-0000-5f6c9fba2136",
                 "page_start": 1,
                 "page_end": 2,
-                "section": "Abstract",
+                "section": "Introduction",
+                "source_hash": "ece0475e6f3cb89704e1f804f5e9c52c35a95525aa03a61dce612615bf0f7a95",
                 "evidence_summary": "The FAAIR study applies UAV data and machine-learning models to tropical-island weed detection and water-stress estimation, motivated by climate and food-security concerns.",
             }
         ],
@@ -103,10 +108,11 @@ REVISIONS: dict[str, dict[str, Any]] = {
         "add_evidence": [
             {
                 "paper_id": "improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29",
-                "chunk_id": "improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29-chunk-0000-79f80a434b4e",
+                "chunk_id": "improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29-chunk-0000-bbcb9729c6a7",
                 "page_start": 1,
                 "page_end": 2,
-                "section": "Abstract",
+                "section": "Introduction",
+                "source_hash": "168f0143a37e2a885e74845c55428e7772cd211d64216541e85e17569c10bc21",
                 "evidence_summary": "Smart-meter readings and deep neural networks are used to estimate network loading and improve capacity planning through load forecasting.",
             },
             {
@@ -114,7 +120,8 @@ REVISIONS: dict[str, dict[str, Any]] = {
                 "chunk_id": "power-grid-fault-detection-using-an-amr-network-0c474959-chunk-0000-a666b11c558e",
                 "page_start": 1,
                 "page_end": 1,
-                "section": "Abstract",
+                "section": "Introduction",
+                "source_hash": "182c21effc585f938ca97dbc485ce1bf2dd5802a46fbc1a6d1cb61dfcece162c",
                 "evidence_summary": "The paper uses AMR meter reports and power-outage notifications for grid fault detection without requiring a full AMI deployment.",
             },
         ],
@@ -128,10 +135,11 @@ REVISIONS: dict[str, dict[str, Any]] = {
         "replace_evidence": [
             {
                 "paper_id": "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
-                "chunk_id": "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a-chunk-0000-39b2a5f562ad",
+                "chunk_id": "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a-chunk-0000-cfb3ca9cb47a",
                 "page_start": 1,
                 "page_end": 1,
-                "section": "Abstract",
+                "section": "Introduction",
+                "source_hash": "83b8d43aec40e3c5388a3a3cea18409eebb18b4f3aead26f1c5eb573284f21b1",
                 "evidence_summary": "The academic-research platform addresses publication visibility through lay summaries and optional podcast presentation; the evidence does not by itself establish a fully automated audio pipeline.",
             },
             {
@@ -139,7 +147,8 @@ REVISIONS: dict[str, dict[str, Any]] = {
                 "chunk_id": "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982-chunk-0000-a8ab61a355bc",
                 "page_start": 1,
                 "page_end": 1,
-                "section": "Abstract",
+                "section": "Introduction",
+                "source_hash": "63219083ed7b80a4116e7fcf0f25cc11883f5fa67f747924e49c19e9004736e6",
                 "evidence_summary": "The news system converts trusted print-media content into personalized audio for time-constrained and blind listeners.",
             },
         ],

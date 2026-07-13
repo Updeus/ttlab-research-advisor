@@ -47,13 +47,14 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["paper_id", "chunk_id", "page_start", "page_end", "section", "evidence_summary"],
+        "required": ["paper_id", "chunk_id", "page_start", "page_end", "section", "source_hash", "evidence_summary"],
         "properties": {
           "paper_id": {"type": "string", "minLength": 1},
           "chunk_id": {"type": "string", "minLength": 1},
           "page_start": {"type": ["integer", "null"], "minimum": 1},
           "page_end": {"type": ["integer", "null"], "minimum": 1},
           "section": {"type": ["string", "null"]},
+          "source_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
           "evidence_summary": {"type": "string", "minLength": 10}
         }
       }

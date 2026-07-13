@@ -108,7 +108,6 @@ def build_vector_result(chunk: Chunk, paper: Paper | None, score: float, provide
         "source": {
             "pdf_url": paper.pdf_url if paper else None,
             "post_url": paper.post_url if paper else None,
-            "local_pdf_path": paper.local_pdf_path if paper else None,
         },
     }
 

@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import delete
-from sqlmodel import Session, desc, func, select
+from sqlmodel import Session, func, select
 
 from app.db import create_db_and_tables, engine
 from app.indexing.retriever import retrieve
@@ -39,25 +39,25 @@ SYNONYM_MAP = {
 }
 
 TOPIC_RULES: list[tuple[str, tuple[str, ...]]] = [
-    ("rag", ("retrieval augmented generation", "retrieval-augmented generation", " rag ")),
-    ("ai", ("artificial intelligence", " ai ", "intelligent system")),
-    ("machine learning", ("machine learning", " ml ", "classification", "neural", "deep learning")),
-    ("information retrieval", ("retrieval", "search engine", "ranking", "relevance")),
-    ("data science", ("data science", "data analysis", "data-driven", "dataset", "benchmark")),
-    ("research discovery", ("research discovery", "academic discovery", "publication", "paper evidence")),
-    ("web applications", ("web application", "web app", "dashboard", "api", "frontend")),
-    ("open data", ("open data", "data portal", "real time data", "repository")),
-    ("education", ("education", "student", "learning", "teaching")),
-    ("optimization", ("optimization", "optimisation", "linear programming", "integer programming")),
-    ("iot", ("internet of things", " iot ", "sensor", "sensors")),
-    ("agriculture", ("agriculture", "agricultural", "crop", "farming")),
-    ("climate", ("climate", "weather", "rainfall", "temperature")),
+    ("rag", ("retrieval augmented generation", "retrieval-augmented generation", "rag")),
+    ("ai", ("artificial intelligence", "generative ai", "intelligent system")),
+    ("machine learning", ("machine learning", "deep learning", "neural network", "classification model")),
+    ("information retrieval", ("information retrieval", "search engine", "document retrieval", "retrieval system")),
+    ("data science", ("data science", "data analysis", "data-driven", "data centric", "data-centric")),
+    ("research discovery", ("research discovery", "academic discovery", "publication discovery", "research archive")),
+    ("web applications", ("web application", "web app", "web-based", "data dashboard", "frontend")),
+    ("open data", ("open data", "open dataset", "data portal", "real-time data portal")),
+    ("education", ("education", "educational", "student", "teaching", "school discipline", "university curricula")),
+    ("optimization", ("optimization", "optimisation", "linear programming", "integer programming", "optimal allocation")),
+    ("iot", ("internet of things", "iot", "wearable device", "edge device", "sensor network")),
+    ("agriculture", ("agriculture", "agricultural", "crop", "farming", "plantation")),
+    ("climate", ("climate", "weather", "rainfall", "coastal vulnerability", "deforestation")),
     ("telecommunications", ("telecommunication", "telecom", "wireless", "cellular")),
     ("mobile services", ("mobile data", "mobile service", "m-commerce", "esim", "quality of service", " qos ")),
-    ("networks", ("network", "networks", "routing", "traffic flow")),
-    ("visualization", ("visualization", "visualisation", "dashboard", "chart", "graph")),
+    ("networks", ("communication network", "wireless network", "cellular network", "social network", "network traffic", "routing")),
+    ("visualization", ("visualization", "visualisation", "visual analytics", "data dashboard")),
     ("natural language processing", ("natural language", "nlp", "language model", "text mining")),
-    ("summarization", ("summarization", "summarisation", "summary", "summarize")),
+    ("summarization", ("summarization", "summarisation", "automatic summary", "text summary")),
     ("chatbots", ("chatbot", "conversational", "personalized feedback")),
     ("clustering", ("clustering", "cluster", "document clustering", "topic modelling", "topic modeling")),
     ("word embeddings", ("word embedding", "word embeddings", "gaussian word")),
@@ -69,14 +69,14 @@ TOPIC_RULES: list[tuple[str, tuple[str, ...]]] = [
     ("insurance", ("insurance", "premium", "claim", "claims")),
     ("pricing", ("pricing", "price", "premium rate")),
     ("marketing", ("marketing", "customer contact", "targeted")),
-    ("recommendation systems", ("playlist", "recommendation", "shuffle", "sequencing")),
+    ("recommendation systems", ("recommender system", "recommendation system", "product recommendation", "playlist shuffling")),
     ("e-commerce", ("e-commerce", "commerce", "m-commerce")),
-    ("supply chain", ("delivery", "deliveries", "product deliver")),
+    ("supply chain", ("supply chain", "product delivery", "product deliveries")),
     ("smart grid", ("smart meter", "meter readings")),
     ("body shape detection", ("body shape", "shape detection")),
     ("civil society", ("civil society", "data4good")),
     ("internet resilience", ("internet resilience", "small island")),
-    ("simulation", ("simulation", "simulator", "simulate")),
+    ("simulation", ("simulation", "simulator", "simulated")),
     ("energy", ("energy", "power grid", "electricity")),
 ]
 
@@ -125,7 +125,7 @@ def topic_id_for(normalized_name: str) -> str:
 
 
 def rebuild_topic_index(session: Session) -> dict[str, Any]:
-    papers = list(session.exec(select(Paper).order_by(Paper.title)).all())
+    papers = eligible_papers(session)
     session.execute(delete(PaperTopic))
     session.execute(delete(AuthorTopic))
     session.commit()
@@ -184,56 +184,88 @@ def candidates_from_reviewed_topics(paper: Paper) -> dict[str, TopicCandidate]:
 
 
 def topic_candidates_for_paper(session: Session, paper: Paper) -> dict[str, TopicCandidate]:
+    if paper.corpus_eligibility_status != "eligible":
+        return {}
     candidates: dict[str, TopicCandidate] = {}
     for topic in paper.topics:
         add_candidate(candidates, topic, score=2.8, source="paper_topics", text=f"Paper topic: {topic}", field="paper.topics")
     for keyword in paper.keywords:
         add_candidate(candidates, keyword, score=1.6, source="paper_keywords", text=f"Paper keyword: {keyword}", field="paper.keywords")
 
-    infer_topics_from_text(candidates, paper.title, score=1.0, source="paper_title", field="title")
-    if paper.venue:
-        infer_topics_from_text(candidates, paper.venue, score=0.4, source="venue", field="venue")
+    infer_topics_from_text(candidates, paper.title, score=2.4, source="paper_title", field="title")
 
-    chunks = session.exec(
-        select(Chunk).where(Chunk.paper_id == paper.paper_id).order_by(Chunk.chunk_index).limit(10)
-    ).all()
+    chunks = publication_topic_chunks(session, paper.paper_id)
     for chunk in chunks:
-        if chunk.section:
-            infer_topics_from_text(
-                candidates,
-                chunk.section,
-                score=0.35,
-                source="chunk_section",
-                field="chunk.section",
-                chunk_id=chunk.chunk_id,
-            )
+        section = str(chunk.section or "Unknown")
+        score = 0.9 if section in {"Abstract", "Introduction"} or chunk.chunk_index == 0 else 0.45
         infer_topics_from_text(
             candidates,
             chunk.text[:1600],
-            score=0.55,
+            score=score,
             source="chunk_text",
             field="chunk.text",
             chunk_id=chunk.chunk_id,
         )
+    return {
+        name: candidate
+        for name, candidate in candidates.items()
+        if candidate.score >= 1.35 or any(item["source"] in {"paper_topics", "paper_keywords"} for item in candidate.evidence)
+    }
 
-    artifacts = session.exec(
-        select(PaperArtifact)
-        .where(PaperArtifact.paper_id == paper.paper_id)
-        .where(PaperArtifact.generation_status == "generated")
-        .order_by(desc(PaperArtifact.created_at))
-        .limit(8)
-    ).all()
-    for artifact in artifacts:
-        for text_value in artifact_topic_texts(artifact):
-            infer_topics_from_text(
-                candidates,
-                text_value,
-                score=0.85,
-                source=f"artifact:{artifact.artifact_type}",
-                field="artifact.generated_json",
-                artifact_id=artifact.artifact_id,
-            )
-    return candidates
+
+def eligible_papers(session: Session) -> list[Paper]:
+    """Return the reviewed publication corpus used by the explorer.
+
+    Catalogue-only, unavailable, and source/PDF-mismatch rows remain visible in
+    the catalogue but cannot contribute topic or author-expertise evidence.
+    """
+
+    return list(
+        session.exec(
+            select(Paper)
+            .where(Paper.corpus_eligibility_status == "eligible")
+            .order_by(Paper.title, Paper.paper_id)
+        ).all()
+    )
+
+
+def publication_topic_chunks(session: Session, paper_id: str) -> list[Chunk]:
+    """Select bounded primary-source passages and exclude reference prose.
+
+    Literature-review and reference chunks contain vocabulary about other work
+    and produced most of the earlier false-positive topic links.  The title,
+    abstract/introduction, methods/results/discussion, and conclusion are the
+    defensible publication-derived basis for a paper-level controlled label.
+    """
+
+    chunks = list(
+        session.exec(
+            select(Chunk)
+            .where(Chunk.paper_id == paper_id)
+            .where(Chunk.section.notin_(["References", "Literature Review"]))
+            .order_by(Chunk.chunk_index)
+        ).all()
+    )
+    if not chunks:
+        # A small number of legacy PDFs have a section label propagated across
+        # the title/abstract chunk.  Retain the first non-reference passage as
+        # an explicit bounded fallback instead of dropping the paper entirely.
+        chunks = list(
+            session.exec(
+                select(Chunk)
+                .where(Chunk.paper_id == paper_id)
+                .where(Chunk.section != "References")
+                .order_by(Chunk.chunk_index)
+                .limit(2)
+            ).all()
+        )
+    if len(chunks) <= 6:
+        return chunks
+    first = chunks[:5]
+    concluding = next((chunk for chunk in reversed(chunks) if chunk.section in {"Conclusion", "Discussion"}), None)
+    if concluding is not None and concluding.chunk_id not in {chunk.chunk_id for chunk in first}:
+        first.append(concluding)
+    return first
 
 
 def add_candidate(
@@ -278,9 +310,10 @@ def infer_topics_from_text(
 ) -> None:
     if not text_value:
         return
-    searchable = f" {re.sub(r'[^a-z0-9+# ]+', ' ', text_value.lower())} "
+    searchable = re.sub(r"[^a-z0-9+# ]+", " ", text_value.casefold())
+    searchable = re.sub(r"\s+", " ", searchable).strip()
     for normalized_name, terms in TOPIC_RULES:
-        if any(term in searchable for term in terms):
+        if any(phrase_in_text(term, searchable) for term in terms):
             add_candidate(
                 candidates,
                 normalized_name,
@@ -293,29 +326,12 @@ def infer_topics_from_text(
             )
 
 
-def artifact_topic_texts(artifact: PaperArtifact) -> list[str]:
-    payload = artifact.corrected_json if artifact.corrected_json else artifact.generated_json
-    texts: list[str] = []
-    if artifact.generated_text:
-        texts.append(artifact.generated_text)
-    texts.extend(recursive_text_values(payload, preferred_keys={"skills", "summary", "text", "title", "basis"}))
-    return [text for text in texts if text]
-
-
-def recursive_text_values(value: Any, *, preferred_keys: set[str]) -> list[str]:
-    texts: list[str] = []
-    if isinstance(value, dict):
-        for key, child in value.items():
-            if key in preferred_keys and isinstance(child, str):
-                texts.append(child)
-            elif key == "skills" and isinstance(child, list):
-                texts.extend(str(item) for item in child)
-            else:
-                texts.extend(recursive_text_values(child, preferred_keys=preferred_keys))
-    elif isinstance(value, list):
-        for child in value:
-            texts.extend(recursive_text_values(child, preferred_keys=preferred_keys))
-    return texts
+def phrase_in_text(term: str, searchable: str) -> bool:
+    normalized_term = re.sub(r"[^a-z0-9+# ]+", " ", term.casefold())
+    normalized_term = re.sub(r"\s+", " ", normalized_term).strip()
+    if not normalized_term:
+        return False
+    return re.search(rf"(?<![a-z0-9]){re.escape(normalized_term)}(?![a-z0-9])", searchable) is not None
 
 
 def upsert_topic(
@@ -359,13 +375,21 @@ def update_topic_descriptions(session: Session) -> None:
 
 
 def rebuild_author_topics(session: Session) -> int:
-    papers = list(session.exec(select(Paper)).all())
+    papers = eligible_papers(session)
     paper_topics = list(session.exec(select(PaperTopic)).all())
     links_by_paper: dict[str, list[PaperTopic]] = {}
     for link in paper_topics:
         links_by_paper.setdefault(link.paper_id, []).append(link)
 
     link_count = 0
+    for author in session.exec(
+        select(Author).where(Author.identity_status.notin_(["merged", "invalid"]))
+    ).all():
+        author.paper_count = 0
+        if author.review_status not in REVIEWED_STATUSES:
+            author.research_topics = []
+        author.updated_at = utc_now()
+        session.add(author)
     canonical_groups: dict[int, tuple[Author, list[Paper]]] = {}
     for author_name, raw_authored_papers in group_papers_by_author(papers).items():
         author = active_author_for_name(session, author_name)
@@ -439,10 +463,19 @@ def explorer_overview(session: Session) -> dict[str, Any]:
     topics = list(session.exec(select(Topic).order_by(Topic.name)).all())
     authors = list(
         session.exec(
-            select(Author).where(Author.identity_status.notin_(["merged", "invalid"])).order_by(Author.name)
+            select(Author)
+            .where(Author.identity_status.notin_(["merged", "invalid"]))
+            .where(Author.paper_count > 0)
+            .order_by(Author.name)
         ).all()
     )
-    papers = list(session.exec(select(Paper).order_by(Paper.year.desc(), Paper.title)).all())
+    papers = list(
+        session.exec(
+            select(Paper)
+            .where(Paper.corpus_eligibility_status == "eligible")
+            .order_by(Paper.year.desc(), Paper.title)
+        ).all()
+    )
     paper_topic_count = session.exec(select(func.count()).select_from(PaperTopic)).one()
     author_topic_count = session.exec(select(func.count()).select_from(AuthorTopic)).one()
     return {
@@ -558,7 +591,10 @@ def list_authors(
 ) -> dict[str, Any]:
     authors = list(
         session.exec(
-            select(Author).where(Author.identity_status.notin_(["merged", "invalid"])).order_by(Author.name)
+            select(Author)
+            .where(Author.identity_status.notin_(["merged", "invalid"]))
+            .where(Author.paper_count > 0)
+            .order_by(Author.name)
         ).all()
     )
     if q:
@@ -649,7 +685,7 @@ def authored_papers(session: Session, author: Author) -> list[Paper]:
     names.update(alias["normalized_alias"] for alias in author_aliases(session, author))
     return [
         paper
-        for paper in session.exec(select(Paper)).all()
+        for paper in session.exec(select(Paper).where(Paper.corpus_eligibility_status == "eligible")).all()
         if any(normalize_author_key(name) in names for name in paper.authors)
     ]
 
@@ -693,9 +729,10 @@ def top_topics_for_author(session: Session, author: Author) -> list[dict[str, An
 
 def coauthors_for(author_name: str, papers: list[Paper]) -> list[dict[str, Any]]:
     counts: dict[str, int] = {}
+    author_key = normalize_author_key(author_name)
     for paper in papers:
         for coauthor in paper.authors:
-            if coauthor != author_name:
+            if normalize_author_key(coauthor) != author_key:
                 counts[coauthor] = counts.get(coauthor, 0) + 1
     return [{"name": name, "paper_count": count} for name, count in sorted(counts.items(), key=lambda item: item[1], reverse=True)]
 
@@ -703,17 +740,18 @@ def coauthors_for(author_name: str, papers: list[Paper]) -> list[dict[str, Any]]
 def expertise_summary(author: Author, topics: list[dict[str, Any]], papers: list[Paper]) -> str:
     topic_text = ", ".join(topic["name"] for topic in topics[:4]) or "topics needing review"
     return (
-        f"Potential researcher fit based on authorship and indexed paper topics: {author.canonical_name or author.name} has "
-        f"{len(papers)} indexed TTLAB paper(s), with recurring topics including {topic_text}. "
-        "This is derived from indexed records, not verified supervisor availability."
+        f"Within the indexed TTLAB corpus, {author.canonical_name or author.name} is listed as an author on "
+        f"{len(papers)} eligible publication(s). Controlled-vocabulary links for those publications include "
+        f"{topic_text}. This is bibliographic evidence only; it does not establish broader expertise, current "
+        "availability, endorsement, or suitability for supervision or collaboration."
     )
 
 
 def get_related_papers(session: Session, paper_id: str, *, limit: int = 5) -> list[dict[str, Any]]:
     paper = session.get(Paper, paper_id)
-    if paper is None:
+    if paper is None or paper.corpus_eligibility_status != "eligible":
         return []
-    all_papers = [candidate for candidate in session.exec(select(Paper)).all() if candidate.paper_id != paper_id]
+    all_papers = [candidate for candidate in eligible_papers(session) if candidate.paper_id != paper_id]
     base_topics = topics_for_paper(session, paper.paper_id)
     base_authors = set(paper.authors)
     semantic_scores = semantic_related_scores(session, paper, limit=max(limit * 4, limit))

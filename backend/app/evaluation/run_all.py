@@ -49,7 +49,7 @@ def build_commands() -> list[tuple[str, list[str], bool]]:
                 "--mode",
                 "hybrid",
                 "--top-k",
-                "5",
+                "10",
             ],
             retrieval_placeholder,
         ),

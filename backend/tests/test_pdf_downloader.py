@@ -57,12 +57,16 @@ def test_pdf_downloader_counts_forbidden_and_invalid_pdf(tmp_path: Path) -> None
             tmp_path,
             download=True,
             client=forbidden_client,
+            allowed_hosts=["example.test"],
+            resolver=lambda *_args, **_kwargs: ["93.184.216.34"],
         )
         invalid = download_pdfs(
             [DownloadRecord(paper_id="invalid", pdf_url="https://example.test/invalid.pdf")],
             tmp_path,
             download=True,
             client=invalid_client,
+            allowed_hosts=["example.test"],
+            resolver=lambda *_args, **_kwargs: ["93.184.216.34"],
         )
     finally:
         forbidden_client.close()

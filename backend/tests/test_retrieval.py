@@ -6,7 +6,8 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.db import get_session
-from app.evaluation.retrieval_eval import calculate_metrics, evaluate_retrieval
+from app.api import search as search_api_module
+from app.evaluation.retrieval_eval import calculate_metrics, evaluate_ranked_query, evaluate_retrieval
 from app.indexing.embedder import HashingEmbeddingProvider, index_chunks
 from app.indexing.keyword_search import make_snippet, rebuild_keyword_index, search_keyword
 from app.indexing.retriever import diversify_ranked_entries, expand_query, has_rag_signal, retrieve
@@ -167,10 +168,17 @@ def test_diversity_prefers_a_second_paper_when_scores_are_close() -> None:
     assert [entry["base"]["paper_id"] for entry in selected] == ["rag-paper", "traffic-paper"]
 
 
-def test_api_search_and_diagnostics_work() -> None:
+def test_api_search_and_diagnostics_work(tmp_path: Path, monkeypatch) -> None:
     session, engine = build_test_session()
     rebuild_keyword_index(session)
+    index_path = tmp_path / "api-feature-hashing.json"
+    index_chunks(session, output_path=index_path)
     session.close()
+
+    def retrieve_with_fixture_index(session: Session, query: str, **kwargs):
+        return retrieve(session, query, index_path=index_path, **kwargs)
+
+    monkeypatch.setattr(search_api_module, "retrieve", retrieve_with_fixture_index)
 
     def override_session() -> Generator[Session, None, None]:
         with Session(engine) as session:
@@ -198,15 +206,32 @@ def test_api_search_and_diagnostics_work() -> None:
 
 def test_retrieval_eval_metrics() -> None:
     evaluated = [
-        {"hit_at_3": True, "hit_at_5": True, "reciprocal_rank": 1.0},
-        {"hit_at_3": False, "hit_at_5": True, "reciprocal_rank": 0.25},
+        evaluate_ranked_query(
+            {
+                "case_id": "q1",
+                "question": "Find both relevant papers",
+                "answerability": "answerable",
+                "relevant_paper_ids": ["a", "b"],
+            },
+            ["a", "x", "b"],
+        ),
+        evaluate_ranked_query(
+            {
+                "case_id": "q2",
+                "question": "Find another pair of papers",
+                "answerability": "answerable",
+                "relevant_paper_ids": ["c", "d"],
+            },
+            ["x", "c"],
+        ),
     ]
 
     metrics = calculate_metrics(evaluated)
 
-    assert metrics["recall_at_3"] == 0.5
-    assert metrics["recall_at_5"] == 1.0
-    assert metrics["mrr"] == 0.625
+    assert metrics["set_recall_at_3"] == 0.75
+    assert metrics["hit_at_3"] == 1.0
+    assert metrics["precision_at_3"] == 0.5
+    assert metrics["mrr"] == 0.75
 
 
 def test_retrieval_eval_runs_on_fixture_questions(tmp_path: Path) -> None:
@@ -216,9 +241,16 @@ def test_retrieval_eval_runs_on_fixture_questions(tmp_path: Path) -> None:
         rebuild_keyword_index(session)
         index_chunks(session, output_path=index_path)
         questions = [{"question": "retrieval augmented generation", "gold_paper_ids": ["rag-paper"]}]
-        result = evaluate_retrieval(session, questions, mode="keyword", top_k=5)
+        result = evaluate_retrieval(
+            session,
+            questions,
+            mode="keyword",
+            top_k=10,
+            bootstrap_repetitions=20,
+            retain_bootstrap_replicates=False,
+        )
     finally:
         session.close()
 
     assert result["metrics"]["question_count"] == 1
-    assert result["metrics"]["recall_at_5"] == 1.0
+    assert result["metrics"]["set_recall_at_5"] == 1.0

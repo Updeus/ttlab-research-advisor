@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+tmp/
 *.tsbuildinfo
 
 .env
@@ -12,6 +13,8 @@ __pycache__/
 node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/test-results/
+frontend/playwright-report/
 frontend/vite.config.d.ts
 frontend/vite.config.js
 
@@ -29,6 +32,7 @@ data/indexes/*
 !data/indexes/.gitkeep
 data/generated/*
 !data/generated/.gitkeep
+backend/data/
 data/evaluation/*_results.json
 data/evaluation/*_results.csv
 
@@ -42,3 +46,4 @@ build/*
 # Local, restricted baseline backups. Commit only the generated checksum
 # manifest under artifacts/baseline, never database/index bytes.
 artifacts/baseline/private-backups/
+artifacts/phase3/private/

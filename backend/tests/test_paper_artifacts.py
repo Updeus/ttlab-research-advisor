@@ -10,6 +10,16 @@ from app.intelligence.artifact_verifier import verify_artifact_payload
 from app.intelligence.paper_artifact_generator import generate_paper_artifacts
 from app.main import app
 from app.models import Chunk, Paper, PaperArtifact
+from app.security import AuthenticatedActor, require_admin, require_reviewer
+
+
+TEST_ADMIN = AuthenticatedActor(
+    actor_id="test-admin",
+    display_name="Test Administrator",
+    role="admin",
+    reviewer_type="human",
+    request_id="test-request",
+)
 
 
 def build_artifact_session() -> tuple[Session, object]:
@@ -27,6 +37,7 @@ def build_artifact_session() -> tuple[Session, object]:
             authors=["Asha Singh"],
             year=2025,
             pdf_text_status="extracted",
+            corpus_eligibility_status="eligible",
             pages_with_text=8,
             page_count=8,
             chunk_count=3,
@@ -180,6 +191,8 @@ def test_artifact_api_endpoints_and_batch_limit_work() -> None:
             yield session
 
     app.dependency_overrides[get_session] = override_session
+    app.dependency_overrides[require_reviewer] = lambda: TEST_ADMIN
+    app.dependency_overrides[require_admin] = lambda: TEST_ADMIN
     try:
         client = TestClient(app)
         generated = client.post(

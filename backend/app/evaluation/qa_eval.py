@@ -28,7 +28,7 @@ def load_questions(path: Path) -> list[dict[str, Any]]:
 def evaluate_qa(session: Session, questions: list[dict[str, Any]], *, mode: str = "hybrid", top_k: int = 5) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     for question in questions:
-        response = ask_question(session, str(question["question"]), mode=mode, top_k=top_k)
+        response = ask_question(session, str(question["question"]), mode=mode, top_k=top_k, persist=False)
         cited_paper_ids = sorted({citation["paper_id"] for citation in response["citations"]})
         gold = set(str(paper_id) for paper_id in question["gold_paper_ids"])
         rows.append(

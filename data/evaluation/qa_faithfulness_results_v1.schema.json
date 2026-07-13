@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Updeus/ttlab-research-advisor/data/evaluation/qa_faithfulness_results_v1.schema.json",
+  "title": "TTLAB adjudicated AI-assisted formative QA result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "qa_case_id",
+    "retrieval_case_id",
+    "question",
+    "category",
+    "answerability",
+    "split",
+    "answer",
+    "answer_sha256",
+    "provider",
+    "model",
+    "retrieval_mode",
+    "top_k",
+    "returned_citation_ids",
+    "did_abstain",
+    "creation_review",
+    "verification_review",
+    "adjudicated_claims",
+    "adjudicated_answer_points",
+    "case_error_codes",
+    "disagreements",
+    "review_status",
+    "reviewer_type",
+    "reviewer_id",
+    "reviewed_at"
+  ],
+  "properties": {
+    "qa_case_id": {"type": "string", "pattern": "^qa-silver-[0-9]{3}$"},
+    "retrieval_case_id": {"type": "string", "pattern": "^ret-silver-[0-9]{3}$"},
+    "question": {"type": "string", "minLength": 10},
+    "category": {"type": "string", "minLength": 1},
+    "answerability": {"enum": ["answerable", "unanswerable"]},
+    "split": {"enum": ["dev", "test"]},
+    "answer": {"type": "string", "minLength": 1},
+    "answer_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "provider": {"const": "offline_extractive"},
+    "model": {"const": "sentence-overlap-v1"},
+    "retrieval_mode": {"const": "hybrid"},
+    "top_k": {"const": 5},
+    "returned_citation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "did_abstain": {"type": "boolean"},
+    "creation_review": {"$ref": "#/$defs/reviewPass"},
+    "verification_review": {"$ref": "#/$defs/reviewPass"},
+    "adjudicated_claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "adjudicated_answer_points": {"type": "array", "items": {"$ref": "#/$defs/point"}},
+    "case_error_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "disagreements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_ids", "answer_point_ids", "resolution"],
+      "properties": {
+        "claim_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "answer_point_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "resolution": {"type": "string", "minLength": 20}
+      }
+    },
+    "review_status": {"const": "ai_reviewed_formative"},
+    "reviewer_type": {"const": "ai"},
+    "reviewer_id": {"const": "codex-ai-review"},
+    "reviewed_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "reviewPass": {
+      "type": "object",
+      "required": [
+        "qa_case_id",
+        "review_pass",
+        "reviewer_id",
+        "reviewer_type",
+        "provider",
+        "model",
+        "model_digest",
+        "reviewed_at",
+        "raw_prompt_sha256",
+        "did_abstain",
+        "claim_judgments",
+        "answer_point_judgments"
+      ],
+      "properties": {
+        "qa_case_id": {"type": "string"},
+        "review_pass": {"enum": ["create", "verify_shuffled"]},
+        "reviewer_id": {"const": "codex-ai-review"},
+        "reviewer_type": {"const": "ai"},
+        "provider": {"const": "openai-codex"},
+        "model": {"const": "not_exposed_by_runtime"},
+        "model_digest": {"type": "null"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "raw_prompt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "did_abstain": {"type": "boolean"},
+        "claim_judgments": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+        "answer_point_judgments": {"type": "array", "items": {"$ref": "#/$defs/point"}}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "required": [
+        "claim_id",
+        "text",
+        "claim_type",
+        "checkable_corpus_claim",
+        "requires_citation",
+        "inline_source_ids",
+        "support_label",
+        "citation_judgments",
+        "unsupported_general_knowledge",
+        "source_inspection_rationale",
+        "error_codes"
+      ],
+      "properties": {
+        "claim_id": {"type": "string"},
+        "text": {"type": "string", "minLength": 1},
+        "claim_type": {"type": "string"},
+        "checkable_corpus_claim": {"type": "boolean"},
+        "requires_citation": {"type": "boolean"},
+        "inline_source_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "segmentation_metadata": {"type": "object"},
+        "support_label": {"enum": ["supported", "partially_supported", "unsupported"]},
+        "citation_judgments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["source_id", "citation_label", "paper_id", "chunk_id", "page_start", "page_end", "rationale"],
+            "properties": {
+              "source_id": {"type": ["string", "null"]},
+              "citation_label": {"enum": ["correct", "partially_correct", "incorrect", "missing", "not_required"]},
+              "paper_id": {"type": ["string", "null"]},
+              "chunk_id": {"type": ["string", "null"]},
+              "page_start": {"type": ["integer", "null"]},
+              "page_end": {"type": ["integer", "null"]},
+              "rationale": {"type": "string", "minLength": 10}
+            }
+          }
+        },
+        "unsupported_general_knowledge": {"type": "boolean"},
+        "source_inspection_rationale": {"type": "string", "minLength": 10},
+        "error_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "point": {
+      "type": "object",
+      "required": [
+        "answer_point_id",
+        "point_type",
+        "text",
+        "paper_ids",
+        "source_chunk_ids",
+        "coverage_label",
+        "linked_answer_claim_ids",
+        "rationale"
+      ],
+      "properties": {
+        "answer_point_id": {"type": "string"},
+        "point_type": {"type": "string"},
+        "text": {"type": "string"},
+        "paper_ids": {"type": "array", "items": {"type": "string"}},
+        "source_chunk_ids": {"type": "array", "items": {"type": "string"}},
+        "coverage_label": {"enum": ["covered", "partially_covered", "not_covered"]},
+        "linked_answer_claim_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "rationale": {"type": "string", "minLength": 10}
+      }
+    }
+  }
+}

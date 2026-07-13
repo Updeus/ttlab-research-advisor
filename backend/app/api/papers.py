@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, func, select
 
 from app.db import get_session
@@ -15,21 +15,23 @@ from app.indexing.embedder import (
 )
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, RAGAnswer, ReviewEvent, ThesisRecommendation, Topic
+from app.security import AuthenticatedActor, get_optional_actor
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
 
-@router.get("/papers", response_model=list[Paper])
-def list_papers(session: Annotated[Session, Depends(get_session)]) -> list[Paper]:
-    return list(session.exec(select(Paper).order_by(Paper.year.desc(), Paper.title)).all())
+@router.get("/papers")
+def list_papers(session: Annotated[Session, Depends(get_session)]) -> list[dict[str, object]]:
+    papers = session.exec(select(Paper).order_by(Paper.year.desc(), Paper.title)).all()
+    return [serialize_public_paper(paper) for paper in papers]
 
 
-@router.get("/papers/{paper_id}", response_model=Paper)
-def get_paper(paper_id: str, session: Annotated[Session, Depends(get_session)]) -> Paper:
+@router.get("/papers/{paper_id}")
+def get_paper(paper_id: str, session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
     paper = session.get(Paper, paper_id)
     if paper is None:
         raise HTTPException(status_code=404, detail="Paper not found")
-    return paper
+    return serialize_public_paper(paper)
 
 
 @router.get("/papers/{paper_id}/extraction")
@@ -41,10 +43,8 @@ def get_extraction(paper_id: str, session: Annotated[Session, Depends(get_sessio
     return {
         "paper_id": paper.paper_id,
         "pdf_url": paper.pdf_url,
-        "local_pdf_path": paper.local_pdf_path,
         "pdf_text_status": paper.pdf_text_status,
         "pdf_unavailability_reason": paper.pdf_unavailability_reason,
-        "pdf_unavailability_detail": paper.pdf_unavailability_detail,
         "page_count": paper.page_count,
         "total_char_count": paper.total_char_count,
         "total_word_count": paper.total_word_count,
@@ -62,10 +62,6 @@ def get_extraction(paper_id: str, session: Annotated[Session, Depends(get_sessio
         "corpus_eligibility_status": paper.corpus_eligibility_status,
         "corpus_exclusion_reason": paper.corpus_exclusion_reason,
         "warnings": diagnostics.get("warnings", []),
-        "extraction_error": diagnostics.get("extraction_error"),
-        "diagnostics": diagnostics,
-        "extracted_json_path": paper.extracted_json_path,
-        "extracted_text_path": paper.extracted_text_path,
         "chunk_count": paper.chunk_count,
     }
 
@@ -74,10 +70,16 @@ def get_extraction(paper_id: str, session: Annotated[Session, Depends(get_sessio
 def get_paper_chunks(
     paper_id: str,
     session: Annotated[Session, Depends(get_session)],
-    full: bool = False,
+    full: bool = Query(default=False),
+    actor: Annotated[AuthenticatedActor | None, Depends(get_optional_actor)] = None,
 ) -> list[dict[str, object]]:
-    if session.get(Paper, paper_id) is None:
+    paper = session.get(Paper, paper_id)
+    if paper is None:
         raise HTTPException(status_code=404, detail="Paper not found")
+    if paper.corpus_eligibility_status != "eligible" and actor is None:
+        raise HTTPException(status_code=404, detail="Paper chunks are not publicly available")
+    if full and actor is None:
+        raise HTTPException(status_code=403, detail="Full extracted chunks require reviewer authentication")
     chunks = session.exec(
         select(Chunk).where(Chunk.paper_id == paper_id).order_by(Chunk.chunk_index)
     ).all()
@@ -86,16 +88,24 @@ def get_paper_chunks(
 
 @router.get("/chunks/search")
 def search_chunks(
-    q: str,
     session: Annotated[Session, Depends(get_session)],
-    limit: int = 10,
-    full: bool = False,
+    q: str = Query(min_length=1, max_length=2_000),
+    limit: int = Query(default=10, ge=1, le=50),
+    full: bool = Query(default=False),
+    actor: Annotated[AuthenticatedActor | None, Depends(get_optional_actor)] = None,
 ) -> list[dict[str, object]]:
     if not q.strip():
         return []
+    if full and actor is None:
+        raise HTTPException(status_code=403, detail="Full extracted chunks require reviewer authentication")
     pattern = f"%{q.strip()}%"
     chunks = session.exec(
-        select(Chunk).where(Chunk.text.ilike(pattern)).order_by(Chunk.paper_id, Chunk.chunk_index).limit(limit)
+        select(Chunk)
+        .join(Paper, Paper.paper_id == Chunk.paper_id)
+        .where(Paper.corpus_eligibility_status == "eligible")
+        .where(Chunk.text.ilike(pattern))
+        .order_by(Chunk.paper_id, Chunk.chunk_index)
+        .limit(limit)
     ).all()
     return [serialize_chunk(chunk, full=full) for chunk in chunks]
 
@@ -202,7 +212,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "evaluation_files_present": eval_files,
         "evaluation_last_run_at": latest_evaluation_timestamp(),
         "top_topics": sorted(topics.items(), key=lambda item: item[1], reverse=True)[:10],
-        "recent_papers": recent,
+        "recent_papers": [serialize_public_paper(paper) for paper in recent],
         "evaluation_status": "available" if any(eval_files.values()) else "not_started",
     }
 
@@ -222,6 +232,40 @@ def serialize_chunk(chunk: Chunk, *, full: bool) -> dict[str, object]:
         "word_count": chunk.word_count,
         "token_count_estimate": chunk.token_count_estimate,
         "source_hash": chunk.source_hash,
+    }
+
+
+def serialize_public_paper(paper: Paper) -> dict[str, object]:
+    """Return publication metadata without local paths, raw records, or notes."""
+
+    return {
+        "paper_id": paper.paper_id,
+        "title": paper.title,
+        "authors": paper.authors,
+        "year": paper.year,
+        "publication_date_raw": paper.publication_date_raw,
+        "venue": paper.venue,
+        "abstract": paper.abstract,
+        "source_url": paper.source_url,
+        "post_url": paper.post_url,
+        "pdf_url": paper.pdf_url,
+        "doi": paper.doi,
+        "keywords": paper.keywords,
+        "topics": paper.topics,
+        "ingestion_status": paper.ingestion_status,
+        "pdf_text_status": paper.pdf_text_status,
+        "extraction_content_type": paper.extraction_content_type,
+        "ocr_status": paper.ocr_status,
+        "ocr_review_required": paper.ocr_review_required,
+        "corpus_eligibility_status": paper.corpus_eligibility_status,
+        "corpus_exclusion_reason": paper.corpus_exclusion_reason,
+        "pdf_title_match_status": paper.pdf_title_match_status,
+        "page_count": paper.page_count,
+        "chunk_count": paper.chunk_count,
+        "review_status": paper.review_status,
+        "reviewed_at": paper.reviewed_at.isoformat() if paper.reviewed_at else None,
+        "created_at": paper.created_at.isoformat(),
+        "updated_at": paper.updated_at.isoformat(),
     }
 
 

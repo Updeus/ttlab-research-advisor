@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Literal
+from typing import Any, Literal, Mapping, Sequence
 
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, desc, func, select
@@ -21,7 +22,9 @@ Difficulty = Literal["easy", "medium", "hard"]
 DEFAULT_PROVIDER = "offline_deterministic"
 DEFAULT_MODEL = "template-recommender-v1"
 
-# Scoring weights are intentionally simple and deterministic for the MVP.
+# These weights are hand-authored heuristics. They have not been optimized on
+# student outcomes or supervisor decisions. The recommendation proxy evaluator
+# records local sensitivity around this exact configuration.
 SCORE_WEIGHTS = {
     "retrieval_relevance": 0.30,
     "interest_topic_match": 0.20,
@@ -37,15 +40,17 @@ FUTURE_WORK_TERMS = (
     "limitations",
     "future work",
     "future research",
-    "challenge",
-    "challenges",
+    "future studies",
+    "further research",
+    "we believe",
+    "we recommend",
+    "we propose",
+    "could be extended",
+    "remains to be",
     "improve",
     "improvement",
-    "extend",
-    "extension",
-    "evaluation",
-    "dataset",
-    "data set",
+    "larger dataset",
+    "larger data set",
 )
 
 EXPLICIT_GAP_TERMS = ("limitation", "limitations", "future work", "future research")
@@ -82,8 +87,8 @@ STOPWORDS = {
 
 
 class ExtensionFinderRequest(BaseModel):
-    interests: str = Field(min_length=1)
-    skills: list[str] = Field(default_factory=list)
+    interests: str = Field(min_length=1, max_length=2_000)
+    skills: list[str] = Field(default_factory=list, max_length=50)
     available_time: Literal["2 weeks", "1 month", "semester"] = "semester"
     project_type: Literal[
         "software prototype",
@@ -93,13 +98,13 @@ class ExtensionFinderRequest(BaseModel):
         "dashboard/visualization",
         "other",
     ] = "software prototype"
-    data_constraints: str = "prefer public or synthetic data"
+    data_constraints: str = Field(default="prefer public or synthetic data", max_length=1_000)
     preferred_difficulty: Difficulty = "medium"
-    preferred_topics: list[str] = Field(default_factory=list)
-    avoid_topics: list[str] = Field(default_factory=list)
+    preferred_topics: list[str] = Field(default_factory=list, max_length=50)
+    avoid_topics: list[str] = Field(default_factory=list, max_length=50)
     top_k: int = Field(default=5, ge=1, le=10)
     retrieval_mode: RetrievalMode = "hybrid"
-    provider: str = "auto"
+    provider: Literal["auto", "offline", "offline_deterministic"] = "auto"
 
     @field_validator("interests")
     @classmethod
@@ -111,7 +116,10 @@ class ExtensionFinderRequest(BaseModel):
     @field_validator("skills", "preferred_topics", "avoid_topics")
     @classmethod
     def remove_blank_list_items(cls, values: list[str]) -> list[str]:
-        return [value.strip() for value in values if value and value.strip()]
+        normalized = [value.strip() for value in values if value and value.strip()]
+        if any(len(value) > 200 for value in normalized):
+            raise ValueError("profile list items may not exceed 200 characters")
+        return normalized
 
     @field_validator("data_constraints")
     @classmethod
@@ -140,7 +148,9 @@ def recommend_extensions(
     session: Session,
     request: ExtensionFinderRequest,
     *,
-    persist: bool = True,
+    persist: bool = False,
+    score_weights: Mapping[str, float] | None = None,
+    retrieval_response: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     created_at = utc_now()
     warnings: list[str] = []
@@ -148,7 +158,7 @@ def recommend_extensions(
     warnings.extend(provider_warnings)
 
     query = build_retrieval_query(request)
-    retrieval = retrieve(
+    retrieval = dict(retrieval_response) if retrieval_response is not None else retrieve(
         session,
         query,
         mode=request.retrieval_mode,
@@ -174,7 +184,7 @@ def recommend_extensions(
         return response
 
     groups = group_results_by_paper(retrieved_results)
-    scored_candidates = score_candidate_papers(groups, request)
+    scored_candidates = score_candidate_papers(groups, request, score_weights=score_weights)
     recommendations: list[dict[str, Any]] = []
     retrieved_chunks_by_id = {result["chunk_id"]: result for result in retrieved_results}
 
@@ -221,12 +231,12 @@ def resolve_provider(provider_name: str) -> tuple[str, str, list[str]]:
 
 
 def build_retrieval_query(request: ExtensionFinderRequest) -> str:
+    # Retrieval is intentionally topic-focused. Project-type, time, and data
+    # constraints belong in reranking; generic "future work" terms previously
+    # dominated short profile queries and produced off-topic candidate pools.
     query_parts = [
         request.interests,
         " ".join(request.preferred_topics),
-        request.project_type,
-        request.data_constraints,
-        "future work limitations evaluation dataset challenge extension",
     ]
     return " ".join(part for part in query_parts if part).strip()
 
@@ -252,12 +262,73 @@ def group_results_by_paper(results: list[dict[str, Any]]) -> dict[str, dict[str,
     return groups
 
 
+def evidence_only_baseline(
+    session: Session,
+    request: ExtensionFinderRequest,
+    *,
+    retrieval_response: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Return ranked papers and passages without generating advisory text.
+
+    The baseline deliberately uses the same query, retrieval mode, result pool,
+    and paper grouping as the full finder. Its paper ordering uses only the best
+    retrieval score, so the experiment isolates the full finder's hand-authored
+    profile reranking and template generation.
+    """
+
+    query = build_retrieval_query(request)
+    retrieval = dict(retrieval_response) if retrieval_response is not None else retrieve(
+        session,
+        query,
+        mode=request.retrieval_mode,
+        top_k=max(request.top_k * 6, request.top_k),
+    )
+    groups = group_results_by_paper(retrieval.get("results", []))
+    ranked_groups = sorted(
+        groups.values(),
+        key=lambda item: (
+            float(item.get("best_score") or 0.0),
+            str(item.get("paper_title") or ""),
+        ),
+        reverse=True,
+    )
+    papers: list[dict[str, Any]] = []
+    for rank, group in enumerate(ranked_groups[: request.top_k], start=1):
+        papers.append(
+            {
+                "rank": rank,
+                "paper_id": group["paper_id"],
+                "paper_title": group["paper_title"],
+                "authors": group["authors"],
+                "year": group["year"],
+                "retrieval_score": round(float(group.get("best_score") or 0.0), 6),
+                "passages": [citation_from_result(result) for result in group["chunks"][:3]],
+            }
+        )
+    return {
+        "output_mode": "evidence_only",
+        "query": query,
+        "expanded_query": retrieval.get("expanded_query"),
+        "retrieval_mode": request.retrieval_mode,
+        "vector_provider": retrieval.get("vector_provider"),
+        "top_k": request.top_k,
+        "papers": papers,
+        "warnings": retrieval.get("warnings", []),
+        "disclaimer": (
+            "Evidence-only retrieval does not propose an extension, estimate feasibility, "
+            "claim novelty, or assign a supervisor."
+        ),
+    }
+
+
 def score_candidate_papers(
     groups: dict[str, dict[str, Any]],
     request: ExtensionFinderRequest,
+    *,
+    score_weights: Mapping[str, float] | None = None,
 ) -> list[dict[str, Any]]:
+    weights = validated_score_weights(score_weights)
     profile_terms = profile_tokens(request)
-    avoid_terms = set(tokenize(" ".join(request.avoid_topics)))
     scored: list[dict[str, Any]] = []
     for group in groups.values():
         chunks = group["chunks"]
@@ -266,7 +337,7 @@ def score_candidate_papers(
             + [clean_markup(str(chunk.get("snippet") or "")) for chunk in chunks[:4]]
         )
         text_terms = set(tokenize(text_blob))
-        avoid_penalty = 0.2 if avoid_terms and text_terms.intersection(avoid_terms) else 0.0
+        avoid_penalty = 0.2 if matches_avoid_topic(text_blob, request.avoid_topics) else 0.0
         required_skills = infer_required_skills(request.project_type, text_blob)
         skill_match, skills_gap = calculate_skill_fit(request.skills, required_skills)
         component_scores = {
@@ -278,7 +349,7 @@ def score_candidate_papers(
             "difficulty_match": difficulty_match_score(request.preferred_difficulty, infer_difficulty(request, text_blob)),
             "evidence_strength": min(len(chunks) / 3.0, 1.0),
         }
-        weighted_score = sum(component_scores[name] * SCORE_WEIGHTS[name] for name in SCORE_WEIGHTS) - avoid_penalty
+        weighted_score = sum(component_scores[name] * weights[name] for name in weights) - avoid_penalty
         scored.append(
             {
                 **group,
@@ -293,6 +364,25 @@ def score_candidate_papers(
             }
         )
     return sorted(scored, key=lambda item: (item["fit_score"], item["best_score"], item["paper_title"]), reverse=True)
+
+
+def validated_score_weights(score_weights: Mapping[str, float] | None = None) -> dict[str, float]:
+    """Validate and normalize an evaluation-only recommendation weight set."""
+
+    weights = dict(SCORE_WEIGHTS if score_weights is None else score_weights)
+    if set(weights) != set(SCORE_WEIGHTS):
+        missing = sorted(set(SCORE_WEIGHTS) - set(weights))
+        extra = sorted(set(weights) - set(SCORE_WEIGHTS))
+        raise ValueError(f"score weight keys must match defaults; missing={missing} extra={extra}")
+    if any(
+        not isinstance(value, (int, float)) or not math.isfinite(float(value)) or value < 0
+        for value in weights.values()
+    ):
+        raise ValueError("score weights must be non-negative finite numbers")
+    total = float(sum(weights.values()))
+    if total <= 0:
+        raise ValueError("at least one score weight must be positive")
+    return {name: float(value) / total for name, value in weights.items()}
 
 
 def build_offline_recommendation(
@@ -381,18 +471,28 @@ def fact_from_result(result: dict[str, Any]) -> dict[str, Any]:
 def identify_gap(chunks: list[dict[str, Any]]) -> dict[str, Any]:
     fallback_chunk_id = chunks[0]["chunk_id"] if chunks else None
     for result in chunks:
-        snippet = clean_markup(str(result.get("snippet") or ""))
-        lowered = snippet.lower()
-        if not any(term in lowered for term in FUTURE_WORK_TERMS):
+        if "reference" in str(result.get("section") or "").lower():
             continue
-        sentence = sentence_containing_term(snippet, FUTURE_WORK_TERMS) or first_sentence(snippet) or snippet[:220]
-        support_status = "explicit_in_paper" if any(term in lowered for term in EXPLICIT_GAP_TERMS) else "inferred_from_paper"
-        prefix = "Retrieved limitation/future-work evidence" if support_status == "explicit_in_paper" else "Retrieved evidence that suggests an extension opening"
-        return {
-            "text": f"{prefix}: {sentence}",
-            "support_status": support_status,
-            "source_chunk_ids": [result["chunk_id"]],
-        }
+        snippet = clean_markup(str(result.get("snippet") or ""))
+        for sentence in split_sentences(snippet):
+            lowered_sentence = sentence.lower()
+            if not any(term in lowered_sentence for term in FUTURE_WORK_TERMS):
+                continue
+            support_status = (
+                "explicit_in_paper"
+                if any(term in lowered_sentence for term in EXPLICIT_GAP_TERMS)
+                else "inferred_from_paper"
+            )
+            prefix = (
+                "Retrieved explicit limitation/future-work evidence"
+                if support_status == "explicit_in_paper"
+                else "Inferred extension opening from retrieved paper evidence"
+            )
+            return {
+                "text": f"{prefix}: {sentence}",
+                "support_status": support_status,
+                "source_chunk_ids": [result["chunk_id"]],
+            }
     return {
         "text": "No explicit limitation or future-work statement was found in the retrieved chunks; the extension is inferred from the paper focus and student profile.",
         "support_status": "not_found",
@@ -431,9 +531,14 @@ def build_fit_reason(candidate: dict[str, Any], request: ExtensionFinderRequest)
     )
     skill_text = ", ".join(matched_skills) if matched_skills else "the supplied skills do not directly cover the required skills yet"
     topic_text = ", ".join(request.preferred_topics) if request.preferred_topics else request.interests
+    timeline_text = (
+        f"its estimated implementation time is {candidate['implementation_time']}, within the stated {request.available_time} window"
+        if timeline_fits(request.available_time, candidate["implementation_time"])
+        else f"its estimated implementation time is {candidate['implementation_time']}, which exceeds the stated {request.available_time} window unless scope is reduced"
+    )
     return (
         f"This paper ranked well for interests around {topic_text}. "
-        f"It also fits the requested {request.project_type} format and a {request.available_time} timeline; matching skills include {skill_text}."
+        f"It fits the requested {request.project_type} format; {timeline_text}; matching skills include {skill_text}."
     )
 
 
@@ -445,7 +550,7 @@ def build_mvp_scope(request: ExtensionFinderRequest, candidate: dict[str, Any]) 
     if request.project_type == "ML experiment":
         return "Run a baseline model and one extension experiment, compare against a simple metric, and document errors with cited paper motivation."
     if request.project_type == "literature/systematic review support":
-        return "Build a structured review aid that extracts candidate papers, labels evidence fields, and exports a review table for human checking."
+        return "Build a small structured review aid that extracts candidate papers, labels evidence fields, and exports a review table for human checking."
     if request.project_type == "dashboard/visualization":
         return "Build a dashboard with a small curated dataset, filters, and at least two visuals that answer a concrete research or public-facing question."
     return "Define one narrow research question, build a minimal artifact, and evaluate it against a small manually reviewed benchmark."
@@ -478,7 +583,7 @@ def build_evaluation_plan(request: ExtensionFinderRequest) -> str:
     if request.project_type == "software prototype":
         return "Evaluate with 5-10 task scenarios, record task success, citation/source correctness, latency, and a short usefulness review."
     if request.project_type == "data analysis":
-        return "Evaluate by checking reproducibility, data quality notes, sensitivity to assumptions, and whether results answer the stated question."
+        return "Evaluate by checking reproducibility, data quality notes, sensitivity to assumptions, and whether results answer the stated question; include error and limitation analysis."
     if request.project_type == "ML experiment":
         return "Evaluate against a baseline using precision/recall or task-specific metrics, plus qualitative error analysis on failed cases."
     if request.project_type == "literature/systematic review support":
@@ -575,8 +680,21 @@ def serialize_recommendation(record: ThesisRecommendation) -> dict[str, Any]:
 
 def recommendation_diagnostics(session: Session) -> dict[str, Any]:
     records = list(session.exec(select(ThesisRecommendation)).all())
-    searchable_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
-    searchable_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
+    raw_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
+    raw_papers = session.exec(select(func.count(func.distinct(Chunk.paper_id))).select_from(Chunk)).one()
+    eligible_join = Chunk.paper_id == Paper.paper_id
+    searchable_chunks = session.exec(
+        select(func.count())
+        .select_from(Chunk)
+        .join(Paper, eligible_join)
+        .where(Paper.corpus_eligibility_status == "eligible")
+    ).one()
+    searchable_papers = session.exec(
+        select(func.count(func.distinct(Chunk.paper_id)))
+        .select_from(Chunk)
+        .join(Paper, eligible_join)
+        .where(Paper.corpus_eligibility_status == "eligible")
+    ).one()
     last_record = max((record.created_at for record in records), default=None)
     return {
         "total_recommendation_runs": len(records),
@@ -586,6 +704,8 @@ def recommendation_diagnostics(session: Session) -> dict[str, Any]:
         "unsupported_runs": sum(1 for record in records if record.grounding_status == "unsupported"),
         "searchable_chunks": searchable_chunks,
         "searchable_papers": searchable_papers,
+        "raw_chunks": raw_chunks,
+        "raw_papers_with_chunks": raw_papers,
         "default_provider": DEFAULT_PROVIDER,
         "last_recommendation_timestamp": last_record.isoformat() if last_record else None,
     }
@@ -681,6 +801,11 @@ def infer_implementation_time(available_time: str, preferred_difficulty: str) ->
     return "2 weeks" if preferred_difficulty == "easy" else "1 month"
 
 
+def timeline_fits(available_time: str, implementation_time: str) -> bool:
+    order = {"2 weeks": 0, "1 month": 1, "semester": 2}
+    return order.get(implementation_time, 99) <= order.get(available_time, -1)
+
+
 def infer_difficulty(request: ExtensionFinderRequest, text_blob: str) -> Difficulty:
     lowered = text_blob.lower()
     if request.preferred_difficulty == "hard":
@@ -720,6 +845,23 @@ def lexical_overlap(profile_terms: set[str], text_terms: set[str]) -> float:
     if not profile_terms or not text_terms:
         return 0.0
     return round(len(profile_terms.intersection(text_terms)) / len(profile_terms), 4)
+
+
+def matches_avoid_topic(text: str, avoid_topics: Sequence[str]) -> bool:
+    """Match each avoid topic as a phrase/conjunction, not any shared token.
+
+    Treating ``private datasets`` as the independent tokens ``private`` and
+    ``datasets`` previously penalized every dataset paper, including the exact
+    synthetic-data target. Multi-token avoid preferences now require all
+    meaningful tokens to occur in the candidate evidence.
+    """
+
+    text_terms = set(tokenize(text))
+    for topic in avoid_topics:
+        topic_terms = set(tokenize(topic))
+        if topic_terms and topic_terms.issubset(text_terms):
+            return True
+    return False
 
 
 def first_profile_phrase(request: ExtensionFinderRequest) -> str:
@@ -843,7 +985,7 @@ def main() -> None:
         provider=args.provider,
     )
     with Session(engine) as session:
-        response = recommend_extensions(session, request)
+        response = recommend_extensions(session, request, persist=True)
     print_cli_response(response)
 
 

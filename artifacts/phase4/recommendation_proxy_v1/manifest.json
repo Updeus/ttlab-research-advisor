@@ -1,0 +1,16 @@
+{
+  "evaluation_id": "recommendation-proxy-v1",
+  "completed_at": "2026-07-13T00:15:07.320209+00:00",
+  "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+  "profiles_sha256": "ca3b197d4da5430275ce12a67571b95bc1df889cf3211f1801bf176f2c24b638",
+  "review_prompt_sha256": "28250bd926ab10c021fb55d8c971a0980ae8f3efc77d5de48626ce6d9833da6b",
+  "evaluation_code_sha256": "eb2afcc22b9798bc2d4bf36b0244ac2478f65d33b30e4c9a8e41da7bd94c2940",
+  "artifact_sha256": {
+    "raw_outputs.jsonl": "ce65f296191bf662be230f53e5e00b2c7b1529769772c3627cf117f7c9dc8ddf",
+    "review_pass_1.jsonl": "da7f5538a1d2f80702e3c117c52e5116722dc595fbc2fc05d524ce91ed5edbf2",
+    "review_pass_2.jsonl": "e3fde5ea15e093ea2bcdafd5b26a0156c3f015fe646745e0cfdeea931675dad0",
+    "weight_sensitivity.json": "cb17b803fe65eede5a0438469b9da5a49f280016ab197e7eaa58fad16eee6a7d",
+    "aggregate_results.json": "b9bc05cf9f0a6cefbfa93fb672fb2ccc3438faef906b8bb0a6c1f43eeef524e1",
+    "failures.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  }
+}

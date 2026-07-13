@@ -15,6 +15,7 @@ from app.indexing.embedder import (
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
 from app.indexing.retriever import retrieve
 from app.models import Chunk, Paper
+from app.api.public import redact_local_paths
 
 router = APIRouter(prefix="/api", tags=["search"])
 
@@ -22,13 +23,13 @@ router = APIRouter(prefix="/api", tags=["search"])
 @router.get("/search")
 def search(
     session: Annotated[Session, Depends(get_session)],
-    q: str = Query(..., min_length=1),
+    q: str = Query(..., min_length=1, max_length=2_000),
     mode: Literal["keyword", "feature_hashing", "dense", "hybrid", "semantic"] = "hybrid",
     limit: int = Query(default=10, ge=1, le=50),
-    paper_id: str | None = None,
-    author: str | None = None,
+    paper_id: str | None = Query(default=None, max_length=200),
+    author: str | None = Query(default=None, max_length=300),
     year: int | None = None,
-    section: str | None = None,
+    section: str | None = Query(default=None, max_length=100),
 ) -> dict[str, object]:
     return retrieve(
         session,
@@ -51,7 +52,7 @@ def search_diagnostics(session: Annotated[Session, Depends(get_session)]) -> dic
     eligible = eligible_chunks(session)
     searchable_chunks = len(eligible)
     searchable_papers = len({chunk.paper_id for chunk in eligible})
-    return {
+    return redact_local_paths({
         "total_chunks": raw_chunks,
         "raw_chunks": raw_chunks,
         "eligible_chunks": searchable_chunks,
@@ -70,4 +71,4 @@ def search_diagnostics(session: Annotated[Session, Depends(get_session)]) -> dic
         "index_path": feature_hashing["index_path"],
         "index_status": feature_hashing["index_status"],
         "last_indexed_timestamp": feature_hashing["last_indexed_at"],
-    }
+    })

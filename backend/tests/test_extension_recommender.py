@@ -10,9 +10,16 @@ from app.db import get_session
 from app.evaluation.extension_eval import citation_coverage_percentage, evaluate_case
 from app.indexing.keyword_search import rebuild_keyword_index
 from app.intelligence.extension_recommender import (
+    SCORE_WEIGHTS,
     ExtensionFinderRequest,
+    build_retrieval_query,
+    evidence_only_baseline,
     group_results_by_paper,
+    identify_gap,
+    matches_avoid_topic,
+    recommendation_diagnostics,
     recommend_extensions,
+    validated_score_weights,
 )
 from app.intelligence.recommendation_verifier import verify_recommendations
 from app.main import app
@@ -37,6 +44,7 @@ def build_extension_session() -> tuple[Session, object]:
             pdf_url="https://lab.tt/rag-platform.pdf",
             pdf_text_status="extracted",
             chunk_count=2,
+            corpus_eligibility_status="eligible",
         )
     )
     session.add(
@@ -48,6 +56,7 @@ def build_extension_session() -> tuple[Session, object]:
             post_url="https://lab.tt/traffic-dashboard",
             pdf_text_status="extracted",
             chunk_count=1,
+            corpus_eligibility_status="eligible",
         )
     )
     session.add(
@@ -151,10 +160,107 @@ def test_recommender_retrieves_and_groups_chunks_by_paper() -> None:
     assert grouped["rag-platform"]["chunks"]
 
 
+def test_evidence_only_baseline_returns_ranked_papers_and_passages() -> None:
+    session, _engine = build_extension_session()
+    try:
+        baseline = evidence_only_baseline(session, extension_request())
+    finally:
+        session.close()
+
+    assert baseline["output_mode"] == "evidence_only"
+    assert baseline["papers"][0]["paper_id"] == "rag-platform"
+    assert baseline["papers"][0]["passages"][0]["chunk_id"].startswith("rag-platform")
+    assert "does not propose" in baseline["disclaimer"]
+
+
+def test_retrieval_query_is_topic_focused_not_padded_with_generic_constraints() -> None:
+    request = extension_request()
+    query = build_retrieval_query(request)
+
+    assert "RAG" in query
+    assert "research discovery" in query
+    assert request.project_type not in query
+    assert request.data_constraints not in query
+    assert "future work limitations" not in query
+
+
+def test_recommendation_weights_are_validated_normalized_and_changeable() -> None:
+    assert validated_score_weights() == SCORE_WEIGHTS
+    normalized = validated_score_weights({**SCORE_WEIGHTS, "retrieval_relevance": 0.6})
+    assert sum(normalized.values()) == pytest.approx(1.0)
+    assert normalized["retrieval_relevance"] > SCORE_WEIGHTS["retrieval_relevance"]
+    with pytest.raises(ValueError):
+        validated_score_weights({"retrieval_relevance": 1.0})
+
+
+def test_gap_detection_uses_the_matching_sentence_and_labels_inference() -> None:
+    explicit = identify_gap(
+        [
+            {
+                "chunk_id": "c1",
+                "section": "Conclusion",
+                "snippet": "A dataset is described first. Future work should evaluate a broader sample.",
+            }
+        ]
+    )
+    inferred = identify_gap(
+        [
+            {
+                "chunk_id": "c2",
+                "section": "Discussion",
+                "snippet": "We believe performance can improve with a larger dataset.",
+            }
+        ]
+    )
+    generic = identify_gap(
+        [
+            {
+                "chunk_id": "c3",
+                "section": "Methodology",
+                "snippet": "The dataset supports evaluation of the proposed model.",
+            }
+        ]
+    )
+
+    assert explicit["support_status"] == "explicit_in_paper"
+    assert explicit["text"].endswith("Future work should evaluate a broader sample.")
+    assert inferred["support_status"] == "inferred_from_paper"
+    assert inferred["text"].startswith("Inferred extension opening")
+    assert generic["support_status"] == "not_found"
+
+
+def test_multiword_avoid_topic_does_not_penalize_one_generic_token() -> None:
+    assert not matches_avoid_topic("A public synthetic time-series dataset", ["private datasets"])
+    assert matches_avoid_topic("A private collection of datasets", ["private datasets"])
+    assert matches_avoid_topic("Deep neural learning architecture", ["deep learning"])
+
+
+def test_recommendation_diagnostics_exclude_ineligible_paper_chunks() -> None:
+    session, _engine = build_extension_session()
+    try:
+        session.add(
+            Paper(
+                paper_id="excluded-pdf",
+                title="Mismatched PDF",
+                corpus_eligibility_status="excluded_pdf_metadata_mismatch",
+            )
+        )
+        session.add(Chunk(chunk_id="excluded-0001", paper_id="excluded-pdf", text="not searchable"))
+        session.commit()
+        diagnostics = recommendation_diagnostics(session)
+    finally:
+        session.close()
+
+    assert diagnostics["searchable_chunks"] == 3
+    assert diagnostics["searchable_papers"] == 2
+    assert diagnostics["raw_chunks"] == 4
+    assert diagnostics["raw_papers_with_chunks"] == 3
+
+
 def test_recommender_returns_ranked_recommendations_with_citations() -> None:
     session, _engine = build_extension_session()
     try:
-        response = recommend_extensions(session, extension_request())
+        response = recommend_extensions(session, extension_request(), persist=True)
         stored = session.get(ThesisRecommendation, response["recommendation_id"])
     finally:
         session.close()
@@ -230,15 +336,13 @@ def test_extension_recommendation_api_endpoints_and_stats_work() -> None:
 
     assert posted.status_code == 200
     assert posted.json()["recommendations"][0]["citations"]
-    assert fetched.status_code == 200
-    assert fetched.json()["recommendation_id"] == recommendation_id
-    assert history.status_code == 200
-    assert history.json()[0]["recommendation_id"] == recommendation_id
+    assert fetched.status_code == 401
+    assert history.status_code == 401
     assert diagnostics.status_code == 200
-    assert diagnostics.json()["total_recommendation_runs"] == 1
+    assert diagnostics.json()["total_recommendation_runs"] == 0
     assert stats.status_code == 200
-    assert stats.json()["total_extension_recommendation_runs"] == 1
-    assert stats.json()["total_extension_ideas"] >= 1
+    assert stats.json()["total_extension_recommendation_runs"] == 0
+    assert stats.json()["total_extension_ideas"] == 0
 
 
 def test_extension_eval_calculates_citation_coverage_correctly() -> None:

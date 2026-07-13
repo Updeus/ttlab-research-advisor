@@ -267,8 +267,12 @@ if ((SERVE)); then
   if curl -fsS "${BACKEND_URL}/health" >/dev/null 2>&1; then
     log "Backend already running at ${BACKEND_URL}; reusing it."
   else
-    log "Starting backend at ${BACKEND_URL}..."
-    TTLAB_OLLAMA_BASE_URL="$OLLAMA_URL" PYTHONPATH=backend "$PYTHON" -m uvicorn app.main:app --reload --app-dir backend --host 127.0.0.1 --port "$BACKEND_PORT" &
+    log "Starting backend at ${BACKEND_URL} in explicit insecure loopback demo mode..."
+    log "Admin mutations in this demo process are not production-authenticated."
+    TTLAB_SECURITY_MODE=local_demo \
+      TTLAB_ALLOW_INSECURE_LOCAL_DEMO=true \
+      TTLAB_OLLAMA_BASE_URL="$OLLAMA_URL" \
+      PYTHONPATH=backend "$PYTHON" -m uvicorn app.main:app --reload --app-dir backend --host 127.0.0.1 --port "$BACKEND_PORT" &
     STARTED_PIDS+=("$!")
     wait_for_url "Backend" "${BACKEND_URL}/health"
   fi

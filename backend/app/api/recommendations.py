@@ -11,6 +11,7 @@ from app.intelligence.extension_recommender import (
     serialize_recommendation,
 )
 from app.models import ThesisRecommendation
+from app.security import AuthenticatedActor, require_reviewer
 
 router = APIRouter(prefix="/api/recommendations", tags=["recommendations"])
 
@@ -20,12 +21,13 @@ def create_extension_recommendations(
     request: ExtensionFinderRequest,
     session: Annotated[Session, Depends(get_session)],
 ) -> dict[str, object]:
-    return recommend_extensions(session, request)
+    return recommend_extensions(session, request, persist=False)
 
 
 @router.get("/extensions/history")
 def extension_recommendation_history(
     session: Annotated[Session, Depends(get_session)],
+    _actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
     limit: int = Query(default=20, ge=1, le=100),
 ) -> list[dict[str, object]]:
     records = session.exec(
@@ -45,6 +47,7 @@ def extension_recommendation_diagnostics(
 def get_extension_recommendation(
     recommendation_id: str,
     session: Annotated[Session, Depends(get_session)],
+    _actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
 ) -> dict[str, object]:
     record = session.get(ThesisRecommendation, recommendation_id)
     if record is None:

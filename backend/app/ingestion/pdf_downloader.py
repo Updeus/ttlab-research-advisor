@@ -1,17 +1,23 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import ipaddress
 import json
+import os
+import socket
+import tempfile
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
-from urllib.parse import urlparse
+from typing import Any, Callable, Iterable
+from urllib.parse import urljoin, urlparse
 
 import httpx
 from sqlmodel import Session, select
 
 from app.db import create_db_and_tables, engine
+from app.config import get_settings
 from app.models import Paper
 
 USER_AGENT = "TTLABResearchIntelligence/0.1 (+https://lab.tt)"
@@ -25,7 +31,22 @@ PDF_UNAVAILABILITY_REASONS = {
     "extraction_failure",
     "permission_restricted",
     "network_error",
+    "security_blocked",
+    "file_too_large",
+    "redirect_error",
 }
+
+
+class DownloadSecurityError(ValueError):
+    pass
+
+
+class DownloadTooLargeError(ValueError):
+    pass
+
+
+class InvalidPDFError(ValueError):
+    pass
 
 
 @dataclass
@@ -43,7 +64,8 @@ def utc_now() -> datetime:
 def is_direct_pdf_candidate(url: str | None) -> bool:
     if not url:
         return False
-    return urlparse(url).path.lower().endswith(".pdf")
+    parsed = urlparse(url)
+    return parsed.scheme in {"http", "https"} and bool(parsed.hostname) and parsed.path.lower().endswith(".pdf")
 
 
 def has_acceptable_pdf_content_type(response: httpx.Response) -> bool:
@@ -62,8 +84,175 @@ def verify_pdf_response(response: httpx.Response) -> bool:
 
 
 def deterministic_pdf_path(output_dir: Path, paper_id: str) -> Path:
+    if not paper_id or len(paper_id) > 200:
+        raise ValueError("paper_id must contain between 1 and 200 characters")
     safe_name = "".join(char if char.isalnum() or char in "-_" else "-" for char in paper_id).strip("-")
-    return output_dir / f"{safe_name}.pdf"
+    if not safe_name:
+        raise ValueError("paper_id does not contain any safe filename characters")
+    if safe_name != paper_id:
+        safe_name = f"{safe_name[:160]}-{hashlib.sha256(paper_id.encode('utf-8')).hexdigest()[:12]}"
+    target = output_dir / f"{safe_name}.pdf"
+    if target.resolve().parent != output_dir.resolve():
+        raise ValueError("Resolved PDF target escaped the configured output directory")
+    return target
+
+
+def host_matches_allowlist(hostname: str, allowed_hosts: Iterable[str]) -> bool:
+    normalized = hostname.rstrip(".").lower()
+    for allowed in allowed_hosts:
+        pattern = allowed.strip().rstrip(".").lower()
+        if not pattern:
+            continue
+        if pattern.startswith("*."):
+            suffix = pattern[1:]
+            if normalized.endswith(suffix) and normalized != suffix[1:]:
+                return True
+        elif hmac_hostname_equal(normalized, pattern):
+            return True
+    return False
+
+
+def hmac_hostname_equal(left: str, right: str) -> bool:
+    # Hostnames are not secrets; compare through a separate helper to keep all
+    # allowlist matching exact and auditable.
+    return left == right
+
+
+def is_public_ip(value: str) -> bool:
+    try:
+        address = ipaddress.ip_address(value)
+    except ValueError:
+        return False
+    return address.is_global
+
+
+def resolve_host_addresses(
+    hostname: str,
+    resolver: Callable[..., Any] | None = None,
+) -> set[str]:
+    resolve = resolver or socket.getaddrinfo
+    try:
+        raw_results = resolve(hostname, None, type=socket.SOCK_STREAM)
+    except TypeError:
+        raw_results = resolve(hostname)
+    except OSError as exc:
+        raise DownloadSecurityError("PDF host could not be resolved") from exc
+    addresses: set[str] = set()
+    for result in raw_results:
+        if isinstance(result, str):
+            addresses.add(result)
+        elif isinstance(result, tuple) and len(result) >= 5 and isinstance(result[4], tuple):
+            addresses.add(str(result[4][0]))
+    if not addresses:
+        raise DownloadSecurityError("PDF host did not resolve to an address")
+    return addresses
+
+
+def validate_remote_pdf_url(
+    url: str,
+    *,
+    allowed_hosts: Iterable[str],
+    resolver: Callable[..., Any] | None = None,
+    resolve_dns: bool = True,
+) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise DownloadSecurityError("Only absolute http(s) PDF URLs are permitted")
+    if parsed.username or parsed.password:
+        raise DownloadSecurityError("Embedded URL credentials are not permitted")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise DownloadSecurityError("PDF URL contains an invalid port") from exc
+    if port is not None and port not in {80, 443}:
+        raise DownloadSecurityError("Non-standard PDF URL ports are not permitted")
+    hostname = parsed.hostname.rstrip(".").lower()
+    if not host_matches_allowlist(hostname, allowed_hosts):
+        raise DownloadSecurityError("PDF URL host is not on the configured allowlist")
+    try:
+        literal = ipaddress.ip_address(hostname)
+    except ValueError:
+        literal = None
+    if literal is not None and not literal.is_global:
+        raise DownloadSecurityError("Private, loopback, link-local, and reserved IP destinations are blocked")
+    if resolve_dns:
+        addresses = resolve_host_addresses(hostname, resolver)
+        if any(not is_public_ip(address) for address in addresses):
+            raise DownloadSecurityError("PDF host resolved to a non-public IP address")
+    return url
+
+
+def stream_pdf_to_path(
+    client: httpx.Client,
+    url: str,
+    target: Path,
+    *,
+    allowed_hosts: Iterable[str],
+    max_bytes: int,
+    max_redirects: int,
+    resolver: Callable[..., Any] | None = None,
+) -> None:
+    current_url = url
+    redirects = 0
+    while True:
+        validate_remote_pdf_url(
+            current_url,
+            allowed_hosts=allowed_hosts,
+            resolver=resolver,
+            resolve_dns=True,
+        )
+        with client.stream("GET", current_url, follow_redirects=False) as response:
+            if response.status_code in {301, 302, 303, 307, 308}:
+                location = response.headers.get("location")
+                if not location:
+                    raise DownloadSecurityError("PDF redirect omitted a Location header")
+                redirects += 1
+                if redirects > max_redirects:
+                    raise DownloadSecurityError("PDF redirect limit exceeded")
+                current_url = urljoin(current_url, location)
+                # Validate before the next request, so redirects cannot pivot to
+                # loopback/private/unapproved hosts.
+                validate_remote_pdf_url(
+                    current_url,
+                    allowed_hosts=allowed_hosts,
+                    resolver=resolver,
+                    resolve_dns=True,
+                )
+                continue
+            response.raise_for_status()
+            if not has_acceptable_pdf_content_type(response):
+                raise InvalidPDFError("Response Content-Type is not a supported PDF type")
+            raw_length = response.headers.get("content-length")
+            if raw_length:
+                try:
+                    content_length = int(raw_length)
+                except ValueError as exc:
+                    raise InvalidPDFError("Invalid Content-Length response header") from exc
+                if content_length > max_bytes:
+                    raise DownloadTooLargeError(f"PDF exceeds the configured {max_bytes}-byte limit")
+
+            target.parent.mkdir(parents=True, exist_ok=True)
+            descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".part", dir=target.parent)
+            temporary_path = Path(temporary_name)
+            total = 0
+            prefix = bytearray()
+            try:
+                with os.fdopen(descriptor, "wb") as handle:
+                    for chunk in response.iter_bytes(chunk_size=64 * 1024):
+                        total += len(chunk)
+                        if total > max_bytes:
+                            raise DownloadTooLargeError(f"PDF exceeds the configured {max_bytes}-byte limit")
+                        if len(prefix) < 1024:
+                            prefix.extend(chunk[: 1024 - len(prefix)])
+                        handle.write(chunk)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                if not has_pdf_signature(bytes(prefix)):
+                    raise InvalidPDFError("Response did not contain a PDF signature")
+                os.replace(temporary_path, target)
+            finally:
+                temporary_path.unlink(missing_ok=True)
+            return
 
 
 def load_records_from_seed(seed_path: Path) -> list[DownloadRecord]:
@@ -161,7 +350,15 @@ def download_pdfs(
     timeout: float = 30.0,
     session: Session | None = None,
     client: httpx.Client | None = None,
+    allowed_hosts: Iterable[str] | None = None,
+    max_bytes: int | None = None,
+    max_redirects: int | None = None,
+    resolver: Callable[..., Any] | None = None,
 ) -> dict[str, int]:
+    settings = get_settings()
+    allowed_hosts = tuple(allowed_hosts or settings.allowed_pdf_hosts)
+    max_bytes = max_bytes or settings.max_pdf_download_bytes
+    max_redirects = settings.max_pdf_redirects if max_redirects is None else max_redirects
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = {
         "attempted": 0,
@@ -175,13 +372,17 @@ def download_pdfs(
         "timeout": 0,
         "permission_restricted": 0,
         "network_error": 0,
+        "blocked_url": 0,
+        "oversize": 0,
+        "redirect_error": 0,
     }
     owns_client = client is None
     if client is None:
         client = httpx.Client(
             headers={"User-Agent": USER_AGENT, "Accept": "application/pdf,*/*"},
             timeout=timeout,
-            follow_redirects=True,
+            follow_redirects=False,
+            trust_env=False,
         )
     try:
         for record in records:
@@ -196,6 +397,26 @@ def download_pdfs(
                     pdf_text_status="missing_pdf",
                     unavailability_reason="no_pdf_url",
                     unavailability_detail="No permitted direct PDF URL was available.",
+                )
+                continue
+
+            try:
+                validate_remote_pdf_url(
+                    str(record.pdf_url),
+                    allowed_hosts=allowed_hosts,
+                    resolver=resolver,
+                    resolve_dns=False,
+                )
+            except DownloadSecurityError as exc:
+                summary["blocked_url"] += 1
+                summary["failed"] += 1
+                update_paper_download_status(
+                    session,
+                    record.paper_id,
+                    ingestion_status="download_blocked",
+                    pdf_text_status="download_failed",
+                    unavailability_reason="security_blocked",
+                    unavailability_detail=str(exc),
                 )
                 continue
 
@@ -214,23 +435,67 @@ def download_pdfs(
 
             summary["attempted"] += 1
             if not download:
-                print(f"dry-run would_download paper_id={record.paper_id} url={record.pdf_url} target={target}")
+                print(f"dry-run would_download paper_id={record.paper_id} target={target}")
                 continue
 
             try:
-                response = client.get(str(record.pdf_url))
-                response.raise_for_status()
+                stream_pdf_to_path(
+                    client,
+                    str(record.pdf_url),
+                    target,
+                    allowed_hosts=allowed_hosts,
+                    max_bytes=max_bytes,
+                    max_redirects=max_redirects,
+                    resolver=resolver,
+                )
             except httpx.TimeoutException as exc:
                 reason = "timeout"
                 summary[reason] += 1
                 summary["failed"] += 1
-                print(f"failed paper_id={record.paper_id} reason={reason} detail={exc}")
+                detail = f"{type(exc).__name__}: remote PDF request timed out"
+                print(f"failed paper_id={record.paper_id} reason={reason}")
                 update_paper_download_status(
                     session,
                     record.paper_id,
                     ingestion_status="download_failed",
                     pdf_text_status="download_failed",
                     unavailability_reason=reason,
+                    unavailability_detail=detail,
+                )
+                continue
+            except DownloadTooLargeError as exc:
+                summary["oversize"] += 1
+                summary["failed"] += 1
+                update_paper_download_status(
+                    session,
+                    record.paper_id,
+                    ingestion_status="download_failed",
+                    pdf_text_status="download_failed",
+                    unavailability_reason="file_too_large",
+                    unavailability_detail=str(exc),
+                )
+                continue
+            except DownloadSecurityError as exc:
+                reason = "redirect_error" if "redirect" in str(exc).lower() else "security_blocked"
+                summary["redirect_error" if reason == "redirect_error" else "blocked_url"] += 1
+                summary["failed"] += 1
+                update_paper_download_status(
+                    session,
+                    record.paper_id,
+                    ingestion_status="download_blocked",
+                    pdf_text_status="download_failed",
+                    unavailability_reason=reason,
+                    unavailability_detail=str(exc),
+                )
+                continue
+            except InvalidPDFError as exc:
+                summary["invalid_pdf"] += 1
+                update_paper_download_status(
+                    session,
+                    record.paper_id,
+                    ingestion_status="invalid_pdf",
+                    pdf_text_status="invalid_pdf",
+                    unavailability_reason="invalid_pdf",
                     unavailability_detail=str(exc),
                 )
                 continue
@@ -251,7 +516,8 @@ def download_pdfs(
             except httpx.RequestError as exc:
                 reason = "network_error"
                 summary[reason] += 1
-                print(f"failed paper_id={record.paper_id} reason={exc}")
+                detail = f"{type(exc).__name__}: remote PDF request failed"
+                print(f"failed paper_id={record.paper_id} reason={reason}")
                 summary["failed"] += 1
                 update_paper_download_status(
                     session,
@@ -259,24 +525,10 @@ def download_pdfs(
                     ingestion_status="download_failed",
                     pdf_text_status="download_failed",
                     unavailability_reason=reason,
-                    unavailability_detail=str(exc),
+                    unavailability_detail=detail,
                 )
                 continue
 
-            if not verify_pdf_response(response):
-                print(f"invalid_pdf paper_id={record.paper_id} url={record.pdf_url}")
-                summary["invalid_pdf"] += 1
-                update_paper_download_status(
-                    session,
-                    record.paper_id,
-                    ingestion_status="invalid_pdf",
-                    pdf_text_status="invalid_pdf",
-                    unavailability_reason="invalid_pdf",
-                    unavailability_detail="Response content type or PDF signature was invalid.",
-                )
-                continue
-
-            target.write_bytes(response.content)
             update_paper_download_status(
                 session,
                 record.paper_id,

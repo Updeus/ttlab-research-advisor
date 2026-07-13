@@ -24,7 +24,7 @@ def get_explorer_overview(session: Annotated[Session, Depends(get_session)]) -> 
 @router.get("/topics")
 def get_topics(
     session: Annotated[Session, Depends(get_session)],
-    q: str | None = Query(default=None),
+    q: str | None = Query(default=None, max_length=500),
     min_papers: int | None = Query(default=None, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -43,8 +43,8 @@ def get_topic(topic_id: str, session: Annotated[Session, Depends(get_session)]) 
 @router.get("/authors")
 def get_authors(
     session: Annotated[Session, Depends(get_session)],
-    q: str | None = Query(default=None),
-    topic: str | None = Query(default=None),
+    q: str | None = Query(default=None, max_length=500),
+    topic: str | None = Query(default=None, max_length=300),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> dict[str, object]:

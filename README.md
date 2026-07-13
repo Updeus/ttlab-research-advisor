@@ -40,7 +40,8 @@ Backend storage is SQLite. Search uses keyword FTS/fallback matching plus local 
 - Paper Intelligence artifacts: public summary, technical summary, contribution, methods, limitations, future work, extensions, required skills, evaluation plan
 - Text-only podcast script generation
 - Topic/Author Explorer and related papers
-- Local/demo Admin Review with audit trail
+- Authenticated Admin Review with attributed, append-only audit events; the
+  loopback launcher exposes a visibly insecure demo-only bypass
 - Evaluation Dashboard for retrieval, QA, extension, and artifact result files
 - Offline/mock provider support and optional external provider boundary
 
@@ -103,6 +104,14 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:5173`.
+
+The one-command launcher binds the backend to loopback and explicitly enables
+the insecure local-demo admin bypass. Responses are labeled
+`X-TTLAB-Insecure-Demo: true`; this mode is not production authentication.
+Direct backend startup fails closed for protected routes unless environment
+actors are configured. See [Security](docs/SECURITY.md),
+[Privacy](docs/PRIVACY.md), [Threat Model](docs/THREAT_MODEL.md), and
+[Deployment](docs/DEPLOYMENT.md).
 
 ## Local Ollama Q&A
 
@@ -204,6 +213,7 @@ PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 ## Backend API Highlights
 
 - `GET /health`
+- `GET /ready`
 - `GET /api/stats`
 - `GET /api/papers`
 - `GET /api/search?q=RAG&mode=hybrid`
@@ -216,6 +226,10 @@ PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 - `GET /api/papers/{paper_id}/related`
 - `GET /api/admin/overview`
 - `GET /api/evaluation/dashboard`
+
+Public Ask and Extension Finder requests are transient and are not stored by
+default. Their history/item routes, all admin routes, full extracted chunks,
+and persisted artifact generation require reviewer/admin authentication.
 
 ## Evaluation Commands
 

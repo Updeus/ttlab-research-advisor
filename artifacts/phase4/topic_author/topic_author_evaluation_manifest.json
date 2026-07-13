@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-13T00:08:40.493524+00:00",
+  "code_commit": "7cd80c076629e50ab2b724034e03b1f1ae7e9752",
+  "topic_code_sha256": "3b1ef82a0d8f47d83061a9961e6d679022731cf9111858614e278235cc76e8cc",
+  "evaluation_code_sha256": "9742033f63344a0faa8c7852410e385ae1949d825fa9cbaa95a315e3961f784a",
+  "silver_dataset_sha256": "d13b78bdd0d6f08c2ec1fc59204513eb20d4bc72ca9d925725fd9d96366ce8a8",
+  "corpus": {
+    "snapshot_id": "corpus-04a010207327069a",
+    "snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+    "eligible_paper_count": 96,
+    "eligible_chunk_count": 719
+  },
+  "runtime": {
+    "sqlmodel": "0.0.22",
+    "sentence-transformers": "5.6.0",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.13.1"
+  },
+  "database_execution": "disposable byte copy; live database not mutated",
+  "topic_rebuild_summary": {
+    "topics_created": 0,
+    "topics_updated": 170,
+    "paper_topic_links": 170,
+    "author_topic_links": 313,
+    "skipped_reviewed_items": 0,
+    "warnings": [
+      "No topics inferred for paper_id=a-decision-tree-approach-to-customer-surveys-8f7fac4b.",
+      "No topics inferred for paper_id=can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb.",
+      "No topics inferred for paper_id=developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18.",
+      "No topics inferred for paper_id=efficient-sentiment-classification-of-twitter-feeds-8390d8a8.",
+      "No topics inferred for paper_id=on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898.",
+      "No topics inferred for paper_id=using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b."
+    ]
+  },
+  "outputs": {
+    "topic_predictions.jsonl": "c99fd670335adc4c05b934b57c5571c13acee833e8931d0e1d0c0217369981fb",
+    "topic_metrics.json": "00b06f7c22c05b5b4d12c68657f636cf41c747c4f93dbbecec7b13904f8b1fa3",
+    "author_identity_audit.json": "c67cbc2b8a326912aee18021aff17a6cf7581c80f54e04a8ef421f0af918880d"
+  },
+  "reviewer_type": "ai",
+  "human_validation": false
+}

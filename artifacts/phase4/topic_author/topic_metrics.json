@@ -1,0 +1,4773 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-13T00:08:38.172771+00:00",
+  "reviewer_type": "ai",
+  "human_validation": false,
+  "labels": [
+    "agriculture",
+    "ai",
+    "body shape detection",
+    "chatbots",
+    "civil society",
+    "climate",
+    "clustering",
+    "cybersecurity",
+    "dangerous driving",
+    "data science",
+    "e commerce",
+    "education",
+    "energy",
+    "fraud detection",
+    "information retrieval",
+    "insurance",
+    "internet resilience",
+    "iot",
+    "machine learning",
+    "marketing",
+    "mobile services",
+    "natural language processing",
+    "networks",
+    "open data",
+    "optimization",
+    "other/unknown",
+    "pricing",
+    "privacy",
+    "rag",
+    "recommendation systems",
+    "research discovery",
+    "simulation",
+    "smart grid",
+    "summarization",
+    "supply chain",
+    "telecommunications",
+    "transportation",
+    "visualization",
+    "web applications",
+    "word embeddings"
+  ],
+  "methods": {
+    "controlled_lexical": {
+      "dev": {
+        "case_count": 36,
+        "micro": {
+          "precision": 0.8333333333333334,
+          "recall": 0.5913978494623656,
+          "f1": 0.6918238993710693
+        },
+        "macro": {
+          "precision": 0.7088023088023088,
+          "recall": 0.6520267611176702,
+          "f1": 0.6460317460317461
+        },
+        "macro_supported_label_count": 33,
+        "macro_all_vocabulary": {
+          "precision": 0.5847619047619047,
+          "recall": 0.5379220779220779,
+          "f1": 0.5329761904761905
+        },
+        "exact_match": 0.25,
+        "coverage": 0.9444444444444444,
+        "per_label": {
+          "agriculture": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 34,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "ai": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "body shape detection": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "chatbots": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "civil society": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "climate": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "clustering": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "cybersecurity": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 34,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "dangerous driving": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "data science": {
+            "tp": 4,
+            "fp": 1,
+            "fn": 1,
+            "tn": 30,
+            "precision": 0.8,
+            "recall": 0.8,
+            "f1": 0.8000000000000002,
+            "precision_wilson_95_ci": [
+              0.37553462976252533,
+              0.9637758913675698
+            ],
+            "recall_wilson_95_ci": [
+              0.37553462976252533,
+              0.9637758913675698
+            ]
+          },
+          "e commerce": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "education": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 0,
+            "tn": 33,
+            "precision": 0.3333333333333333,
+            "recall": 1.0,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "energy": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "fraud detection": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "information retrieval": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "insurance": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 34,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "internet resilience": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 34,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "iot": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "tn": 33,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              5.551115123125783e-17,
+              0.5614970317550454
+            ]
+          },
+          "machine learning": {
+            "tp": 6,
+            "fp": 1,
+            "fn": 5,
+            "tn": 24,
+            "precision": 0.8571428571428571,
+            "recall": 0.5454545454545454,
+            "f1": 0.6666666666666665,
+            "precision_wilson_95_ci": [
+              0.4868721707256811,
+              0.9743203756552565
+            ],
+            "recall_wilson_95_ci": [
+              0.280091537409322,
+              0.7872872837754024
+            ]
+          },
+          "marketing": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "mobile services": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 0,
+            "tn": 31,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.5655175352168251,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.5655175352168251,
+              1.0
+            ]
+          },
+          "natural language processing": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "networks": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 5,
+            "tn": 30,
+            "precision": 1.0,
+            "recall": 0.16666666666666666,
+            "f1": 0.2857142857142857,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.030053369748306635,
+              0.5635028221864702
+            ]
+          },
+          "open data": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "optimization": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 2,
+            "tn": 30,
+            "precision": 1.0,
+            "recall": 0.6666666666666666,
+            "f1": 0.8,
+            "precision_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ]
+          },
+          "other/unknown": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 34,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "pricing": {
+            "tp": 3,
+            "fp": 2,
+            "fn": 2,
+            "tn": 29,
+            "precision": 0.6,
+            "recall": 0.6,
+            "f1": 0.6,
+            "precision_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ],
+            "recall_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ]
+          },
+          "privacy": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "rag": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "recommendation systems": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 1,
+            "tn": 34,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "research discovery": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "simulation": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 34,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ]
+          },
+          "smart grid": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "summarization": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "supply chain": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "telecommunications": {
+            "tp": 4,
+            "fp": 1,
+            "fn": 3,
+            "tn": 28,
+            "precision": 0.8,
+            "recall": 0.5714285714285714,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.37553462976252533,
+              0.9637758913675698
+            ],
+            "recall_wilson_95_ci": [
+              0.2504583645276572,
+              0.8417801447485302
+            ]
+          },
+          "transportation": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 0,
+            "tn": 34,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "visualization": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 34,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ]
+          },
+          "web applications": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 5,
+            "tn": 31,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.43448246478317476
+            ]
+          },
+          "word embeddings": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          }
+        },
+        "bootstrap_95_ci": {
+          "micro.precision": [
+            0.7499208860759494,
+            0.9193709677419353
+          ],
+          "micro.recall": [
+            0.4950444013473512,
+            0.6867469879518072
+          ],
+          "micro.f1": [
+            0.6111027944111775,
+            0.763157894736842
+          ],
+          "macro.precision": [
+            0.6136287878787877,
+            0.766466049382716
+          ],
+          "macro.recall": [
+            0.5651848639455783,
+            0.7008928571428571
+          ],
+          "macro.f1": [
+            0.5771538700855837,
+            0.6976961772795106
+          ],
+          "coverage": [
+            0.8611111111111112,
+            1.0
+          ],
+          "exact_match": [
+            0.1111111111111111,
+            0.3888888888888889
+          ]
+        },
+        "bootstrap_config": {
+          "samples": 2000,
+          "seed": 94017,
+          "unit": "paper case"
+        }
+      },
+      "test": {
+        "case_count": 24,
+        "micro": {
+          "precision": 0.6521739130434783,
+          "recall": 0.4838709677419355,
+          "f1": 0.5555555555555556
+        },
+        "macro": {
+          "precision": 0.6737179487179487,
+          "recall": 0.5764652014652014,
+          "f1": 0.5927960927960928
+        },
+        "macro_supported_label_count": 26,
+        "macro_all_vocabulary": {
+          "precision": 0.4379166666666666,
+          "recall": 0.37470238095238095,
+          "f1": 0.38531746031746034
+        },
+        "exact_match": 0.08333333333333333,
+        "coverage": 0.875,
+        "per_label": {
+          "agriculture": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 0,
+            "tn": 21,
+            "precision": 0.6666666666666666,
+            "recall": 1.0,
+            "f1": 0.8,
+            "precision_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "ai": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 4,
+            "tn": 20,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.4898908364545973
+            ]
+          },
+          "body shape detection": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "chatbots": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "civil society": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "climate": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 0,
+            "tn": 21,
+            "precision": 0.6666666666666666,
+            "recall": 1.0,
+            "f1": 0.8,
+            "precision_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "clustering": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 0,
+            "tn": 20,
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.8571428571428571,
+            "precision_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "cybersecurity": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "dangerous driving": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "data science": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "tn": 22,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "e commerce": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "education": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "energy": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 21,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "fraud detection": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "information retrieval": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 21,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "insurance": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "internet resilience": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "iot": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "machine learning": {
+            "tp": 3,
+            "fp": 2,
+            "fn": 4,
+            "tn": 15,
+            "precision": 0.6,
+            "recall": 0.42857142857142855,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ],
+            "recall_wilson_95_ci": [
+              0.15821985525146975,
+              0.7495416354723428
+            ]
+          },
+          "marketing": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "mobile services": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "natural language processing": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 6,
+            "tn": 16,
+            "precision": 0.5,
+            "recall": 0.14285714285714285,
+            "f1": 0.22222222222222224,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.02567962434474355,
+              0.5131278292743189
+            ]
+          },
+          "networks": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 2,
+            "tn": 20,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ]
+          },
+          "open data": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "optimization": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 2,
+            "tn": 20,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ]
+          },
+          "other/unknown": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 1,
+            "tn": 20,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "pricing": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "privacy": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "rag": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 22,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "recommendation systems": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 1,
+            "tn": 22,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "research discovery": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "simulation": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "smart grid": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 1,
+            "tn": 22,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "summarization": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 22,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "supply chain": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "telecommunications": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 1,
+            "tn": 21,
+            "precision": 0.5,
+            "recall": 0.5,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "transportation": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 3,
+            "tn": 19,
+            "precision": 0.5,
+            "recall": 0.25,
+            "f1": 0.3333333333333333,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ]
+          },
+          "visualization": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "web applications": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "word embeddings": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          }
+        },
+        "bootstrap_95_ci": {
+          "micro.precision": [
+            0.48936170212765956,
+            0.8108108108108109
+          ],
+          "micro.recall": [
+            0.3559048660470202,
+            0.6140350877192983
+          ],
+          "micro.f1": [
+            0.42,
+            0.6851984126984129
+          ],
+          "macro.precision": [
+            0.47992524092970523,
+            0.7630447722567288
+          ],
+          "macro.recall": [
+            0.44046574770258984,
+            0.6714538239538239
+          ],
+          "macro.f1": [
+            0.4451934327749545,
+            0.674290753027166
+          ],
+          "coverage": [
+            0.7489583333333334,
+            1.0
+          ],
+          "exact_match": [
+            0.0,
+            0.20833333333333334
+          ]
+        },
+        "bootstrap_config": {
+          "samples": 2000,
+          "seed": 94018,
+          "unit": "paper case"
+        }
+      },
+      "all": {
+        "case_count": 60,
+        "micro": {
+          "precision": 0.7589285714285714,
+          "recall": 0.5483870967741935,
+          "f1": 0.6367041198501872
+        },
+        "macro": {
+          "precision": 0.7153571428571428,
+          "recall": 0.654513888888889,
+          "f1": 0.6401228632478633
+        },
+        "macro_supported_label_count": 40,
+        "macro_all_vocabulary": {
+          "precision": 0.7153571428571428,
+          "recall": 0.654513888888889,
+          "f1": 0.6401228632478633
+        },
+        "exact_match": 0.18333333333333332,
+        "coverage": 0.9166666666666666,
+        "per_label": {
+          "agriculture": {
+            "tp": 4,
+            "fp": 1,
+            "fn": 0,
+            "tn": 55,
+            "precision": 0.8,
+            "recall": 1.0,
+            "f1": 0.888888888888889,
+            "precision_wilson_95_ci": [
+              0.37553462976252533,
+              0.9637758913675698
+            ],
+            "recall_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ]
+          },
+          "ai": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 4,
+            "tn": 55,
+            "precision": 1.0,
+            "recall": 0.2,
+            "f1": 0.33333333333333337,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.03622410863243014,
+              0.6244653702374747
+            ]
+          },
+          "body shape detection": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "chatbots": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "civil society": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "climate": {
+            "tp": 5,
+            "fp": 1,
+            "fn": 0,
+            "tn": 54,
+            "precision": 0.8333333333333334,
+            "recall": 1.0,
+            "f1": 0.9090909090909091,
+            "precision_wilson_95_ci": [
+              0.43649717781352987,
+              0.9699466302516935
+            ],
+            "recall_wilson_95_ci": [
+              0.5655175352168251,
+              1.0
+            ]
+          },
+          "clustering": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 1,
+            "tn": 55,
+            "precision": 0.75,
+            "recall": 0.75,
+            "f1": 0.75,
+            "precision_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ],
+            "recall_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ]
+          },
+          "cybersecurity": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 0,
+            "tn": 57,
+            "precision": 0.3333333333333333,
+            "recall": 1.0,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "dangerous driving": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "data science": {
+            "tp": 4,
+            "fp": 2,
+            "fn": 2,
+            "tn": 52,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ],
+            "recall_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ]
+          },
+          "e commerce": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 58,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "education": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 0,
+            "tn": 56,
+            "precision": 0.25,
+            "recall": 1.0,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "energy": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 2,
+            "tn": 54,
+            "precision": 1.0,
+            "recall": 0.6666666666666666,
+            "f1": 0.8,
+            "precision_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ]
+          },
+          "fraud detection": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "information retrieval": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 57,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "insurance": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 58,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "internet resilience": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 58,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "iot": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "tn": 57,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              5.551115123125783e-17,
+              0.5614970317550454
+            ]
+          },
+          "machine learning": {
+            "tp": 9,
+            "fp": 3,
+            "fn": 9,
+            "tn": 39,
+            "precision": 0.75,
+            "recall": 0.5,
+            "f1": 0.6,
+            "precision_wilson_95_ci": [
+              0.46769466506643426,
+              0.9110583316059453
+            ],
+            "recall_wilson_95_ci": [
+              0.29031021505169974,
+              0.7096897849483003
+            ]
+          },
+          "marketing": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 3,
+            "tn": 56,
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ]
+          },
+          "mobile services": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 1,
+            "tn": 54,
+            "precision": 1.0,
+            "recall": 0.8333333333333334,
+            "f1": 0.9090909090909091,
+            "precision_wilson_95_ci": [
+              0.5655175352168251,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.43649717781352987,
+              0.9699466302516935
+            ]
+          },
+          "natural language processing": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 8,
+            "tn": 49,
+            "precision": 0.6666666666666666,
+            "recall": 0.2,
+            "f1": 0.30769230769230765,
+            "precision_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ],
+            "recall_wilson_95_ci": [
+              0.05668215145437519,
+              0.5098375284633583
+            ]
+          },
+          "networks": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 7,
+            "tn": 50,
+            "precision": 0.3333333333333333,
+            "recall": 0.125,
+            "f1": 0.18181818181818182,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.02241749145005667,
+              0.4708881822128535
+            ]
+          },
+          "open data": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 0,
+            "tn": 56,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ]
+          },
+          "optimization": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 4,
+            "tn": 50,
+            "precision": 1.0,
+            "recall": 0.6,
+            "f1": 0.7499999999999999,
+            "precision_wilson_95_ci": [
+              0.6096657120978346,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.31267376973365824,
+              0.8318196702937638
+            ]
+          },
+          "other/unknown": {
+            "tp": 3,
+            "fp": 2,
+            "fn": 1,
+            "tn": 54,
+            "precision": 0.6,
+            "recall": 0.75,
+            "f1": 0.6666666666666665,
+            "precision_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ],
+            "recall_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ]
+          },
+          "pricing": {
+            "tp": 4,
+            "fp": 2,
+            "fn": 2,
+            "tn": 52,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ],
+            "recall_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ]
+          },
+          "privacy": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "rag": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 58,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "recommendation systems": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 2,
+            "tn": 56,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ]
+          },
+          "research discovery": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 59,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "simulation": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 58,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ]
+          },
+          "smart grid": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 57,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "summarization": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "tn": 57,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "supply chain": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "telecommunications": {
+            "tp": 5,
+            "fp": 2,
+            "fn": 4,
+            "tn": 49,
+            "precision": 0.7142857142857143,
+            "recall": 0.5555555555555556,
+            "f1": 0.6250000000000001,
+            "precision_wilson_95_ci": [
+              0.35893445183261935,
+              0.9177810759959433
+            ],
+            "recall_wilson_95_ci": [
+              0.26665129349549305,
+              0.8112214789023355
+            ]
+          },
+          "transportation": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 3,
+            "tn": 53,
+            "precision": 0.25,
+            "recall": 0.25,
+            "f1": 0.25,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ]
+          },
+          "visualization": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 58,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ]
+          },
+          "web applications": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 5,
+            "tn": 55,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.43448246478317476
+            ]
+          },
+          "word embeddings": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          }
+        },
+        "bootstrap_95_ci": {
+          "micro.precision": [
+            0.6640625,
+            0.8421052631578947
+          ],
+          "micro.recall": [
+            0.4720409000351576,
+            0.6275977712363331
+          ],
+          "micro.f1": [
+            0.5617815859671813,
+            0.7054551681195517
+          ],
+          "macro.precision": [
+            0.5841932773109244,
+            0.7744922882946281
+          ],
+          "macro.recall": [
+            0.5504055612143847,
+            0.6832039810269475
+          ],
+          "macro.f1": [
+            0.5438034935885548,
+            0.6838696920405146
+          ],
+          "coverage": [
+            0.85,
+            0.9833333333333333
+          ],
+          "exact_match": [
+            0.1,
+            0.2833333333333333
+          ]
+        },
+        "bootstrap_config": {
+          "samples": 2000,
+          "seed": 94019,
+          "unit": "paper case"
+        }
+      }
+    },
+    "dense_prototype": {
+      "dev": {
+        "case_count": 36,
+        "micro": {
+          "precision": 0.49206349206349204,
+          "recall": 0.6666666666666666,
+          "f1": 0.5662100456621005
+        },
+        "macro": {
+          "precision": 0.5528379028379028,
+          "recall": 0.6950150859241768,
+          "f1": 0.56206432209106
+        },
+        "macro_supported_label_count": 33,
+        "macro_all_vocabulary": {
+          "precision": 0.45609126984126985,
+          "recall": 0.5733874458874458,
+          "f1": 0.46370306572512454
+        },
+        "exact_match": 0.1388888888888889,
+        "coverage": 0.9166666666666666,
+        "per_label": {
+          "agriculture": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 34,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "ai": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "tn": 34,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "body shape detection": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 34,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "chatbots": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 0,
+            "tn": 32,
+            "precision": 0.25,
+            "recall": 1.0,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "civil society": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 34,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "climate": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "clustering": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "cybersecurity": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "dangerous driving": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "data science": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 4,
+            "tn": 28,
+            "precision": 0.25,
+            "recall": 0.2,
+            "f1": 0.22222222222222224,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.03622410863243014,
+              0.6244653702374747
+            ]
+          },
+          "e commerce": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 0,
+            "tn": 32,
+            "precision": 0.25,
+            "recall": 1.0,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "education": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "energy": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "fraud detection": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 0,
+            "tn": 32,
+            "precision": 0.25,
+            "recall": 1.0,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "information retrieval": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "insurance": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "internet resilience": {
+            "tp": 2,
+            "fp": 2,
+            "fn": 0,
+            "tn": 32,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "iot": {
+            "tp": 2,
+            "fp": 7,
+            "fn": 1,
+            "tn": 26,
+            "precision": 0.2222222222222222,
+            "recall": 0.6666666666666666,
+            "f1": 0.3333333333333333,
+            "precision_wilson_95_ci": [
+              0.06322510711784671,
+              0.5474110308930111
+            ],
+            "recall_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ]
+          },
+          "machine learning": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 6,
+            "tn": 25,
+            "precision": 1.0,
+            "recall": 0.45454545454545453,
+            "f1": 0.625,
+            "precision_wilson_95_ci": [
+              0.5655175352168251,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.21271271622459764,
+              0.719908462590678
+            ]
+          },
+          "marketing": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 1,
+            "tn": 32,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ],
+            "recall_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ]
+          },
+          "mobile services": {
+            "tp": 5,
+            "fp": 7,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.4166666666666667,
+            "recall": 1.0,
+            "f1": 0.5882352941176471,
+            "precision_wilson_95_ci": [
+              0.19326031365875665,
+              0.6804886874504503
+            ],
+            "recall_wilson_95_ci": [
+              0.5655175352168251,
+              1.0
+            ]
+          },
+          "natural language processing": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "networks": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 1,
+            "tn": 30,
+            "precision": 1.0,
+            "recall": 0.8333333333333334,
+            "f1": 0.9090909090909091,
+            "precision_wilson_95_ci": [
+              0.5655175352168251,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.43649717781352987,
+              0.9699466302516935
+            ]
+          },
+          "open data": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "tn": 33,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "optimization": {
+            "tp": 5,
+            "fp": 7,
+            "fn": 1,
+            "tn": 23,
+            "precision": 0.4166666666666667,
+            "recall": 0.8333333333333334,
+            "f1": 0.5555555555555556,
+            "precision_wilson_95_ci": [
+              0.19326031365875665,
+              0.6804886874504503
+            ],
+            "recall_wilson_95_ci": [
+              0.43649717781352987,
+              0.9699466302516935
+            ]
+          },
+          "other/unknown": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 1,
+            "tn": 32,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "pricing": {
+            "tp": 4,
+            "fp": 3,
+            "fn": 1,
+            "tn": 28,
+            "precision": 0.5714285714285714,
+            "recall": 0.8,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.2504583645276572,
+              0.8417801447485302
+            ],
+            "recall_wilson_95_ci": [
+              0.37553462976252533,
+              0.9637758913675698
+            ]
+          },
+          "privacy": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 0,
+            "tn": 34,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "rag": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "recommendation systems": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 1,
+            "tn": 31,
+            "precision": 0.25,
+            "recall": 0.5,
+            "f1": 0.3333333333333333,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "research discovery": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 35,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "simulation": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 34,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ]
+          },
+          "smart grid": {
+            "tp": 1,
+            "fp": 4,
+            "fn": 0,
+            "tn": 31,
+            "precision": 0.2,
+            "recall": 1.0,
+            "f1": 0.33333333333333337,
+            "precision_wilson_95_ci": [
+              0.03622410863243014,
+              0.6244653702374747
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "summarization": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 35,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "supply chain": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 0,
+            "tn": 34,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "telecommunications": {
+            "tp": 5,
+            "fp": 1,
+            "fn": 2,
+            "tn": 28,
+            "precision": 0.8333333333333334,
+            "recall": 0.7142857142857143,
+            "f1": 0.7692307692307692,
+            "precision_wilson_95_ci": [
+              0.43649717781352987,
+              0.9699466302516935
+            ],
+            "recall_wilson_95_ci": [
+              0.35893445183261935,
+              0.9177810759959433
+            ]
+          },
+          "transportation": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "visualization": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 1,
+            "tn": 32,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "web applications": {
+            "tp": 3,
+            "fp": 3,
+            "fn": 2,
+            "tn": 28,
+            "precision": 0.5,
+            "recall": 0.6,
+            "f1": 0.5454545454545454,
+            "precision_wilson_95_ci": [
+              0.18761630648265054,
+              0.8123836935173494
+            ],
+            "recall_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ]
+          },
+          "word embeddings": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 36,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          }
+        },
+        "bootstrap_95_ci": {
+          "micro.precision": [
+            0.4013732394366198,
+            0.5916826923076922
+          ],
+          "micro.recall": [
+            0.5662388685175485,
+            0.7590706576305218
+          ],
+          "micro.f1": [
+            0.47715311258840776,
+            0.650955525606469
+          ],
+          "macro.precision": [
+            0.476334971452159,
+            0.6666310297919672
+          ],
+          "macro.recall": [
+            0.5974668154761904,
+            0.7739825799200799
+          ],
+          "macro.f1": [
+            0.490758897120459,
+            0.6604874818338164
+          ],
+          "coverage": [
+            0.8055555555555556,
+            1.0
+          ],
+          "exact_match": [
+            0.027777777777777776,
+            0.25069444444444067
+          ]
+        },
+        "bootstrap_config": {
+          "samples": 2000,
+          "seed": 94027,
+          "unit": "paper case"
+        }
+      },
+      "test": {
+        "case_count": 24,
+        "micro": {
+          "precision": 0.4174757281553398,
+          "recall": 0.6935483870967742,
+          "f1": 0.5212121212121212
+        },
+        "macro": {
+          "precision": 0.5852564102564103,
+          "recall": 0.7184065934065933,
+          "f1": 0.5812100292869524
+        },
+        "macro_supported_label_count": 26,
+        "macro_all_vocabulary": {
+          "precision": 0.3804166666666667,
+          "recall": 0.46696428571428567,
+          "f1": 0.37778651903651905
+        },
+        "exact_match": 0.08333333333333333,
+        "coverage": 0.9583333333333334,
+        "per_label": {
+          "agriculture": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 22,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "ai": {
+            "tp": 2,
+            "fp": 3,
+            "fn": 2,
+            "tn": 17,
+            "precision": 0.4,
+            "recall": 0.5,
+            "f1": 0.4444444444444445,
+            "precision_wilson_95_ci": [
+              0.11762077423264783,
+              0.769275718723987
+            ],
+            "recall_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ]
+          },
+          "body shape detection": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 0,
+            "tn": 22,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "chatbots": {
+            "tp": 0,
+            "fp": 8,
+            "fn": 0,
+            "tn": 16,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.32440756488388023
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "civil society": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "climate": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 1,
+            "tn": 20,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "clustering": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 0,
+            "tn": 20,
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.8571428571428571,
+            "precision_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "cybersecurity": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "dangerous driving": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "data science": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "tn": 22,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "e commerce": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 0,
+            "tn": 22,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "education": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "energy": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 2,
+            "tn": 21,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ]
+          },
+          "fraud detection": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "information retrieval": {
+            "tp": 2,
+            "fp": 2,
+            "fn": 1,
+            "tn": 19,
+            "precision": 0.5,
+            "recall": 0.6666666666666666,
+            "f1": 0.5714285714285715,
+            "precision_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ],
+            "recall_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ]
+          },
+          "insurance": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "internet resilience": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "iot": {
+            "tp": 0,
+            "fp": 4,
+            "fn": 0,
+            "tn": 20,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.4898908364545973
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "machine learning": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 3,
+            "tn": 17,
+            "precision": 1.0,
+            "recall": 0.5714285714285714,
+            "f1": 0.7272727272727273,
+            "precision_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.2504583645276572,
+              0.8417801447485302
+            ]
+          },
+          "marketing": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 22,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "mobile services": {
+            "tp": 1,
+            "fp": 5,
+            "fn": 0,
+            "tn": 18,
+            "precision": 0.16666666666666666,
+            "recall": 1.0,
+            "f1": 0.2857142857142857,
+            "precision_wilson_95_ci": [
+              0.030053369748306635,
+              0.5635028221864702
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "natural language processing": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 1,
+            "tn": 17,
+            "precision": 1.0,
+            "recall": 0.8571428571428571,
+            "f1": 0.923076923076923,
+            "precision_wilson_95_ci": [
+              0.6096657120978346,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.4868721707256811,
+              0.9743203756552565
+            ]
+          },
+          "networks": {
+            "tp": 2,
+            "fp": 2,
+            "fn": 0,
+            "tn": 20,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "open data": {
+            "tp": 1,
+            "fp": 4,
+            "fn": 0,
+            "tn": 19,
+            "precision": 0.2,
+            "recall": 1.0,
+            "f1": 0.33333333333333337,
+            "precision_wilson_95_ci": [
+              0.03622410863243014,
+              0.6244653702374747
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "optimization": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 0,
+            "tn": 20,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ]
+          },
+          "other/unknown": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 1,
+            "tn": 22,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "pricing": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "tn": 22,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "privacy": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 22,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "rag": {
+            "tp": 1,
+            "fp": 5,
+            "fn": 1,
+            "tn": 17,
+            "precision": 0.16666666666666666,
+            "recall": 0.5,
+            "f1": 0.25,
+            "precision_wilson_95_ci": [
+              0.030053369748306635,
+              0.5635028221864702
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "recommendation systems": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 1,
+            "tn": 21,
+            "precision": 0.5,
+            "recall": 0.5,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "research discovery": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "simulation": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "tn": 24,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "smart grid": {
+            "tp": 1,
+            "fp": 4,
+            "fn": 1,
+            "tn": 18,
+            "precision": 0.2,
+            "recall": 0.5,
+            "f1": 0.28571428571428575,
+            "precision_wilson_95_ci": [
+              0.03622410863243014,
+              0.6244653702374747
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "summarization": {
+            "tp": 2,
+            "fp": 2,
+            "fn": 0,
+            "tn": 20,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "supply chain": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 23,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "telecommunications": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 0,
+            "tn": 21,
+            "precision": 0.6666666666666666,
+            "recall": 1.0,
+            "f1": 0.8,
+            "precision_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "transportation": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 3,
+            "tn": 20,
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ]
+          },
+          "visualization": {
+            "tp": 0,
+            "fp": 3,
+            "fn": 0,
+            "tn": 21,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              5.551115123125783e-17,
+              0.5614970317550454
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "web applications": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "tn": 23,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ],
+            "recall_wilson_95_ci": [
+              null,
+              null
+            ]
+          },
+          "word embeddings": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 0,
+            "tn": 21,
+            "precision": 0.3333333333333333,
+            "recall": 1.0,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          }
+        },
+        "bootstrap_95_ci": {
+          "micro.precision": [
+            0.30691508340023194,
+            0.5454809725158561
+          ],
+          "micro.recall": [
+            0.5373134328358209,
+            0.8405797101449275
+          ],
+          "micro.f1": [
+            0.3926046945852227,
+            0.6374999999999998
+          ],
+          "macro.precision": [
+            0.4762984324164448,
+            0.7516944444444442
+          ],
+          "macro.recall": [
+            0.5710071178821179,
+            0.8483172419685573
+          ],
+          "macro.f1": [
+            0.48576920800218004,
+            0.7270914605353964
+          ],
+          "coverage": [
+            0.875,
+            1.0
+          ],
+          "exact_match": [
+            0.0,
+            0.20833333333333334
+          ]
+        },
+        "bootstrap_config": {
+          "samples": 2000,
+          "seed": 94028,
+          "unit": "paper case"
+        }
+      },
+      "all": {
+        "case_count": 60,
+        "micro": {
+          "precision": 0.4585152838427948,
+          "recall": 0.6774193548387096,
+          "f1": 0.546875
+        },
+        "macro": {
+          "precision": 0.498583257020757,
+          "recall": 0.7367361111111111,
+          "f1": 0.5317217586335233
+        },
+        "macro_supported_label_count": 40,
+        "macro_all_vocabulary": {
+          "precision": 0.498583257020757,
+          "recall": 0.7367361111111111,
+          "f1": 0.5317217586335233
+        },
+        "exact_match": 0.11666666666666667,
+        "coverage": 0.9333333333333333,
+        "per_label": {
+          "agriculture": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 0,
+            "tn": 56,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ]
+          },
+          "ai": {
+            "tp": 2,
+            "fp": 4,
+            "fn": 3,
+            "tn": 51,
+            "precision": 0.3333333333333333,
+            "recall": 0.4,
+            "f1": 0.3636363636363636,
+            "precision_wilson_95_ci": [
+              0.09677141110578041,
+              0.700006684861608
+            ],
+            "recall_wilson_95_ci": [
+              0.11762077423264783,
+              0.769275718723987
+            ]
+          },
+          "body shape detection": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 0,
+            "tn": 56,
+            "precision": 0.25,
+            "recall": 1.0,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "chatbots": {
+            "tp": 1,
+            "fp": 11,
+            "fn": 0,
+            "tn": 48,
+            "precision": 0.08333333333333333,
+            "recall": 1.0,
+            "f1": 0.15384615384615385,
+            "precision_wilson_95_ci": [
+              0.014865094404917095,
+              0.35387991114111694
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "civil society": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 58,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "climate": {
+            "tp": 4,
+            "fp": 2,
+            "fn": 1,
+            "tn": 53,
+            "precision": 0.6666666666666666,
+            "recall": 0.8,
+            "f1": 0.7272727272727272,
+            "precision_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ],
+            "recall_wilson_95_ci": [
+              0.37553462976252533,
+              0.9637758913675698
+            ]
+          },
+          "clustering": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 1,
+            "tn": 55,
+            "precision": 0.75,
+            "recall": 0.75,
+            "f1": 0.75,
+            "precision_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ],
+            "recall_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ]
+          },
+          "cybersecurity": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "dangerous driving": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "tn": 58,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "data science": {
+            "tp": 1,
+            "fp": 4,
+            "fn": 5,
+            "tn": 50,
+            "precision": 0.2,
+            "recall": 0.16666666666666666,
+            "f1": 0.1818181818181818,
+            "precision_wilson_95_ci": [
+              0.03622410863243014,
+              0.6244653702374747
+            ],
+            "recall_wilson_95_ci": [
+              0.030053369748306635,
+              0.5635028221864702
+            ]
+          },
+          "e commerce": {
+            "tp": 1,
+            "fp": 5,
+            "fn": 0,
+            "tn": 54,
+            "precision": 0.16666666666666666,
+            "recall": 1.0,
+            "f1": 0.2857142857142857,
+            "precision_wilson_95_ci": [
+              0.030053369748306635,
+              0.5635028221864702
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "education": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "energy": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 4,
+            "tn": 54,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.09677141110578041,
+              0.700006684861608
+            ]
+          },
+          "fraud detection": {
+            "tp": 1,
+            "fp": 4,
+            "fn": 0,
+            "tn": 55,
+            "precision": 0.2,
+            "recall": 1.0,
+            "f1": 0.33333333333333337,
+            "precision_wilson_95_ci": [
+              0.03622410863243014,
+              0.6244653702374747
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "information retrieval": {
+            "tp": 2,
+            "fp": 3,
+            "fn": 1,
+            "tn": 54,
+            "precision": 0.4,
+            "recall": 0.6666666666666666,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.11762077423264783,
+              0.769275718723987
+            ],
+            "recall_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ]
+          },
+          "insurance": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "tn": 59,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "internet resilience": {
+            "tp": 2,
+            "fp": 3,
+            "fn": 0,
+            "tn": 55,
+            "precision": 0.4,
+            "recall": 1.0,
+            "f1": 0.5714285714285715,
+            "precision_wilson_95_ci": [
+              0.11762077423264783,
+              0.769275718723987
+            ],
+            "recall_wilson_95_ci": [
+              0.34238022750665303,
+              1.0
+            ]
+          },
+          "iot": {
+            "tp": 2,
+            "fp": 11,
+            "fn": 1,
+            "tn": 46,
+            "precision": 0.15384615384615385,
+            "recall": 0.6666666666666666,
+            "f1": 0.25,
+            "precision_wilson_95_ci": [
+              0.043258178358081184,
+              0.4223463101948254
+            ],
+            "recall_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ]
+          },
+          "machine learning": {
+            "tp": 9,
+            "fp": 0,
+            "fn": 9,
+            "tn": 42,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.7008549515804559,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.29031021505169974,
+              0.7096897849483003
+            ]
+          },
+          "marketing": {
+            "tp": 3,
+            "fp": 2,
+            "fn": 1,
+            "tn": 54,
+            "precision": 0.6,
+            "recall": 0.75,
+            "f1": 0.6666666666666665,
+            "precision_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ],
+            "recall_wilson_95_ci": [
+              0.30064184258240184,
+              0.9544127391902995
+            ]
+          },
+          "mobile services": {
+            "tp": 6,
+            "fp": 12,
+            "fn": 0,
+            "tn": 42,
+            "precision": 0.3333333333333333,
+            "recall": 1.0,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.1627877475083369,
+              0.5625053270405489
+            ],
+            "recall_wilson_95_ci": [
+              0.6096657120978346,
+              1.0
+            ]
+          },
+          "natural language processing": {
+            "tp": 7,
+            "fp": 0,
+            "fn": 3,
+            "tn": 50,
+            "precision": 1.0,
+            "recall": 0.7,
+            "f1": 0.8235294117647058,
+            "precision_wilson_95_ci": [
+              0.6456695649333126,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.39677814746114537,
+              0.8922087325936989
+            ]
+          },
+          "networks": {
+            "tp": 7,
+            "fp": 2,
+            "fn": 1,
+            "tn": 50,
+            "precision": 0.7777777777777778,
+            "recall": 0.875,
+            "f1": 0.823529411764706,
+            "precision_wilson_95_ci": [
+              0.45258896910698887,
+              0.9367748928821533
+            ],
+            "recall_wilson_95_ci": [
+              0.5291118177871464,
+              0.9775825085499433
+            ]
+          },
+          "open data": {
+            "tp": 4,
+            "fp": 4,
+            "fn": 0,
+            "tn": 52,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "precision_wilson_95_ci": [
+              0.21521606221387757,
+              0.7847839377861224
+            ],
+            "recall_wilson_95_ci": [
+              0.5101091635454027,
+              1.0
+            ]
+          },
+          "optimization": {
+            "tp": 9,
+            "fp": 7,
+            "fn": 1,
+            "tn": 43,
+            "precision": 0.5625,
+            "recall": 0.9,
+            "f1": 0.6923076923076923,
+            "precision_wilson_95_ci": [
+              0.331785563988119,
+              0.7690134759450765
+            ],
+            "recall_wilson_95_ci": [
+              0.5958499732047615,
+              0.9821237869049271
+            ]
+          },
+          "other/unknown": {
+            "tp": 2,
+            "fp": 2,
+            "fn": 2,
+            "tn": 54,
+            "precision": 0.5,
+            "recall": 0.5,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ],
+            "recall_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ]
+          },
+          "pricing": {
+            "tp": 4,
+            "fp": 4,
+            "fn": 2,
+            "tn": 50,
+            "precision": 0.5,
+            "recall": 0.6666666666666666,
+            "f1": 0.5714285714285715,
+            "precision_wilson_95_ci": [
+              0.21521606221387757,
+              0.7847839377861224
+            ],
+            "recall_wilson_95_ci": [
+              0.299993315138392,
+              0.9032285888942195
+            ]
+          },
+          "privacy": {
+            "tp": 1,
+            "fp": 3,
+            "fn": 0,
+            "tn": 56,
+            "precision": 0.25,
+            "recall": 1.0,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "rag": {
+            "tp": 1,
+            "fp": 6,
+            "fn": 1,
+            "tn": 52,
+            "precision": 0.14285714285714285,
+            "recall": 0.5,
+            "f1": 0.22222222222222224,
+            "precision_wilson_95_ci": [
+              0.02567962434474355,
+              0.5131278292743189
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "recommendation systems": {
+            "tp": 2,
+            "fp": 4,
+            "fn": 2,
+            "tn": 52,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.09677141110578041,
+              0.700006684861608
+            ],
+            "recall_wilson_95_ci": [
+              0.15003898915214947,
+              0.8499610108478506
+            ]
+          },
+          "research discovery": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "tn": 59,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.7934506856227626
+            ]
+          },
+          "simulation": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 58,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "precision_wilson_95_ci": [
+              null,
+              null
+            ],
+            "recall_wilson_95_ci": [
+              0.0,
+              0.6576197724933469
+            ]
+          },
+          "smart grid": {
+            "tp": 2,
+            "fp": 8,
+            "fn": 1,
+            "tn": 49,
+            "precision": 0.2,
+            "recall": 0.6666666666666666,
+            "f1": 0.30769230769230765,
+            "precision_wilson_95_ci": [
+              0.05668215145437519,
+              0.5098375284633583
+            ],
+            "recall_wilson_95_ci": [
+              0.2076596008020477,
+              0.9385080552796037
+            ]
+          },
+          "summarization": {
+            "tp": 3,
+            "fp": 2,
+            "fn": 0,
+            "tn": 55,
+            "precision": 0.6,
+            "recall": 1.0,
+            "f1": 0.7499999999999999,
+            "precision_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ],
+            "recall_wilson_95_ci": [
+              0.4385029682449546,
+              1.0
+            ]
+          },
+          "supply chain": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 0,
+            "tn": 57,
+            "precision": 0.3333333333333333,
+            "recall": 1.0,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          },
+          "telecommunications": {
+            "tp": 7,
+            "fp": 2,
+            "fn": 2,
+            "tn": 49,
+            "precision": 0.7777777777777778,
+            "recall": 0.7777777777777778,
+            "f1": 0.7777777777777778,
+            "precision_wilson_95_ci": [
+              0.45258896910698887,
+              0.9367748928821533
+            ],
+            "recall_wilson_95_ci": [
+              0.45258896910698887,
+              0.9367748928821533
+            ]
+          },
+          "transportation": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 3,
+            "tn": 56,
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4,
+            "precision_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ],
+            "recall_wilson_95_ci": [
+              0.04558726080970055,
+              0.6993581574175981
+            ]
+          },
+          "visualization": {
+            "tp": 1,
+            "fp": 5,
+            "fn": 1,
+            "tn": 53,
+            "precision": 0.16666666666666666,
+            "recall": 0.5,
+            "f1": 0.25,
+            "precision_wilson_95_ci": [
+              0.030053369748306635,
+              0.5635028221864702
+            ],
+            "recall_wilson_95_ci": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          "web applications": {
+            "tp": 3,
+            "fp": 4,
+            "fn": 2,
+            "tn": 51,
+            "precision": 0.42857142857142855,
+            "recall": 0.6,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.15821985525146975,
+              0.7495416354723428
+            ],
+            "recall_wilson_95_ci": [
+              0.2307242812760128,
+              0.882379225767352
+            ]
+          },
+          "word embeddings": {
+            "tp": 1,
+            "fp": 2,
+            "fn": 0,
+            "tn": 57,
+            "precision": 0.3333333333333333,
+            "recall": 1.0,
+            "f1": 0.5,
+            "precision_wilson_95_ci": [
+              0.06149194472039621,
+              0.7923403991979522
+            ],
+            "recall_wilson_95_ci": [
+              0.20654931437723745,
+              1.0
+            ]
+          }
+        },
+        "bootstrap_95_ci": {
+          "micro.precision": [
+            0.3829787234042553,
+            0.5405497542997543
+          ],
+          "micro.recall": [
+            0.5930847792664177,
+            0.7610062893081762
+          ],
+          "micro.f1": [
+            0.4729819293097042,
+            0.6212121212121212
+          ],
+          "macro.precision": [
+            0.4378696037238425,
+            0.6107304765002743
+          ],
+          "macro.recall": [
+            0.6302043402190431,
+            0.7959507411700595
+          ],
+          "macro.f1": [
+            0.46450521704393505,
+            0.6212896142099826
+          ],
+          "coverage": [
+            0.8666666666666667,
+            0.9833333333333333
+          ],
+          "exact_match": [
+            0.05,
+            0.2
+          ]
+        },
+        "bootstrap_config": {
+          "samples": 2000,
+          "seed": 94029,
+          "unit": "paper case"
+        }
+      }
+    }
+  },
+  "dense_configuration": {
+    "method": "pinned_dense_primary-source-centroid_to_label-prototype_cosine",
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
+    "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c",
+    "dense_index_sha256": "ac0d1242787760638f294d8268166a99782d652fef66af70c5ba3739e1b15673",
+    "dense_manifest_sha256": "203b6b28ff62d2fa3abad47e243890e66bf25aa14904a3f6bf764d5878a45886",
+    "threshold_selection": "max dev micro-F1; ties macro-F1 then higher threshold",
+    "selected_threshold": 0.2,
+    "max_labels": 6,
+    "threshold_trials": [
+      {
+        "threshold": 0.2,
+        "micro_f1": 0.5662100456621005,
+        "macro_f1": 0.56206432209106,
+        "coverage": 0.9166666666666666
+      },
+      {
+        "threshold": 0.21,
+        "micro_f1": 0.5550239234449761,
+        "macro_f1": 0.5299967659593329,
+        "coverage": 0.9166666666666666
+      },
+      {
+        "threshold": 0.22,
+        "micro_f1": 0.5418719211822661,
+        "macro_f1": 0.5220241829867498,
+        "coverage": 0.8888888888888888
+      },
+      {
+        "threshold": 0.23,
+        "micro_f1": 0.5482233502538072,
+        "macro_f1": 0.5285823158817811,
+        "coverage": 0.8611111111111112
+      },
+      {
+        "threshold": 0.24,
+        "micro_f1": 0.5654450261780105,
+        "macro_f1": 0.546733524942081,
+        "coverage": 0.8611111111111112
+      },
+      {
+        "threshold": 0.25,
+        "micro_f1": 0.5414364640883979,
+        "macro_f1": 0.5290197572283134,
+        "coverage": 0.8611111111111112
+      },
+      {
+        "threshold": 0.26,
+        "micro_f1": 0.5202312138728324,
+        "macro_f1": 0.5204351204351204,
+        "coverage": 0.8333333333333334
+      },
+      {
+        "threshold": 0.27,
+        "micro_f1": 0.5058823529411764,
+        "macro_f1": 0.48826173826173824,
+        "coverage": 0.7777777777777778
+      },
+      {
+        "threshold": 0.28,
+        "micro_f1": 0.45783132530120485,
+        "macro_f1": 0.4557775557775558,
+        "coverage": 0.7222222222222222
+      },
+      {
+        "threshold": 0.29,
+        "micro_f1": 0.4417177914110429,
+        "macro_f1": 0.4470880970880971,
+        "coverage": 0.7222222222222222
+      },
+      {
+        "threshold": 0.3,
+        "micro_f1": 0.445859872611465,
+        "macro_f1": 0.4670995670995671,
+        "coverage": 0.6666666666666666
+      },
+      {
+        "threshold": 0.31,
+        "micro_f1": 0.44155844155844154,
+        "macro_f1": 0.473015873015873,
+        "coverage": 0.6666666666666666
+      },
+      {
+        "threshold": 0.32,
+        "micro_f1": 0.4133333333333333,
+        "macro_f1": 0.4322314049586777,
+        "coverage": 0.6388888888888888
+      },
+      {
+        "threshold": 0.33,
+        "micro_f1": 0.41095890410958896,
+        "macro_f1": 0.4265151515151515,
+        "coverage": 0.6111111111111112
+      },
+      {
+        "threshold": 0.34,
+        "micro_f1": 0.37762237762237766,
+        "macro_f1": 0.3987734487734488,
+        "coverage": 0.4722222222222222
+      },
+      {
+        "threshold": 0.35,
+        "micro_f1": 0.3165467625899281,
+        "macro_f1": 0.3458184327749545,
+        "coverage": 0.4166666666666667
+      },
+      {
+        "threshold": 0.36,
+        "micro_f1": 0.29197080291970806,
+        "macro_f1": 0.3234519104084322,
+        "coverage": 0.4166666666666667
+      },
+      {
+        "threshold": 0.37,
+        "micro_f1": 0.26277372262773724,
+        "macro_f1": 0.30787878787878786,
+        "coverage": 0.3611111111111111
+      },
+      {
+        "threshold": 0.38,
+        "micro_f1": 0.22058823529411764,
+        "macro_f1": 0.2772166105499439,
+        "coverage": 0.3055555555555556
+      },
+      {
+        "threshold": 0.39,
+        "micro_f1": 0.19117647058823528,
+        "macro_f1": 0.2163009404388715,
+        "coverage": 0.25
+      },
+      {
+        "threshold": 0.4,
+        "micro_f1": 0.14925373134328357,
+        "macro_f1": 0.16047572499185403,
+        "coverage": 0.19444444444444445
+      },
+      {
+        "threshold": 0.41,
+        "micro_f1": 0.14925373134328357,
+        "macro_f1": 0.16047572499185403,
+        "coverage": 0.19444444444444445
+      },
+      {
+        "threshold": 0.42,
+        "micro_f1": 0.14925373134328357,
+        "macro_f1": 0.16047572499185403,
+        "coverage": 0.19444444444444445
+      },
+      {
+        "threshold": 0.43,
+        "micro_f1": 0.13432835820895522,
+        "macro_f1": 0.13005050505050506,
+        "coverage": 0.16666666666666666
+      },
+      {
+        "threshold": 0.44,
+        "micro_f1": 0.13432835820895522,
+        "macro_f1": 0.13005050505050506,
+        "coverage": 0.16666666666666666
+      },
+      {
+        "threshold": 0.45,
+        "micro_f1": 0.11940298507462689,
+        "macro_f1": 0.1238751147842057,
+        "coverage": 0.1388888888888889
+      },
+      {
+        "threshold": 0.46,
+        "micro_f1": 0.11940298507462689,
+        "macro_f1": 0.1238751147842057,
+        "coverage": 0.1388888888888889
+      },
+      {
+        "threshold": 0.47,
+        "micro_f1": 0.1044776119402985,
+        "macro_f1": 0.11467617349970291,
+        "coverage": 0.1111111111111111
+      },
+      {
+        "threshold": 0.48,
+        "micro_f1": 0.10526315789473685,
+        "macro_f1": 0.124777183600713,
+        "coverage": 0.1111111111111111
+      },
+      {
+        "threshold": 0.49,
+        "micro_f1": 0.07692307692307693,
+        "macro_f1": 0.07922077922077922,
+        "coverage": 0.08333333333333333
+      },
+      {
+        "threshold": 0.5,
+        "micro_f1": 0.07692307692307693,
+        "macro_f1": 0.07922077922077922,
+        "coverage": 0.08333333333333333
+      },
+      {
+        "threshold": 0.51,
+        "micro_f1": 0.07692307692307693,
+        "macro_f1": 0.07922077922077922,
+        "coverage": 0.08333333333333333
+      },
+      {
+        "threshold": 0.52,
+        "micro_f1": 0.06153846153846154,
+        "macro_f1": 0.06397306397306397,
+        "coverage": 0.05555555555555555
+      },
+      {
+        "threshold": 0.53,
+        "micro_f1": 0.06153846153846154,
+        "macro_f1": 0.06397306397306397,
+        "coverage": 0.05555555555555555
+      },
+      {
+        "threshold": 0.54,
+        "micro_f1": 0.06153846153846154,
+        "macro_f1": 0.06397306397306397,
+        "coverage": 0.05555555555555555
+      },
+      {
+        "threshold": 0.55,
+        "micro_f1": 0.062015503875968984,
+        "macro_f1": 0.06397306397306397,
+        "coverage": 0.05555555555555555
+      },
+      {
+        "threshold": 0.56,
+        "micro_f1": 0.046511627906976744,
+        "macro_f1": 0.03357903357903358,
+        "coverage": 0.027777777777777776
+      },
+      {
+        "threshold": 0.57,
+        "micro_f1": 0.046511627906976744,
+        "macro_f1": 0.03357903357903358,
+        "coverage": 0.027777777777777776
+      },
+      {
+        "threshold": 0.58,
+        "micro_f1": 0.046511627906976744,
+        "macro_f1": 0.03357903357903358,
+        "coverage": 0.027777777777777776
+      },
+      {
+        "threshold": 0.59,
+        "micro_f1": 0.046511627906976744,
+        "macro_f1": 0.03357903357903358,
+        "coverage": 0.027777777777777776
+      },
+      {
+        "threshold": 0.6,
+        "micro_f1": 0.046511627906976744,
+        "macro_f1": 0.03357903357903358,
+        "coverage": 0.027777777777777776
+      }
+    ],
+    "test_labels_not_used_for_selection": true
+  },
+  "error_taxonomy": [
+    "ambiguous_lexeme_or_incidental_primary_section",
+    "controlled_vocabulary_boundary",
+    "lexical_gap_or_insufficient_repeat_evidence",
+    "prototype_semantic_overreach",
+    "prototype_threshold_or_rank_cap"
+  ]
+}

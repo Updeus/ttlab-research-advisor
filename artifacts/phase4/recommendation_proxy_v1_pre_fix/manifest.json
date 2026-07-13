@@ -1,0 +1,16 @@
+{
+  "evaluation_id": "recommendation-proxy-v1",
+  "completed_at": "2026-07-13T00:03:30.385418+00:00",
+  "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+  "profiles_sha256": "ca3b197d4da5430275ce12a67571b95bc1df889cf3211f1801bf176f2c24b638",
+  "review_prompt_sha256": "28250bd926ab10c021fb55d8c971a0980ae8f3efc77d5de48626ce6d9833da6b",
+  "evaluation_code_sha256": "5bc9f756efbad01871370a421edd53140698607b968b01d9168f84dfcbdfbdfc",
+  "artifact_sha256": {
+    "raw_outputs.jsonl": "d28afb69d3a38fdf9dbb91cecdbeecf29014bb0221de08ad3dc061bc33f9ad90",
+    "review_pass_1.jsonl": "186e3465a50cca9877058f8569c3b2cf0c592870a26d2f1fa76a50f788f65658",
+    "review_pass_2.jsonl": "079d88534b750a95ef4abb766014b85987ad4b7ac9533382f2de4678ff92b34d",
+    "weight_sensitivity.json": "b0ff291f1507972709954a5a197727ed222f69733fbfae993085527f7d27a451",
+    "aggregate_results.json": "0510fa1f28fddfd1e835c1930d9571d2c21f6a55b90f260f61e5b462a9240fb2",
+    "failures.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  }
+}

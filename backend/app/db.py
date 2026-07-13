@@ -101,6 +101,14 @@ def ensure_sqlite_schema() -> None:
         "corrected_text": "VARCHAR",
         "corrected_json": "VARCHAR",
     }
+    review_event_columns = {
+        "reviewer_id": "VARCHAR DEFAULT 'legacy-unattributed' NOT NULL",
+        "reviewer_type": "VARCHAR DEFAULT 'unknown' NOT NULL",
+        "reviewer_role": "VARCHAR DEFAULT 'unknown' NOT NULL",
+        "request_id": "VARCHAR DEFAULT 'unavailable' NOT NULL",
+        "previous_event_hash": "VARCHAR",
+        "event_hash": "VARCHAR",
+    }
     with engine.begin() as connection:
         add_missing_columns(connection, "paper", paper_columns)
         add_missing_columns(connection, "author", author_columns)
@@ -108,6 +116,7 @@ def ensure_sqlite_schema() -> None:
         add_missing_columns(connection, "raganswer", rag_answer_columns)
         add_missing_columns(connection, "thesisrecommendation", recommendation_columns)
         add_missing_columns(connection, "paperartifact", artifact_columns)
+        add_missing_columns(connection, "reviewevent", review_event_columns)
         connection.execute(
             text(
                 "UPDATE paper SET extraction_diagnostics = '{}' "
@@ -144,6 +153,7 @@ def ensure_sqlite_schema() -> None:
                 "WHERE corrected_json IS NULL OR corrected_json = '[]'"
             )
         )
+        install_review_event_immutability(connection)
 
 
 def add_missing_columns(connection, table_name: str, columns: dict[str, str]) -> None:
@@ -154,6 +164,25 @@ def add_missing_columns(connection, table_name: str, columns: dict[str, str]) ->
     for column_name, column_type in columns.items():
         if column_name not in existing:
             connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
+
+
+def install_review_event_immutability(connection) -> None:
+    """Enforce append-only review events at the SQLite boundary."""
+
+    connection.execute(
+        text(
+            "CREATE TRIGGER IF NOT EXISTS prevent_review_event_update "
+            "BEFORE UPDATE ON reviewevent BEGIN "
+            "SELECT RAISE(ABORT, 'review events are append-only'); END"
+        )
+    )
+    connection.execute(
+        text(
+            "CREATE TRIGGER IF NOT EXISTS prevent_review_event_delete "
+            "BEFORE DELETE ON reviewevent BEGIN "
+            "SELECT RAISE(ABORT, 'review events are append-only'); END"
+        )
+    )
 
 
 def get_session() -> Generator[Session, None, None]:

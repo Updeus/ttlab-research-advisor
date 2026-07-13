@@ -49,8 +49,9 @@ def test_api_papers_returns_imported_records() -> None:
                 total_word_count=120,
                 pages_with_text=2,
                 pages_without_text=0,
-                chunk_count=1,
-                review_status="needs_review",
+                    chunk_count=1,
+                    corpus_eligibility_status="eligible",
+                    review_status="needs_review",
             )
         )
         session.add(

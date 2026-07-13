@@ -130,7 +130,12 @@ def validate_structure(cases: list[dict[str, Any]]) -> list[str]:
             distractors = []
         if set(relevant) & set(distractors):
             errors.append(f"{case_id}: relevant and distractor paper IDs must be disjoint")
-        excluded = (set(relevant) | set(distractors)) & EXCLUDED_MISMATCHED_PAPERS
+        evidence_paper_ids = {
+            item.get("paper_id") for item in evidence if isinstance(item, dict)
+        }
+        excluded = (
+            set(relevant) | set(distractors) | evidence_paper_ids
+        ) & EXCLUDED_MISMATCHED_PAPERS
         if excluded:
             errors.append(f"{case_id}: references known title/PDF mismatch records: {sorted(excluded)}")
         if case.get("answerability") == "answerable":
@@ -163,7 +168,7 @@ def validate_database(cases: list[dict[str, Any]], database: Path) -> list[str]:
         chunks = {
             row["chunk_id"]: row
             for row in connection.execute(
-                "SELECT chunk_id, paper_id, page_start, page_end, section FROM chunk"
+                "SELECT chunk_id, paper_id, page_start, page_end, section, source_hash FROM chunk"
             )
         }
         for case in cases:
@@ -180,7 +185,7 @@ def validate_database(cases: list[dict[str, Any]], database: Path) -> list[str]:
                 if chunk is None:
                     errors.append(f"{case_id}: unknown chunk_id {chunk_id}")
                     continue
-                for field in ("paper_id", "page_start", "page_end", "section"):
+                for field in ("paper_id", "page_start", "page_end", "section", "source_hash"):
                     if evidence.get(field) != chunk[field]:
                         errors.append(
                             f"{case_id}: {chunk_id} {field} mismatch: "

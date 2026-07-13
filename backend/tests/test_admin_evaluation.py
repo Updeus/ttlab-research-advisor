@@ -13,6 +13,16 @@ from app.db import get_session
 from app.evaluation.dashboard import build_evaluation_dashboard
 from app.main import app
 from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
+from app.security import AuthenticatedActor, require_reviewer
+
+
+TEST_ADMIN = AuthenticatedActor(
+    actor_id="test-admin",
+    display_name="Test Administrator",
+    role="admin",
+    reviewer_type="human",
+    request_id="test-request",
+)
 
 
 def build_admin_engine():
@@ -119,13 +129,15 @@ def test_review_event_model_can_be_created() -> None:
         reviewer_notes="Looks good.",
     )
 
-    assert event.reviewer_name == "local_admin"
+    assert event.reviewer_name == "Legacy unattributed actor"
+    assert event.reviewer_id == "legacy-unattributed"
     assert event.diff_json == {}
 
 
 def test_paper_metadata_patch_updates_only_provided_fields_and_creates_event() -> None:
     engine = build_admin_engine()
     app.dependency_overrides[get_session] = make_override(engine)
+    app.dependency_overrides[require_reviewer] = lambda: TEST_ADMIN
     try:
         client = TestClient(app)
         response = client.patch(
@@ -138,6 +150,7 @@ def test_paper_metadata_patch_updates_only_provided_fields_and_creates_event() -
         app.dependency_overrides.clear()
 
     assert response.status_code == 200
+    assert response.json()["paper"]["review_status"] == "needs_review"
     assert paper.json()["title"] == "Corrected Title"
     assert paper.json()["venue"] == "Demo Venue"
     assert events.status_code == 200
@@ -147,6 +160,7 @@ def test_paper_metadata_patch_updates_only_provided_fields_and_creates_event() -
 def test_artifact_recommendation_and_answer_review_endpoints_create_events() -> None:
     engine = build_admin_engine()
     app.dependency_overrides[get_session] = make_override(engine)
+    app.dependency_overrides[require_reviewer] = lambda: TEST_ADMIN
     try:
         client = TestClient(app)
         artifact = client.patch(
@@ -172,7 +186,7 @@ def test_artifact_recommendation_and_answer_review_endpoints_create_events() -> 
         app.dependency_overrides.clear()
 
     assert artifact.status_code == 200
-    assert artifact.json()["artifact"]["review_status"] == "approved"
+    assert artifact.json()["artifact"]["review_status"] == "needs_review"
     assert recommendation.status_code == 200
     assert recommendation.json()["recommendation"]["review_status"] == "rejected"
     assert answer.status_code == 200
@@ -183,6 +197,7 @@ def test_artifact_recommendation_and_answer_review_endpoints_create_events() -> 
 def test_review_queue_overview_events_and_stats_work() -> None:
     engine = build_admin_engine()
     app.dependency_overrides[get_session] = make_override(engine)
+    app.dependency_overrides[require_reviewer] = lambda: TEST_ADMIN
     try:
         client = TestClient(app)
         queue = client.get("/api/admin/review-queue")

@@ -314,7 +314,6 @@ def enrich_keyword_results(
                 "source": {
                     "pdf_url": paper.pdf_url if paper else None,
                     "post_url": paper.post_url if paper else None,
-                    "local_pdf_path": paper.local_pdf_path if paper else None,
                 },
             }
         )

@@ -316,7 +316,11 @@ def format_result(
             "topical_alignment": round(topical_alignment_value, 6),
             "combined": round(combined if combined else normalize_score(result.get("score", 0.0)), 6),
         },
-        "source": result.get("source", {"pdf_url": None, "post_url": None, "local_pdf_path": None}),
+        "source": {
+            key: value
+            for key, value in result.get("source", {"pdf_url": None, "post_url": None}).items()
+            if key in {"pdf_url", "post_url"}
+        },
     }
     if include_text:
         formatted["text"] = result.get("text", "")

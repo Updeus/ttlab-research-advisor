@@ -148,7 +148,12 @@ def validate_structure(
             errors.append(f"{case_id}: paper ID lists must be unique")
         if set(relevant) & set(distractors):
             errors.append(f"{case_id}: relevant and distractor sets overlap")
-        excluded = (set(relevant) | set(distractors)) & EXCLUDED_MISMATCHED_PAPERS
+        evidence_paper_ids = {
+            item.get("paper_id") for item in evidence if isinstance(item, dict)
+        }
+        excluded = (
+            set(relevant) | set(distractors) | evidence_paper_ids
+        ) & EXCLUDED_MISMATCHED_PAPERS
         if excluded:
             errors.append(f"{case_id}: references title/PDF mismatch papers: {sorted(excluded)}")
         evidenced = {item.get("paper_id") for item in evidence if isinstance(item, dict)}

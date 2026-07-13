@@ -6,19 +6,19 @@
   "builder_path": "data/evaluation/build_retrieval_silver_v1.py",
   "creation_pass_path": "data/evaluation/retrieval_silver_create_v1.jsonl",
   "verified_at": "2026-07-12T22:23:17Z",
-  "source_git_commit_at_validation": "616e88469144726c5137202b07f58adf90a17405",
+  "source_git_commit_at_validation": "166c6fc45befa0a2847b320328042ab861a34e9d",
   "source_database_path": "data/papers.db",
-  "source_database_sha256": "3823858062edfa0559997e66c3708685ad0b1fc95dd4b60ee2c4ee5389849f91",
+  "source_database_sha256": "60fb036f210bc29933612f340125eba514675c33ce3aa6f29b44886baea008b7",
   "source_inventory": {
     "papers": 134,
     "papers_with_chunks": 98,
-    "chunks": 756
+    "chunks": 735
   },
-  "dataset_sha256": "2efa62a4ee76a745044646a02fcaabf328184275b4b66e33fc37e5ba1e252eb3",
-  "creation_pass_sha256": "c450ea84da13fac1e822d82619ae7ed4b4d6d0a58ca7969223d30f35b1b00199",
-  "schema_sha256": "f538443937f4e011e465103976ca2b4495d215999c01595f9e40ff19e74e33a5",
-  "validator_sha256": "9b81b42814781f133eca945c12af60a2d45b4e24674812adf778101a334172fc",
-  "builder_sha256": "2a0defad1267ca46bc63bb443aec524ef993727bc8152490d5ca0424f9b0f963",
+  "dataset_sha256": "ccd16f6428c9f37da3eb507b02c3fe97867877cc7fbaa99977f3043949a3cbe1",
+  "creation_pass_sha256": "d9b624436e81b8c39d90412245f209f36c47bac7a70a79dc7b8372d62cc95855",
+  "schema_sha256": "19ba41e80f42e84b14d598c6ab91fb7ca8bed45bcdc0a42341f441704eb3977b",
+  "validator_sha256": "79c62c1c9f6aaaec5c932c9ac4cd88ccca54bf9d3c609194cd2082f6c74c8ae3",
+  "builder_sha256": "4dbc5bfb506dfb8cceb0f3c811cc61253cf465d3389916209a3b724e232a9fae",
   "case_count": 50,
   "split_counts": {"dev": 30, "test": 20},
   "category_counts": {
@@ -46,6 +46,18 @@
     "shuffle_seed": 20260712,
     "procedure": "The verification pass reopened cited SQLite chunks, page ranges, paper metadata, and direct corpus inventory in fixed-seed shuffled order. It rechecked question phrasing, category, relevant-paper set, evidence support, answerability, distractors, uncertainty, and split. Retrieval functions, search endpoints, result rankings, and system scores were not inspected while labeling or verifying.",
     "remaining_uncertainty": "Six cases remain medium uncertainty because broad-intent or multi-paper set completeness is less determinate than exact factual lookup; no case is marked high uncertainty."
+  },
+  "rechunk_remap": {
+    "remapped_at": "2026-07-12T23:15:08Z",
+    "script_path": "data/evaluation/remap_retrieval_silver_v1.py",
+    "script_sha256": "f7894806eb90be758e9ec9718a02ce639ac641188c22f0d7cb7ec32d3e0eada6",
+    "audit_path": "data/evaluation/retrieval_silver_remap_v1.json",
+    "audit_sha256": "a03dd2a8330c2b09d231a729169eefe6ee15fd877d0cd03d96101b0037a4f7a8",
+    "pre_rechunk_dataset_sha256": "c450ea84da13fac1e822d82619ae7ed4b4d6d0a58ca7969223d30f35b1b00199",
+    "chunk_inventory_sha256": "29c21402bfe69894a358edfbf8f3c9c5c7a59740c5e16425baf2251ad2aebd88",
+    "supporting_evidence_rows_in_create_pass": 70,
+    "supporting_evidence_rows_in_verified_pass": 76,
+    "retrieval_or_ranking_inspected": false
   },
   "revisions": [
     {

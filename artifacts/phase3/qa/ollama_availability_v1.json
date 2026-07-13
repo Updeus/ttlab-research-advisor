@@ -1,0 +1,74 @@
+{
+  "check_id": "ttlab-qa-ollama-availability-v1",
+  "checked_at": "2026-07-12T23:40:42.332694+00:00",
+  "base_url": "http://localhost:11434",
+  "configured_default_model": "qwen3:4b-instruct-2507-q4_K_M",
+  "configured_num_ctx": 4096,
+  "configured_temperature": 0.1,
+  "configured_top_p": 0.9,
+  "configured_keep_alive": "10m",
+  "cli": {
+    "found": true,
+    "path": "/usr/local/bin/ollama",
+    "binary_sha256": "6a49115196a04f1eec851f5f32e84dfa12f406de551e92d22a738e497945ea3a",
+    "version_probe": {
+      "command": [
+        "/usr/local/bin/ollama",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "Warning: could not connect to a running Ollama instance\nWarning: client version is 0.21.2\n",
+      "stderr": ""
+    },
+    "list_probe": {
+      "command": [
+        "/usr/local/bin/ollama",
+        "list"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: could not connect to ollama server, run 'ollama serve' to start it\n"
+    }
+  },
+  "requests": [
+    {
+      "endpoint": "/api/version",
+      "status": "failed",
+      "error_type": "ConnectError",
+      "error": "[Errno 111] Connection refused"
+    },
+    {
+      "endpoint": "/api/tags",
+      "status": "failed",
+      "error_type": "ConnectError",
+      "error": "[Errno 111] Connection refused"
+    },
+    {
+      "endpoint": "/api/ps",
+      "status": "failed",
+      "error_type": "ConnectError",
+      "error": "[Errno 111] Connection refused"
+    }
+  ],
+  "installed_models": [],
+  "status": "unavailable",
+  "comparison_status": "not_run",
+  "environment": {
+    "platform": "Linux-5.15.133.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
+    "logical_cpu_count": 16,
+    "memory_total_kib": 4012360,
+    "gpu_probe": {
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=name,memory.total",
+        "--format=csv,noheader"
+      ],
+      "returncode": 0,
+      "stdout": "NVIDIA GeForce RTX 3080, 10240 MiB\n",
+      "stderr": ""
+    }
+  },
+  "unavailable_reason": "The Ollama CLI binary exists, but the configured localhost service did not answer the executed version, tags, or process probes. No model tag, digest, quantization, latency, or quality result is claimed."
+}

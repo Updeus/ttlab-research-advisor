@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.ttlab/topic_author_silver_v1.schema.json",
+  "title": "TTLAB topic controlled-vocabulary AI-reviewed silver case",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "split",
+    "stratum",
+    "paper_id",
+    "corpus",
+    "evidence",
+    "review_passes",
+    "final_labels",
+    "final_other_unknown",
+    "adjudication"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^topic-silver-[0-9]{3}$"
+    },
+    "split": {
+      "enum": [
+        "dev",
+        "test"
+      ]
+    },
+    "stratum": {
+      "enum": [
+        "single_label",
+        "multi_label",
+        "other_unknown"
+      ]
+    },
+    "paper_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "corpus": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 2
+    },
+    "review_passes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "final_labels": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "rag",
+          "ai",
+          "machine learning",
+          "information retrieval",
+          "data science",
+          "research discovery",
+          "web applications",
+          "open data",
+          "education",
+          "optimization",
+          "iot",
+          "agriculture",
+          "climate",
+          "telecommunications",
+          "mobile services",
+          "networks",
+          "visualization",
+          "natural language processing",
+          "summarization",
+          "chatbots",
+          "clustering",
+          "word embeddings",
+          "cybersecurity",
+          "fraud detection",
+          "privacy",
+          "transportation",
+          "dangerous driving",
+          "insurance",
+          "pricing",
+          "marketing",
+          "recommendation systems",
+          "e commerce",
+          "supply chain",
+          "smart grid",
+          "body shape detection",
+          "civil society",
+          "internet resilience",
+          "simulation",
+          "energy"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "final_other_unknown": {
+      "type": "boolean"
+    },
+    "adjudication": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

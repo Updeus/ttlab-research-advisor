@@ -168,7 +168,13 @@ def test_citation_verifier_marks_grounded_and_missing_citations() -> None:
 def test_rag_answerer_returns_citations_and_persists() -> None:
     session, _engine = build_ask_session()
     try:
-        response = ask_question(session, "Which papers discuss retrieval augmented generation?", mode="keyword", top_k=3)
+        response = ask_question(
+            session,
+            "Which papers discuss retrieval augmented generation?",
+            mode="keyword",
+            top_k=3,
+            persist=True,
+        )
         stored = session.get(RAGAnswer, response["answer_id"])
     finally:
         session.close()
@@ -254,11 +260,10 @@ def test_ask_api_endpoints_work() -> None:
 
     assert posted.status_code == 200
     assert posted.json()["citations"]
-    assert fetched.status_code == 200
-    assert history.status_code == 200
-    assert history.json()[0]["answer_id"] == answer_id
+    assert fetched.status_code == 401
+    assert history.status_code == 401
     assert diagnostics.status_code == 200
-    assert diagnostics.json()["total_stored_answers"] == 1
+    assert diagnostics.json()["total_stored_answers"] == 0
 
 
 def test_llm_api_lists_local_models(monkeypatch) -> None:

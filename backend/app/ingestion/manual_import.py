@@ -5,6 +5,7 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from sqlmodel import Session, select
 
@@ -45,7 +46,7 @@ def upsert_papers(session: Session, records: list[dict[str, Any]]) -> dict[str, 
             for name in normalize_list(record.get("authors"))
             if not is_malformed_author_name(name)
         ]
-        pdf_url = record.get("pdf_url")
+        pdf_url = validated_web_url(record.get("pdf_url"), field_name="pdf_url")
         local_pdf_path = record.get("local_pdf_path") or record.get("pdf_path") or (existing.local_pdf_path if existing else None)
         pdf_text_status = record.get("pdf_text_status") or ("not_extracted" if pdf_url or local_pdf_path else "missing_pdf")
         if (
@@ -76,16 +77,20 @@ def upsert_papers(session: Session, records: list[dict[str, Any]]) -> dict[str, 
             "publication_date_raw": optional_str(record.get("publication_date_raw") or record.get("publication_date")),
             "venue": optional_str(record.get("venue")),
             "abstract": optional_str(record.get("abstract")),
-            "source_url": optional_str(record.get("source_url")),
-            "post_url": optional_str(record.get("post_url")),
-            "pdf_url": optional_str(pdf_url),
+            "source_url": validated_web_url(record.get("source_url"), field_name="source_url"),
+            "post_url": validated_web_url(record.get("post_url"), field_name="post_url"),
+            "pdf_url": pdf_url,
             "local_pdf_path": optional_str(local_pdf_path),
             "pdf_unavailability_reason": pdf_unavailability_reason,
             "pdf_unavailability_detail": pdf_unavailability_detail,
             "doi": optional_str(record.get("doi")),
             "keywords": normalize_list(record.get("keywords")),
             "topics": normalize_list(record.get("topics")),
-            "all_urls": normalize_list(record.get("all_urls")),
+            "all_urls": [
+                url
+                for index, value in enumerate(normalize_list(record.get("all_urls")))
+                if (url := validated_web_url(value, field_name=f"all_urls[{index}]")) is not None
+            ],
             "raw_record": record,
             "metadata_provenance": provenance,
             "metadata_field_reviews": field_reviews,
@@ -155,6 +160,18 @@ def optional_str(value: Any) -> str | None:
         return None
     cleaned = str(value).strip()
     return cleaned or None
+
+
+def validated_web_url(value: Any, *, field_name: str) -> str | None:
+    normalized = optional_str(value)
+    if normalized is None:
+        return None
+    if len(normalized) > 2_048:
+        raise ValueError(f"{field_name} exceeds 2048 characters")
+    parsed = urlparse(normalized)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
+        raise ValueError(f"{field_name} must be an http(s) URL without embedded credentials")
+    return normalized
 
 
 def build_parser() -> argparse.ArgumentParser:

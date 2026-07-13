@@ -635,6 +635,25 @@ def serialize_artifact(artifact: PaperArtifact) -> dict[str, Any]:
     }
 
 
+def serialize_public_artifact(artifact: PaperArtifact) -> dict[str, Any]:
+    """Serialize an artifact without exposing protected review workspace data.
+
+    Review notes and stable reviewer identifiers are administrative data. Draft
+    corrections are also private until a human administrator has approved the
+    corrected artifact. The public payload retains the review status and
+    timestamp so clients can communicate provenance without identifying the
+    reviewer or disclosing work in progress.
+    """
+
+    payload = serialize_artifact(artifact)
+    payload.pop("reviewer_notes", None)
+    payload.pop("reviewed_by", None)
+    if artifact.review_status != "approved":
+        payload.pop("corrected_text", None)
+        payload.pop("corrected_json", None)
+    return payload
+
+
 def save_artifacts_json(
     output_dir: Path,
     paper: Paper,
@@ -768,23 +787,37 @@ def batch_generate_paper_artifacts(
     }
 
 
-def list_paper_artifacts(session: Session, paper_id: str) -> list[dict[str, Any]]:
+def list_paper_artifacts(
+    session: Session,
+    paper_id: str,
+    *,
+    public: bool = False,
+) -> list[dict[str, Any]]:
     records = session.exec(
         select(PaperArtifact)
         .where(PaperArtifact.paper_id == paper_id)
         .order_by(PaperArtifact.artifact_type, desc(PaperArtifact.created_at))
     ).all()
-    return [serialize_artifact(record) for record in records]
+    serializer = serialize_public_artifact if public else serialize_artifact
+    return [serializer(record) for record in records]
 
 
-def get_latest_paper_artifact(session: Session, paper_id: str, artifact_type: str) -> dict[str, Any] | None:
+def get_latest_paper_artifact(
+    session: Session,
+    paper_id: str,
+    artifact_type: str,
+    *,
+    public: bool = False,
+) -> dict[str, Any] | None:
     record = session.exec(
         select(PaperArtifact)
         .where(PaperArtifact.paper_id == paper_id)
         .where(PaperArtifact.artifact_type == artifact_type)
         .order_by(desc(PaperArtifact.created_at))
     ).first()
-    return serialize_artifact(record) if record else None
+    if record is None:
+        return None
+    return serialize_public_artifact(record) if public else serialize_artifact(record)
 
 
 def clean_text(text: str) -> str:

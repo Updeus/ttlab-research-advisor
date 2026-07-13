@@ -1,0 +1,65 @@
+{
+  "dataset_id": "ttlab-qa-faithfulness-v1",
+  "status": "executed_and_validated",
+  "generated_at": "2026-07-13T00:05:40.486595+00:00",
+  "case_count": 50,
+  "answerable_case_count": 46,
+  "unanswerable_case_count": 4,
+  "review": {
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai",
+    "provider": "openai-codex",
+    "model": "not_exposed_by_runtime",
+    "model_digest": null,
+    "model_identity_limitation": "The Codex runtime did not expose a public model tag or immutable digest. No model identity was inferred or invented.",
+    "passes": [
+      "create",
+      "verify_shuffled"
+    ],
+    "shuffle_seed": 20260713,
+    "adjudication_policy": "The shuffled verification label is final. Creation/verification disagreements are retained and reported as same-reviewer AI annotation consistency, not human inter-rater agreement."
+  },
+  "files": {
+    "data/evaluation/qa_faithfulness_cases_v1.jsonl": "fe0f5221b033e22d2ad00e96fc759040e17929f33bb90fd8c466b01f6697419b",
+    "data/evaluation/qa_faithfulness_cases_v1.schema.json": "4bfd69ae85249b09f88378f872d7946da855f504a3a29880971da478a3551342",
+    "artifacts/phase3/qa/offline_extractive_hybrid_heuristic_answers_v1.jsonl": "633dd1ffebea5982c4bbb6a700dacfe00a33e9323deb4e5027d0e14864e879ec",
+    "artifacts/phase3/qa/offline_extractive_hybrid_heuristic_run_manifest_v1.json": "673d963720f332c69d502dd14c6767f28e3d225edff92d2d2c88ca68781e266f",
+    "data/evaluation/qa_faithfulness_point_labels_v1.json": "941713119325b25a694e2b4b8c5b38c85d41f2cdae36a9bdf33c03ff35e68db1",
+    "data/evaluation/qa_faithfulness_review_create_v1.jsonl": "25855a20ad00d814a472a68bf9438750589a901e71177e72ccdc612cd91d7367",
+    "data/evaluation/qa_faithfulness_review_verify_v1.jsonl": "c28c5b25b52fd6a3dd00ebe539f6ab8468656c70f61f780eabb5dab0492bca4e",
+    "data/evaluation/qa_faithfulness_results_v1.jsonl": "beac66a54f28ea3b9875947c5eab89ffc86b7a6420ec7aa85bdc5db3792549bf",
+    "data/evaluation/qa_faithfulness_results_v1.schema.json": "45bd64c99491aa7408cd1f335ee500a7eed7b26579560cd1c66676c671ff268f",
+    "data/evaluation/validate_qa_faithfulness_v1.py": "3e6dcc2aca7370bf79436ae854796dfa4158d4f4482547218ea2cebaaadc252e",
+    "data/evaluation/run_qa_faithfulness_v1.py": "b6c0f07e0c729f414b9eae45e5b302e3b53a8e60740b117864a5ea657d7cd679",
+    "data/evaluation/review_qa_faithfulness_v1.py": "901081fad22e9465f6a5cae1a5db361adf1e4299175a3774f92677522253b17a",
+    "backend/app/evaluation/qa_faithfulness_eval.py": "079eafa1e538494b86305005bfc4bfd2ef39436dc2644426bfa38691dd80fdb7",
+    "backend/tests/test_qa_faithfulness_evaluation.py": "f5aca4b13e52f74ee8bea0c9e8408999e132896ac7b88d5b8a0d04ac24403dca",
+    "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json": "a62d0ecfc5a2e0a71bb412e8b6fb1e1a300709a21a0f6b3f0bed0782641f5f51",
+    "artifacts/phase3/qa/qa_review_prompt_template_v1.txt": "5a2b5efcb171c7703b37c51f8c3e720aeb27b9ecfbda1c126f357b5b247a6f52",
+    "artifacts/phase3/private/qa/review_create_prompts_v1.jsonl": "67c7d04780a09e74deb8b4575ab6e6a7c991704b643f2db34b3c68a95b65a2b9",
+    "artifacts/phase3/private/qa/review_verify_prompts_v1.jsonl": "caf9fe974022b299dead154c762492e31af9fe4fb711fbc3e9b5c0d923b6237b",
+    "artifacts/phase3/qa/ollama_availability_v1.json": "8de319760c13494b5d1357e3145f8c7ab0b13fb08cebfc7789f16592229ac539"
+  },
+  "raw_prompt_policy": "Exact full-text review prompts are retained locally under artifacts/phase3/private and hash-linked here; they are excluded from the sanitized release to avoid redistributing full third-party paper text.",
+  "headline_metrics": {
+    "supported_claim_rate": 0.995,
+    "weighted_supported_claim_rate": 0.9975,
+    "citation_precision_correctness": 0.625,
+    "weighted_citation_correctness": 0.8025,
+    "citation_completeness": 1.0,
+    "correct_citation_completeness": 0.625,
+    "answer_point_coverage": 0.135802,
+    "weighted_answer_point_coverage": 0.364198,
+    "unsupported_claim_rate": 0.0,
+    "unsupported_general_knowledge_rate": 0.0,
+    "abstention_accuracy": 0.92,
+    "unanswerable_abstention_rate": 0.0,
+    "answerable_response_rate": 1.0,
+    "returned_citation_utilization": 0.592
+  },
+  "ollama_comparison": {
+    "status": "not_run_service_unavailable",
+    "evidence_path": "artifacts/phase3/qa/ollama_availability_v1.json",
+    "claim": "No Ollama quality, latency, model-tag, digest, or quantization comparison is reported."
+  }
+}

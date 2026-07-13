@@ -13,25 +13,34 @@ from app.indexing.embedder import (
     eligible_chunks,
     index_diagnostics,
 )
+from app.config import Settings, get_settings
 from app.intelligence.rag_answerer import ask_diagnostics, ask_question, serialize_answer
 from app.models import Chunk, RAGAnswer
+from app.api.public import redact_local_paths
+from app.security import AuthenticatedActor, require_reviewer
 
 router = APIRouter(prefix="/api", tags=["ask"])
 
 
 class AskRequest(BaseModel):
-    question: str = Field(min_length=1)
+    question: str = Field(min_length=1, max_length=2_000)
     mode: Literal["keyword", "feature_hashing", "dense", "hybrid", "semantic"] = "hybrid"
     top_k: int = Field(default=5, ge=1, le=20)
-    audience: str = "general"
+    audience: str = Field(default="general", min_length=1, max_length=80)
     max_words: int = Field(default=250, ge=50, le=600)
-    provider: str = "auto"
-    model: str | None = None
-    paper_id: str | None = None
+    provider: Literal["auto", "offline_extractive", "ollama", "openai"] = "auto"
+    model: str | None = Field(default=None, max_length=200)
+    paper_id: str | None = Field(default=None, max_length=200)
 
 
 @router.post("/ask")
-def ask(request: AskRequest, session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
+def ask(
+    request: AskRequest,
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, object]:
+    if request.provider != "auto" and request.provider not in settings.allowed_llm_providers:
+        raise HTTPException(status_code=400, detail="Requested LLM provider is not enabled")
     return ask_question(
         session,
         request.question,
@@ -42,12 +51,14 @@ def ask(request: AskRequest, session: Annotated[Session, Depends(get_session)]) 
         provider_name=request.provider,
         model_name=request.model,
         paper_id=request.paper_id,
+        persist=False,
     )
 
 
 @router.get("/ask/history")
 def ask_history(
     session: Annotated[Session, Depends(get_session)],
+    _actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
     limit: int = Query(default=20, ge=1, le=100),
 ) -> list[dict[str, object]]:
     answers = session.exec(select(RAGAnswer).order_by(desc(RAGAnswer.created_at)).limit(limit)).all()
@@ -61,18 +72,22 @@ def diagnostics(session: Annotated[Session, Depends(get_session)]) -> dict[str, 
     dense = index_diagnostics(session, DENSE_INDEX_PATH, DENSE_PROVIDER)
     raw_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
     searchable_chunks = len(eligible_chunks(session))
-    return {
+    return redact_local_paths({
         **base,
         "searchable_chunks": searchable_chunks,
         "raw_chunks": raw_chunks,
         "semantic_indexed_chunks": feature_hashing["indexed_chunks"],  # legacy field
         "feature_hashing_index": feature_hashing,
         "dense_index": dense,
-    }
+    })
 
 
 @router.get("/ask/{answer_id}")
-def get_answer(answer_id: str, session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
+def get_answer(
+    answer_id: str,
+    session: Annotated[Session, Depends(get_session)],
+    _actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
+) -> dict[str, object]:
     answer = session.get(RAGAnswer, answer_id)
     if answer is None:
         raise HTTPException(status_code=404, detail="Answer not found")

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "recommendation_profiles_v1.schema.json",
+  "title": "Synthetic Thesis Extension Finder Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_id", "profile_label", "interests", "skills", "available_time",
+    "project_type", "data_constraints", "preferred_difficulty", "preferred_topics",
+    "avoid_topics", "retrieval_mode", "relevance_terms"
+  ],
+  "properties": {
+    "profile_id": {"type": "string", "pattern": "^rec-p[0-9]{2}$"},
+    "profile_label": {"type": "string", "minLength": 1},
+    "interests": {"type": "string", "minLength": 1},
+    "skills": {"type": "array", "items": {"type": "string"}, "maxItems": 50},
+    "available_time": {"enum": ["2 weeks", "1 month", "semester"]},
+    "project_type": {"enum": ["software prototype", "data analysis", "ML experiment", "literature/systematic review support", "dashboard/visualization", "other"]},
+    "data_constraints": {"type": "string", "minLength": 1},
+    "preferred_difficulty": {"enum": ["easy", "medium", "hard"]},
+    "preferred_topics": {"type": "array", "items": {"type": "string"}},
+    "avoid_topics": {"type": "array", "items": {"type": "string"}},
+    "retrieval_mode": {"enum": ["keyword", "feature_hashing", "dense", "hybrid"]},
+    "relevance_terms": {"type": "array", "minItems": 2, "items": {"type": "string"}}
+  }
+}

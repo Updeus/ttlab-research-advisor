@@ -29,7 +29,7 @@ def ask_question(
     provider_name: str = "auto",
     model_name: str | None = None,
     paper_id: str | None = None,
-    persist: bool = True,
+    persist: bool = False,
 ) -> dict[str, Any]:
     retrieval = retrieve(session, question, mode=mode, top_k=top_k, paper_id=paper_id, include_text=True)
     retrieved_chunks = [format_retrieved_chunk(result) for result in retrieval["results"]]
@@ -244,6 +244,7 @@ def main() -> None:
             paper_id=args.paper_id,
             audience=args.audience,
             max_words=args.max_words,
+            persist=True,
         )
     print(f"answer: {response['answer']}")
     print(f"grounding_status: {response['grounding_status']}")

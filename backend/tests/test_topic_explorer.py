@@ -9,7 +9,7 @@ from sqlmodel import Session, SQLModel, create_engine, func, select
 from app.db import get_session
 from app.demo import prepare_demo as prepare_demo_module
 from app.demo.smoke_check import run_smoke_check
-from app.intelligence.topic_explorer import get_related_papers, normalize_topic, rebuild_topic_index
+from app.intelligence.topic_explorer import author_detail, get_related_papers, normalize_topic, rebuild_topic_index
 from app.main import app
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, Topic
 
@@ -35,6 +35,7 @@ def build_explorer_engine(*, reviewed: bool = False):
                 topics=["RAG"],
                 review_status="approved" if reviewed else "needs_review",
                 pdf_text_status="extracted",
+                corpus_eligibility_status="eligible",
             )
         )
         session.add(
@@ -46,6 +47,7 @@ def build_explorer_engine(*, reviewed: bool = False):
                 venue="TTLAB Demo",
                 topics=["retrieval augmented generation", "web applications"],
                 pdf_text_status="extracted",
+                corpus_eligibility_status="eligible",
             )
         )
         session.add(
@@ -56,6 +58,7 @@ def build_explorer_engine(*, reviewed: bool = False):
                 year=2023,
                 topics=["optimisation"],
                 pdf_text_status="extracted",
+                corpus_eligibility_status="eligible",
             )
         )
         session.add(
@@ -105,7 +108,7 @@ def test_topic_normalization_merges_synonyms() -> None:
     assert normalize_topic("Artificial Intelligence") == ("ai", "AI")
 
 
-def test_topic_rebuild_creates_topics_from_metadata_chunks_and_artifacts() -> None:
+def test_topic_rebuild_creates_topics_from_publication_metadata_and_chunks_only() -> None:
     engine = build_explorer_engine()
     with Session(engine) as session:
         summary = rebuild_topic_index(session)
@@ -116,6 +119,71 @@ def test_topic_rebuild_creates_topics_from_metadata_chunks_and_artifacts() -> No
     assert rag is not None
     assert any(link.topic_id == "rag" for link in paper_links)
     assert any(any(evidence["source"] == "chunk_text" for evidence in link.evidence_json) for link in paper_links)
+    assert not any(
+        evidence["source"].startswith("artifact:")
+        for link in paper_links
+        for evidence in link.evidence_json
+    )
+
+
+def test_topic_rebuild_excludes_ineligible_papers_and_generated_artifact_topics() -> None:
+    engine = build_explorer_engine()
+    with Session(engine) as session:
+        session.add(
+            Paper(
+                paper_id="excluded-paper",
+                title="Cybersecurity and Fraud Detection",
+                authors=["Asha Singh"],
+                corpus_eligibility_status="excluded_pdf_metadata_mismatch",
+                pdf_text_status="extracted",
+            )
+        )
+        session.add(
+            Chunk(
+                chunk_id="excluded-chunk",
+                paper_id="excluded-paper",
+                chunk_index=0,
+                section="Introduction",
+                text="Cybersecurity fraud detection is the subject of this mismatched PDF.",
+            )
+        )
+        session.add(
+            PaperArtifact(
+                artifact_id="artifact-only-topic",
+                paper_id="mobile-paper",
+                artifact_type="summary",
+                generated_text="This generated text claims cybersecurity and climate expertise.",
+                generated_json={"summary": "Cybersecurity and climate"},
+                generation_status="generated",
+            )
+        )
+        session.commit()
+
+        rebuild_topic_index(session)
+        excluded_links = session.exec(
+            select(PaperTopic).where(PaperTopic.paper_id == "excluded-paper")
+        ).all()
+        artifact_only_links = {
+            link.topic_id
+            for link in session.exec(select(PaperTopic).where(PaperTopic.paper_id == "mobile-paper")).all()
+        }
+        author = session.exec(select(Author).where(Author.name == "Asha Singh")).one()
+        author_output = author_detail(session, author.id or -1)
+        assert author.paper_count == 2
+
+    assert excluded_links == []
+    assert "cybersecurity" not in artifact_only_links
+    assert "climate" not in artifact_only_links
+    assert author_output is not None
+    assert len(author_output["papers"]) == 2
+    assert "bibliographic evidence only" in author_output["potential_expertise_summary"]
+    assert "availability" in author_output["potential_expertise_summary"]
+    assert get_related_papers_from_engine(engine, "excluded-paper") == []
+
+
+def get_related_papers_from_engine(engine, paper_id: str) -> list[dict[str, object]]:
+    with Session(engine) as session:
+        return get_related_papers(session, paper_id)
 
 
 def test_reviewed_manual_topics_are_not_overwritten_by_inferred_topics() -> None:

@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Updeus/ttlab-research-advisor/data/evaluation/retrieval_eval_results.schema.json",
+  "title": "TTLAB retrieval evaluation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "generated_at",
+    "run_config",
+    "metric_definitions",
+    "judgment_policy",
+    "metrics",
+    "statistics",
+    "questions",
+    "warnings"
+  ],
+  "properties": {
+    "$schema": {"const": "https://github.com/Updeus/ttlab-research-advisor/data/evaluation/retrieval_eval_results.schema.json"},
+    "schema_version": {"const": "2.0.0"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "run_config": {
+      "type": "object",
+      "required": ["mode", "top_k", "cutoffs", "bootstrap_repetitions", "bootstrap_seed", "retain_bootstrap_replicates", "observed_vector_providers", "corpus"],
+      "properties": {
+        "mode": {"enum": ["keyword", "feature_hashing", "dense", "semantic", "hybrid"]},
+        "top_k": {"type": "integer", "minimum": 10},
+        "cutoffs": {"type": "array", "items": {"type": "integer", "minimum": 1}, "uniqueItems": true},
+        "bootstrap_repetitions": {"type": "integer", "minimum": 1},
+        "bootstrap_seed": {"type": "integer"},
+        "retain_bootstrap_replicates": {"type": "boolean"},
+        "observed_vector_providers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "corpus": {
+          "type": "object",
+          "required": ["snapshot_id", "snapshot_hash", "eligible_paper_count", "eligible_chunk_count", "eligible_chunks"],
+          "properties": {
+            "snapshot_id": {"type": "string"},
+            "snapshot_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "eligible_paper_count": {"type": "integer", "minimum": 0},
+            "eligible_chunk_count": {"type": "integer", "minimum": 0},
+            "eligible_chunks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["chunk_id", "source_hash"],
+                "properties": {
+                  "chunk_id": {"type": "string"},
+                  "source_hash": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "questions_path": {"type": "string"},
+        "questions_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "python_version": {"type": "string"},
+        "platform": {"type": "string"},
+        "git_commit": {"type": ["string", "null"]},
+        "evaluator_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "metric_definitions": {"type": "object", "additionalProperties": {"type": "string"}},
+    "judgment_policy": {"type": "object"},
+    "metrics": {"$ref": "#/$defs/aggregateMetrics"},
+    "statistics": {"type": "object"},
+    "questions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/queryResult"}
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "$defs": {
+    "nullableNumber": {"type": ["number", "null"]},
+    "aggregateMetrics": {
+      "type": "object",
+      "required": [
+        "question_count",
+        "answerable_question_count",
+        "unanswerable_question_count",
+        "set_recall_at_3",
+        "set_recall_at_5",
+        "set_recall_at_10",
+        "hit_at_3",
+        "hit_at_5",
+        "hit_at_10",
+        "precision_at_3",
+        "precision_at_5",
+        "precision_at_10",
+        "mrr",
+        "ndcg_at_10",
+        "unanswerable_abstention_rate",
+        "unanswerable_false_positive_rate"
+      ],
+      "properties": {
+        "question_count": {"type": "integer", "minimum": 0},
+        "answerable_question_count": {"type": "integer", "minimum": 0},
+        "unanswerable_question_count": {"type": "integer", "minimum": 0},
+        "set_recall_at_3": {"$ref": "#/$defs/nullableNumber"},
+        "set_recall_at_5": {"$ref": "#/$defs/nullableNumber"},
+        "set_recall_at_10": {"$ref": "#/$defs/nullableNumber"},
+        "hit_at_3": {"$ref": "#/$defs/nullableNumber"},
+        "hit_at_5": {"$ref": "#/$defs/nullableNumber"},
+        "hit_at_10": {"$ref": "#/$defs/nullableNumber"},
+        "precision_at_3": {"$ref": "#/$defs/nullableNumber"},
+        "precision_at_5": {"$ref": "#/$defs/nullableNumber"},
+        "precision_at_10": {"$ref": "#/$defs/nullableNumber"},
+        "unanswerable_false_positive_at_3": {"$ref": "#/$defs/nullableNumber"},
+        "unanswerable_false_positive_at_5": {"$ref": "#/$defs/nullableNumber"},
+        "unanswerable_false_positive_at_10": {"$ref": "#/$defs/nullableNumber"},
+        "mrr": {"$ref": "#/$defs/nullableNumber"},
+        "ndcg_at_10": {"$ref": "#/$defs/nullableNumber"},
+        "ndcg_at_10_query_count": {"type": "integer", "minimum": 0},
+        "unanswerable_abstention_rate": {"$ref": "#/$defs/nullableNumber"},
+        "unanswerable_false_positive_rate": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "queryResult": {
+      "type": "object",
+      "required": [
+        "case_id",
+        "question",
+        "answerability",
+        "relevant_paper_ids",
+        "relevance_judgments",
+        "retrieved_paper_ids",
+        "retrieved_unique_paper_count",
+        "raw_chunk_result_count",
+        "duplicate_paper_results_removed",
+        "ranked_results",
+        "retrieval_metadata",
+        "metrics"
+      ],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "question": {"type": "string", "minLength": 1},
+        "category": {"type": ["string", "null"]},
+        "split": {"type": ["string", "null"]},
+        "answerability": {"enum": ["answerable", "unanswerable"]},
+        "relevant_paper_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "relevance_judgments": {"type": "array", "items": {"type": "object"}},
+        "retrieved_paper_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "retrieved_unique_paper_count": {"type": "integer", "minimum": 0},
+        "raw_chunk_result_count": {"type": "integer", "minimum": 0},
+        "duplicate_paper_results_removed": {"type": "integer", "minimum": 0},
+        "ranked_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["rank", "raw_chunk_rank", "paper_id", "chunk_id", "page_start", "page_end", "section"],
+            "properties": {
+              "rank": {"type": "integer", "minimum": 1},
+              "raw_chunk_rank": {"type": "integer", "minimum": 1},
+              "paper_id": {"type": "string"},
+              "chunk_id": {"type": ["string", "null"]},
+              "page_start": {"type": ["integer", "null"]},
+              "page_end": {"type": ["integer", "null"]},
+              "section": {"type": ["string", "null"]},
+              "score": {"type": "number"},
+              "keyword_score": {"type": "number"},
+              "semantic_score": {"type": "number"},
+              "metadata_score": {"type": "number"},
+              "section_boost": {"type": "number"},
+              "evidence_quality_score": {"type": "number"},
+              "topical_alignment_score": {"type": "number"},
+              "diversity_penalty": {"type": "number"}
+            }
+          }
+        },
+        "retrieval_metadata": {"type": "object"},
+        "metrics": {"type": "object"}
+      }
+    }
+  }
+}

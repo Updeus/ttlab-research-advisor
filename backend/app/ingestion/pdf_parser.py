@@ -11,6 +11,7 @@ from typing import Any
 import fitz
 from sqlmodel import Session, select
 
+from app.config import get_settings
 from app.db import create_db_and_tables, engine
 from app.ingestion.ocr import OCRProvider, get_ocr_provider
 from app.models import Paper
@@ -179,12 +180,39 @@ def extract_pdf_text(
     run_ocr: bool = False,
     ocr_provider: OCRProvider | None = None,
     expected_title: str | None = None,
+    max_pdf_bytes: int | None = None,
+    max_pdf_pages: int | None = None,
 ) -> dict[str, Any]:
+    settings = get_settings()
+    max_pdf_bytes = max_pdf_bytes or settings.max_pdf_download_bytes
+    max_pdf_pages = max_pdf_pages or settings.max_pdf_pages
     output_dir.mkdir(parents=True, exist_ok=True)
-    json_path = output_dir / f"{paper_id}.json"
-    txt_path = output_dir / f"{paper_id}.txt"
+    json_path = safe_output_path(output_dir, paper_id, ".json")
+    txt_path = safe_output_path(output_dir, paper_id, ".txt")
     if json_path.exists() and txt_path.exists() and not overwrite:
         return json.loads(json_path.read_text(encoding="utf-8"))
+
+    if not local_pdf_path.exists() or not local_pdf_path.is_file():
+        return build_failed_result(paper_id, local_pdf_path, json_path, txt_path, "Configured PDF path is not a file.")
+    if local_pdf_path.suffix.lower() != ".pdf":
+        return build_failed_result(paper_id, local_pdf_path, json_path, txt_path, "Configured input is not a .pdf file.")
+    if local_pdf_path.stat().st_size > max_pdf_bytes:
+        return build_failed_result(
+            paper_id,
+            local_pdf_path,
+            json_path,
+            txt_path,
+            f"PDF exceeds the configured {max_pdf_bytes}-byte parser limit.",
+        )
+    with local_pdf_path.open("rb") as source_handle:
+        if not source_handle.read(1_024).startswith(b"%PDF"):
+            return build_failed_result(
+                paper_id,
+                local_pdf_path,
+                json_path,
+                txt_path,
+                "Configured input does not contain a PDF signature.",
+            )
 
     warnings: list[str] = []
     provider = ocr_provider or (get_ocr_provider("tesseract") if run_ocr else None)
@@ -192,6 +220,16 @@ def extract_pdf_text(
         document = fitz.open(local_pdf_path)
     except Exception as exc:
         return build_failed_result(paper_id, local_pdf_path, json_path, txt_path, str(exc))
+
+    if document.page_count > max_pdf_pages:
+        document.close()
+        return build_failed_result(
+            paper_id,
+            local_pdf_path,
+            json_path,
+            txt_path,
+            f"PDF exceeds the configured {max_pdf_pages}-page parser limit.",
+        )
 
     pages: list[dict[str, Any]] = []
     full_text_parts: list[str] = []
@@ -327,6 +365,20 @@ def extract_pdf_text(
     txt_path.write_text(full_text + ("\n" if full_text else ""), encoding="utf-8")
     json_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return result
+
+
+def safe_output_path(output_dir: Path, paper_id: str, suffix: str) -> Path:
+    if not paper_id or len(paper_id) > 200:
+        raise ValueError("paper_id must contain between 1 and 200 characters")
+    safe_name = "".join(char if char.isalnum() or char in "-_" else "-" for char in paper_id).strip("-")
+    if not safe_name:
+        raise ValueError("paper_id does not contain any safe filename characters")
+    if safe_name != paper_id:
+        safe_name = f"{safe_name[:160]}-{hashlib.sha256(paper_id.encode('utf-8')).hexdigest()[:12]}"
+    target = output_dir / f"{safe_name}{suffix}"
+    if target.resolve().parent != output_dir.resolve():
+        raise ValueError("Resolved extraction target escaped the configured output directory")
+    return target
 
 
 def build_failed_result(
@@ -475,7 +527,7 @@ def extract_from_db(
             paper.pdf_unavailability_detail = f"Configured local PDF path does not exist: {local_pdf_path}"
             session.add(paper)
             continue
-        json_path = output_dir / f"{paper.paper_id}.json"
+        json_path = safe_output_path(output_dir, paper.paper_id, ".json")
         if json_path.exists() and not overwrite and paper.pdf_text_status in {"extracted", "no_text"}:
             summary["skipped_existing"] += 1
             continue

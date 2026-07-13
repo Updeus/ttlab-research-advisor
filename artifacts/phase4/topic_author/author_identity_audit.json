@@ -1,0 +1,3371 @@
+{
+  "reviewer_type": "ai",
+  "human_validation": false,
+  "identity_counts": {
+    "unresolved": 133,
+    "invalid": 1,
+    "merged": 2
+  },
+  "active_canonical_identity_count": 133,
+  "active_identities_with_eligible_publications": 109,
+  "unresolved_active_identity_count": 133,
+  "unresolved_active_identity_names": [
+    "Aadidev Sooknanan",
+    "Abdullah Ali",
+    "Adhir Soechit",
+    "Adir Soechit",
+    "Akash Pooransingh",
+    "Akil Hosang",
+    "Alana Sankar",
+    "Alana Sankar-Ramkarran",
+    "Anderson Singh",
+    "Andre Knoesen",
+    "Anthony Jairam",
+    "Aqeel Mohammed",
+    "Brandon Murphy",
+    "Brittany Peters",
+    "C. Millette",
+    "C. van Rensburg",
+    "Chandrabhan Sharma",
+    "Cherie Tulloch",
+    "Chris Meetoo",
+    "Curtis Charles",
+    "Daniel Mahatoo",
+    "Daniel Philips",
+    "Daniele Mazzei",
+    "Darren Ramsook",
+    "Deborah Villarroel-Lamb",
+    "Deepak Ramsubhag",
+    "Devika Bhagwandin",
+    "Dillon Motilal",
+    "Duc Kieu",
+    "Elena Dyer",
+    "Fazeeia Mohammed",
+    "Gerard Rique",
+    "Govinda Hosein",
+    "Gregory Ollivierre",
+    "Haddiyah Ali",
+    "I.Rahaman",
+    "Ian R Hambleton",
+    "Inzamam Rahaman",
+    "Isaac Dialsingh",
+    "J ade Soodoo",
+    "Jade Chattergoon",
+    "Jaimie Greasley",
+    "Jaiseung Kwak",
+    "Jonathan Earle",
+    "Joshua Davis",
+    "Julie Koon Koon",
+    "K. Bahadoor",
+    "K. Maharaj",
+    "Karandeep Singh",
+    "Karesia Ramlal",
+    "Karishma Harrykissoon",
+    "Keanu Nichols",
+    "Kelan Laban",
+    "Ken Manohar",
+    "Kerilius Leslie",
+    "Kevan Rajaram",
+    "Kevin Baboolal",
+    "Kevin Blake-Thomas",
+    "Kim Mallalieu",
+    "Kimberley Gillette",
+    "Kiran Maharaj",
+    "Kirstin Sylvester",
+    "Kris Manohar",
+    "Kwasi Edwards",
+    "L. Girod-Williams",
+    "Laura Bigram",
+    "Letetia Addison",
+    "Letetia M. Addison",
+    "Lonell Liburd",
+    "Malini Ramberran",
+    "Mariella Rivas",
+    "Marvin Lewis",
+    "Maurice McNaughton",
+    "N. Chamansingh",
+    "Navin Dookeram",
+    "Nicholas Chamansingh",
+    "Nicholas Hosein",
+    "Nicholas Ramroop",
+    "Nichols Chamansingh",
+    "Nigel Henry",
+    "Nirvan Sharma",
+    "Omar Mohammed",
+    "P. Hosein",
+    "Patrick Hosein",
+    "Rafael Guerrero",
+    "Rainah Khan",
+    "Rajeev Ratan",
+    "Ramneek",
+    "Ramneek Sekhon",
+    "Ramneek et. al.",
+    "Reshawn Ramjattan",
+    "Richard Roach",
+    "Robert Martinez",
+    "Roganci Fontelera",
+    "Ross De Chi",
+    "S. Bahadoorsingh",
+    "S. Boodhoo",
+    "S. Hosein",
+    "S. Sooklal",
+    "S. Teelucksingh",
+    "Sabina Gooljar",
+    "Sabrina Sankar",
+    "Saffiyah Doolan",
+    "Sangheon Pack",
+    "Sanjay Bahadoorsingh",
+    "Sergio Mathurin",
+    "Shane Tikasingh",
+    "Shellyann Sooklal",
+    "Shiva Ramoudith",
+    "Sonique Ramlal",
+    "Steffan Boodhoo",
+    "Stephen Ghool",
+    "Sterling Ramroach",
+    "Sudesh Lutchman",
+    "Sungin Jung",
+    "T. Lawrence",
+    "Tamia-Ashley Tuitt",
+    "Tamika Ramkissoon",
+    "Trevon Tewari",
+    "Trisha Lawrence",
+    "Tristan Narine",
+    "V. Rattan",
+    "Vaalmikki Arjoon",
+    "Vaishnav Jairam",
+    "Victor Job",
+    "Vidya Ramnarine",
+    "Vinayak Sharma",
+    "Vrijesh Tripathy",
+    "W. Choi",
+    "W. Kattick",
+    "W. Seok",
+    "Woojin Seok",
+    "Zahira Hosein"
+  ],
+  "possible_same_person_pairs_not_merged": [
+    {
+      "surname": "addison",
+      "left": {
+        "author_id": 4,
+        "name": "Letetia Addison"
+      },
+      "right": {
+        "author_id": 41,
+        "name": "Letetia M. Addison"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "hosein",
+      "left": {
+        "author_id": 5,
+        "name": "Patrick Hosein"
+      },
+      "right": {
+        "author_id": 104,
+        "name": "P. Hosein"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "soechit",
+      "left": {
+        "author_id": 12,
+        "name": "Adhir Soechit"
+      },
+      "right": {
+        "author_id": 26,
+        "name": "Adir Soechit"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "chamansingh",
+      "left": {
+        "author_id": 38,
+        "name": "Nicholas Chamansingh"
+      },
+      "right": {
+        "author_id": 114,
+        "name": "N. Chamansingh"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "chamansingh",
+      "left": {
+        "author_id": 38,
+        "name": "Nicholas Chamansingh"
+      },
+      "right": {
+        "author_id": 127,
+        "name": "Nichols Chamansingh"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "chamansingh",
+      "left": {
+        "author_id": 114,
+        "name": "N. Chamansingh"
+      },
+      "right": {
+        "author_id": 127,
+        "name": "Nichols Chamansingh"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "rahaman",
+      "left": {
+        "author_id": 67,
+        "name": "Inzamam Rahaman"
+      },
+      "right": {
+        "author_id": 113,
+        "name": "I.Rahaman"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "lawrence",
+      "left": {
+        "author_id": 83,
+        "name": "Trisha Lawrence"
+      },
+      "right": {
+        "author_id": 124,
+        "name": "T. Lawrence"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "bahadoorsingh",
+      "left": {
+        "author_id": 87,
+        "name": "Sanjay Bahadoorsingh"
+      },
+      "right": {
+        "author_id": 123,
+        "name": "S. Bahadoorsingh"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "maharaj",
+      "left": {
+        "author_id": 94,
+        "name": "Kiran Maharaj"
+      },
+      "right": {
+        "author_id": 109,
+        "name": "K. Maharaj"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "boodhoo",
+      "left": {
+        "author_id": 101,
+        "name": "Steffan Boodhoo"
+      },
+      "right": {
+        "author_id": 115,
+        "name": "S. Boodhoo"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "seok",
+      "left": {
+        "author_id": 102,
+        "name": "Woojin Seok"
+      },
+      "right": {
+        "author_id": 106,
+        "name": "W. Seok"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    },
+    {
+      "surname": "sooklal",
+      "left": {
+        "author_id": 120,
+        "name": "S. Sooklal"
+      },
+      "right": {
+        "author_id": 134,
+        "name": "Shellyann Sooklal"
+      },
+      "status": "AUTHOR INPUT REQUIRED; candidate only, not merged"
+    }
+  ],
+  "alias_collision_count": 0,
+  "alias_collisions": {},
+  "excluded_paper_topic_link_count": 0,
+  "excluded_paper_topic_links": [],
+  "excluded_author_evidence_count": 0,
+  "excluded_author_evidence": [],
+  "authorship_mismatch_count": 0,
+  "authorship_mismatches": [],
+  "overclaim_output_violation_count": 0,
+  "overclaim_output_violations": [],
+  "publication_derived_author_topic_link_count": 313,
+  "author_records": [
+    {
+      "author_id": 1,
+      "canonical_name": "Tamika Ramkissoon",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Tamika Ramkissoon",
+          "normalized_alias": "tamika ramkissoon",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+        "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562"
+      ],
+      "publication_topic_ids": [
+        "rag",
+        "education",
+        "e-commerce",
+        "networks",
+        "agriculture",
+        "machine-learning",
+        "natural-language-processing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 2,
+      "canonical_name": "Abdullah Ali",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Abdullah Ali",
+          "normalized_alias": "abdullah ali",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 3,
+      "canonical_name": "Deepak Ramsubhag",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Deepak Ramsubhag",
+          "normalized_alias": "deepak ramsubhag",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+        "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24"
+      ],
+      "publication_topic_ids": [
+        "climate",
+        "internet-resilience",
+        "data-science",
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 4,
+      "canonical_name": "Letetia Addison",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Letetia Addison",
+          "normalized_alias": "letetia addison",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24"
+      ],
+      "publication_topic_ids": [
+        "climate",
+        "internet-resilience",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 5,
+      "canonical_name": "Patrick Hosein",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Patrick Hosein",
+          "normalized_alias": "patrick hosein",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "weighted-eligibility-based-product-recommendation-system-11db29fb",
+        "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
+        "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+        "regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3",
+        "predicting-the-probability-of-critical-illness-claims-ffffb207",
+        "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0",
+        "optical-lens-inventory-optimization-model-0f6a1d23",
+        "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88",
+        "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+        "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+        "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+        "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+        "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f",
+        "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982",
+        "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+        "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18",
+        "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce",
+        "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24",
+        "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb",
+        "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a",
+        "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541",
+        "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+        "a-simple-approach-to-synthetic-time-series-generation-66bcf71f",
+        "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea",
+        "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+        "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f",
+        "a-data-centric-approach-to-school-discipline-1b433321",
+        "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
+        "a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81",
+        "weed-and-water-stress-detection-using-drone-video-03885d3b",
+        "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+        "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+        "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+        "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038",
+        "bilingual-dialect-classification-using-nlp-f02e3cc3",
+        "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+        "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+        "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+        "premium-rate-services-fraud-detection-37e69fcf",
+        "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+        "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
+        "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+        "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482",
+        "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+        "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb",
+        "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+        "using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36",
+        "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d",
+        "on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056",
+        "material-and-cost-estimation-of-a-customized-product-based-on-the-custom-ade2050d",
+        "marketing-channel-recommendations-in-banking-3deb0e4b",
+        "figure-of-merit-for-a-multi-generation-network-32f902ce",
+        "estimating-deforestation-using-machine-learning-algorithms-3f48cc99",
+        "cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8",
+        "a-personalized-overdraft-protection-framework-7d1549da",
+        "a-decision-tree-approach-to-customer-surveys-8f7fac4b",
+        "on-the-prediction-of-possibly-forgotten-shopping-basket-items-1550b8a9",
+        "on-the-optimal-baseline-auto-insurance-premium-4f352d23",
+        "a-comparison-of-data-driven-and-traditional-approaches-to-employee-perfo-b0c92e9f",
+        "spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842",
+        "recommendations-for-long-term-profit-optimization-8d7956bc",
+        "playlist-shuffling-given-user-defined-constraints-on-song-sequencing-2ecc20c8",
+        "optimizing-car-imports-in-small-island-states-6abab515",
+        "csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32",
+        "a-smart-shuffle-approach-to-playlist-shuffling-with-user-defined-constra-2ef8bb64",
+        "the-impact-of-low-electricity-prices-on-renewable-energy-production-196d2368",
+        "a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b",
+        "a-method-for-learning-representations-of-signed-networks-1e492890",
+        "on-the-distributed-optimization-of-calendar-events-0f95bb66",
+        "exploiting-gaussian-word-embeddings-for-document-clustering-863ee9e7",
+        "emerging-network-technologies-and-network-neutrality-conformance-2af0cd47",
+        "constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541",
+        "association-rule-mining-of-household-electrical-energy-usage-91e53f3a",
+        "an-open-source-real-time-data-portal-c0f8823f",
+        "efficient-m-commerce-platform-for-developing-countries-f6fc2409",
+        "design-and-specifications-of-a-repository-for-real-time-open-data-be5e53d0"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "optimization",
+        "data-science",
+        "education",
+        "agriculture",
+        "clustering",
+        "pricing",
+        "climate",
+        "energy",
+        "insurance",
+        "internet-resilience",
+        "recommendation-systems",
+        "natural-language-processing",
+        "telecommunications",
+        "mobile-services",
+        "transportation",
+        "rag",
+        "open-data",
+        "summarization",
+        "cybersecurity",
+        "networks",
+        "marketing",
+        "e-commerce",
+        "ai",
+        "civil-society",
+        "word-embeddings",
+        "chatbots",
+        "fraud-detection",
+        "supply-chain",
+        "information-retrieval",
+        "simulation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 6,
+      "canonical_name": "Dillon Motilal",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Dillon Motilal",
+          "normalized_alias": "dillon motilal",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 7,
+      "canonical_name": "Ross De Chi",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Ross De Chi",
+          "normalized_alias": "ross de chi",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3"
+      ],
+      "publication_topic_ids": [
+        "agriculture",
+        "pricing",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 8,
+      "canonical_name": "Ramneek Sekhon",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Ramneek Sekhon",
+          "normalized_alias": "ramneek sekhon",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a",
+        "csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32",
+        "emerging-network-technologies-and-network-neutrality-conformance-2af0cd47",
+        "network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c"
+      ],
+      "publication_topic_ids": [
+        "telecommunications",
+        "mobile-services",
+        "pricing",
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 9,
+      "canonical_name": "Karandeep Singh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Karandeep Singh",
+          "normalized_alias": "karandeep singh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a"
+      ],
+      "publication_topic_ids": [
+        "telecommunications",
+        "mobile-services",
+        "pricing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 10,
+      "canonical_name": "Sangheon Pack",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sangheon Pack",
+          "normalized_alias": "sangheon pack",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a"
+      ],
+      "publication_topic_ids": [
+        "telecommunications",
+        "mobile-services",
+        "pricing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 11,
+      "canonical_name": "Malini Ramberran",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Malini Ramberran",
+          "normalized_alias": "malini ramberran",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 12,
+      "canonical_name": "Adhir Soechit",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Adhir Soechit",
+          "normalized_alias": "adhir soechit",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 13,
+      "canonical_name": "Kerilius Leslie",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kerilius Leslie",
+          "normalized_alias": "kerilius leslie",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b"
+      ],
+      "publication_topic_ids": [
+        "clustering"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 14,
+      "canonical_name": "Kris Manohar",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kris Manohar",
+          "normalized_alias": "kris manohar",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "optical-lens-inventory-optimization-model-0f6a1d23",
+        "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898",
+        "office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b",
+        "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd",
+        "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc",
+        "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482"
+      ],
+      "publication_topic_ids": [
+        "optimization",
+        "machine-learning",
+        "civil-society",
+        "clustering",
+        "data-science",
+        "education"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 15,
+      "canonical_name": "Kwasi Edwards",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kwasi Edwards",
+          "normalized_alias": "kwasi edwards",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea"
+      ],
+      "publication_topic_ids": [
+        "telecommunications"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 16,
+      "canonical_name": "Vaishnav Jairam",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Vaishnav Jairam",
+          "normalized_alias": "vaishnav jairam",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 17,
+      "canonical_name": "Anthony Jairam",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Anthony Jairam",
+          "normalized_alias": "anthony jairam",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4",
+        "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562"
+      ],
+      "publication_topic_ids": [
+        "rag",
+        "education",
+        "e-commerce",
+        "networks",
+        "agriculture",
+        "machine-learning",
+        "natural-language-processing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 18,
+      "canonical_name": "Kevin Baboolal",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kevin Baboolal",
+          "normalized_alias": "kevin baboolal",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c",
+        "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
+        "material-and-cost-estimation-of-a-customized-product-based-on-the-custom-ade2050d"
+      ],
+      "publication_topic_ids": [
+        "rag",
+        "optimization",
+        "networks",
+        "agriculture",
+        "machine-learning"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 19,
+      "canonical_name": "Shane Tikasingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Shane Tikasingh",
+          "normalized_alias": "shane tikasingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0"
+      ],
+      "publication_topic_ids": [
+        "rag"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 20,
+      "canonical_name": "Rainah Khan",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Rainah Khan",
+          "normalized_alias": "rainah khan",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce"
+      ],
+      "publication_topic_ids": [
+        "cybersecurity"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 21,
+      "canonical_name": "Joshua Davis",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Joshua Davis",
+          "normalized_alias": "joshua davis",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-simple-approach-to-synthetic-time-series-generation-66bcf71f"
+      ],
+      "publication_topic_ids": [
+        "machine-learning"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 22,
+      "canonical_name": "J ade Soodoo",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "J ade Soodoo",
+          "normalized_alias": "j ade soodoo",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0"
+      ],
+      "publication_topic_ids": [
+        "energy"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 23,
+      "canonical_name": "Kirstin Sylvester",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kirstin Sylvester",
+          "normalized_alias": "kirstin sylvester",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "optical-lens-inventory-optimization-model-0f6a1d23"
+      ],
+      "publication_topic_ids": [
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 24,
+      "canonical_name": "Duc Kieu",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Duc Kieu",
+          "normalized_alias": "duc kieu",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 25,
+      "canonical_name": "Alana Sankar",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Alana Sankar",
+          "normalized_alias": "alana sankar",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 26,
+      "canonical_name": "Adir Soechit",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Adir Soechit",
+          "normalized_alias": "adir soechit",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db"
+      ],
+      "publication_topic_ids": [
+        "rag"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 27,
+      "canonical_name": "Deborah Villarroel-Lamb",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Deborah Villarroel-Lamb",
+          "normalized_alias": "deborah villarroel lamb",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24"
+      ],
+      "publication_topic_ids": [
+        "climate",
+        "internet-resilience",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 28,
+      "canonical_name": "Daniel Philips",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Daniel Philips",
+          "normalized_alias": "daniel philips",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982"
+      ],
+      "publication_topic_ids": [
+        "summarization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 29,
+      "canonical_name": "Julie Koon Koon",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Julie Koon Koon",
+          "normalized_alias": "julie koon koon",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "weighted-eligibility-based-product-recommendation-system-11db29fb"
+      ],
+      "publication_topic_ids": [
+        "recommendation-systems",
+        "machine-learning",
+        "clustering"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 30,
+      "canonical_name": "Vinayak Sharma",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Vinayak Sharma",
+          "normalized_alias": "vinayak sharma",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "weighted-eligibility-based-product-recommendation-system-11db29fb"
+      ],
+      "publication_topic_ids": [
+        "recommendation-systems",
+        "machine-learning",
+        "clustering"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 31,
+      "canonical_name": "Vidya Ramnarine",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Vidya Ramnarine",
+          "normalized_alias": "vidya ramnarine",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+        "on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88"
+      ],
+      "publication_topic_ids": [
+        "education",
+        "natural-language-processing",
+        "internet-resilience",
+        "clustering"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 32,
+      "canonical_name": "Haddiyah Ali",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Haddiyah Ali",
+          "normalized_alias": "haddiyah ali",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541"
+      ],
+      "publication_topic_ids": [
+        "optimization",
+        "agriculture"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 33,
+      "canonical_name": "Trevon Tewari",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Trevon Tewari",
+          "normalized_alias": "trevon tewari",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 34,
+      "canonical_name": "Sabina Gooljar",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sabina Gooljar",
+          "normalized_alias": "sabina gooljar",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd"
+      ],
+      "publication_topic_ids": [
+        "machine-learning"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 35,
+      "canonical_name": "Nicholas Ramroop",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Nicholas Ramroop",
+          "normalized_alias": "nicholas ramroop",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-data-centric-approach-to-school-discipline-1b433321"
+      ],
+      "publication_topic_ids": [
+        "education",
+        "data-science",
+        "cybersecurity"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 36,
+      "canonical_name": "Kelan Laban",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kelan Laban",
+          "normalized_alias": "kelan laban",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "predicting-the-probability-of-critical-illness-claims-ffffb207"
+      ],
+      "publication_topic_ids": [
+        "insurance",
+        "machine-learning",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 37,
+      "canonical_name": "Tristan Narine",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Tristan Narine",
+          "normalized_alias": "tristan narine",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a"
+      ],
+      "publication_topic_ids": [
+        "summarization",
+        "natural-language-processing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 38,
+      "canonical_name": "Nicholas Chamansingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Nicholas Chamansingh",
+          "normalized_alias": "nicholas chamansingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6",
+        "spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842"
+      ],
+      "publication_topic_ids": [
+        "clustering",
+        "natural-language-processing",
+        "supply-chain",
+        "education",
+        "optimization",
+        "networks"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 39,
+      "canonical_name": "Sonique Ramlal",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sonique Ramlal",
+          "normalized_alias": "sonique ramlal",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f"
+      ],
+      "publication_topic_ids": [
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 40,
+      "canonical_name": "Tamia-Ashley Tuitt",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Tamia-Ashley Tuitt",
+          "normalized_alias": "tamia ashley tuitt",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f"
+      ],
+      "publication_topic_ids": [
+        "ai"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 41,
+      "canonical_name": "Letetia M. Addison",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Letetia M. Addison",
+          "normalized_alias": "letetia m addison",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f"
+      ],
+      "publication_topic_ids": [
+        "ai"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 42,
+      "canonical_name": "Curtis Charles",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Curtis Charles",
+          "normalized_alias": "curtis charles",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 43,
+      "canonical_name": "Cherie Tulloch",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Cherie Tulloch",
+          "normalized_alias": "cherie tulloch",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 44,
+      "canonical_name": "Maurice McNaughton",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Maurice McNaughton",
+          "normalized_alias": "maurice mcnaughton",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 45,
+      "canonical_name": "Ian R Hambleton",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Ian R Hambleton",
+          "normalized_alias": "ian r hambleton",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 46,
+      "canonical_name": "Sergio Mathurin",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sergio Mathurin",
+          "normalized_alias": "sergio mathurin",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 47,
+      "canonical_name": "Ramneek",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Ramneek",
+          "normalized_alias": "ramneek",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95",
+        "quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd",
+        "congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353",
+        "a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b"
+      ],
+      "publication_topic_ids": [
+        "mobile-services",
+        "telecommunications",
+        "transportation",
+        "pricing",
+        "iot"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 48,
+      "canonical_name": "Fazeeia Mohammed",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Fazeeia Mohammed",
+          "normalized_alias": "fazeeia mohammed",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "weed-and-water-stress-detection-using-drone-video-03885d3b",
+        "bilingual-dialect-classification-using-nlp-f02e3cc3",
+        "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e"
+      ],
+      "publication_topic_ids": [
+        "agriculture",
+        "machine-learning",
+        "climate",
+        "natural-language-processing",
+        "open-data",
+        "ai"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 49,
+      "canonical_name": "Aqeel Mohammed",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Aqeel Mohammed",
+          "normalized_alias": "aqeel mohammed",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "bilingual-dialect-classification-using-nlp-f02e3cc3",
+        "marketing-channel-recommendations-in-banking-3deb0e4b"
+      ],
+      "publication_topic_ids": [
+        "natural-language-processing",
+        "marketing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 50,
+      "canonical_name": "Jaimie Greasley",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Jaimie Greasley",
+          "normalized_alias": "jaimie greasley",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 51,
+      "canonical_name": "Ken Manohar",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Ken Manohar",
+          "normalized_alias": "ken manohar",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 52,
+      "canonical_name": "Jade Chattergoon",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Jade Chattergoon",
+          "normalized_alias": "jade chattergoon",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "weed-and-water-stress-detection-using-drone-video-03885d3b",
+        "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e"
+      ],
+      "publication_topic_ids": [
+        "agriculture",
+        "machine-learning",
+        "climate",
+        "open-data",
+        "ai"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 53,
+      "canonical_name": "Roganci Fontelera",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Roganci Fontelera",
+          "normalized_alias": "roganci fontelera",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "weed-and-water-stress-detection-using-drone-video-03885d3b"
+      ],
+      "publication_topic_ids": [
+        "agriculture",
+        "ai",
+        "machine-learning",
+        "climate"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 54,
+      "canonical_name": "Omar Mohammed",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Omar Mohammed",
+          "normalized_alias": "omar mohammed",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "weed-and-water-stress-detection-using-drone-video-03885d3b",
+        "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482"
+      ],
+      "publication_topic_ids": [
+        "civil-society",
+        "agriculture",
+        "data-science",
+        "education",
+        "ai",
+        "machine-learning",
+        "climate"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 55,
+      "canonical_name": "Sabrina Sankar",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sabrina Sankar",
+          "normalized_alias": "sabrina sankar",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01",
+        "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "agriculture",
+        "climate",
+        "education"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 56,
+      "canonical_name": "Kimberley Gillette",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kimberley Gillette",
+          "normalized_alias": "kimberley gillette",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e",
+        "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482"
+      ],
+      "publication_topic_ids": [
+        "civil-society",
+        "open-data",
+        "data-science",
+        "machine-learning",
+        "agriculture",
+        "climate",
+        "education"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 57,
+      "canonical_name": "Brittany Peters",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Brittany Peters",
+          "normalized_alias": "brittany peters",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "an-open-dataset-of-labelled-tropical-crops-9b1b8d0e"
+      ],
+      "publication_topic_ids": [
+        "open-data",
+        "machine-learning",
+        "agriculture",
+        "climate"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 58,
+      "canonical_name": "Reshawn Ramjattan",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Reshawn Ramjattan",
+          "normalized_alias": "reshawn ramjattan",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+        "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+        "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+        "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d",
+        "cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8"
+      ],
+      "publication_topic_ids": [
+        "cybersecurity",
+        "internet-resilience",
+        "energy",
+        "machine-learning",
+        "chatbots",
+        "networks",
+        "education",
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 59,
+      "canonical_name": "Rajeev Ratan",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Rajeev Ratan",
+          "normalized_alias": "rajeev ratan",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+        "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 60,
+      "canonical_name": "Shiva Ramoudith",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Shiva Ramoudith",
+          "normalized_alias": "shiva ramoudith",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b",
+        "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af",
+        "on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056",
+        "optimizing-car-imports-in-small-island-states-6abab515"
+      ],
+      "publication_topic_ids": [
+        "transportation",
+        "optimization",
+        "marketing",
+        "machine-learning",
+        "internet-resilience"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 61,
+      "canonical_name": "Daniele Mazzei",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Daniele Mazzei",
+          "normalized_alias": "daniele mazzei",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 62,
+      "canonical_name": "Kevan Rajaram",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kevan Rajaram",
+          "normalized_alias": "kevan rajaram",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 63,
+      "canonical_name": "Karishma Harrykissoon",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Karishma Harrykissoon",
+          "normalized_alias": "karishma harrykissoon",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71"
+      ],
+      "publication_topic_ids": [
+        "agriculture",
+        "pricing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 64,
+      "canonical_name": "Stephen Ghool",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Stephen Ghool",
+          "normalized_alias": "stephen ghool",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 65,
+      "canonical_name": "Brandon Murphy",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Brandon Murphy",
+          "normalized_alias": "brandon murphy",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482"
+      ],
+      "publication_topic_ids": [
+        "civil-society",
+        "data-science",
+        "education"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 66,
+      "canonical_name": "Marvin Lewis",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Marvin Lewis",
+          "normalized_alias": "marvin lewis",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "agriculture",
+        "climate"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 67,
+      "canonical_name": "Inzamam Rahaman",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Inzamam Rahaman",
+          "normalized_alias": "inzamam rahaman",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056",
+        "recommendations-for-long-term-profit-optimization-8d7956bc",
+        "a-method-for-learning-representations-of-signed-networks-1e492890",
+        "exploiting-gaussian-word-embeddings-for-document-clustering-863ee9e7"
+      ],
+      "publication_topic_ids": [
+        "optimization",
+        "clustering",
+        "marketing",
+        "word-embeddings",
+        "machine-learning",
+        "information-retrieval"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 68,
+      "canonical_name": "Aadidev Sooknanan",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Aadidev Sooknanan",
+          "normalized_alias": "aadidev sooknanan",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e"
+      ],
+      "publication_topic_ids": [
+        "climate"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 69,
+      "canonical_name": "Darren Ramsook",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Darren Ramsook",
+          "normalized_alias": "darren ramsook",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+        "figure-of-merit-for-a-multi-generation-network-32f902ce",
+        "cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8"
+      ],
+      "publication_topic_ids": [
+        "cybersecurity",
+        "internet-resilience",
+        "energy",
+        "summarization",
+        "education",
+        "machine-learning",
+        "simulation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 70,
+      "canonical_name": "Nicholas Hosein",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Nicholas Hosein",
+          "normalized_alias": "nicholas hosein",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
+        "dynamic-group-formation-in-an-online-social-network-a8e55b98",
+        "using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36",
+        "constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "summarization",
+        "networks",
+        "energy",
+        "telecommunications",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 71,
+      "canonical_name": "Andre Knoesen",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Andre Knoesen",
+          "normalized_alias": "andre knoesen",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "dynamic-group-formation-in-an-online-social-network-a8e55b98"
+      ],
+      "publication_topic_ids": [
+        "networks"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 72,
+      "canonical_name": "Mariella Rivas",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Mariella Rivas",
+          "normalized_alias": "mariella rivas",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "premium-rate-services-fraud-detection-37e69fcf"
+      ],
+      "publication_topic_ids": [
+        "fraud-detection",
+        "insurance",
+        "pricing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 73,
+      "canonical_name": "Richard Roach",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Richard Roach",
+          "normalized_alias": "richard roach",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "premium-rate-services-fraud-detection-37e69fcf"
+      ],
+      "publication_topic_ids": [
+        "fraud-detection",
+        "insurance",
+        "pricing"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 74,
+      "canonical_name": "Navin Dookeram",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Navin Dookeram",
+          "normalized_alias": "navin dookeram",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
+        "a-decision-tree-approach-to-customer-surveys-8f7fac4b"
+      ],
+      "publication_topic_ids": [
+        "recommendation-systems"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 75,
+      "canonical_name": "Zahira Hosein",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Zahira Hosein",
+          "normalized_alias": "zahira hosein",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7"
+      ],
+      "publication_topic_ids": [
+        "recommendation-systems"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 76,
+      "canonical_name": "Nigel Henry",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Nigel Henry",
+          "normalized_alias": "nigel henry",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d",
+        "marketing-channel-recommendations-in-banking-3deb0e4b"
+      ],
+      "publication_topic_ids": [
+        "marketing",
+        "chatbots"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 77,
+      "canonical_name": "Gregory Ollivierre",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Gregory Ollivierre",
+          "normalized_alias": "gregory ollivierre",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 78,
+      "canonical_name": "Karesia Ramlal",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Karesia Ramlal",
+          "normalized_alias": "karesia ramlal",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "marketing-channel-recommendations-in-banking-3deb0e4b",
+        "a-personalized-overdraft-protection-framework-7d1549da"
+      ],
+      "publication_topic_ids": [
+        "marketing",
+        "machine-learning"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 79,
+      "canonical_name": "Rafael Guerrero",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Rafael Guerrero",
+          "normalized_alias": "rafael guerrero",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-decision-tree-approach-to-customer-surveys-8f7fac4b"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 80,
+      "canonical_name": "Keanu Nichols",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Keanu Nichols",
+          "normalized_alias": "keanu nichols",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "estimating-deforestation-using-machine-learning-algorithms-3f48cc99",
+        "recommendations-for-long-term-profit-optimization-8d7956bc"
+      ],
+      "publication_topic_ids": [
+        "optimization",
+        "machine-learning",
+        "climate",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 81,
+      "canonical_name": "Akil Hosang",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Akil Hosang",
+          "normalized_alias": "akil hosang",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36"
+      ],
+      "publication_topic_ids": [
+        "machine-learning",
+        "energy",
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 82,
+      "canonical_name": "Daniel Mahatoo",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Daniel Mahatoo",
+          "normalized_alias": "daniel mahatoo",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "figure-of-merit-for-a-multi-generation-network-32f902ce"
+      ],
+      "publication_topic_ids": [
+        "simulation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 83,
+      "canonical_name": "Trisha Lawrence",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Trisha Lawrence",
+          "normalized_alias": "trisha lawrence",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 84,
+      "canonical_name": "Isaac Dialsingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Isaac Dialsingh",
+          "normalized_alias": "isaac dialsingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 85,
+      "canonical_name": "Nirvan Sharma",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Nirvan Sharma",
+          "normalized_alias": "nirvan sharma",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-comparison-of-data-driven-and-traditional-approaches-to-employee-perfo-b0c92e9f"
+      ],
+      "publication_topic_ids": [
+        "data-science"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 86,
+      "canonical_name": "Govinda Hosein",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Govinda Hosein",
+          "normalized_alias": "govinda hosein",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 87,
+      "canonical_name": "Sanjay Bahadoorsingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sanjay Bahadoorsingh",
+          "normalized_alias": "sanjay bahadoorsingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b"
+      ],
+      "publication_topic_ids": [
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 88,
+      "canonical_name": "Robert Martinez",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Robert Martinez",
+          "normalized_alias": "robert martinez",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "the-impact-of-low-electricity-prices-on-renewable-energy-production-196d2368"
+      ],
+      "publication_topic_ids": [
+        "energy"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 89,
+      "canonical_name": "Chandrabhan Sharma",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Chandrabhan Sharma",
+          "normalized_alias": "chandrabhan sharma",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b"
+      ],
+      "publication_topic_ids": [
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 91,
+      "canonical_name": "Anderson Singh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Anderson Singh",
+          "normalized_alias": "anderson singh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "on-the-prediction-of-possibly-forgotten-shopping-basket-items-1550b8a9"
+      ],
+      "publication_topic_ids": [
+        "machine-learning"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 92,
+      "canonical_name": "Sterling Ramroach",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sterling Ramroach",
+          "normalized_alias": "sterling ramroach",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "playlist-shuffling-given-user-defined-constraints-on-song-sequencing-2ecc20c8",
+        "a-smart-shuffle-approach-to-playlist-shuffling-with-user-defined-constra-2ef8bb64"
+      ],
+      "publication_topic_ids": [
+        "recommendation-systems",
+        "clustering",
+        "education",
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 93,
+      "canonical_name": "Ramneek et. al.",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Ramneek et. al.",
+          "normalized_alias": "ramneek et al",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 94,
+      "canonical_name": "Kiran Maharaj",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kiran Maharaj",
+          "normalized_alias": "kiran maharaj",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "recommendations-for-long-term-profit-optimization-8d7956bc"
+      ],
+      "publication_topic_ids": [
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 95,
+      "canonical_name": "Elena Dyer",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Elena Dyer",
+          "normalized_alias": "elena dyer",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842"
+      ],
+      "publication_topic_ids": [
+        "clustering",
+        "supply-chain",
+        "optimization",
+        "networks"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 96,
+      "canonical_name": "Kevin Blake-Thomas",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kevin Blake-Thomas",
+          "normalized_alias": "kevin blake thomas",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "optimizing-car-imports-in-small-island-states-6abab515"
+      ],
+      "publication_topic_ids": [
+        "internet-resilience",
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 97,
+      "canonical_name": "Sungin Jung",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sungin Jung",
+          "normalized_alias": "sungin jung",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32"
+      ],
+      "publication_topic_ids": [
+        "pricing",
+        "telecommunications",
+        "mobile-services"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 98,
+      "canonical_name": "Chris Meetoo",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Chris Meetoo",
+          "normalized_alias": "chris meetoo",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b"
+      ],
+      "publication_topic_ids": [
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 99,
+      "canonical_name": "Saffiyah Doolan",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Saffiyah Doolan",
+          "normalized_alias": "saffiyah doolan",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541"
+      ],
+      "publication_topic_ids": [
+        "telecommunications"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 100,
+      "canonical_name": "Devika Bhagwandin",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Devika Bhagwandin",
+          "normalized_alias": "devika bhagwandin",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541",
+        "association-rule-mining-of-household-electrical-energy-usage-91e53f3a"
+      ],
+      "publication_topic_ids": [
+        "energy",
+        "telecommunications"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 101,
+      "canonical_name": "Steffan Boodhoo",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Steffan Boodhoo",
+          "normalized_alias": "steffan boodhoo",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "on-the-distributed-optimization-of-calendar-events-0f95bb66"
+      ],
+      "publication_topic_ids": [
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 102,
+      "canonical_name": "Woojin Seok",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Woojin Seok",
+          "normalized_alias": "woojin seok",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "emerging-network-technologies-and-network-neutrality-conformance-2af0cd47"
+      ],
+      "publication_topic_ids": [
+        "mobile-services",
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 103,
+      "canonical_name": "Jaiseung Kwak",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Jaiseung Kwak",
+          "normalized_alias": "jaiseung kwak",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "emerging-network-technologies-and-network-neutrality-conformance-2af0cd47"
+      ],
+      "publication_topic_ids": [
+        "mobile-services",
+        "transportation"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 104,
+      "canonical_name": "P. Hosein",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "P. Hosein",
+          "normalized_alias": "p hosein",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95",
+        "load-forecasting-using-deep-neural-networks-31644fac",
+        "web-application-for-power-grid-fault-management-70b8c821",
+        "using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c",
+        "quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd",
+        "on-the-multi-stage-influence-maximization-problem-d33cee35",
+        "location-obfuscation-using-smart-meter-readings-5bfe1825",
+        "improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29",
+        "heuristics-for-advertising-revenue-optimization-in-online-social-network-85ddf731",
+        "event-scheduling-with-soft-constraints-and-on-demand-re-optimization-224f19ec",
+        "efficient-sentiment-classification-of-twitter-feeds-8390d8a8",
+        "cyclic-beam-switching-for-smart-grid-networks-009fe57c",
+        "congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353",
+        "application-for-the-detection-of-dangerous-driving-and-an-associated-gam-89c35dfe",
+        "a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b",
+        "a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6",
+        "a-consumer-focused-open-data-platform-8fd2a9df",
+        "stochastic-dynamic-programming-model-for-revenue-optimization-in-social--07bec3e0",
+        "power-grid-fault-detection-using-an-amr-network-0c474959",
+        "network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c"
+      ],
+      "publication_topic_ids": [
+        "optimization",
+        "telecommunications",
+        "energy",
+        "mobile-services",
+        "transportation",
+        "pricing",
+        "iot",
+        "open-data",
+        "dangerous-driving",
+        "privacy",
+        "body-shape-detection",
+        "smart-grid",
+        "web-applications",
+        "climate",
+        "machine-learning",
+        "clustering"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 105,
+      "canonical_name": "W. Choi",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "W. Choi",
+          "normalized_alias": "w choi",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95",
+        "quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd",
+        "congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353",
+        "a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b",
+        "network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c"
+      ],
+      "publication_topic_ids": [
+        "telecommunications",
+        "mobile-services",
+        "transportation",
+        "pricing",
+        "iot"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 106,
+      "canonical_name": "W. Seok",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "W. Seok",
+          "normalized_alias": "w seok",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95",
+        "quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd",
+        "congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353",
+        "a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b",
+        "network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c"
+      ],
+      "publication_topic_ids": [
+        "telecommunications",
+        "mobile-services",
+        "transportation",
+        "pricing",
+        "iot"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 107,
+      "canonical_name": "Vrijesh Tripathy",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Vrijesh Tripathy",
+          "normalized_alias": "vrijesh tripathy",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "association-rule-mining-of-household-electrical-energy-usage-91e53f3a"
+      ],
+      "publication_topic_ids": [
+        "energy"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 108,
+      "canonical_name": "S. Hosein",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "S. Hosein",
+          "normalized_alias": "s hosein",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "load-forecasting-using-deep-neural-networks-31644fac",
+        "web-application-for-power-grid-fault-management-70b8c821",
+        "improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29",
+        "power-grid-fault-detection-using-an-amr-network-0c474959"
+      ],
+      "publication_topic_ids": [
+        "energy",
+        "web-applications",
+        "machine-learning",
+        "iot"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 109,
+      "canonical_name": "K. Maharaj",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "K. Maharaj",
+          "normalized_alias": "k maharaj",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "location-obfuscation-using-smart-meter-readings-5bfe1825"
+      ],
+      "publication_topic_ids": [
+        "privacy",
+        "smart-grid"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 111,
+      "canonical_name": "L. Girod-Williams",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "L. Girod-Williams",
+          "normalized_alias": "l girod williams",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "cyclic-beam-switching-for-smart-grid-networks-009fe57c"
+      ],
+      "publication_topic_ids": [
+        "energy"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 112,
+      "canonical_name": "C. van Rensburg",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "C. van Rensburg",
+          "normalized_alias": "c van rensburg",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "cyclic-beam-switching-for-smart-grid-networks-009fe57c"
+      ],
+      "publication_topic_ids": [
+        "energy"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 113,
+      "canonical_name": "I.Rahaman",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "I.Rahaman",
+          "normalized_alias": "i rahaman",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c",
+        "on-the-multi-stage-influence-maximization-problem-d33cee35",
+        "heuristics-for-advertising-revenue-optimization-in-online-social-network-85ddf731"
+      ],
+      "publication_topic_ids": [
+        "optimization",
+        "clustering"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 114,
+      "canonical_name": "N. Chamansingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "N. Chamansingh",
+          "normalized_alias": "n chamansingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "efficient-sentiment-classification-of-twitter-feeds-8390d8a8"
+      ],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 115,
+      "canonical_name": "S. Boodhoo",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "S. Boodhoo",
+          "normalized_alias": "s boodhoo",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "event-scheduling-with-soft-constraints-and-on-demand-re-optimization-224f19ec"
+      ],
+      "publication_topic_ids": [
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 116,
+      "canonical_name": "K. Bahadoor",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "K. Bahadoor",
+          "normalized_alias": "k bahadoor",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "application-for-the-detection-of-dangerous-driving-and-an-associated-gam-89c35dfe"
+      ],
+      "publication_topic_ids": [
+        "dangerous-driving",
+        "climate"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 118,
+      "canonical_name": "W. Kattick",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "W. Kattick",
+          "normalized_alias": "w kattick",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "web-application-for-power-grid-fault-management-70b8c821"
+      ],
+      "publication_topic_ids": [
+        "energy",
+        "web-applications"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 119,
+      "canonical_name": "V. Rattan",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "V. Rattan",
+          "normalized_alias": "v rattan",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "web-application-for-power-grid-fault-management-70b8c821"
+      ],
+      "publication_topic_ids": [
+        "energy",
+        "web-applications"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 120,
+      "canonical_name": "S. Sooklal",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "S. Sooklal",
+          "normalized_alias": "s sooklal",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6"
+      ],
+      "publication_topic_ids": [
+        "body-shape-detection"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 121,
+      "canonical_name": "S. Teelucksingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "S. Teelucksingh",
+          "normalized_alias": "s teelucksingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6"
+      ],
+      "publication_topic_ids": [
+        "body-shape-detection"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 122,
+      "canonical_name": "C. Millette",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "C. Millette",
+          "normalized_alias": "c millette",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "a-consumer-focused-open-data-platform-8fd2a9df"
+      ],
+      "publication_topic_ids": [
+        "open-data"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 123,
+      "canonical_name": "S. Bahadoorsingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "S. Bahadoorsingh",
+          "normalized_alias": "s bahadoorsingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "power-grid-fault-detection-using-an-amr-network-0c474959"
+      ],
+      "publication_topic_ids": [
+        "energy",
+        "iot"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 124,
+      "canonical_name": "T. Lawrence",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "T. Lawrence",
+          "normalized_alias": "t lawrence",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "stochastic-dynamic-programming-model-for-revenue-optimization-in-social--07bec3e0"
+      ],
+      "publication_topic_ids": [
+        "optimization"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 125,
+      "canonical_name": "Sudesh Lutchman",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Sudesh Lutchman",
+          "normalized_alias": "sudesh lutchman",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "an-open-source-real-time-data-portal-c0f8823f",
+        "design-and-specifications-of-a-repository-for-real-time-open-data-be5e53d0"
+      ],
+      "publication_topic_ids": [
+        "open-data"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 126,
+      "canonical_name": "Lonell Liburd",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Lonell Liburd",
+          "normalized_alias": "lonell liburd",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [
+        "efficient-m-commerce-platform-for-developing-countries-f6fc2409"
+      ],
+      "publication_topic_ids": [
+        "mobile-services",
+        "e-commerce"
+      ],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 127,
+      "canonical_name": "Nichols Chamansingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Nichols Chamansingh",
+          "normalized_alias": "nichols chamansingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 128,
+      "canonical_name": "Victor Job",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Victor Job",
+          "normalized_alias": "victor job",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 129,
+      "canonical_name": "Alana Sankar-Ramkarran",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Alana Sankar-Ramkarran",
+          "normalized_alias": "alana sankar ramkarran",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 130,
+      "canonical_name": "Akash Pooransingh",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Akash Pooransingh",
+          "normalized_alias": "akash pooransingh",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 131,
+      "canonical_name": "Gerard Rique",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Gerard Rique",
+          "normalized_alias": "gerard rique",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 132,
+      "canonical_name": "Vaalmikki Arjoon",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Vaalmikki Arjoon",
+          "normalized_alias": "vaalmikki arjoon",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 133,
+      "canonical_name": "Kim Mallalieu",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Kim Mallalieu",
+          "normalized_alias": "kim mallalieu",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 134,
+      "canonical_name": "Shellyann Sooklal",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Shellyann Sooklal",
+          "normalized_alias": "shellyann sooklal",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 135,
+      "canonical_name": "Laura Bigram",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Laura Bigram",
+          "normalized_alias": "laura bigram",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    },
+    {
+      "author_id": 136,
+      "canonical_name": "Jonathan Earle",
+      "identity_status": "unresolved",
+      "identity_review_status": "needs_review",
+      "aliases": [
+        {
+          "alias": "Jonathan Earle",
+          "normalized_alias": "jonathan earle",
+          "source": "canonical_name",
+          "review_status": "needs_review"
+        }
+      ],
+      "eligible_paper_ids": [],
+      "publication_topic_ids": [],
+      "source_basis": "Derived only from indexed publication authorship and topic links; this does not imply availability, endorsement, supervision, or expertise beyond this corpus."
+    }
+  ],
+  "limitations": [
+    "Canonical rows and exact normalized aliases are used, but unresolved initial/full-name candidates are not merged without authoritative evidence.",
+    "Topic links describe only the eligible indexed publication corpus and do not establish current expertise, availability, endorsement, or supervision suitability.",
+    "This is an automated and AI-reviewed audit, not author or institutional validation."
+  ]
+}

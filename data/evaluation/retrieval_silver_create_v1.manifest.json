@@ -4,17 +4,17 @@
   "schema_path": "data/evaluation/retrieval_silver_create_v1.schema.json",
   "validator_path": "data/evaluation/validate_retrieval_silver_create_v1.py",
   "created_at": "2026-07-12T22:10:35Z",
-  "source_git_commit_at_validation": "616e88469144726c5137202b07f58adf90a17405",
+  "source_git_commit_at_validation": "166c6fc45befa0a2847b320328042ab861a34e9d",
   "source_database_path": "data/papers.db",
-  "source_database_sha256": "3823858062edfa0559997e66c3708685ad0b1fc95dd4b60ee2c4ee5389849f91",
+  "source_database_sha256": "60fb036f210bc29933612f340125eba514675c33ce3aa6f29b44886baea008b7",
   "source_inventory": {
     "papers": 134,
     "papers_with_chunks": 98,
-    "chunks": 756
+    "chunks": 735
   },
-  "dataset_sha256": "c450ea84da13fac1e822d82619ae7ed4b4d6d0a58ca7969223d30f35b1b00199",
-  "schema_sha256": "1c113ec280f99875cf2e231211044a7c129f2d71a2d247bdb337c62cbf08a7db",
-  "validator_sha256": "658dc34c2ea37d878841bc2944f4d3e0f0c03e26310f934d8aa15d1c99de3fbb",
+  "dataset_sha256": "d9b624436e81b8c39d90412245f209f36c47bac7a70a79dc7b8372d62cc95855",
+  "schema_sha256": "ebb3d880acdb1a60699b63a0f8b52a6c38615807ab2bf16edd0bc2322204b7d2",
+  "validator_sha256": "18cb091289e7c7433f0befa5017f0740db3a6858d13bbe9fce5263e6020280a0",
   "case_count": 50,
   "split_counts": {"dev": 30, "test": 20},
   "category_counts": {
@@ -36,13 +36,25 @@
     "reviewer_type": "ai",
     "label_quality": "silver",
     "pass": "create",
-    "procedure": "Questions and relevance evidence were prepared from direct paper metadata and SQLite chunk/page inspection. Retrieval functions, search endpoints, result rankings, and system scores were not inspected while labeling.",
-    "second_pass_status": "pending shuffled verification and adjudication"
+    "procedure": "Questions and relevance evidence were prepared from direct paper metadata and SQLite chunk/page inspection. After the 735-chunk rebuild, every evidence row was manually remapped from same-paper page-overlap candidates and source text. Retrieval functions, search endpoints, result rankings, and system scores were not inspected while labeling or remapping.",
+    "second_pass_status": "completed in data/evaluation/retrieval_silver_v1.jsonl"
+  },
+  "rechunk_remap": {
+    "remapped_at": "2026-07-12T23:15:08Z",
+    "script_path": "data/evaluation/remap_retrieval_silver_v1.py",
+    "script_sha256": "f7894806eb90be758e9ec9718a02ce639ac641188c22f0d7cb7ec32d3e0eada6",
+    "audit_path": "data/evaluation/retrieval_silver_remap_v1.json",
+    "audit_sha256": "a03dd2a8330c2b09d231a729169eefe6ee15fd877d0cd03d96101b0037a4f7a8",
+    "pre_rechunk_dataset_sha256": "c450ea84da13fac1e822d82619ae7ed4b4d6d0a58ca7969223d30f35b1b00199",
+    "chunk_inventory_sha256": "29c21402bfe69894a358edfbf8f3c9c5c7a59740c5e16425baf2251ad2aebd88",
+    "supporting_evidence_rows": 70,
+    "retrieval_or_ranking_inspected": false
   },
   "excluded_known_title_pdf_mismatches": [
     "vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8",
     "pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f"
   ],
   "redistribution_note": "The JSONL stores identifiers, page ranges, and paraphrased evidence summaries; it does not embed paper PDFs or full chunk text.",
+  "remap_command": ".venv/bin/python data/evaluation/remap_retrieval_silver_v1.py",
   "validation_command": ".venv/bin/python data/evaluation/validate_retrieval_silver_create_v1.py"
 }

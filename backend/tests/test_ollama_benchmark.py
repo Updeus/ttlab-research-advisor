@@ -33,7 +33,9 @@ def test_ollama_benchmark_writes_json_and_csv(monkeypatch, tmp_path: Path) -> No
     assert output_path.exists()
     assert output_path.with_suffix(".csv").exists()
     summary = payload["summary"]["qwen3:4b-instruct-2507-q4_K_M"]
-    assert summary["color"] == "green"
+    assert summary["color"] == "yellow"
+    assert summary["quality_tier"] == "not_evaluated"
+    assert "no versioned local quality or hardware-fit result" in summary["rationale"]
     assert summary["average_tokens_per_second"] == 35.0
 
 

@@ -10,6 +10,11 @@ from app.config import get_settings
 
 BENCHMARK_RESULTS_PATH = Path("data/evaluation/ollama_benchmark_results.json")
 
+UNVALIDATED_MODEL_WARNING = (
+    "Configured model names and pull candidates are unranked inventory suggestions; "
+    "no quality or hardware-fit claim is made without a versioned benchmark."
+)
+
 CONFIGURED_MODEL_NAMES = (
     "qwen3:4b-instruct-2507-q4_K_M",
     "gemma3:4b-it-q4_K_M",
@@ -147,9 +152,7 @@ def local_llm_status() -> dict[str, Any]:
     settings = get_settings()
     models, warnings, available = list_ollama_models(base_url=settings.ollama_base_url)
     benchmark_summary = benchmark_by_model()
-    warnings.append(
-        "Configured model names and pull candidates are unranked inventory suggestions; no quality or hardware-fit claim is made without a versioned benchmark."
-    )
+    warnings.append(UNVALIDATED_MODEL_WARNING)
     enriched = []
     for model in models:
         metadata = model_metadata(model["name"])

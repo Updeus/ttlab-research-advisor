@@ -282,5 +282,7 @@ def test_llm_api_lists_local_models(monkeypatch) -> None:
     assert response.json()["model_count"] == 1
     assert response.json()["models"][0]["color"] == "yellow"
     assert response.json()["models"][0]["quality_tier"] == "not_evaluated"
-    assert "no quality or hardware-fit claim" in " ".join(response.json()["warnings"])
+    warnings = " ".join(response.json()["warnings"])
+    assert "no quality or hardware-fit claim" in warnings
+    assert "provider is unavailable" not in warnings
     assert response.json()["candidate_pulls"] == response.json()["recommended_pulls"]

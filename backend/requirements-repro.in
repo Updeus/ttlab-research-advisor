@@ -1,0 +1,5 @@
+# Complete reproduction and audit environment. Compile this file rather than
+# editing requirements-lock.txt by hand.
+-r requirements-dense.txt
+-r requirements-ocr.txt
+pip-audit==2.10.1

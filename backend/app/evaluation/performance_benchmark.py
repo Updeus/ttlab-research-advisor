@@ -118,6 +118,12 @@ def hardware_manifest() -> dict[str, Any]:
         )
     except Exception as exc:  # pragma: no cover - exercised only when optional dense dependencies are unavailable
         numerical_threads["torch_status"] = f"unavailable:{type(exc).__name__}"
+    python_packages = resolved_python_packages()
+    frontend_packages = resolved_frontend_packages()
+    tectonic = shutil.which("tectonic")
+    if tectonic is None:
+        local_tectonic = Path.home() / ".local/bin/tectonic"
+        tectonic = str(local_tectonic) if local_tectonic.is_file() else "tectonic"
     return {
         "platform": platform.platform(),
         "kernel_release": platform.release(),
@@ -128,10 +134,93 @@ def hardware_manifest() -> dict[str, Any]:
         "python": platform.python_version(),
         "node": command_version(["node", "--version"]),
         "npm": command_version(["npm", "--version"]),
+        "dependency_locks": {
+            "python": file_provenance(ROOT / "backend/requirements-lock.txt"),
+            "frontend": file_provenance(ROOT / "frontend/package-lock.json"),
+        },
+        "resolved_environments": {
+            "python_package_count": len(python_packages),
+            "python_packages": python_packages,
+            "python_packages_sha256": _canonical_sha256(python_packages),
+            "frontend_top_level_packages": frontend_packages,
+            "frontend_top_level_packages_sha256": _canonical_sha256(frontend_packages),
+        },
+        "tool_versions": {
+            "git": command_version(["git", "--version"]),
+            "qpdf": command_version(["qpdf", "--version"]),
+            "pdftoppm": command_version(["pdftoppm", "-v"]),
+            "pdftotext": command_version(["pdftotext", "-v"]),
+            "tesseract": command_version(["tesseract", "--version"]),
+            "tectonic": command_version([tectonic, "--version"]),
+            "playwright": command_version([str(ROOT / "frontend/node_modules/.bin/playwright"), "--version"]),
+            "chromium": playwright_chromium_version(),
+        },
+        "benchmark_assets": {
+            "frontend_page_script": file_provenance(ROOT / "frontend/scripts/benchmark-pages.mjs"),
+        },
         "process_concurrency": 1,
         "numerical_kernel_threads": numerical_threads,
         "device": "CPU",
     }
+
+
+def file_provenance(path: Path) -> dict[str, Any]:
+    return {
+        "path": path.relative_to(ROOT).as_posix(),
+        "bytes": path.stat().st_size if path.is_file() else None,
+        "sha256": sha256_path(path),
+    }
+
+
+def resolved_python_packages() -> dict[str, str]:
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "freeze", "--all"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    packages: dict[str, str] = {}
+    if result.returncode != 0:
+        return packages
+    for line in result.stdout.splitlines():
+        if "==" not in line or line.startswith("#"):
+            continue
+        name, version = line.split("==", 1)
+        packages[name.lower().replace("_", "-")] = version
+    return dict(sorted(packages.items()))
+
+
+def resolved_frontend_packages() -> dict[str, str]:
+    result = subprocess.run(
+        ["npm", "ls", "--depth=0", "--json"],
+        cwd=ROOT / "frontend",
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {}
+    dependencies = payload.get("dependencies") or {}
+    return dict(sorted((name, str(details.get("version", "unknown"))) for name, details in dependencies.items()))
+
+
+def playwright_chromium_version() -> str | None:
+    script = (
+        "const {chromium}=require('playwright');"
+        "const {execFileSync}=require('child_process');"
+        "process.stdout.write(execFileSync(chromium.executablePath(),['--version'],{encoding:'utf8'}).trim());"
+    )
+    result = subprocess.run(
+        ["node", "-e", script],
+        cwd=ROOT / "frontend",
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    return result.stdout.strip() if result.returncode == 0 and result.stdout.strip() else None
 
 
 def _git_status_path(row: str) -> str:

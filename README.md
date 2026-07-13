@@ -1,61 +1,142 @@
 # TTLAB Research Intelligence Platform
 
-**Tagline:** From publication archive to source-grounded research advisor.
+**From a publication archive to a source-traceable research-intelligence
+platform.**
 
-This project is a local/demo research intelligence platform for TTLAB publications. It extends **"Automating the Collection, Display, Summarization and Podcasting of Academic Research"** by moving beyond metadata and abstracts into full-paper inspection, citation-grounded search/Q&A, thesis extension recommendations, paper intelligence outputs, topic/author exploration, admin review, and evaluation evidence.
+This MSc Data Science project ingests and inspects TTLAB publications, searches
+full-paper content, answers questions with paper/chunk/page evidence, discovers
+publication-derived topics and authors, and generates explicitly labeled thesis
+extension suggestions and paper-intelligence drafts. It extends *Automating the
+Collection, Display, Summarization and Podcasting of Academic Research* beyond
+metadata and abstracts into full-text retrieval, source-traceable RAG,
+administrative review, and controlled offline evaluation.
 
-The system is designed for a two-week MVP: polished enough to demonstrate, bounded enough to understand, and careful about separating source-supported paper facts from AI-assisted suggestions.
+The platform is a research artefact, not a validated human advisor. Source-
+traceable means that an output retains paper, chunk, page/section, snippet,
+provider, timestamp, and review-state provenance. It does not mean that every
+claim is correct, complete, novel, feasible, or supervisor-approved.
 
-## What It Solves
+## Implemented system
 
-- Helps students find TTLAB papers they can extend into projects or theses.
-- Helps researchers and the public understand TTLAB work through cited summaries, search, and paper relationships.
-- Gives reviewers a local workflow to inspect metadata and generated outputs before public use.
-- Provides evaluation scaffolding so retrieval, Q&A, recommendation, and artifact quality are not overclaimed.
+- TTLAB archive discovery and deterministic seed import into SQLite.
+- Allowlisted direct-PDF acquisition with file/size/page/redirect controls.
+- PyMuPDF page extraction, PDF/title identity checks, scanned-page diagnostics,
+  optional Tesseract OCR, and page-aware deterministic chunking.
+- Author normalization/alias state, metadata provenance, explicit corpus
+  eligibility, and conservative section detection.
+- Four user-facing retrieval modes:
+  - keyword/FTS;
+  - 256-dimensional deterministic feature hashing;
+  - 384-dimensional learned dense retrieval using a pinned local
+    `sentence-transformers/all-MiniLM-L6-v2` snapshot; and
+  - hybrid retrieval with explicit heuristic configuration.
+- Ask TTLAB with citations, retrieved evidence, provider/model/timestamp,
+  grounding warnings, and transient public requests by default.
+- Thesis Extension Finder with an evidence-only alternative and separate paper
+  facts, paper-stated future work, inferred gaps, and system suggestions.
+- Public/technical summaries, contributions, methods, limitations, future work,
+  skills/evaluation plans, and text-only podcast scripts.
+- Publication-derived Topic/Author Explorer and explainable related-paper links.
+- Authenticated reviewer/admin mutations, distinct `ai_reviewed` state,
+  attributed append-only review events with a hash chain, and a visibly
+  insecure loopback-only demo bypass.
+- Route-based React interface with direct links, responsible-AI/freshness states,
+  accessibility regression checks, and 360/768/1024/1440 px overflow tests.
+- Executed retrieval, QA faithfulness/citation, recommendation-proxy,
+  topic/author, section-quality, and generated-output evaluations.
+- Reproducibility, performance, release-sanitization, security, privacy, threat-
+  model, and deployment tooling.
 
-## Architecture
+The legacy API value `semantic` remains only as a compatibility alias for the
+feature-hashing baseline. It is not a learned semantic encoder.
+
+## Evidence snapshot
+
+The frozen experimental corpus is `corpus-04a010207327069a`:
+
+| Inventory | Count |
+|---|---:|
+| Catalogue records | 134 |
+| Records with available local PDF content | 98 |
+| Eligible experimental papers | 96 |
+| No-text records retained as `needs_review` | 36 |
+| Metadata/PDF mismatches excluded | 2 |
+| Raw chunks | 735 |
+| Eligible chunks | 719 |
+| Feature-hashing index coverage | 719/719 |
+| Learned-dense index coverage | 719/719 |
+
+The Phase 2 held-out retrieval set has 20 cases (19 answerable, one
+unanswerable). Keyword retrieval led MRR at 0.9474; dense MRR was 0.9386;
+tuned-hybrid MRR was 0.8596. No tuned-vs-baseline comparison survived the
+Holm-Bonferroni experiment-family correction. The result is a negative finding
+for hybrid superiority, not a reason to hide the baseline.
+
+The 50-case AI-assisted QA review found strict supported-claim rate 0.995, but
+citation correctness 0.625, strict answer-point coverage 0.1358, and zero
+abstentions on four unanswerable cases. The 28-profile recommendation proxy
+study found a full-minus-evidence-only relevance difference of 0.0238 (95% CI
+-0.0238 to 0.0714), which does not demonstrate improvement. These are AI-
+reviewed formative/proxy results, not human ratings.
+
+See [Methodology](docs/METHODOLOGY.md), [Evaluation
+Protocol](docs/EVALUATION_PROTOCOL.md), and [Final Status](docs/FINAL_STATUS.md)
+for methods, intervals, raw evidence paths, and limitations.
+
+## Repository layout
 
 ```text
-backend/   FastAPI, SQLModel, SQLite, ingestion, indexing, intelligence, evaluation, tests
-frontend/  React + Vite + TypeScript public/demo interface
-data/      Seed files plus ignored local PDFs, extracted text, chunks, indexes, generated artifacts, DB
-docs/      Scope, design, evaluation, demo, final status, reproducibility evidence
+backend/       FastAPI, SQLModel, ingestion, retrieval, intelligence, evaluation
+frontend/      React, Vite, TypeScript, Vitest/axe, Playwright
+data/seed/     redistributable seed metadata
+data/evaluation/ schemas, silver labels, review passes, validators
+artifacts/     versioned baseline and Phase 1–6 sanitized evidence
+docs/          methodology, design, governance, evaluation, reproduction
+paper/         editable IEEEtran manuscript sources
+thesis/        modular thesis sources, figures, evidence generation
+scripts/       demo, reproduction, and support commands
+build/         compiled documents and local sanitized releases
 ```
 
-Backend storage is SQLite. Search uses keyword FTS/fallback matching plus local deterministic hashing embeddings. The default intelligence providers are offline/deterministic; optional external provider boundaries exist but are not required.
+Runtime databases, PDFs, extracted/chunk text, indexes, model caches, private
+prompts, and histories are local/ignored. They are not distributed by the
+sanitized release.
 
-## Feature Summary
+## Installation
 
-- TTLAB publication discovery from `https://lab.tt/index.php/category/pub/`
-- Seed import into SQLite
-- Safe direct-PDF downloader
-- PyMuPDF full-paper extraction
-- Page-aware chunking
-- Keyword, 256-dimensional feature-hashing, and hybrid retrieval. The current
-  API value `semantic` is a legacy name for the hashing baseline; it is not a
-  learned semantic encoder.
-- Ask TTLAB citation-grounded Q&A
-- Local Ollama model support for Ask TTLAB with red/yellow/green model recommendations
-- Thesis Extension Finder with cited recommendations
-- Paper Intelligence artifacts: public summary, technical summary, contribution, methods, limitations, future work, extensions, required skills, evaluation plan
-- Text-only podcast script generation
-- Topic/Author Explorer and related papers
-- Authenticated Admin Review with attributed, append-only audit events; the
-  loopback launcher exposes a visibly insecure demo-only bypass
-- Evaluation Dashboard for retrieval, QA, extension, and artifact result files
-- Offline/mock provider support and optional external provider boundary
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r backend/requirements.txt
+npm --prefix frontend ci
+```
 
-See [docs/LOCAL_LLM_RAG_README.md](docs/LOCAL_LLM_RAG_README.md) for the local Ollama model selector, benchmark workflow, smarter RAG changes, and hardware notes.
+Optional learned-dense and OCR dependencies:
 
-## Quickstart
+```bash
+python -m pip install -r backend/requirements-dense.txt
+python -m pip install -r backend/requirements-ocr.txt
+```
 
-One-command local demo:
+Dense model acquisition is an explicit operator action. Normal search never
+downloads model weights:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.indexing.embedder acquire-dense-model
+```
+
+The pinned model revision is
+`826711e54e001c83835913827a843d8dd0a1def9`. The core keyword and feature-
+hashing paths remain available when the dense extra/model is absent, with an
+explicit provider warning rather than silent relabeling.
+
+## Local demo
+
+The one-command loopback demo is:
 
 ```bash
 ./scripts/run_everything.sh
 ```
-
-The one-command script checks `http://127.0.0.1:11434/api/tags` and starts `ollama serve` when Ollama is installed but not already running. It then starts/reuses the backend and frontend.
 
 Useful variants:
 
@@ -66,125 +147,71 @@ Useful variants:
 ./scripts/run_everything.sh --verify-only
 ```
 
-Manual setup:
+The launcher binds locally and opts into a clearly labeled insecure demo admin
+bypass. Responses carry `X-TTLAB-Insecure-Demo: true`. Never enable this bypass
+in production. Direct backend startup is fail-closed for protected routes unless
+environment-configured reviewer/admin actors are supplied.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r backend/requirements.txt
-
-cd frontend
-npm install
-cd ..
-```
-
-Prepare a bounded local demo dataset:
+Prepare a bounded UI dataset separately:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
 ```
 
-This bounded helper is for UI demonstration only. At the audited baseline it
-could replace a complete shared vector file with a partial 25-record hashing
-index, so it must not be used to create research results or to assert full index
-coverage. The remediation work tracks that defect as `DATA-03` in
-[`docs/REVIEW_REMEDIATION_MATRIX.md`](docs/REVIEW_REMEDIATION_MATRIX.md).
+The bounded feature-hashing output is isolated under `data/indexes/demo/` and
+does not update authoritative index status. It is for interface demonstration,
+not research metrics or full-corpus coverage claims.
 
-Run backend:
+Manual servers:
 
 ```bash
 uvicorn app.main:app --reload --app-dir backend
+npm --prefix frontend run dev
 ```
 
-Run frontend:
+Open `http://127.0.0.1:5173`; API documentation is at
+`http://127.0.0.1:8000/docs`.
 
-```bash
-cd frontend
-npm run dev
-```
+## Corpus preparation
 
-Open `http://127.0.0.1:5173`.
-
-The one-command launcher binds the backend to loopback and explicitly enables
-the insecure local-demo admin bypass. Responses are labeled
-`X-TTLAB-Insecure-Demo: true`; this mode is not production authentication.
-Direct backend startup fails closed for protected routes unless environment
-actors are configured. See [Security](docs/SECURITY.md),
-[Privacy](docs/PRIVACY.md), [Threat Model](docs/THREAT_MODEL.md), and
-[Deployment](docs/DEPLOYMENT.md).
-
-## Local Ollama Q&A
-
-Ask TTLAB can use local Ollama models as answer composers while keeping retrieval, citations, page ranges, and grounding checks mandatory.
-
-Check installed models:
-
-```bash
-ollama list
-```
-
-Run a local benchmark across installed models:
-
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.ollama_benchmark --models installed
-```
-
-List model status through the backend:
-
-```bash
-curl http://127.0.0.1:8000/api/llms/local
-```
-
-The default local model is `qwen3:4b-instruct-2507-q4_K_M`. If Ollama is unavailable, Ask TTLAB falls back to the offline extractive provider and shows a warning.
-
-When using the one-command demo launcher, Ollama is started automatically unless you pass `--no-ollama`.
-
-## Manual Data Commands
-
-Discover TTLAB publications:
+Discover/import permitted publication metadata:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.ingestion.ttlab_page discover \
   --url https://lab.tt/index.php/category/pub/ \
   --max-pages 2 \
   --out data/seed/ttlab_publications_discovered.json
-```
-
-Import seed data:
-
-```bash
 PYTHONPATH=backend .venv/bin/python -m app.ingestion.manual_import \
   --seed data/seed/ttlab_publications_discovered.json
 ```
 
-Prepare local PDFs, text, chunks, indexes, topics, and sample artifacts:
+Process authorized local inputs and rebuild complete representations:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_downloader --from-db --limit 25 --download
-PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_parser extract --limit 25
-PYTHONPATH=backend .venv/bin/python -m app.indexing.chunker chunk --limit 25
+PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_downloader --from-db --download
+PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_parser extract
+PYTHONPATH=backend .venv/bin/python -m app.indexing.chunker chunk
 PYTHONPATH=backend .venv/bin/python -m app.indexing.keyword_search rebuild
-PYTHONPATH=backend .venv/bin/python -m app.indexing.embedder index --provider hashing
+PYTHONPATH=backend .venv/bin/python -m app.indexing.embedder index --provider feature_hashing
+PYTHONPATH=backend .venv/bin/python -m app.indexing.embedder index --provider dense --device cpu
 PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
-PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator batch \
-  --limit 5 \
-  --types paper_intelligence_bundle podcast_script \
-  --provider auto \
-  --max-chunks 12
 ```
 
-## Useful CLI Commands
+The vector builders write atomic index/manifests and fail on incomplete
+authoritative coverage. Do not use a bounded demo path to regenerate published
+results.
 
-Ask TTLAB:
+## Use the intelligence features
+
+Ask a question:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.intelligence.rag_answerer ask \
   "Which TTLAB papers discuss RAG?" \
-  --mode hybrid \
-  --top-k 5
+  --mode hybrid --top-k 5
 ```
 
-Run the Thesis Extension Finder:
+Generate structured extension suggestions:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.intelligence.extension_recommender recommend \
@@ -194,109 +221,124 @@ PYTHONPATH=backend .venv/bin/python -m app.intelligence.extension_recommender re
   --project-type "software prototype" \
   --data-constraints "prefer public or synthetic data" \
   --preferred-difficulty medium \
-  --top-k 5 \
-  --mode hybrid
+  --top-k 5 --mode hybrid
 ```
 
-Inspect a topic:
+Inspect publication-derived topic evidence:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer show --topic "RAG"
 ```
 
-Run local smoke check:
+Optional Ollama composition preserves retrieval/citation constraints. If the
+service or selected model is unavailable, the application reports fallback to
+the offline extractive provider. The recorded QA study contains no Ollama
+quality/latency comparison because the service was unavailable.
+
+## Evaluation and reproduction
+
+Validate the committed evidence:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_retrieval_silver_v1.py
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_qa_faithfulness_v1.py
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_recommendation_proxy_v1.py
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_topic_author_silver_v1.py
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_section_quality_silver_v1.py --evaluate-current
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.generated_output_review
 ```
 
-## Backend API Highlights
-
-- `GET /health`
-- `GET /ready`
-- `GET /api/stats`
-- `GET /api/papers`
-- `GET /api/search?q=RAG&mode=hybrid`
-- `POST /api/ask`
-- `POST /api/recommendations/extensions`
-- `POST /api/papers/{paper_id}/artifacts/generate`
-- `GET /api/explorer/overview`
-- `GET /api/topics`
-- `GET /api/authors`
-- `GET /api/papers/{paper_id}/related`
-- `GET /api/admin/overview`
-- `GET /api/evaluation/dashboard`
-
-Public Ask and Extension Finder requests are transient and are not stored by
-default. Their history/item routes, all admin routes, full extracted chunks,
-and persisted artifact generation require reviewer/admin authentication.
-
-## Evaluation Commands
-
-Evaluation files are under `data/evaluation/`. Sample files are placeholders until manually reviewed gold labels or human scores are added.
+Re-run the retrieval experiment or external sanity acquisition:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_experiment
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.external_sanity
 ```
 
-Automatic metrics only measure against provided gold/test files. They do not replace supervisor/manual review.
+One-command paths:
 
-## Tests And Build
+```bash
+make reproduce-quick
+make reproduce
+make release
+```
+
+The full path requires a separately authorized database/PDF set and the pinned
+dense model. The quick path cannot recreate restricted corpus-dependent
+experiments. At this snapshot, no committed full-profile performance result or
+complete full-reproduction manifest exists, so performance/scalability is not
+claimed. See [Reproducibility](docs/REPRODUCIBILITY.md) and [Data and Artifact
+Availability](docs/DATA_AND_ARTIFACT_AVAILABILITY.md).
+
+## Verification
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m pytest
-
-cd frontend
-npm run build
+npm --prefix frontend test
+npm --prefix frontend run build
+npm --prefix frontend run test:e2e
+npm --prefix frontend audit --audit-level=high
+PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
+make paper
+make thesis
 ```
 
-## Screenshots
+Engineering verification is separate from quality evaluation. Exact final test
+counts and PDF preflight results belong in `docs/FINAL_STATUS.md` only after the
+final commit is rerun.
 
-Current interface screenshots are committed under `thesis/figures/screenshots/`.
-Use [docs/screenshots/README.md](docs/screenshots/README.md) for their capture
-and refresh checklist; screenshots are dated evidence and must be regenerated
-after material UI or data-state changes.
+## API highlights
 
-## Local Data And Git Hygiene
+Public/read surfaces include:
 
-Local runtime artifacts are ignored:
+- `GET /health`, `GET /ready`, `GET /api/stats`
+- `GET /api/papers`, `GET /api/papers/{paper_id}`
+- `GET /api/search?q=RAG&mode=dense`
+- `POST /api/ask`
+- `POST /api/recommendations/extensions`
+- `GET /api/topics`, `GET /api/authors`, `GET /api/explorer/overview`
+- `GET /api/evaluation/dashboard`
 
-- SQLite databases
-- downloaded PDFs
-- extracted text
-- chunks
-- indexes
-- generated paper artifacts
-- evaluation result JSON
+Protected reviewer/admin operations include history/item routes, full extracted
+chunks, persisted artifact generation, metadata/review mutations, review-event
+access, and admin diagnostics. Public Ask/Finder requests are transient and do
+not store question/profile content by default.
 
-Seed files and evaluation templates are tracked. Runtime PDFs, extracted text,
-chunks, indexes, generated records, and SQLite databases stay ignored. The two
-compiled document deliverables, `build/thesis.pdf` and
-`build/ieee-paper.pdf`, are explicit tracked exceptions.
+## Security, privacy, accessibility, and release
+
+- [Frontend requirements](docs/FRONTEND_REQUIREMENTS.md)
+- [Security](docs/SECURITY.md)
+- [Threat model](docs/THREAT_MODEL.md)
+- [Privacy](docs/PRIVACY.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Ethics and governance](docs/ETHICS_AND_GOVERNANCE.md)
+- [External submission checks](docs/EXTERNAL_SUBMISSION_CHECKS.md)
+
+Production mode requires explicit trusted hosts/CORS origins, HTTPS public base
+URL, and at least one environment-configured active admin actor. Bearer tokens
+are represented in configuration only by SHA-256 digests and are never
+committed. Token mode does not use cookies; reverse proxy, TLS, monitoring,
+retention, incident response, and institutional identity remain deployment
+responsibilities.
 
 ## Limitations
 
-- Generated outputs are source-grounded where possible, but they are AI-assisted drafts and need review before public use.
-- No authentication or role-based access control is implemented.
-- No production deployment is included.
-- No production email notifications.
-- No audio/TTS generation.
-- No OCR for scanned PDFs.
-- No complex graph visualization.
-- Topic labels and author expertise are deterministic/inferred unless reviewed.
-- Author expertise is derived from indexed TTLAB papers only and does not confirm supervisor availability.
-- External LLM providers are optional; offline deterministic providers are the supported default.
+- One laboratory and small held-out cohorts limit external validity.
+- Silver labels and usefulness judgments come from one AI-assisted procedure,
+  not recruited humans or independent assessors.
+- The offline extractive answerer is well sourced at claim level but often
+  incomplete/off-topic and failed all recorded unanswerable abstentions.
+- Hybrid retrieval did not outperform keyword or dense baselines in the held-
+  out study after family correction.
+- Recommendation feasibility, novelty, data access, and supervisor fit require
+  external human/institutional confirmation.
+- Topic/author evidence is publication-bounded; 13 possible identity merges
+  remain unresolved.
+- Current corpus evidence reports no OCR-processed pages and no OCR accuracy.
+- Full performance, capacity, multi-browser/manual assistive-technology review,
+  public deployment, and human advisory validation are not established by the
+  committed evidence.
+- No audio/TTS pipeline is implemented; podcast output is a cited text draft.
 
-## Future Work
-
-- Supervisor-reviewed gold evaluation sets and human scores.
-- Admin-reviewed public release workflow.
-- OCR for scanned PDFs.
-- Better topic normalization and author identity resolution.
-- Optional production deployment plan.
-- Optional external LLM provider validation.
-- Optional audio generation after scripts have been reviewed.
+Unknown information is omitted or retained as uncertainty. It is never filled
+with invented metadata, approvals, metrics, or results.

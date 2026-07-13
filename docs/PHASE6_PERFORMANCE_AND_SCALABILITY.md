@@ -3,10 +3,13 @@
 ## Status and evidence boundary
 
 Performance is measured by
-`backend/app/evaluation/performance_benchmark.py`. The versioned raw result is
+`backend/app/evaluation/performance_benchmark.py`. The intended versioned raw
+result path is
 `artifacts/phase6/performance/performance_full_results.json`; a bounded
 engineering run may additionally be stored as `performance_quick_results.json`.
-Only the full-corpus result may support paper or thesis performance claims.
+No full result is committed at this documentation snapshot. Consequently, no
+paper/thesis performance or scalability claim is currently supported. Only a
+validated full-corpus result may close that evidence gate.
 
 The benchmark does not infer retrieval quality from latency. Quality results
 come from the separate source-reviewed evaluation sets. A successful test or

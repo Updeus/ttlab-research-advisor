@@ -1,276 +1,172 @@
-# Evaluation Plan
+# Evaluation Plan and Execution Status
 
-## Phase 1
+This document is the concise plan/status view. Metric definitions, confidence
+interval procedures, exact results, and evidence paths are in
+[`EVALUATION_PROTOCOL.md`](EVALUATION_PROTOCOL.md). The research design is in
+[`METHODOLOGY.md`](METHODOLOGY.md).
 
-Evaluation is limited to ingestion correctness and API availability.
+## Evaluation principles
 
-Automated checks:
+- Freeze corpus eligibility and representation manifests before quality runs.
+- Use source-derived AI-reviewed silver labels with `reviewer_type=ai`; do not
+  relabel them as human gold or independent review.
+- Split development and held-out test cases before tuning.
+- Compare all retrieval modes on identical corpus/query/filter/cutoff controls.
+- Preserve raw cases, rankings, configurations, hashes, seeds, and failures.
+- Name set Recall, Hit, Precision, MRR, and nDCG correctly and separately.
+- Report uncertainty and paired comparisons where sample structure supports it.
+- Keep engineering tests, inventory, traceability, and quality metrics distinct.
+- Treat `not_run` and unavailable providers as missing evidence, never zero or
+  success.
+- Publish negative findings and residual limitations.
 
-- TTLAB archive fixture parsing extracts title, authors, venue, raw date, source URL, PDF URL, pagination, and audit URLs.
-- Duplicate titles are deduplicated.
-- Split years such as `March, 202 6` are safely parsed as `2026`.
-- Seed JSON imports into SQLite.
-- `/health` and `/api/papers` return expected responses.
+## RQ-to-evaluation map
 
-## Phase 3 Retrieval Evaluation
+| RQ | Evaluation | Status | Decision supported |
+|---|---|---|---|
+| RQ1 corpus/traceability | eligibility/PDF identity audit, section silver review, manifest one-to-one coverage | Executed | 96 papers/719 chunks form the frozen eligible corpus; two mismatches and 36 no-text records remain excluded |
+| RQ2 retrieval | keyword, feature-hashing, dense, heuristic/tuned hybrid; dev tuning; test; ablation/sensitivity/statistics | Executed | keyword is the strongest held-out MRR baseline; tuned hybrid superiority is not established |
+| RQ3 RAG | atomic claim, citation-link, completeness, answer-point, unsupported knowledge, abstention review | Executed | source support is high but citation correctness, completeness of answers, and abstention need improvement |
+| RQ4 advisory/discovery | evidence-only vs full Finder, topic lexical-vs-dense, author audit, full stored-output review | Executed | advisory improvement is not demonstrated; publication evidence and AI-review boundaries must remain visible |
+| RQ5 engineering readiness | backend/frontend/security/accessibility tests, performance, reproduction, release scan, PDF preflight | Partially executed | implemented controls are testable; full performance/reproduction/final release/PDF closure still require evidence |
 
-Create a manually reviewed `data/evaluation/questions.jsonl` before reporting retrieval quality:
+## Executed datasets
 
-```json
-{"question":"Which TTLAB papers discuss RAG?","gold_paper_ids":["..."],"notes":"Manually reviewed gold papers."}
-```
+### Section quality
 
-Run:
+- 40 source-backed AI-reviewed chunks.
+- Current output: overall accuracy 0.900; labeled accuracy 0.8889; labeled
+  coverage 0.900; macro precision 0.8917; macro recall 0.9040.
+- `Unknown` remains an allowed label.
+- Evidence: `data/evaluation/section_quality_silver_v1.jsonl` and
+  `artifacts/phase1/phase1_evidence.json`.
 
-```bash
-PYTHONPATH=backend python -m app.evaluation.retrieval_eval \
-  --questions data/evaluation/questions.jsonl \
-  --mode hybrid \
-  --top-k 5
-```
+### Retrieval
 
-The committed `data/evaluation/questions.sample.jsonl` is a template only and intentionally has empty labels. The evaluation CLI fails clearly when gold labels are empty.
+- 50 source-derived questions: 30 development, 20 held-out test.
+- Eleven strata including factual, method, result, metadata, comparison,
+  synthesis, hard-negative, and out-of-corpus cases.
+- Modes: keyword, 256-dimensional feature hashing, pinned 384-dimensional
+  learned dense, heuristic hybrid, and development-tuned hybrid.
+- Controls: 150-chunk component pools, retrieval depth 50, top 10 unique papers,
+  same frozen candidate pools, no test tuning.
+- Statistics: 10,000 query bootstraps, two-sided paired randomization, Holm-
+  Bonferroni family correction.
+- Result: keyword held-out MRR 0.9474; dense 0.9386; tuned hybrid 0.8596;
+  no family-corrected contrast rejected the null.
+- Evidence: `data/evaluation/retrieval_silver_v1.jsonl` and
+  `artifacts/phase2/retrieval/`.
 
-Metrics:
+### RAG claim/citation review
 
-- Recall@3
-- Recall@5
-- MRR
-- number of questions
-- per-question retrieved paper IDs
+- 50 cases: 46 answerable, four unanswerable.
+- 400 checkable claims, 400 citation links, and 81 answer points.
+- Metrics: strict/weighted claim support, citation correctness, citation and
+  correct-citation completeness, answer-point coverage, unsupported knowledge,
+  answerability/abstention, category results, and errors.
+- Result: support 0.995; citation correctness 0.625; strict answer-point
+  coverage 0.1358; unanswerable abstention 0/4.
+- Optional Ollama comparison was not run because the service was unavailable.
+- Evidence: `data/evaluation/qa_faithfulness_*` and
+  `artifacts/phase3/qa/`.
 
-## Later MVP Phases
+### Recommendation proxy comparison
 
-## Phase 4 QA Evaluation
+- 28 synthetic profiles; three ranked items per arm; 84 items reviewed in each
+  evidence-only/full-Finder arm.
+- Two fixed-seed shuffled passes by the same AI procedure.
+- Criteria: relevance, source fidelity, fact/future/gap/suggestion separation,
+  novelty caution, feasibility, MVP/stretch, risk, skills, evaluation plan, and
+  usefulness as an AI proxy.
+- Result: full-minus-baseline relevance 0.0238 (95% CI -0.0238 to 0.0714);
+  improvement not demonstrated. All feasibility decisions remain partial.
+- Twenty-two configurations (the default plus 21 zero/plus/minus-25% one-term
+  perturbations) are retained; this is sensitivity analysis, not learned
+  tuning.
+- Evidence: `data/evaluation/recommendation_profiles_v1.jsonl` and
+  `artifacts/phase4/recommendation_proxy_v1/`.
 
-Create a manually reviewed `data/evaluation/qa_questions.jsonl` before reporting answer quality:
+### Topic and author evaluation
 
-```json
-{"question":"Which indexed papers discuss RAG?","gold_paper_ids":["..."],"required_answer_points":["..."],"notes":"Manually reviewed later."}
-```
+- 60 eligible papers: 36 development, 24 test; 39 labels; 51 multi-label; four
+  `other/unknown`.
+- Held-out controlled lexical precision/recall/F1: 0.6522/0.4839/0.5556.
+- Held-out dense-prototype precision/recall/F1: 0.4175/0.6935/0.5212.
+- The lexical path is retained for inspectability and higher precision; dense
+  output is a review-candidate signal only.
+- Author audit checks eligibility leakage, aliases, authorship, and prohibited
+  availability/endorsement/expertise wording. Thirteen possible merges remain
+  unresolved.
+- Evidence: `data/evaluation/topic_author_silver_v1*` and
+  `artifacts/phase4/topic_author/`.
 
-Run:
+### Generated-output review
 
-```bash
-PYTHONPATH=backend python -m app.evaluation.qa_eval \
-  --questions data/evaluation/qa_questions.jsonl \
-  --mode hybrid \
-  --top-k 5
-```
+- All 48 persisted outputs inspected: 27 historical RAG answers, seven thesis
+  recommendations, and 14 paper artifacts.
+- Result: 21 `ai_reviewed`; 27 RAG answers `needs_reprocess`; 48 attributed
+  events; hash chain verified; repeat pass zero changes.
+- The review checks source locators, structure, and suggestion boundaries. It is
+  not author/supervisor approval or a semantic entailment proof.
+- Evidence: `artifacts/phase4/generated_output_review/`.
 
-The committed `data/evaluation/qa_questions.sample.jsonl` is a template only and intentionally has empty labels. The QA CLI fails clearly when gold labels are empty.
+### External sanity and performance
 
-Minimum grounding review fields:
+- Europe PMC acquisition/check completed for three pinned CC BY JATS XML
+  documents; 3/3 fixed lexical top-one matches. This is format compatibility,
+  not cross-domain quality validation.
+- Full performance harness implemented for pipeline, retrieval, intelligence,
+  API, frontend build, and page load with process-cold/warm repeats, median,
+  interpolated p95, failure rate, and RSS where measurable.
+- No committed full performance result exists at this snapshot. Performance and
+  scaling claims remain prohibited until that artifact is executed, validated,
+  and committed.
 
-- cited source count
-- citation correctness review status
-- answer faithfulness score
-- answer usefulness score
+## Engineering verification plan
 
-Do not claim retrieval or answer quality without evaluation evidence.
-
-## Phase 5 Extension Recommendation Evaluation
-
-Create or edit `data/evaluation/extension_eval_cases.jsonl` before reporting recommendation quality:
-
-```json
-{"case_id":"sample-001","interests":"RAG and web apps","skills":["Python","React","FastAPI"],"available_time":"semester","project_type":"software prototype","data_constraints":"public or synthetic data","preferred_difficulty":"medium","expected_relevant_topics":["RAG","research discovery"],"notes":"Placeholder only; replace with manually reviewed cases."}
-```
-
-Run:
-
-```bash
-PYTHONPATH=backend python -m app.evaluation.extension_eval \
-  --cases data/evaluation/extension_eval_cases.jsonl \
-  --top-k 5
-```
-
-Output:
-
-```text
-data/evaluation/extension_eval_results.json
-```
-
-Automated metrics:
-
-- recommendation_count
-- citation_count
-- cited_paper_count
-- grounding_status
-- percentage_recommendations_with_citations
-- warnings_count
-
-Human review template:
-
-```text
-data/evaluation/extension_human_review_template.csv
-```
-
-Human fields are intentionally blank until reviewed:
-
-- relevance_score
-- feasibility_score
-- usefulness_score
-- grounding_score
-- risk_appropriateness
-- reviewer_notes
-
-The extension evaluator measures citation coverage and grounding signals only. It does not prove that a project is novel, supervisor-approved, or feasible without human review.
-
-## Phase 6 Paper Artifact Evaluation
-
-Create or edit `data/evaluation/artifact_eval_cases.jsonl` before reporting artifact quality:
-
-```json
-{"case_id":"sample-001","paper_id":"...","artifact_types":["public_summary","technical_summary","limitations","future_work"],"expected_source_chunk_ids":[],"notes":"Placeholder only; replace with manually reviewed cases."}
-```
-
-Run:
-
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval \
-  --cases data/evaluation/artifact_eval_cases.jsonl
-```
-
-Output:
-
-```text
-data/evaluation/artifact_eval_results.json
-```
-
-Automated metrics:
-
-- artifact_count
-- citation_count
-- percentage_artifacts_with_citations
-- grounding_status
-- warnings_count
-- sections_with_explicit_support
-- sections_inferred
-- sections_not_found
-
-Human review template:
-
-```text
-data/evaluation/artifact_human_review_template.csv
-```
-
-Human fields are intentionally blank until reviewed:
-
-- accuracy_score
-- faithfulness_score
-- readability_score
-- usefulness_score
-- citation_correct
-- reviewer_notes
-
-The artifact evaluator measures citation coverage, grounding status, and support-status counts only. It does not prove correctness, readability, public suitability, or podcast readiness without human review.
-
-## Phase 7 Admin Review And Evaluation Dashboard
-
-Phase 7 does not add new quality claims. It adds a local/demo workflow for reviewing the records produced by earlier phases and a read-only dashboard for showing which evaluation evidence exists.
-
-Admin review can capture:
-
-- paper metadata corrections,
-- paper artifact review status and optional corrected text/JSON,
-- Thesis Extension Finder review status and optional corrected recommendation JSON,
-- Ask TTLAB citation correctness,
-- Ask TTLAB faithfulness and usefulness scores from 1-5,
-- extraction review notes such as acceptable, rejected, or needs reprocess.
-
-Every review action creates a `ReviewEvent` with previous/new status, reviewer notes, and optional field diffs. These events are an audit trail for demo review. They are not an authenticated production workflow.
-
-Review statuses:
-
-- `needs_review`: imported or generated item has not been checked.
-- `reviewed`: checked but not formally approved.
-- `approved`: acceptable for demo use.
-- `rejected`: should not be used as-is.
-- `needs_reprocess`: should be rerun or manually inspected.
-
-Run evaluation commands:
+The final gate runs:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
+PYTHONPATH=backend .venv/bin/python -m pytest
+npm --prefix frontend ci
+npm --prefix frontend test
+npm --prefix frontend run build
+npm --prefix frontend run test:e2e
+npm --prefix frontend audit --audit-level=high
+PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
+make reproduce
+make paper
+make thesis
 ```
 
-Optional combined runner:
+It additionally runs every evaluation validator, dependency audits, manuscript
+source validation, qpdf/pdfinfo/pdffonts/text checks, page rendering, and visual
+inspection. Exact final commands and outcomes belong in
+`docs/FINAL_STATUS.md`; a partial command cannot prove the wider gate.
 
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
-```
+## Legacy scaffold files
 
-The Evaluation Dashboard reads these files when present:
+`questions.sample.jsonl`, `qa_questions.sample.jsonl`, the older
+`extension_eval_cases.jsonl`, `artifact_eval_cases.jsonl`, and blank human
+review templates remain useful examples/regression scaffolds. They are not the
+source of the reported silver/proxy results and must not be cited as gold or
+human validation. The authoritative research artifacts are the versioned
+`*_silver_v1`, `qa_faithfulness_*`, Phase 2–4, and manifest files identified
+above.
 
-- `data/evaluation/retrieval_eval_results.json`
-- `data/evaluation/qa_eval_results.json`
-- `data/evaluation/extension_eval_results.json`
-- `data/evaluation/artifact_eval_results.json`
+## Claim rules
 
-If a file is missing, the dashboard returns `status = "not_run"` and shows no metric. It does not invent scores from database contents.
+Permitted conclusions characterize this frozen corpus, implemented artefact,
+and AI-assisted offline procedure. They do not establish:
 
-The dashboard also displays whether human review templates are available:
+- student usefulness or satisfaction;
+- supervisor approval or assignment suitability;
+- recommendation novelty or real-world feasibility;
+- comprehensive researcher expertise or availability;
+- production capacity/security/accreditation;
+- human inter-rater reliability; or
+- broad external validity.
 
-- `data/evaluation/extension_human_review_template.csv`
-- `data/evaluation/artifact_human_review_template.csv`
-
-Evaluation remains academically responsible only if gold labels and human scores are manually reviewed. Placeholder sample files should never be presented as performance evidence.
-
-## Phase 8 Topic/Author Explorer Evaluation
-
-Phase 8 does not add generated research claims. It adds deterministic relationship data and demo polish, so evaluation focuses on coverage, traceability, and review readiness.
-
-Automated checks:
-
-- topic normalization merges obvious synonyms such as `RAG` and `retrieval augmented generation`;
-- topic rebuild creates topics from paper metadata, chunks, and generated artifacts;
-- reviewed/manual paper topics are not overwritten by inferred topics;
-- author-topic aggregation counts papers and top topics correctly;
-- related-paper scoring returns reasons such as shared topic and shared author;
-- explorer APIs return overview, topic, author, and related-paper data;
-- `/api/stats` includes topic and author metrics.
-
-Manual review questions for demos:
-
-- Are the top topics useful enough for navigation?
-- Does the evidence explain why a topic was assigned?
-- Are author expertise summaries clearly labeled as derived from indexed papers?
-- Do related-paper reasons help a student find nearby work?
-- Are reviewed/corrected topics preserved after rebuild?
-
-There is no claimed precision/recall for topic labels yet. Topic labels are deterministic/inferred unless reviewed, and the explorer intentionally avoids a complex graph visualization in this MVP.
-
-## Placeholder File Clarity
-
-Files ending in `.sample.jsonl` are templates only. Existing extension and artifact case files are demo scaffolds unless their notes and expected values have been manually reviewed.
-
-Do not invent gold labels, expected source chunks, or human scores. For thesis evaluation, add supervisor/manual review where time allows:
-
-- fill `gold_paper_ids` for retrieval and QA cases;
-- fill required answer points for QA;
-- replace placeholder extension cases with reviewed student-profile cases;
-- replace placeholder artifact cases with reviewed expected chunks;
-- fill human review CSV templates only after a reviewer scores the outputs.
-
-Automatic metrics measure only against the files provided. They are useful for reproducibility and regression checks, but they are not a claim of research quality without reviewed test cases.
-
-## Local Ollama Benchmarking
-
-Local model benchmarking is machine-specific and should be treated as an optimization baseline, not a research-quality claim.
-
-Run:
-
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.ollama_benchmark --models installed
-```
-
-Outputs:
-
-- `data/evaluation/ollama_benchmark_results.json`
-- `data/evaluation/ollama_benchmark_results.csv`
-
-The benchmark records first/warm response time, tokens per second when Ollama reports it, citation compliance, refusal behavior, and a simple heuristic answer-quality score. Human review is still required before claiming that one model is academically better than another.
+Any later human study needs a separate protocol, recruitment/consent and
+institutional determination, sample rationale, reviewer training, adjudication,
+privacy plan, and newly versioned results.

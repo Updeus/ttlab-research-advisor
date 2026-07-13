@@ -1,5 +1,9 @@
 # Reproducibility Checklist
 
+The narrative protocol and current evidence status are maintained in
+[`REPRODUCIBILITY.md`](REPRODUCIBILITY.md). This checklist remains the concise
+operator sequence.
+
 This checklist distinguishes a distributable verification run from the
 authorized full-corpus experiment. The earlier 25-record demo launcher remains
 useful for product demonstration, but it is not the research reproduction

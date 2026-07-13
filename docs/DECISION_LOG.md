@@ -172,3 +172,108 @@ results may refine a choice, but an earlier entry is not silently rewritten.
 - **Consequence:** Model acquisition is an explicit networked operator action;
   ordinary search remains offline and reports a missing dense provider clearly.
   The acquired snapshot hash is recorded in the authoritative manifest.
+
+## 2026-07-13 evaluation and documentation decisions
+
+### D-016 — Use five evidence-linked research questions
+
+- **Decision:** Organize the executed study around corpus/traceability,
+  retrieval, RAG evidence quality, advisory/discovery outputs, and engineering
+  readiness (RQ1–RQ5).
+- **Rationale:** These units align with implemented work and distinct evidence
+  artifacts; combining all outcomes into a single “platform effectiveness”
+  question would obscure construct differences.
+- **Consequence:** Every question maps to a method, source artifact, result, and
+  bounded conclusion in `docs/METHODOLOGY.md`.
+
+### D-017 — Retain negative retrieval results and the keyword reference
+
+- **Decision:** Report all held-out modes and state that the tuned hybrid did not
+  demonstrate superiority. Keep keyword as the strongest observed held-out MRR
+  reference rather than selecting the more complex method by intent.
+- **Rationale:** Keyword MRR was 0.9474, dense 0.9386, and tuned hybrid 0.8596;
+  none of 28 family-corrected tuned-vs-baseline contrasts rejected the null.
+- **Consequence:** Hybrid remains an available product mode, but neither the UI
+  nor manuscripts may describe it as empirically best. The inadequate
+  unanswerable false-positive behaviour is published.
+
+### D-018 — Separate source support, citation correctness, and answer coverage
+
+- **Decision:** Treat strict claim support (0.995), citation correctness
+  (0.625), answer-point coverage (0.1358), and abstention as different
+  constructs.
+- **Rationale:** The offline extractive answers frequently copied supported
+  source sentences that were off-topic or incomplete; all four unanswerable
+  cases failed to abstain.
+- **Consequence:** Runtime `grounded` remains a structural/lexical status and
+  cannot be cited as factual correctness, completeness, or usefulness.
+
+### D-019 — Treat recommendation results as a non-improvement proxy finding
+
+- **Decision:** Report the full-Finder minus evidence-only relevance difference
+  of 0.0238 with 95% CI -0.0238 to 0.0714 as no demonstrated improvement.
+- **Rationale:** The confidence interval includes zero, profiles are synthetic,
+  and one AI procedure applied the rubric.
+- **Consequence:** The Finder's contribution is structured source/suggestion
+  separation and reviewable output, not validated human advisory benefit.
+  Feasibility, novelty, data access, and supervisor fit remain external.
+
+### D-020 — Retain controlled lexical topics for public evidence
+
+- **Decision:** Keep the controlled lexical topic system as the public author-
+  topic path and use the dense prototype only as a possible review-candidate
+  generator.
+- **Rationale:** On the held-out split, lexical precision/recall/F1 were
+  0.6522/0.4839/0.5556; dense prototype results were
+  0.4175/0.6935/0.5212. The dense alternative traded substantially lower
+  precision for higher recall and coverage.
+- **Consequence:** Publication-derived evidence remains inspectable. Neither
+  method is described as comprehensive or human-validated.
+
+### D-021 — Preserve unreproducible historical answers as needs-reprocess
+
+- **Decision:** Do not silently regenerate or delete 27 historical RAG answers
+  whose original scope/audience/word-limit configuration is unavailable. Mark
+  them `needs_reprocess`; mark 14 regenerated/verified artifacts and seven
+  recommendations `ai_reviewed`.
+- **Rationale:** Rewriting history with guessed configuration would destroy the
+  audit trail. AI review is also not human approval.
+- **Consequence:** Forty-eight attributed events and their hash chain preserve
+  the decision; public guidance must not present `needs_reprocess` records as
+  reviewed answers.
+
+### D-022 — Make performance and full reproduction fail-closed evidence gates
+
+- **Decision:** Do not report a benchmark or scalability result until
+  `performance_full_results.json` exists with full profile, hardware, raw
+  repetitions, aggregates, failures, corpus, commit, and clean/dirty state. Do
+  not claim full reproduction without its final manifest/logs.
+- **Rationale:** A harness, quick run, or historical intent does not prove a
+  full-corpus execution.
+- **Consequence:** Phase 7 documentation explicitly records both gates as
+  pending at its snapshot. Later execution must update status rather than
+  backfill numbers manually.
+
+### D-023 — Make executed documentation canonical
+
+- **Decision:** Add `docs/METHODOLOGY.md`,
+  `docs/EVALUATION_PROTOCOL.md`,
+  `docs/DATA_AND_ARTIFACT_AVAILABILITY.md`, and
+  `docs/REPRODUCIBILITY.md` as canonical research records. Retain older sample
+  evaluation files and compatibility documentation only as scaffolds/pointers.
+- **Rationale:** The earlier README/status/evaluation prose still described
+  proposed gold labels, no authentication, no OCR, a partial index, and
+  unexecuted metrics after those states had changed.
+- **Consequence:** Public documentation now distinguishes current evidence,
+  legacy scaffolds, pending gates, and external-only attestations. No completed
+  result depends on filling old blank human-review templates.
+
+### D-024 — Rebuild the release only from the final clean commit
+
+- **Decision:** Treat the local archive for commit `d0d84aa6101a...` as a
+  provisional builder proof, not the final release.
+- **Rationale:** Its source commit predates the retrieval, generated-review, and
+  manuscript-evidence commits.
+- **Consequence:** Final delivery must rebuild, scan, checksum, and verify a new
+  bundle from the final commit, then record or create the prepared tag without
+  changing repository visibility.

@@ -1,143 +1,201 @@
-# Pre-remediation Project Status
+# Remediation Status
 
-This file described an earlier demo rebuild and was not a defensible final
-research status. It is retained as a product overview while remediation is in
-progress. Authoritative baseline evidence is in `artifacts/baseline/` and issue
-closure is tracked in `docs/REVIEW_REMEDIATION_MATRIX.md`.
+## Status boundary
 
-## Project Title
+The application, authoritative corpus/index design, and Phase 1–4 quality
+evaluations are implemented and evidenced. The repository is not yet at final
+submission closure: a committed full performance result, complete full
+reproduction manifest, final current release bundle/tag, and final manuscript
+rewrite/PDF preflight remain outstanding at this documentation snapshot.
 
-TTLAB Research Intelligence Platform
+This file reports what current artifacts prove. It does not treat planned work,
+passing tests, or an older release archive as proof of the remaining gates.
+Issue-by-issue closure is authoritative in
+`docs/REVIEW_REMEDIATION_MATRIX.md`.
 
-## Tagline
+## Implemented workstreams
 
-From publication archive to source-grounded research advisor.
+### Corpus, metadata, extraction, and index integrity
 
-## Problem Solved
+- 134 catalogue records are classified by source/PDF/eligibility state.
+- 98 records have available local PDF content.
+- 96 papers and 719 chunks are eligible in snapshot
+  `corpus-04a010207327069a`.
+- 36 records without usable text remain `needs_review` and are excluded from
+  retrieval experiments.
+- Two paper/PDF identity mismatches and their 16 chunks are explicitly
+  excluded.
+- The `Click to View` parser artifact is absent from active authors; author
+  aliases and unresolved identity states are retained rather than guessed.
+- Page extraction, scanned-page diagnostics, optional OCR, conservative section
+  detection, PDF/title checks, and per-page provenance are implemented.
+- Keyword, feature-hashing, and learned-dense representations cover all 719
+  eligible chunks. Vector index manifests are authoritative; writes are atomic;
+  partial demo output is isolated.
 
-TTLAB has a public publication archive, but students, researchers, and public/industry users need more than a list of papers. They need to search full-paper content, understand papers at different levels of detail, ask grounded questions, discover topics/authors, and identify feasible thesis or project extensions.
+Current corpus details are in `artifacts/phase1/phase1_evidence.json` and
+`docs/PHASE1_CORPUS_INDEX_REPORT.md`.
 
-This platform turns a publication archive into a local, demo-ready research intelligence system.
+### Retrieval experiment
 
-## Extension Of The Original Paper
+The source-derived AI-reviewed silver set contains 50 queries split 30
+development/20 held-out test. Keyword, feature hashing, pinned learned dense,
+heuristic hybrid, and development-tuned hybrid used identical corpus/candidate
+controls. Correct set Recall, Hit, Precision, MRR, nDCG, and unanswerable
+measures are stored with per-query rankings, 10,000-bootstrap intervals,
+ablations, sensitivity, paired tests, Holm correction, and failures.
 
-The original paper, **"Automating the Collection, Display, Summarization and Podcasting of Academic Research"**, focused on publication collection, display, lay summarization, email notifications, and manual podcast preparation.
+Held-out headline results:
 
-This project extends that work by adding:
+| Mode | Set Recall@3 | MRR | nDCG@10 |
+|---|---:|---:|---:|
+| Keyword | 0.9395 | 0.9474 | 0.9580 |
+| Feature hashing | 0.6535 | 0.5877 | 0.5823 |
+| Dense | 0.9158 | 0.9386 | 0.9390 |
+| Heuristic hybrid | 0.7947 | 0.8132 | 0.8293 |
+| Tuned hybrid | 0.8561 | 0.8596 | 0.8713 |
 
-- full-paper PDF inspection instead of abstract-only metadata;
-- page-aware chunks with citations;
-- keyword, feature-hashing (legacy API name `semantic`), and hybrid retrieval;
-- citation-grounded Ask TTLAB Q&A;
-- Thesis Extension Finder for student project ideas;
-- paper intelligence bundles with public and technical outputs;
-- text-only podcast script generation with traceability;
-- Topic/Author Explorer and related-paper discovery;
-- local admin review and audit events;
-- evaluation dashboard and reproducibility documentation.
+No tuned-vs-baseline metric contrast rejected the null after experiment-family
+correction. Tuned-hybrid MRR minus keyword was -0.0877 (95% CI -0.2368 to
+0.0439). All modes failed to abstain on the one held-out unanswerable case. The
+system therefore does not claim hybrid superiority or adequate out-of-corpus
+rejection.
 
-## Implemented Features
+Evidence: `artifacts/phase2/retrieval/`.
 
-- TTLAB publication discovery and seed JSON generation.
-- Seed import into SQLite.
-- Safe direct-PDF download.
-- Full-paper extraction with PyMuPDF.
-- Page-aware chunking.
-- Keyword search.
-- Offline feature-hashing similarity; this is not a learned semantic encoder.
-- Hybrid retrieval.
-- Ask TTLAB citation-grounded Q&A.
-- Thesis Extension Finder with cited recommendations and support-status labeling.
-- Paper Intelligence artifacts:
-  - public summary,
-  - technical summary,
-  - contribution,
-  - methods,
-  - limitations,
-  - future work,
-  - possible extensions,
-  - required skills,
-  - evaluation plan.
-- Text-only podcast script drafts.
-- Admin Review page and local audit trail.
-- Evaluation Dashboard.
-- Topic Explorer.
-- Author Explorer.
-- Related papers.
-- Bounded demo preparation helper.
-- Local smoke-check helper.
+### RAG faithfulness and citations
 
-## Intentionally Not Implemented
+The 50-case AI-assisted formative review contains 46 answerable and four
+unanswerable questions, 400 checkable claims, and 81 answer points. Strict
+supported-claim rate was 0.995 (95% CI 0.9872–1.0000), citation correctness
+0.625 (0.5641–0.6913), citation completeness 1.000, and strict answer-point
+coverage 0.1358 (0.0674–0.2111). All four unanswerable cases failed to abstain.
 
-- Authentication.
-- Role-based access control.
-- Production deployment infrastructure.
-- Production email notifications.
-- Audio/TTS generation.
-- OCR for scanned PDFs.
-- Complex graph visualization.
-- New LLM/generation features beyond the existing offline deterministic providers and optional provider boundaries.
+The central limitation is explicit: structurally source-supported extractive
+sentences can still be off-topic or incomplete. Forty-four cases were tagged
+incomplete and 42 had off-topic retrieval. The Ollama service was unavailable,
+so no local-model benchmark is reported.
 
-## Current Local Demo Dataset
+Evidence: `artifacts/phase3/qa/`.
 
-The local demo data is generated and ignored by Git. At the pre-remediation
-snapshot captured on 2026-07-12:
+### Recommendations, topics/authors, and generated outputs
 
-- 134 papers were available in SQLite.
-- 98 papers had extracted text locally.
-- 756 full-paper chunks were available locally.
-- 767 paper-topic links were built.
-- 1105 author-topic links were built.
-- 39 topics and 126 authors were available through the explorer.
-- 14 paper artifact records were available locally.
+- The 28-profile recommendation proxy study reviewed 84 ranked items in each
+  arm. Evidence-only relevance was 0.6310; full-Finder relevance was 0.6548;
+  the paired difference 0.0238 had 95% CI -0.0238 to 0.0714. The full Finder
+  did not demonstrate improvement.
+- All 84 full-Finder items passed source-fidelity and fact/gap/suggestion
+  separation checks, but all 84 feasibility judgments were partial. These are
+  AI-proxy rubric outcomes, not student/supervisor validation.
+- On 24 held-out topic cases, the controlled lexical method had micro precision
+  0.6522, recall 0.4839, and F1 0.5556. The dense prototype had precision
+  0.4175, recall 0.6935, and F1 0.5212. The more inspectable/higher-precision
+  lexical path remains public.
+- The author audit found no excluded-paper leakage, alias collision, authorship
+  mismatch, or prohibited availability/endorsement wording. Thirteen possible
+  same-person pairs remain unresolved.
+- All 48 historical generated outputs received attributed AI review events. The
+  14 paper artifacts and seven recommendations are `ai_reviewed`; 27 historical
+  RAG answers are `needs_reprocess`. The event chain verified 48/48, and a
+  second pass made zero changes.
 
-Local PDFs, extracted text, chunk JSON, indexes, generated paper artifacts, evaluation result JSON, and SQLite databases are intentionally ignored.
+Evidence: `artifacts/phase4/`.
 
-## Grounding And Review
+### Frontend, security, privacy, and review
 
-Generated outputs are source-grounded where possible through citations, source chunk IDs, page ranges, and snippets. Generated outputs are still AI-assisted drafts and need review before public use.
+- React BrowserRouter supplies direct/reloadable routes for all primary public
+  surfaces, a protected Admin route, browser history, route titles/focus, and a
+  deterministic 404.
+- Search, Ask, Finder, paper artifacts, and explorer views display available
+  source locators, provider/model/time, review state, freshness, generated-
+  content notices, and partial/unsupported warnings.
+- Public questions and student-profile inputs are transient and are not stored
+  in the database, browser storage, or URLs by default.
+- Reviewer/admin mutations require environment-configured bearer actors unless
+  the loopback-only insecure demo bypass is explicitly enabled. Production
+  fails closed without HTTPS base URL, exact secure CORS/trusted hosts, and an
+  active admin actor.
+- Review events are attributable and append-only at the SQLite trigger layer
+  with a verifiable hash chain.
+- Request/body limits, public generation rate limiting, path/body-minimized
+  logs, downloader allowlists/limits, local-path response redaction, and
+  security-mode headers are implemented.
+- Automated accessibility checks cover representative axe scans, skip/focus/
+  route behavior, evidence labels, and horizontal overflow at 360, 768, 1024,
+  and 1440 px. They are not a full WCAG or assistive-technology conformance
+  audit.
 
-Review status is explicit. Admin Review can approve, reject, mark items as needing review/reprocess, add notes, and create `ReviewEvent` audit rows.
+Requirements and residual deployment responsibilities are documented in
+`docs/FRONTEND_REQUIREMENTS.md`, `docs/SECURITY.md`, `docs/PRIVACY.md`,
+`docs/THREAT_MODEL.md`, and `docs/DEPLOYMENT.md`.
 
-External LLM providers are optional. The default behavior works offline with deterministic providers.
+### Reproducibility and external sanity
 
-## Known Limitations
+- `scripts/reproduce_all.sh`, `make reproduce-quick`, `make reproduce`, and
+  `make release` implement isolated verification/rebuild/release entry points.
+- The release builder is deterministic and allowlist-based, field-sanitizes
+  restricted JSON content, and rejects PDFs, databases, indexes, private
+  prompts/histories, local paths, and secret patterns.
+- Three pinned CC BY Europe PMC XML documents were reacquired through the
+  official API and passed 3/3 fixed lexical top-one checks. This is a format-
+  compatibility sanity check only.
+- The performance harness covers required pipeline/API/frontend operations with
+  process-cold/warm repetitions and resource metadata, but no committed full
+  result currently exists.
+- A local release archive for older commit `d0d84aa6101a...` proves the builder
+  path only. It is not the final current-commit bundle.
 
-- Topic labels are deterministic/inferred unless reviewed.
-- Author expertise is derived only from indexed papers and does not verify supervisor availability.
-- Some papers may lack direct PDF URLs.
-- Scanned/image-heavy PDFs are flagged but not OCR'd.
-- Evaluation quality depends on manually reviewed gold/test files.
-- The platform is local/demo only and does not include authentication or production deployment.
+## Current engineering verification
 
-## Future Work
-
-- Add manually reviewed evaluation gold sets and human quality scores.
-- Improve author identity normalization.
-- Add OCR for scanned PDFs.
-- Add reviewed public publishing workflow.
-- Add optional production deployment plan.
-- Add optional external LLM provider validation.
-- Add audio generation only after podcast scripts have been reviewed.
-
-## Latest Verification Commands
+The Phase 7 documentation pass re-ran:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m pytest
-cd frontend && npm run build
-PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
-PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
+PYTHONPATH=backend .venv/bin/python -m pytest -q
+npm --prefix frontend test -- --reporter=dot
+npm --prefix frontend run build
 ```
 
-Latest final hardening verification:
+Results:
 
-- Backend tests: `71 passed` with 5 warnings.
-- Frontend build: passed.
-- Clean npm install: passed; 0 vulnerabilities reported.
-- Baseline state: 134 papers, 98 extracted papers, 756 chunks, 39 topics,
-  126 author strings, and 14 artefacts.
-- Smoke check: `PASS`, but it incorrectly accepted a partial 25-of-756 hashing
-  file. That result is engineering baseline evidence, not index-health proof.
+- backend: 208 passed, 6 dependency/runtime deprecation warnings;
+- frontend Vitest: 17 passed across four files; and
+- TypeScript/Vite production build: passed.
 
-One paper remains `download_failed` and 35 have `missing_pdf` status. These are
-classified corpus exclusions, not silently counted as extracted papers.
+These results establish engineering regression status only. Final closure still
+requires the complete command matrix, E2E/audit/evaluation reruns, full
+reproduction, current manuscript builds, and PDF/route visual inspection.
+
+## Remaining local closure gates
+
+1. execute and commit the full performance profile with documented hardware,
+   median/p95, failures, RSS where available, and explicit scalability limits;
+2. run the complete full-corpus reproduction command and retain its final
+   manifest/logs without leaking restricted payloads;
+3. rebuild and verify the sanitized release from the final clean commit, then
+   prepare/create the documented release tag without changing visibility;
+4. finish the evidence-generated 6–8 page IEEE paper and consistent thesis;
+5. remove every visible placeholder/stale count, compile both documents, run
+   local PDF preflight, and inspect every rendered page;
+6. rerun backend/frontend/E2E/security/evaluation gates and visually inspect
+   every primary route; and
+7. reconcile every row in `docs/REVIEW_REMEDIATION_MATRIX.md` with exact final
+   evidence.
+
+These are active remediation tasks, not external blockers.
+
+## External-only items
+
+Repository work cannot supply an institutional ethics determination, participant
+study, supervisor approval, official programme/title-page fields, funding or
+conflict attestation, rights-holder permission to redistribute third-party
+PDFs, production institutional ownership/contact procedures, or IEEE PDF
+eXpress credentials. These are listed without red manuscript placeholders in
+`docs/EXTERNAL_SUBMISSION_CHECKS.md`.
+
+## Claim calibration
+
+The current evidence supports an implemented and offline-evaluated source-
+traceable research-intelligence system for one frozen laboratory corpus. It does
+not support claims of a novel retrieval algorithm, validated human advisory
+benefit, comprehensive topic expertise, production-scale performance, public
+deployment approval, or broad external validity.

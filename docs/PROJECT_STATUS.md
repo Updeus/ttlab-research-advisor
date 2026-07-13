@@ -1,70 +1,57 @@
 # Project Status
 
-## Current Milestone
+The project has progressed beyond the earlier eight-phase demo description.
+Authoritative current status is maintained in
+[`FINAL_STATUS.md`](FINAL_STATUS.md); executed methods and evidence are in
+[`METHODOLOGY.md`](METHODOLOGY.md) and
+[`EVALUATION_PROTOCOL.md`](EVALUATION_PROTOCOL.md).
 
-Phase 8 is implemented: Topic/Author Explorer plus demo polish.
+## Current implemented state
 
-The platform currently supports:
+- full-paper acquisition/extraction with identity, scan, optional OCR, and
+  eligibility diagnostics;
+- authoritative complete keyword, feature-hashing, and learned-dense
+  representations over 96 eligible papers/719 eligible chunks;
+- route-based Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer,
+  Evaluation Dashboard, and protected Admin Review;
+- transient-by-default public question/profile handling;
+- environment-configured reviewer/admin bearer roles and append-only attributed
+  review events;
+- AI-reviewed retrieval, QA, recommendation, topic/author, section, and
+  generated-output evidence; and
+- reproducibility, benchmark, sanitized-release, security, privacy,
+  accessibility, deployment, and manuscript tooling.
 
-- TTLAB publication discovery and seed import.
-- Controlled direct-PDF download.
-- Full-paper text extraction and page-aware chunks.
-- Keyword, local feature-hashing (legacy `semantic`), and hybrid retrieval.
-- Citation-grounded Ask TTLAB.
-- Thesis Extension Finder with cited source facts and clearly labeled suggestions.
-- Paper intelligence artifacts and text-only podcast scripts.
-- Local/demo Admin Review and audit events.
-- Evaluation Dashboard that reads result files without inventing metrics.
-- Topic/Author Explorer with deterministic topic links, author profiles, and related-paper reasons.
+## Evidence-calibrated status
 
-## Local Demo Data
+Keyword was the strongest observed held-out retrieval MRR baseline; tuned hybrid
+superiority was not demonstrated. The offline answerer produced highly
+source-supported extractive claims but low answer-point coverage and no
+abstentions on the recorded unanswerable cases. Recommendation improvement over
+evidence-only retrieval was not demonstrated. These negative findings are part
+of the project result.
 
-The local demo can be prepared with:
+No human usefulness/usability study, broad external validation, or production-
+scale capacity claim exists. A committed full performance result, complete full
+reproduction manifest, final current-commit release bundle/tag, and final
+manuscript/PDF closure remain active remediation gates at this snapshot.
+
+## Local demo
+
+```bash
+./scripts/run_everything.sh
+```
+
+The launcher enables a clearly labeled loopback-only insecure demo bypass.
+Production mode remains fail-closed and requires explicit actors, HTTPS base
+URL, trusted hosts, and secure CORS origins.
+
+The bounded UI preparation command writes an isolated demo index and must not
+support research claims:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
 ```
 
-The helper is intentionally bounded for UI demonstration. In the audited
-baseline it could overwrite the shared hashing file with a partial index, so it
-must not be used for research evaluation or as proof of complete coverage.
-
-Runtime PDFs, extracted text, chunk JSON, index files, generated artifacts, and
-SQLite databases are local artefacts and should not be committed. The compiled
-thesis and IEEE paper under `build/` are explicit tracked deliverables.
-
-## Review And Grounding
-
-Generated outputs are AI-assisted and unreviewed by default. The UI and API preserve this through:
-
-- citations and chunk IDs,
-- grounding status,
-- review status,
-- reviewer notes,
-- support status for limitations/future work,
-- `suggested_by_system` labels for generated extension ideas,
-- `ReviewEvent` audit records for local review actions.
-
-Topic and author relationships are deterministic and source-derived. Reviewed topics are respected during rebuilds; inferred links preserve evidence showing why the topic was assigned.
-
-## Known Limitations
-
-- No authentication or role-based access control.
-- No production deployment or production email notifications.
-- No audio/TTS generation.
-- No OCR for scanned PDFs.
-- No complex graph visualization.
-- Topic labels and author expertise are deterministic/inferred unless reviewed.
-- Author profiles are derived only from indexed TTLAB papers and do not confirm supervisor availability.
-- Evaluation dashboard metrics are only meaningful when result files were generated from manually reviewed cases.
-
-## Core Commands
-
-```bash
-PYTHONPATH=backend .venv/bin/python -m pytest
-cd frontend && npm run build
-PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
-PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer show --topic "RAG"
-uvicorn app.main:app --reload --app-dir backend
-cd frontend && npm run dev
-```
+See [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for full and distributable
+verification paths.

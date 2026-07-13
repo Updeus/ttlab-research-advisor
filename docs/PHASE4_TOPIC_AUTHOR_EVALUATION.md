@@ -87,7 +87,7 @@ publication-derived author-topic links. The all-record audit found:
 - zero author-topic evidence links that conflict with canonical authorship;
 - zero positive availability, endorsement, supervisor-suitability, or broad
   expertise claims in the audited author output wording; and
-- 13 possible same-person name pairs retained as `AUTHOR INPUT REQUIRED`
+- 13 possible same-person name pairs retained for external identity review
   rather than guessed merges.
 
 All 133 active identities remain `unresolved` in institutional-review terms.
@@ -121,4 +121,3 @@ metrics, confidence intervals, error records, author audit records, runtime
 versions, model/index hashes, code hashes, and corpus hash are stored under
 `data/evaluation/topic_author_silver_v1*` and
 `artifacts/phase4/topic_author/`.
-

@@ -1,62 +1,106 @@
 # Author Review Checklist
 
-This checklist identifies every important item that cannot be established from the repository. Replace the corresponding `AUTHOR INPUT REQUIRED` text in the LaTeX sources only after confirmation. Do not treat an unchecked item as approved.
+This checklist contains only decisions or attestations that cannot legitimately
+be resolved from repository evidence. Completed engineering and offline-
+evaluation work is not returned to the author for routine re-review. Detailed
+institution/venue items are maintained in
+[`docs/EXTERNAL_SUBMISSION_CHECKS.md`](docs/EXTERNAL_SUBMISSION_CHECKS.md).
 
-## Submission and authorship
+## Confirmed author information
 
-- [x] Student name confirmed as Jarod Esareesingh.
-- [ ] Confirm student ID.
-- [x] Department confirmed as Department of Computing & Information Technology.
-- [x] University confirmed as The University of the West Indies.
-- [x] Country confirmed as Trinidad and Tobago; no city is included.
-- [x] Email confirmed as `jarod.esareesingh@my.uwi.edu`.
-- [ ] Confirm degree/programme title, supervisor, and submission month/year.
-- [ ] Supply the university-approved declaration, copyright wording, and acknowledgements.
-- [ ] Confirm the official laboratory name and the expansion/capitalization of TTLAB. The request says “Light Hitty Lab/TTLab,” while the repository consistently uses TTLAB; the thesis does not resolve this discrepancy.
-- [ ] Confirm that the repository implementation and commit history may be presented as the student's MSc work.
-- [ ] Supply the required disclosure of Codex/LLM-assisted coding, analysis, figure preparation, literature discovery, and writing under university policy.
+- [x] Author: Jarod Esareesingh.
+- [x] Department: Department of Computing & Information Technology.
+- [x] University: The University of the West Indies.
+- [x] Email: `jarod.esareesingh@my.uwi.edu`.
+- [x] Country: Trinidad and Tobago.
+- [x] City omitted at the author's request.
 
-## Research framing
+## Institution and submission fields
 
-- [ ] Confirm the title and subtitle in `thesis/metadata.tex`.
-- [ ] Confirm the artefact-oriented engineering case-study/design-science methodology wording.
-- [ ] Confirm the aim, six objectives, and five research questions in Chapters 1 and 3.
-- [ ] Decide whether any untested propositions should become formal hypotheses. They cannot be reported as tested in the present snapshot.
-- [ ] Confirm that the contribution is integration, traceability, and reproducible characterization—not a novel retrieval algorithm or demonstrated effectiveness.
+- [ ] Supply a student ID only if the approved thesis template requires it.
+- [ ] Confirm the exact MSc degree/programme title.
+- [ ] Confirm supervisor/co-supervisor names and permitted attribution.
+- [ ] Confirm the required submission month/year.
+- [ ] Supply the approved University declaration, copyright/originality wording,
+  and acknowledgements if required.
+- [ ] Confirm the official name and capitalization/expansion of TTLAB. The
+  repository does not resolve the earlier “Light Hitty Lab/TTLab” wording.
+- [ ] Confirm that the implementation and commit history may be represented as
+  the student's MSc work under University policy.
+- [ ] Check that the explicit Codex/LLM-assistance disclosure satisfies current
+  University and target-venue requirements.
 
-## Corpus and permissions
+## Rights, governance, and public operation
 
-- [ ] Confirm the discovery/collection date and whether 134 records form an exhaustive, date-bounded TTLAB archive snapshot.
-- [ ] Confirm authorization and copyright/licensing basis for downloading, retaining, processing, and showing snippets from the 98 PDFs.
-- [ ] Decide whether the thesis/release may include the ignored database and derived corpus files or only their hashes and aggregate evidence.
-- [ ] Confirm whether malformed author records, including `Click to View`, should be corrected before submission and regenerate all affected evidence if so.
+- [x] User-provided fact: TTLAB authorized the project and use of the laboratory
+  corpus.
+- [ ] Confirm rights-holder permission before redistributing any third-party PDF
+  or substantial extracted text. Project authorization is not blanket
+  copyright permission.
+- [ ] Provide a REC/IRB approval or exemption record only if one actually exists.
+  The present work reports no recruited human participants and makes no ethics-
+  approval/exemption claim.
+- [ ] Before public deployment, designate the institutional controller/contact
+  and approve retention, access, correction/appeal, incident, backup, and
+  privacy-request procedures.
+- [ ] Supply funding and conflict-of-interest declarations only after an author
+  confirms them; none is inferred from repository silence.
 
-## Evaluation and claims
+## Manuscript and venue decisions
 
-- [ ] Approve and populate gold retrieval questions and relevant paper IDs.
-- [ ] Approve QA answer points and claim–citation correctness labels.
-- [ ] Approve topic and author identity/expertise review samples.
-- [ ] Approve recommendation review criteria: relevance, novelty, feasibility, source fidelity, usefulness, risk, and evaluation-plan quality.
-- [ ] Approve summary/podcast-script review criteria.
-- [ ] Define assessors/participants, sample-size rationale, recruitment, consent, training, anonymity, adjudication, and statistical analysis.
-- [ ] Decide whether empirical experiments will be completed before submission. If not, retain the thesis's current technical-characterization claims and do not add effectiveness language.
-- [ ] Do not claim Recall@3, Recall@5, MRR, faithfulness, usefulness, recommendation accuracy, topic quality, or user satisfaction from the current placeholder/not-run files.
-- [ ] Do not interpret database `grounded` as factual correctness; it is a structural and lexical citation check.
-- [ ] Do not describe the 256-dimensional feature-hashing index as a learned semantic embedding.
-- [ ] Do not claim current Ollama benchmark performance; the service was unavailable and no benchmark result file exists.
+- [ ] Approve the evidence-calibrated title and final author order.
+- [ ] Select the target venue and apply its exact page limit, anonymization,
+  copyright, author-block, and PDF-profile rules.
+- [ ] Run IEEE PDF eXpress/Checker using venue credentials after local preflight.
+- [ ] Obtain the author/supervisor approval required by the University before
+  submission.
 
-## Ethics, privacy, and responsible AI
+## Evidence-backed statements that should not be weakened or overstated
 
-- [ ] State ethics approval number, approval date, or formal exemption and issuing body.
-- [ ] Supply participant information/consent materials if a human study is approved.
-- [ ] Define retention, deletion, access, and lawful-basis decisions for student interests, skills, and constraints.
-- [ ] Define public correction/appeal procedures for author identities, expertise links, summaries, and recommendations.
-- [ ] Confirm whether public deployment is in scope. If yes, specify authentication, authorization, security, privacy, accessibility, logging, and incident-response requirements.
+The repository now supports an executed artefact-oriented engineering case
+study with AI-reviewed silver/proxy evaluation. The author does not need to
+populate the earlier placeholder question/score files to support the recorded
+results. The current claim boundary is:
 
-## Final factual review
+- 134 catalogue records, 96 eligible papers, and 719 eligible chunks in frozen
+  snapshot `corpus-04a010207327069a`;
+- complete 719/719 feature-hashing and learned-dense index coverage;
+- keyword held-out MRR 0.9474, dense 0.9386, tuned hybrid 0.8596, with no
+  tuned-vs-baseline family-corrected rejection;
+- AI-assisted QA supported-claim rate 0.995, citation correctness 0.625,
+  answer-point coverage 0.1358, and zero abstentions on four unanswerable cases;
+- recommendation full-minus-evidence-only relevance 0.0238 with 95% CI crossing
+  zero;
+- AI-reviewed topic/recommendation/generated-output results, not human ratings;
+  and
+- no committed full performance result at this documentation snapshot.
 
-- [ ] Review every highlighted `AUTHOR INPUT REQUIRED` occurrence in the compiled thesis and paper.
-- [ ] Verify the baseline paper title, authors, venue, page range, year, and DOI in `thesis/references.bib`.
-- [ ] Review all figures and screenshots for sensitive information and accuracy.
-- [ ] Re-run `thesis/scripts/collect_evidence.py` and both builds after any database, corpus, index, or application change; update all affected counts and hashes.
-- [ ] Proofread institution-specific spelling conventions and obtain supervisor approval for the final claims.
+Do not reinterpret runtime `grounded` as factual correctness, feature hashing
+as learned semantic retrieval, AI proxy usefulness as student usefulness, author
+publication links as current availability/endorsement, or the three-document
+Europe PMC check as broad external validation.
+
+## Optional later human validation
+
+A later human study could assess usefulness, readability, feasibility,
+supervisor fit, topic validity, and user experience. It is not required to make
+the current bounded offline claims, and it must not be backfilled informally.
+If pursued, create a new approved protocol with participant records, recruitment
+and consent, sample-size rationale, reviewer training, independent adjudication,
+privacy/retention controls, and newly versioned results.
+
+## Final factual sign-off
+
+- [ ] Confirm the precursor paper's final bibliographic record against its
+  primary source.
+- [ ] Review the final title, abstract, contributions, limitations, and
+  availability statement for institutional accuracy.
+- [ ] Confirm final screenshots contain no sensitive/private data and show the
+  final authoritative evaluation state.
+- [ ] Confirm the sanitized release boundary and any separately distributed
+  compiled PDFs.
+- [ ] Proofread the final paper/thesis under required institutional spelling and
+  formatting conventions.
+
+These sign-offs do not replace automated evidence generation, validators,
+builds, PDF preflight, or the issue-remediation matrix.

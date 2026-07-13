@@ -93,4 +93,5 @@ The apply operation is version-idempotent. A repeated run recognizes the existin
 - Locator, schema, lexical, and deterministic verifier checks do not prove that every sentence is semantically entailed by its sources.
 - Recommendation novelty, project duration, data access, researcher fit, and supervisor suitability require human confirmation.
 - Summary usefulness, podcast clarity, and recommendation usefulness have not been established by a user study.
-- Author or supervisor approval remains **AUTHOR INPUT REQUIRED**.
+- Author or supervisor approval is an external attestation and is not inferred
+  from this AI review; see `docs/EXTERNAL_SUBMISSION_CHECKS.md`.

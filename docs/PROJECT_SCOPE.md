@@ -1,110 +1,88 @@
 # Project Scope
 
-## Phase 1 Goal
+## Product and research scope
 
-Set up a two-week-MVP foundation for the TTLAB Research Intelligence Platform. This phase discovers publication metadata from the TTLAB WordPress publications archive, stores it in seed JSON, imports it into SQLite, exposes minimal read APIs, and displays a dashboard/browser.
+The TTLAB Research Intelligence Platform is a bounded, local-first MSc research
+artefact for a single laboratory publication corpus. It supports full-text
+discovery, source-traceable question answering, publication-derived topic/
+author exploration, structured extension suggestions, generated paper-
+intelligence drafts, administrative review, and offline evaluation.
 
-## Phase 2 Goal
+The executed study evaluates the artefact as an engineering case study. It does
+not claim human advisory effectiveness, a novel retrieval algorithm, exhaustive
+archive coverage, general scholarly-search performance, or production-scale
+deployment.
 
-Make the platform inspect full PDFs safely. This phase downloads a limited subset of direct PDF URLs, extracts full text page-by-page, records extraction diagnostics, creates deterministic page-aware chunks, stores chunk metadata in SQLite, and exposes extraction/chunk status in the API and frontend.
+## Included capabilities
 
-## Phase 3 Goal
+- archive discovery and idempotent seed import;
+- allowlisted PDF acquisition, identity checks, page extraction, scan
+  diagnostics, optional OCR, and conservative section-aware chunking;
+- explicit corpus eligibility and authoritative keyword/feature-hashing/dense
+  index manifests;
+- keyword, deterministic feature-hashing, pinned learned-dense, and hybrid
+  retrieval;
+- Search and transient Ask TTLAB with paper/chunk/page evidence;
+- evidence-only and full Thesis Extension Finder modes with fact, gap, and
+  suggestion separation;
+- cited public/technical summaries, methods, contributions, limitations, future
+  work, extension/skills/evaluation-plan bundles, and text-only podcast scripts;
+- controlled Topic/Author Explorer and explainable related-paper links;
+- route-based responsive frontend and evidence/freshness/error/review states;
+- role-protected admin review and attributable append-only audit events;
+- AI-reviewed silver/proxy evaluations for sections, retrieval, QA,
+  recommendations, topics/authors, and stored generated outputs; and
+- performance/reproduction/release, security/privacy, and document-build
+  tooling.
 
-Make extracted chunks searchable. The implemented baseline adds keyword search,
-local/offline feature-hashing similarity (legacy API value `semantic`), hybrid
-retrieval, retrieval APIs, a frontend Search page, and evaluation scaffolding.
-Feature hashing is not a learned semantic encoder.
+The frozen experimental boundary contains 96 eligible papers and 719 eligible
+chunks from 134 catalogue records. Thirty-six no-text records and two
+metadata/PDF mismatches are visible but excluded from corpus-dependent
+experiments.
 
-## Phase 4 Goal
+## Deliberate design boundaries
 
-Add Ask TTLAB citation-grounded Q&A over indexed chunks. This phase retrieves source chunks, drafts concise answers with the offline extractive provider or local Ollama fallback path, verifies citations, stores answers, exposes Ask APIs/CLI, and adds a frontend Ask page.
+- Public Ask questions and student profiles are transient by default; there is
+  no public opt-in history endpoint.
+- Local/offline providers are supported. External providers are an explicit
+  allowlist/privacy decision and are not required for the artefact.
+- The product offers a loopback-only insecure demo bypass, but production
+  requires explicit bearer actors and fail-closed security configuration.
+- Topic/author evidence is limited to eligible indexed publications and does
+  not claim availability, endorsement, supervision, or expertise outside the
+  corpus.
+- A podcast is a cited text script. Audio generation is not included.
+- Related-paper and thesis-extension outputs are navigation/suggestion aids,
+  not novelty or feasibility guarantees.
+- OCR is optional; the frozen corpus records no OCR-processed pages, so OCR
+  quality/performance is not evaluated.
+- The sanitized release excludes PDFs, substantial extracted text, SQLite
+  databases, runtime indexes, private prompts/histories, and secrets.
 
-## Phase 5 Goal
+## Research evaluation boundary
 
-Add the Thesis Extension Finder. This phase lets a student enter interests, skills, timeline, project type, data constraints, preferred difficulty, and optional topic preferences. It retrieves indexed TTLAB chunks, ranks papers with deterministic scoring, generates structured thesis extension suggestions, cites source chunks, persists recommendation runs, exposes API/CLI/UI access, and adds evaluation scaffolding.
+The study uses one AI reviewer in two-pass source-inspection procedures and
+labels the resulting data silver/proxy evidence. It includes development/test
+separation, correct retrieval metrics, confidence intervals, paired tests,
+ablations, sensitivity, and failure taxonomies. It does not recruit
+participants or report human usability, satisfaction, usefulness, or
+supervisor approval.
 
-## Phase 6 Goal
+## Remaining work versus future work
 
-Add paper-level intelligence artifacts and text-only podcast script generation. This phase creates public summaries, technical summaries, contribution/methods/limitations/future-work sections, possible extensions, required skills, evaluation plans, and 3-5 minute podcast script drafts from full-paper chunks. Artifacts are persisted in SQLite, written to ignored local JSON, cited back to source chunks, and shown on the paper detail page.
+Remaining local remediation gates are part of the current delivery: full
+performance execution, full reproduction, final current-commit release/tag,
+paper/thesis synchronization, and complete PDF/route verification.
 
-## Phase 7 Goal
+Potential future extensions outside the current evidence include:
 
-Add local/demo admin review and an evaluation dashboard. This phase lets a reviewer correct paper metadata, update review status for papers, Ask answers, Thesis Extension Finder runs, extraction status, and paper artifacts, capture reviewer notes and quality scores where appropriate, and preserve every action as a `ReviewEvent`. It also adds a read-only dashboard that summarizes retrieval, QA, extension, and artifact evaluation result files without inventing missing metrics.
+- an institutionally approved human study;
+- institution-managed identity, retention, monitoring, correction, and incident
+  processes for public deployment;
+- broader multi-laboratory/cross-domain evaluation;
+- OCR accuracy evaluation on a licensed scanned-document set;
+- audio/TTS generation after script review; and
+- production load/capacity testing.
 
-## Phase 8 Goal
-
-Add a public-facing Topic/Author Explorer and polish the demo flow. This phase creates deterministic topic links from reviewed metadata, paper text chunks, and generated artifacts; aggregates author profiles from indexed authorship and topics; adds related-paper recommendations with explainable reasons; updates dashboard/stats; and documents a supervisor-ready 7-10 minute demo.
-
-## In Scope Now
-
-- FastAPI backend scaffold.
-- SQLite database setup through SQLModel.
-- Paper, Author, and placeholder Chunk models.
-- Deterministic TTLAB publication discovery from `https://lab.tt/index.php/category/pub/`.
-- Controlled pagination with `--max-pages`.
-- Direct PDF/source URL classification.
-- Dry-run-safe direct PDF downloader.
-- Seed JSON import into SQLite.
-- Minimal React dashboard and paper browser.
-- Paper detail view with extraction diagnostics and chunk previews.
-- Search page with keyword, feature-hashing (legacy `semantic`), and hybrid modes.
-- Ask TTLAB page with grounding status, citations, snippets, and retrieved chunks.
-- Thesis Extension Finder page with ranked, citation-grounded paper recommendations and structured project scopes.
-- Extension recommendation APIs, CLI, persisted history, diagnostics, and stats metrics.
-- Paper intelligence artifact APIs, CLI, persisted records, diagnostics, and stats metrics.
-- Paper detail Paper Intelligence section with generated-content notice, support status, review status, citations, and text-only podcast script display.
-- Local/demo Admin Review page with overview cards, review queue, paper metadata correction, artifact review, Ask answer review, thesis recommendation review, and audit events.
-- Admin Review API for local review/correction actions. No authentication or role-based access control is included in this phase.
-- Review status normalization for papers, Ask answers, thesis recommendations, and paper artifacts.
-- `ReviewEvent` audit trail for review/correction actions.
-- Read-only Evaluation Dashboard API/page that parses existing result JSON and reports `not_run` for missing files.
-- Topic/Author Explorer API/page with overview cards, topic browser/detail, author browser/detail, source-basis evidence, and empty states.
-- Deterministic topic normalization, topic synonym merging, paper-topic links, author-topic links, and author expertise summaries derived from indexed papers.
-- Related-paper scoring based on shared authors, shared topics, venue/year
-  proximity, metadata keywords, and local feature-hashing similarity when available.
-- Optional bounded demo preparation helper that imports seed data if needed, rebuilds indexes, rebuilds topics, and avoids processing all papers by default.
-- Demo status and feature matrix documentation.
-- Retrieval evaluation code for manually reviewed gold paper IDs.
-- QA evaluation code for manually reviewed gold paper IDs.
-- Extension recommendation evaluation scaffold for citation coverage and human review templates.
-- Artifact evaluation scaffold for citation coverage and human review templates.
-- Fixture-based parser/import/API/PDF/chunking/retrieval/Ask/extension/artifact tests.
-
-## Explicitly Out Of Scope For Phase 1/2/3/4/5/6/7/8
-
-- Authentication.
-- Role-based access control.
-- Production deployment infrastructure.
-- OCR for scanned PDFs.
-- Complex topic/author graph visualization.
-- Production email notifications.
-- Audio generation or TTS.
-- Full role-based review workflows.
-
-## Review Principle
-
-Discovered metadata is treated as unreviewed. Unknown or ambiguous fields remain blank/null, and imported records keep `review_status = "needs_review"`.
-
-Generated chunks are source artifacts, not AI claims. They preserve page ranges so later RAG features can cite them.
-
-Retrieval results are also source artifacts. They show ranked chunks with page references, not synthesized answers.
-
-Ask TTLAB answers are generated drafts, but every answer must cite retrieved chunks or be marked partial/unsupported.
-
-Thesis Extension Finder outputs are generated project suggestions. Paper facts must cite retrieved chunks. Future-work/limitation evidence is labeled `explicit_in_paper`, `inferred_from_paper`, or `not_found`. Suggestions must not be presented as verified facts, and potential researcher fit is based only on source-paper authorship.
-
-Paper intelligence artifacts are AI-assisted and unreviewed by default. They start at `review_status = "needs_review"` and can be approved/rejected in the local Phase 7 admin workflow. Limitations and future work are labeled `explicit`, `inferred`, or `not_found`; possible extensions are labeled `suggested_by_system`; podcast scripts are text-only drafts with citations.
-
-Admin review changes the review status and notes for local demo data, but it is not a production publishing workflow. Every action writes a `ReviewEvent` with item type, item ID, action, previous/new status, reviewer name, notes, and optional diffs. Review statuses mean:
-
-- `needs_review`: generated or imported content has not been checked.
-- `reviewed`: a reviewer has checked the item without formally approving it.
-- `approved`: a reviewer considers it acceptable for demo use.
-- `rejected`: the item should not be used as-is.
-- `needs_reprocess`: extraction or generation should be rerun or manually inspected.
-
-The Evaluation Dashboard is evidence-only. If a result file does not exist, it reports `not_run`; it does not create or imply performance metrics.
-
-Topic/Author Explorer relationships are deterministic and review-aware. Reviewed paper topics are not overwritten by inferred topics. Inferred topic links keep evidence JSON so a reviewer can see whether a topic came from metadata, chunks, or generated artifacts. Author expertise summaries are derived only from indexed papers and topics; they do not confirm supervisor availability or current research interests outside the dataset.
-
-Related-paper recommendations are navigation aids, not research novelty claims. They expose their basis, such as shared topic, shared author, shared venue/year, shared keywords, or hashing-index similarity.
+See `docs/METHODOLOGY.md` and `docs/FINAL_STATUS.md` for the executed study and
+current closure state.

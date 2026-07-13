@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
+import { once } from "node:events";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const args = new Map();
@@ -15,7 +17,8 @@ const routes = ["/", "/papers", "/search", "/ask", "/extensions", "/explorer", "
 if (!Number.isInteger(repetitions) || repetitions < 1) throw new Error("--repetitions must be positive");
 if (!["cold", "warm"].includes(temperature)) throw new Error("--temperature must be cold or warm");
 
-const preview = spawn("npm", ["run", "preview", "--", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
+const viteScript = fileURLToPath(new URL("../node_modules/vite/bin/vite.js", import.meta.url));
+const preview = spawn(process.execPath, [viteScript, "preview", "--host", "127.0.0.1", "--port", String(port), "--strictPort"], {
   cwd: new URL("..", import.meta.url),
   stdio: ["ignore", "ignore", "pipe"],
   shell: false,
@@ -38,6 +41,21 @@ async function waitForPreview() {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   throw new Error(`Vite preview did not start: ${previewError.slice(-500)}`);
+}
+
+async function stopPreview() {
+  if (preview.exitCode !== null) return;
+  const terminated = once(preview, "exit");
+  preview.kill("SIGTERM");
+  await Promise.race([
+    terminated,
+    new Promise((resolve) => setTimeout(resolve, 2_000)),
+  ]);
+  if (preview.exitCode === null) {
+    const killed = once(preview, "exit");
+    preview.kill("SIGKILL");
+    await killed;
+  }
 }
 
 async function measureRoutes(page, repetition) {
@@ -93,5 +111,5 @@ try {
   process.stdout.write(`${JSON.stringify({ temperature, repetitions, routes, rows })}\n`);
 } finally {
   if (browser) await browser.close();
-  preview.kill("SIGTERM");
+  await stopPreview();
 }

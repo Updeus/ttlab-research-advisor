@@ -1,0 +1,222 @@
+{
+  "cases": [
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-019",
+      "category": "limitations_future_work",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-041",
+      "category": "multi_paper_synthesis",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-015",
+      "category": "results",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-046",
+      "category": "hard_negative",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-030",
+      "category": "topic_application",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-004",
+      "category": "exact_factual_lookup",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-034",
+      "category": "comparison",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-024",
+      "category": "title_author_venue",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-010",
+      "category": "methods",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-037",
+      "category": "broad_intent",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-033",
+      "category": "comparison",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-038",
+      "category": "broad_intent",
+      "diagnostic_tags": [
+        {
+          "evidence": "At least one relevant paper entered the frozen top-50 candidate ranking but remained below the evaluated top 10.",
+          "type": "intent_mismatch"
+        }
+      ],
+      "set_recall_at_10": 0.8333333333333334,
+      "status": "incomplete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-014",
+      "category": "results",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-020",
+      "category": "limitations_future_work",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-029",
+      "category": "topic_application",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-042",
+      "category": "multi_paper_synthesis",
+      "diagnostic_tags": [
+        {
+          "evidence": "At least one relevant paper entered the frozen top-50 candidate ranking but remained below the evaluated top 10.",
+          "type": "intent_mismatch"
+        }
+      ],
+      "set_recall_at_10": 0.75,
+      "status": "incomplete_retrieval"
+    },
+    {
+      "answerability": "unanswerable",
+      "case_id": "ret-silver-050",
+      "category": "unanswerable_out_of_corpus",
+      "diagnostic_tags": [
+        {
+          "evidence": "The source-reviewed label is unanswerable/out-of-corpus; this is a corpus-coverage condition, not a ranking miss.",
+          "type": "corpus_absence"
+        }
+      ],
+      "set_recall_at_10": null,
+      "status": "out_of_corpus"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-005",
+      "category": "exact_factual_lookup",
+      "diagnostic_tags": [
+        {
+          "evidence": "A cited source passage has an Unknown section label; this is an extraction/structure-quality signal, not proof of causation.",
+          "type": "extraction"
+        }
+      ],
+      "set_recall_at_10": 0.0,
+      "status": "incomplete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-025",
+      "category": "title_author_venue",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    },
+    {
+      "answerability": "answerable",
+      "case_id": "ret-silver-009",
+      "category": "methods",
+      "diagnostic_tags": [],
+      "set_recall_at_10": 1.0,
+      "status": "complete_retrieval"
+    }
+  ],
+  "limitations": [
+    "The taxonomy applies deterministic counterfactual and label-stratum signals; it does not establish causal failure mechanisms.",
+    "Extraction is flagged only where source-backed evidence has an Unknown section label, so other extraction defects may be missed."
+  ],
+  "taxonomy": {
+    "corpus_absence": {
+      "case_count": 1,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    },
+    "extraction": {
+      "case_count": 1,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    },
+    "intent_mismatch": {
+      "case_count": 2,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    },
+    "lexical_mismatch": {
+      "case_count": 0,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    },
+    "over_broad_expansion": {
+      "case_count": 0,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    },
+    "ranking_diversity": {
+      "case_count": 0,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    },
+    "semantic_mismatch": {
+      "case_count": 0,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    },
+    "topic_identity_error": {
+      "case_count": 0,
+      "interpretation": "diagnostic signal, not a causal attribution"
+    }
+  }
+}

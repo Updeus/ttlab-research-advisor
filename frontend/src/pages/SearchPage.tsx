@@ -98,7 +98,7 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
       {diagnostics && [diagnostics.keyword?.status, diagnostics.feature_hashing.status].some((status) => status && status !== "ready") ? (
         <p className="notice notice--warning" role="status">A required search index is not ready for the current eligible corpus. Results may fail until an administrator rebuilds it.</p>
       ) : null}
-      {diagnostics?.dense.status !== "ready" ? (
+      {diagnostics && diagnostics.dense.status !== "ready" ? (
         <p className="notice" role="status">Dense semantic search is unavailable for this snapshot. Keyword and feature-hashing modes remain distinct alternatives.</p>
       ) : null}
       {diagnosticsError ? (

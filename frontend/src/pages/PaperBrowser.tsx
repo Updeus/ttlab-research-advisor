@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { StatusBadge } from "../components/StatusBadge";
@@ -9,8 +9,11 @@ type PaperBrowserProps = {
   papers: Paper[];
 };
 
+const PAGE_SIZE = 20;
+
 export function PaperBrowser({ papers }: PaperBrowserProps) {
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) {
@@ -24,13 +27,24 @@ export function PaperBrowser({ papers }: PaperBrowserProps) {
       return haystack.includes(normalized);
     });
   }, [papers, query]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const firstIndex = (currentPage - 1) * PAGE_SIZE;
+  const visible = filtered.slice(firstIndex, firstIndex + PAGE_SIZE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, papers]);
 
   return (
     <section className="page-section">
       <div className="section-heading section-heading--with-search">
         <div>
           <h2>Paper Browser</h2>
-          <p className="section-kicker">{filtered.length} of {papers.length} papers shown</p>
+          <p className="section-kicker">
+            {filtered.length} of {papers.length} papers match
+            {filtered.length ? ` · showing ${firstIndex + 1}-${Math.min(firstIndex + PAGE_SIZE, filtered.length)}` : ""}
+          </p>
         </div>
         <input
           aria-label="Search papers"
@@ -41,7 +55,7 @@ export function PaperBrowser({ papers }: PaperBrowserProps) {
       </div>
       <div className="paper-list">
         {!papers.length ? <EmptyState title="No publication records are available" body="Import or restore a public paper snapshot before browsing." /> : null}
-        {filtered.map((paper) => (
+        {visible.map((paper) => (
           <article className="paper-card" key={paper.paper_id}>
             <div className="paper-card__body">
               <div className="paper-card__meta">
@@ -88,6 +102,27 @@ export function PaperBrowser({ papers }: PaperBrowserProps) {
           />
         ) : null}
       </div>
+      {totalPages > 1 ? (
+        <nav className="pagination" aria-label="Paper browser pages">
+          <button
+            className="action-button action-button--ghost"
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setPage((value) => Math.max(1, value - 1))}
+          >
+            Previous page
+          </button>
+          <span aria-live="polite">Page {currentPage} of {totalPages}</span>
+          <button
+            className="action-button action-button--ghost"
+            type="button"
+            disabled={currentPage === totalPages}
+            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+          >
+            Next page
+          </button>
+        </nav>
+      ) : null}
     </section>
   );
 }

@@ -12,7 +12,7 @@ from app.api import evaluation as evaluation_api
 from app.db import get_session
 from app.evaluation.dashboard import build_evaluation_dashboard
 from app.main import app
-from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
+from app.models import Chunk, Paper, PaperArtifact, PaperTopic, RAGAnswer, ReviewEvent, ThesisRecommendation, Topic
 from app.security import AuthenticatedActor, require_reviewer
 
 
@@ -60,6 +60,23 @@ def build_admin_engine():
                 text="The paper presents a source grounded research advisor with evaluation.",
                 word_count=10,
                 source_hash="admin-hash",
+            )
+        )
+        session.add(
+            Topic(
+                topic_id="retrieval",
+                name="Retrieval",
+                normalized_name="retrieval",
+                review_status="ai_reviewed",
+            )
+        )
+        session.add(
+            PaperTopic(
+                link_id="admin-paper-retrieval",
+                paper_id="admin-paper",
+                topic_id="retrieval",
+                score=1.0,
+                evidence_json=[{"paper_id": "admin-paper", "field": "title"}],
             )
         )
         session.add(
@@ -215,7 +232,13 @@ def test_review_queue_overview_events_and_stats_work() -> None:
     assert events.json() == []
     assert stats.status_code == 200
     assert stats.json()["admin_review_queue_count"] == 4
-    assert "evaluation_files_present" in stats.json()
+    assert stats.json()["evaluation_files_present"] == {
+        "retrieval": True,
+        "qa": True,
+        "extension": True,
+        "artifact": True,
+    }
+    assert stats.json()["top_topics"] == [["Retrieval", 1]]
 
 
 def test_evaluation_dashboard_returns_not_run_when_files_are_absent(tmp_path: Path) -> None:
@@ -292,3 +315,21 @@ def test_evaluation_dashboard_endpoint_can_return_not_run_with_temp_dir(monkeypa
 
     assert response.status_code == 200
     assert response.json()["retrieval"]["status"] == "not_run"
+
+
+def test_default_evaluation_dashboard_exposes_executed_silver_experiments() -> None:
+    engine = build_admin_engine()
+    with Session(engine) as session:
+        dashboard = build_evaluation_dashboard(session)
+
+    assert dashboard["evaluation_label"].startswith("AI-reviewed silver")
+    assert dashboard["human_validation"] is False
+    assert dashboard["retrieval"]["status"] == "available"
+    assert dashboard["retrieval"]["question_count"] == 50
+    assert dashboard["retrieval"]["recall_at_10"] == 1.0
+    assert dashboard["qa"]["claim_count"] == 400
+    assert dashboard["qa"]["citation_correctness"] == 0.625
+    assert dashboard["extension"]["case_count"] == 28
+    assert dashboard["extension"]["relevance_difference_ci"][0] < 0
+    assert dashboard["artifact"]["review_event_count"] == 48
+    assert dashboard["artifact"]["needs_reprocess_count"] == 27

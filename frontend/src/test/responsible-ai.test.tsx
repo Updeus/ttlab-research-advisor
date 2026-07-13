@@ -39,6 +39,12 @@ const indexDiagnostics = {
 };
 
 describe("evidence and responsible-AI interfaces", () => {
+  it("does not report dense search unavailable before diagnostics finish loading", () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise<Response>(() => undefined));
+    render(<SearchPage papers={[paper as never]} onSelectPaper={() => undefined} />);
+    expect(screen.queryByText(/Dense semantic search is unavailable/)).not.toBeInTheDocument();
+  });
+
   it("shows distinct index modes, freshness, source passage IDs, and retryable search evidence", async () => {
     const user = userEvent.setup();
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {

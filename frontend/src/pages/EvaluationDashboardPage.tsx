@@ -53,41 +53,89 @@ export function EvaluationDashboardPage() {
     <section className="page-section" aria-labelledby="evaluation-title">
       <h2 id="evaluation-title" className="sr-only">Evaluation dashboard</h2>
       <p className="notice notice--warning">
-        Evaluation results are only as valid as the reviewed gold/test cases. Missing result files are shown as not run.
+        {dashboard.evaluation_label ?? "Evaluation results are only as valid as their reviewed cases. Missing result files are shown as not run."}
       </p>
 
       <div className="evaluation-grid">
         <EvaluationCard title="Retrieval Evaluation" section={dashboard.retrieval}>
           <MetricRow label="Questions" value={dashboard.retrieval.question_count} />
+          {dashboard.retrieval.development_count !== undefined && <MetricRow label="Development / held-out" value={`${dashboard.retrieval.development_count} / ${dashboard.retrieval.test_count}`} />}
+          {dashboard.retrieval.reported_mode && <MetricRow label="Displayed baseline" value={dashboard.retrieval.reported_mode} />}
           <MetricRow label="Recall@3" value={formatMetric(dashboard.retrieval.recall_at_3)} />
           <MetricRow label="Recall@5" value={formatMetric(dashboard.retrieval.recall_at_5)} />
+          {dashboard.retrieval.recall_at_10 !== undefined && <MetricRow label="Recall@10" value={formatMetric(dashboard.retrieval.recall_at_10 ?? null)} />}
           <MetricRow label="MRR" value={formatMetric(dashboard.retrieval.mrr)} />
+          {dashboard.retrieval.ndcg_at_10 !== undefined && <MetricRow label="nDCG@10" value={formatMetric(dashboard.retrieval.ndcg_at_10 ?? null)} />}
+          {dashboard.retrieval.tuned_hybrid_recall_at_10 !== undefined && <MetricRow label="Tuned hybrid Recall@10" value={formatMetric(dashboard.retrieval.tuned_hybrid_recall_at_10)} />}
+          {dashboard.retrieval.unanswerable_false_positive_rate !== undefined && <MetricRow label="Unanswerable false-positive rate" value={formatMetric(dashboard.retrieval.unanswerable_false_positive_rate)} />}
+          {dashboard.retrieval.statistical_conclusion && <MetricRow label="Paired comparison" value={dashboard.retrieval.statistical_conclusion} />}
         </EvaluationCard>
 
         <EvaluationCard title="Ask / QA Evaluation" section={dashboard.qa}>
           <MetricRow label="Questions" value={dashboard.qa.question_count} />
           <MetricRow label="Answers" value={dashboard.qa.answer_count} />
-          <MetricRow label="Cited gold papers" value={dashboard.qa.cited_gold_paper_count} />
-          <MetricRow label="Citations" value={dashboard.qa.citation_count} />
-          <GroundingRows counts={dashboard.qa.grounding_counts} />
+          {dashboard.qa.claim_count !== undefined ? (
+            <>
+              <MetricRow label="Checkable claims" value={dashboard.qa.claim_count} />
+              <MetricRow label="Supported-claim rate" value={formatMetric(dashboard.qa.supported_claim_rate ?? null)} />
+              <MetricRow label="Citation correctness" value={formatMetric(dashboard.qa.citation_correctness ?? null)} />
+              <MetricRow label="Citation completeness" value={formatMetric(dashboard.qa.citation_completeness ?? null)} />
+              <MetricRow label="Answer-point coverage" value={formatMetric(dashboard.qa.answer_point_coverage ?? null)} />
+              <MetricRow label="Unanswerable abstention" value={formatMetric(dashboard.qa.unanswerable_abstention_rate ?? null)} />
+              <MetricRow label="Reviewer type" value={dashboard.qa.reviewer_type ?? "not recorded"} />
+            </>
+          ) : (
+            <>
+              <MetricRow label="Cited gold papers" value={dashboard.qa.cited_gold_paper_count} />
+              <MetricRow label="Citations" value={dashboard.qa.citation_count} />
+              <GroundingRows counts={dashboard.qa.grounding_counts} />
+            </>
+          )}
         </EvaluationCard>
 
         <EvaluationCard title="Thesis Extension Evaluation" section={dashboard.extension}>
           <MetricRow label="Cases" value={dashboard.extension.case_count} />
-          <MetricRow label="Recommendations" value={dashboard.extension.recommendation_count} />
-          <MetricRow label="Citation coverage" value={formatMetric(dashboard.extension.citation_coverage)} />
-          <MetricRow label="Warnings" value={dashboard.extension.warnings_count} />
-          <GroundingRows counts={dashboard.extension.grounding_counts} />
+          <MetricRow label="Reviewed recommendations" value={dashboard.extension.recommendation_count} />
+          {dashboard.extension.evidence_only_relevance !== undefined ? (
+            <>
+              <MetricRow label="Evidence-only relevance" value={formatMetric(dashboard.extension.evidence_only_relevance)} />
+              <MetricRow label="Full-finder relevance" value={formatMetric(dashboard.extension.full_finder_relevance ?? null)} />
+              <MetricRow label="Full minus evidence-only" value={formatMetric(dashboard.extension.relevance_difference ?? null)} />
+              <MetricRow label="Difference 95% CI" value={formatInterval(dashboard.extension.relevance_difference_ci)} />
+              <MetricRow label="Reviewer type" value={dashboard.extension.reviewer_type ?? "not recorded"} />
+              {dashboard.extension.proxy_notice && <MetricRow label="Validation boundary" value={dashboard.extension.proxy_notice} />}
+            </>
+          ) : (
+            <>
+              <MetricRow label="Citation coverage" value={formatMetric(dashboard.extension.citation_coverage)} />
+              <MetricRow label="Warnings" value={dashboard.extension.warnings_count} />
+              <GroundingRows counts={dashboard.extension.grounding_counts} />
+            </>
+          )}
         </EvaluationCard>
 
-        <EvaluationCard title="Artifact Evaluation" section={dashboard.artifact}>
-          <MetricRow label="Cases" value={dashboard.artifact.case_count} />
-          <MetricRow label="Artifacts" value={dashboard.artifact.artifact_count} />
-          <MetricRow label="Citation coverage" value={formatMetric(dashboard.artifact.citation_coverage)} />
-          <MetricRow label="Explicit sections" value={dashboard.artifact.sections_with_explicit_support} />
-          <MetricRow label="Inferred sections" value={dashboard.artifact.sections_inferred} />
-          <MetricRow label="Not found sections" value={dashboard.artifact.sections_not_found} />
-          <GroundingRows counts={dashboard.artifact.grounding_counts} />
+        <EvaluationCard title="Generated-output AI Review" section={dashboard.artifact}>
+          {dashboard.artifact.review_event_count !== undefined ? (
+            <>
+              <MetricRow label="Inspected outputs" value={dashboard.artifact.case_count} />
+              <MetricRow label="Append-only review events" value={dashboard.artifact.review_event_count} />
+              <MetricRow label="AI-reviewed outputs" value={dashboard.artifact.ai_reviewed_count ?? 0} />
+              <MetricRow label="Needs reprocessing" value={dashboard.artifact.needs_reprocess_count ?? 0} />
+              <MetricRow label="Evidence locators checked" value={dashboard.artifact.citation_evidence_locator_count ?? 0} />
+              <MetricRow label="Reviewer type" value={dashboard.artifact.reviewer_type ?? "not recorded"} />
+              {dashboard.artifact.review_notice && <MetricRow label="Review boundary" value={dashboard.artifact.review_notice} />}
+            </>
+          ) : (
+            <>
+              <MetricRow label="Cases" value={dashboard.artifact.case_count} />
+              <MetricRow label="Artifacts" value={dashboard.artifact.artifact_count} />
+              <MetricRow label="Citation coverage" value={formatMetric(dashboard.artifact.citation_coverage)} />
+              <MetricRow label="Explicit sections" value={dashboard.artifact.sections_with_explicit_support} />
+              <MetricRow label="Inferred sections" value={dashboard.artifact.sections_inferred} />
+              <MetricRow label="Not found sections" value={dashboard.artifact.sections_not_found} />
+              <GroundingRows counts={dashboard.artifact.grounding_counts} />
+            </>
+          )}
         </EvaluationCard>
       </div>
 
@@ -175,4 +223,8 @@ function GroundingRows({ counts }: { counts: Record<string, number> }) {
 
 function formatMetric(value: number | null): string {
   return value === null ? "not run" : value.toFixed(3);
+}
+
+function formatInterval(value: [number, number] | undefined): string {
+  return value ? `[${value[0].toFixed(3)}, ${value[1].toFixed(3)}]` : "not run";
 }

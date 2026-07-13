@@ -113,6 +113,29 @@ test("primary routes do not overflow at target widths", async ({ page }) => {
   }
 });
 
+test("primary navigation forms non-overlapping rows at the tablet breakpoint", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/");
+  const boxes = await page.locator(".tabs a").evaluateAll((links) => links.map((link) => {
+    const box = link.getBoundingClientRect();
+    return { left: box.left, right: box.right, top: box.top, scrollWidth: link.scrollWidth, clientWidth: link.clientWidth };
+  }));
+  const rows = new Map<number, typeof boxes>();
+  for (const box of boxes) {
+    const key = Math.round(box.top);
+    rows.set(key, [...(rows.get(key) ?? []), box]);
+    expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth);
+  }
+  expect(rows.size).toBe(2);
+  for (const row of rows.values()) {
+    expect(row).toHaveLength(4);
+    const ordered = [...row].sort((left, right) => left.left - right.left);
+    for (let index = 1; index < ordered.length; index += 1) {
+      expect(ordered[index - 1].right).toBeLessThanOrEqual(ordered[index].left);
+    }
+  }
+});
+
 async function mockApi(page: Page) {
   await page.route("http://127.0.0.1:8000/**", async (route) => {
     const request = route.request();

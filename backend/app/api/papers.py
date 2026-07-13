@@ -14,6 +14,7 @@ from app.indexing.embedder import (
     index_diagnostics,
 )
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
+from app.intelligence.topic_explorer import list_topics
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, RAGAnswer, ReviewEvent, ThesisRecommendation, Topic
 from app.security import AuthenticatedActor, get_optional_actor
 
@@ -145,10 +146,10 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
             pdf_unavailability_reasons[paper.pdf_unavailability_reason] = (
                 pdf_unavailability_reasons.get(paper.pdf_unavailability_reason, 0) + 1
             )
-    topics: dict[str, int] = {}
-    for paper in papers:
-        for topic in paper.topics:
-            topics[topic] = topics.get(topic, 0) + 1
+    top_topics = [
+        (item["name"], item["paper_count"])
+        for item in list_topics(session, limit=10)["items"]
+    ]
     recent = sorted(papers, key=lambda item: (item.year or 0, item.created_at), reverse=True)[:5]
     eval_files = evaluation_files_present()
     return {
@@ -211,7 +212,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         else None,
         "evaluation_files_present": eval_files,
         "evaluation_last_run_at": latest_evaluation_timestamp(),
-        "top_topics": sorted(topics.items(), key=lambda item: item[1], reverse=True)[:10],
+        "top_topics": top_topics,
         "recent_papers": [serialize_public_paper(paper) for paper in recent],
         "evaluation_status": "available" if any(eval_files.values()) else "not_started",
     }

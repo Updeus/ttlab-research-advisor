@@ -599,17 +599,39 @@ export type EvaluationSectionStatus = {
 };
 
 export type EvaluationDashboard = {
+  evaluation_label?: string;
+  reviewer_type?: string;
+  human_validation?: boolean;
   retrieval: EvaluationSectionStatus & {
     question_count: number;
     recall_at_3: number | null;
     recall_at_5: number | null;
+    recall_at_10?: number | null;
     mrr: number | null;
+    ndcg_at_10?: number | null;
+    development_count?: number;
+    test_count?: number;
+    reported_mode?: string;
+    tuned_hybrid_recall_at_10?: number;
+    tuned_hybrid_mrr?: number;
+    unanswerable_false_positive_rate?: number;
+    reviewer_type?: string;
+    dataset_label?: string;
+    statistical_conclusion?: string;
   };
   qa: EvaluationSectionStatus & {
     question_count: number;
     answer_count: number;
     cited_gold_paper_count: number;
     citation_count: number;
+    claim_count?: number;
+    supported_claim_rate?: number;
+    citation_correctness?: number;
+    citation_completeness?: number;
+    answer_point_coverage?: number;
+    unsupported_claim_rate?: number;
+    unanswerable_abstention_rate?: number;
+    reviewer_type?: string;
     grounding_counts: Record<string, number>;
   };
   extension: EvaluationSectionStatus & {
@@ -618,6 +640,12 @@ export type EvaluationDashboard = {
     citation_coverage: number | null;
     grounding_counts: Record<string, number>;
     warnings_count: number;
+    evidence_only_relevance?: number;
+    full_finder_relevance?: number;
+    relevance_difference?: number;
+    relevance_difference_ci?: [number, number];
+    reviewer_type?: string;
+    proxy_notice?: string;
   };
   artifact: EvaluationSectionStatus & {
     case_count: number;
@@ -628,6 +656,12 @@ export type EvaluationDashboard = {
     sections_with_explicit_support: number;
     sections_inferred: number;
     sections_not_found: number;
+    ai_reviewed_count?: number;
+    needs_reprocess_count?: number;
+    review_event_count?: number;
+    citation_evidence_locator_count?: number;
+    reviewer_type?: string;
+    review_notice?: string;
   };
   human_review_templates: Record<string, boolean>;
   overall_quality: Record<string, number>;

@@ -984,6 +984,20 @@ textarea:focus {
   overflow-wrap: anywhere;
 }
 
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pagination span {
+  color: #42545c;
+  font-weight: 800;
+}
+
 .admin-filter-row,
 .admin-form-grid {
   display: grid;
@@ -1503,7 +1517,7 @@ textarea:focus {
   }
 
   .tabs a {
-    flex: 1;
+    flex: 0 0 calc(25% - 6px);
     min-width: 0;
   }
 
@@ -1563,6 +1577,18 @@ textarea:focus {
 
   .profile-echo dl {
     grid-template-columns: 1fr;
+  }
+
+  .status-table p {
+    display: grid;
+    grid-template-columns: minmax(104px, 38%) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .status-table strong {
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
   }
 }
 

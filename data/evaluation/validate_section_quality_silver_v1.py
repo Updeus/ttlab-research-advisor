@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 import sqlite3
@@ -27,7 +28,20 @@ def norm(value: str) -> str:
     return " ".join(value.split()).casefold()
 
 
-def validate(*, database: Path = DB, evaluate_current: bool = False) -> None:
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def display_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT.resolve()))
+    except ValueError:
+        return path.name
+
+
+def validate(
+    *, database: Path = DB, evaluate_current: bool = False, output_json: Path | None = None
+) -> dict:
     create, final = load(CREATE), load(FINAL)
     assert len(create) == len(final) == 40
     assert len({row["chunk_id"] for row in final}) == 40
@@ -77,14 +91,38 @@ def validate(*, database: Path = DB, evaluate_current: bool = False) -> None:
     precisions = [row["precision"] for row in per_label.values() if row["precision"] is not None]
     recalls = [row["recall"] for row in per_label.values() if row["recall"] is not None]
     decisions = Counter(row["decision"] for row in final)
-    print(f"cases={len(final)} accuracy={correct/len(final):.6f} labeled_accuracy={labeled_correct/supported:.6f}")
-    print(f"labeled_coverage={supported/len(final):.6f} expected_unknown_rate={expected.count('Unknown')/len(final):.6f} predicted_unknown_rate={predicted.count('Unknown')/len(final):.6f}")
-    print(f"macro_precision={sum(precisions)/len(precisions):.6f} macro_recall={sum(recalls)/len(recalls):.6f}")
-    print("prediction_source=" + ("current_database" if evaluate_current else "frozen_silver_snapshot"))
-    print(f"database={database}")
+    result = {
+        "schema_version": 1,
+        "status": "valid",
+        "prediction_source": "current_database" if evaluate_current else "frozen_silver_snapshot",
+        "database": display_path(database),
+        "dataset": display_path(FINAL),
+        "dataset_sha256": file_sha256(FINAL),
+        "case_count": len(final),
+        "metrics": {
+            "accuracy": round(correct / len(final), 6),
+            "labeled_accuracy": round(labeled_correct / supported, 6),
+            "labeled_coverage": round(supported / len(final), 6),
+            "expected_unknown_rate": round(expected.count("Unknown") / len(final), 6),
+            "predicted_unknown_rate": round(predicted.count("Unknown") / len(final), 6),
+            "macro_precision": round(sum(precisions) / len(precisions), 6),
+            "macro_recall": round(sum(recalls) / len(recalls), 6),
+        },
+        "decisions": dict(sorted(decisions.items())),
+        "per_label": per_label,
+    }
+    if output_json is not None:
+        output_json.parent.mkdir(parents=True, exist_ok=True)
+        output_json.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"cases={len(final)} accuracy={result['metrics']['accuracy']:.6f} labeled_accuracy={result['metrics']['labeled_accuracy']:.6f}")
+    print(f"labeled_coverage={result['metrics']['labeled_coverage']:.6f} expected_unknown_rate={result['metrics']['expected_unknown_rate']:.6f} predicted_unknown_rate={result['metrics']['predicted_unknown_rate']:.6f}")
+    print(f"macro_precision={result['metrics']['macro_precision']:.6f} macro_recall={result['metrics']['macro_recall']:.6f}")
+    print("prediction_source=" + result["prediction_source"])
+    print(f"database={result['database']}")
     print("decisions=" + json.dumps(dict(sorted(decisions.items())), sort_keys=True))
     print("per_label=" + json.dumps(per_label, sort_keys=True))
     print("status=valid")
+    return result
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -95,12 +133,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Score section labels stored in --database while preserving the frozen silver expectations.",
     )
+    parser.add_argument(
+        "--json-out",
+        type=Path,
+        help="Write a path-sanitized structured metrics artifact in addition to the text report.",
+    )
     return parser
 
 
 def main() -> None:
     args = build_parser().parse_args()
-    validate(database=args.database, evaluate_current=args.evaluate_current)
+    validate(database=args.database, evaluate_current=args.evaluate_current, output_json=args.json_out)
 
 
 if __name__ == "__main__":

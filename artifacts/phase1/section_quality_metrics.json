@@ -1,0 +1,78 @@
+{
+  "case_count": 40,
+  "database": "data/papers.db",
+  "dataset": "data/evaluation/section_quality_silver_v1.jsonl",
+  "dataset_sha256": "98bc6ebfb63be918db48f5edb0c596895af6b8f349ee97e857e3fbd87836801e",
+  "decisions": {
+    "agree": 33,
+    "revise": 7
+  },
+  "metrics": {
+    "accuracy": 0.9,
+    "expected_unknown_rate": 0.1,
+    "labeled_accuracy": 0.888889,
+    "labeled_coverage": 0.9,
+    "macro_precision": 0.891667,
+    "macro_recall": 0.904018,
+    "predicted_unknown_rate": 0.125
+  },
+  "per_label": {
+    "Abstract": {
+      "precision": null,
+      "predicted": 0,
+      "recall": null,
+      "support": 0
+    },
+    "Conclusion": {
+      "precision": 0.666667,
+      "predicted": 3,
+      "recall": 1.0,
+      "support": 2
+    },
+    "Discussion": {
+      "precision": 1.0,
+      "predicted": 5,
+      "recall": 1.0,
+      "support": 5
+    },
+    "Introduction": {
+      "precision": 0.833333,
+      "predicted": 6,
+      "recall": 1.0,
+      "support": 5
+    },
+    "Literature Review": {
+      "precision": 1.0,
+      "predicted": 2,
+      "recall": 0.666667,
+      "support": 3
+    },
+    "Methodology": {
+      "precision": 0.833333,
+      "predicted": 6,
+      "recall": 0.833333,
+      "support": 6
+    },
+    "References": {
+      "precision": 1.0,
+      "predicted": 6,
+      "recall": 0.857143,
+      "support": 7
+    },
+    "Results": {
+      "precision": 1.0,
+      "predicted": 7,
+      "recall": 0.875,
+      "support": 8
+    },
+    "Unknown": {
+      "precision": 0.8,
+      "predicted": 5,
+      "recall": 1.0,
+      "support": 4
+    }
+  },
+  "prediction_source": "current_database",
+  "schema_version": 1,
+  "status": "valid"
+}

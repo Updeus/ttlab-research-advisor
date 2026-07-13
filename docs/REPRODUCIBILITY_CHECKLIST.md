@@ -1,148 +1,100 @@
 # Reproducibility Checklist
 
-Use this from a fresh clone to recreate a **bounded local UI demo**, not the
-research snapshot or reported experiments. The audited helper can produce a
-partial vector index; full research reproduction is being implemented under
-`REP-01` in `docs/REVIEW_REMEDIATION_MATRIX.md`.
+This checklist distinguishes a distributable verification run from the
+authorized full-corpus experiment. The earlier 25-record demo launcher remains
+useful for product demonstration, but it is not the research reproduction
+entry point and its output must not support full-corpus claims.
 
-## 1. Clone And Backend Setup
+## 1. Obtain source and prerequisites
 
 ```bash
 git clone https://github.com/Updeus/ttlab-research-advisor.git
 cd ttlab-research-advisor
-
 python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r backend/requirements.txt
+.venv/bin/python -m pip install -r backend/requirements.txt \
+  -r backend/requirements-dense.txt -r backend/requirements-ocr.txt
+npm --prefix frontend ci
 ```
 
-## 2. Frontend Setup
+Required system tools are Git, Node/npm, Tectonic, Poppler (`pdfinfo`,
+`pdffonts`, `pdftotext`, `pdftoppm`), and qpdf. Tesseract is needed only when an
+authorized corpus actually triggers OCR. The frozen TTLAB snapshot used no OCR.
+
+## 2. Verify distributable material
 
 ```bash
-cd frontend
-npm install
-cd ..
+make reproduce-quick
 ```
 
-## 3. Seed Data
+This fail-loud command runs dependency probes, the official Europe PMC CC BY
+sanity acquisition, backend/frontend/unit/E2E tests, a bounded benchmark,
+paper/thesis builds, PDF structural/font/text/page-render preflight, sanitized
+release construction, and a hash manifest. It does not recreate or claim the
+restricted full corpus.
 
-The repo includes seed JSON under `data/seed/`.
+## 3. Supply authorized full-corpus inputs
 
-Import seed data:
+Full reproduction additionally requires:
+
+- `data/papers.db`, the authorized local source snapshot;
+- the local PDFs referenced by that DB under `data/pdfs/`;
+- the pinned `sentence-transformers/all-MiniLM-L6-v2` model revision already in
+  the Hugging Face cache.
+
+Do not copy these inputs from the sanitized release: they are deliberately not
+there. Obtain them only through a permitted institutional or publisher path.
+
+## 4. Run the full isolated reproduction
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.ingestion.manual_import \
-  --seed data/seed/ttlab_publications_discovered.json
+make reproduce
 ```
 
-If seed data needs to be refreshed from TTLAB:
+Or select paths explicitly:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.ingestion.ttlab_page discover \
-  --url https://lab.tt/index.php/category/pub/ \
-  --max-pages 2 \
-  --out data/seed/ttlab_publications_discovered.json
+scripts/reproduce_all.sh \
+  --mode full \
+  --source-db /permitted/path/papers.db \
+  --work-dir tmp/reproduce/full
 ```
 
-## 4. Prepare Demo Data
+The command performs, in order:
 
-Recommended one-command local prep:
+1. dependency/version checks;
+2. disposable DB copy, seed upsert, author repair, and PDF identity audit;
+3. full PDF extraction and deterministic chunking;
+4. complete keyword, feature-hashing, and learned-dense indexes;
+5. retrieval, QA-label, recommendation-proxy, topic/author, external-sanity,
+   and performance evaluation gates;
+6. backend/frontend/unit/E2E builds and tests;
+7. paper/thesis compilation and PDF preflight/page rendering;
+8. sanitized release creation and archive scan;
+9. a final file-level SHA-256 reproduction manifest.
 
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
-```
+The working database, extracted text, chunks, and indexes remain under
+`tmp/reproduce/full` and are labeled restricted runtime payloads in the local
+manifest. They are never inserted into the release archive.
 
-Manual equivalent:
+## 5. Inspect outputs
 
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_downloader --from-db --limit 25 --download
-PYTHONPATH=backend .venv/bin/python -m app.ingestion.pdf_parser extract --limit 25
-PYTHONPATH=backend .venv/bin/python -m app.indexing.chunker chunk --limit 25
-PYTHONPATH=backend .venv/bin/python -m app.indexing.keyword_search rebuild
-PYTHONPATH=backend .venv/bin/python -m app.indexing.embedder index --provider hashing
-PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
-PYTHONPATH=backend .venv/bin/python -m app.intelligence.paper_artifact_generator batch \
-  --limit 5 \
-  --types paper_intelligence_bundle podcast_script \
-  --provider auto \
-  --max-chunks 12
-```
+- Reproduction workspace: `tmp/reproduce/<mode>/`
+- Command logs: `tmp/reproduce/<mode>/logs/`
+- Local run manifest: `tmp/reproduce/<mode>/reproduction_manifest.json`
+- Sanitized tarball and adjacent manifest/checksum: `build/releases/`
+- Committed performance evidence: `artifacts/phase6/performance/`
+- External sanity evidence: `artifacts/phase6/external_sanity/`
 
-The helper does not process all papers by default. It must use an isolated demo
-index and must never be cited as evidence of full-corpus coverage.
+Review every final PDF page visually after the automated rendered-page gate.
+Automated page generation proves renderability, not human-readable layout.
 
-## 5. Run The App
+## 6. Failures and non-claims
 
-Backend:
-
-```bash
-uvicorn app.main:app --reload --app-dir backend
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm run dev
-```
-
-Open `http://127.0.0.1:5173`.
-
-## 6. Evaluation
-
-Evaluation files under `data/evaluation/` are placeholders/templates unless manually reviewed.
-
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.retrieval_eval --questions data/evaluation/questions.jsonl --mode hybrid --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.qa_eval --questions data/evaluation/qa_questions.jsonl --mode hybrid --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.extension_eval --cases data/evaluation/extension_eval_cases.jsonl --top-k 5
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.artifact_eval --cases data/evaluation/artifact_eval_cases.jsonl
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.run_all
-```
-
-Automatic metrics only measure against the provided gold/test files. Human review templates are provided for manual thesis evaluation.
-
-## 7. Testing
-
-Backend:
-
-```bash
-PYTHONPATH=backend .venv/bin/python -m pytest
-```
-
-Frontend build:
-
-```bash
-cd frontend
-npm run build
-```
-
-Smoke check:
-
-```bash
-PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
-```
-
-## 8. Troubleshooting
-
-- Missing `pytest`: activate `.venv`, then run `python -m pip install -r backend/requirements.txt`.
-- Missing `.venv`: create it with `python -m venv .venv`.
-- Missing local SQLite DB: run seed import or `app.demo.prepare_demo`.
-- No PDFs downloaded: direct PDF links may be unavailable or network may be down; the app still demos metadata/search if chunks already exist locally.
-- Semantic index missing: run `PYTHONPATH=backend .venv/bin/python -m app.indexing.embedder index --provider hashing`.
-- Keyword index missing: run `PYTHONPATH=backend .venv/bin/python -m app.indexing.keyword_search rebuild`.
-- Topic explorer empty: run `PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild`.
-- Evaluation files not run: the Evaluation Dashboard will show `not_run`; this is expected until evaluators are run with reviewed cases.
-- CORS/API base URL issue: frontend defaults to `http://127.0.0.1:8000`; the backend allows both `http://localhost:5173` and `http://127.0.0.1:5173`.
-
-## 9. Git Hygiene
-
-Do not commit generated local artifacts:
-
-- `data/pdfs/`
-- `data/extracted_text/`
-- `data/chunks/`
-- `data/indexes/`
-- `data/generated/`
-- SQLite DB files
-- evaluation result JSON
+- A missing authorized DB/PDF/model is an explicit full-reproduction blocker;
+  the script exits rather than generating partial metrics.
+- A network failure remains in the discovery/external acquisition record and
+  is not converted into success.
+- A quick run is not full-corpus evidence.
+- Test/build success is engineering evidence, not retrieval, recommendation,
+  answer-quality, usability, or external-validity evidence.
+- No tag is created and no repository visibility changes automatically.

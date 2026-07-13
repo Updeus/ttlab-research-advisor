@@ -47,3 +47,4 @@ build/*
 # manifest under artifacts/baseline, never database/index bytes.
 artifacts/baseline/private-backups/
 artifacts/phase3/private/
+artifacts/phase6/external_sanity/raw/

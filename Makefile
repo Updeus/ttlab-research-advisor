@@ -1,6 +1,6 @@
 TECTONIC ?= $(shell command -v tectonic 2>/dev/null || { test -x "$(HOME)/.local/bin/tectonic" && printf '%s' "$(HOME)/.local/bin/tectonic"; })
 
-.PHONY: all thesis paper evidence clean
+.PHONY: all thesis paper evidence reproduce reproduce-quick release clean
 
 all: thesis paper
 
@@ -19,6 +19,15 @@ paper:
 evidence:
 	PYTHONPATH=backend .venv/bin/python thesis/scripts/collect_evidence.py
 	PYTHONPATH=backend .venv/bin/python thesis/scripts/runtime_probe.py
+
+reproduce:
+	./scripts/reproduce_all.sh --mode full
+
+reproduce-quick:
+	./scripts/reproduce_all.sh --mode quick
+
+release:
+	PYTHONPATH=backend .venv/bin/python -m app.reproducibility.release build --version 0.1.0-remediation
 
 clean:
 	rm -f build/thesis.aux build/thesis.bbl build/thesis.blg build/thesis.log build/thesis.out build/thesis.toc build/thesis.lof build/thesis.lot build/thesis.pdf

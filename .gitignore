@@ -44,6 +44,9 @@ build/*
 !build/ieee-paper.pdf
 !build/thesis-editable.docx
 
+# Personal supervisor-meeting aid generated from repository evidence.
+/output/pdf/ttlab-supervisor-meeting-cheat-sheet.pdf
+
 # Local, restricted baseline backups. Commit only the generated checksum
 # manifest under artifacts/baseline, never database/index bytes.
 artifacts/baseline/private-backups/

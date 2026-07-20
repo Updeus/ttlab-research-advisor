@@ -18,6 +18,9 @@ THESIS_ROOT = ROOT / "thesis"
 BIBLIOGRAPHY = THESIS_ROOT / "references.bib"
 PAPER_PDF = ROOT / "build" / "ieee-paper.pdf"
 THESIS_PDF = ROOT / "build" / "thesis.pdf"
+PAPER_MAX_PAGES = 6
+THESIS_MIN_PAGES = 75
+PAPER_REFERENCE_TARGET = range(18, 23)
 
 STALE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("obsolete commit", re.compile(r"713ea5c", re.IGNORECASE)),
@@ -81,6 +84,38 @@ def add_match_errors(
             errors.append(f"{path.relative_to(ROOT)}:{line_number(text, match.start())}: {description}")
 
 
+def citation_keys(text: str) -> list[str]:
+    """Return normalized keys from ordinary LaTeX citation commands."""
+
+    keys: list[str] = []
+    for citation in re.findall(r"\\cite\{([^}]+)\}", text):
+        keys.extend(key.strip() for key in citation.split(",") if key.strip())
+    return keys
+
+
+def manuscript_constraint_errors(
+    label: str,
+    pages: int,
+    *,
+    cited_references: int | None = None,
+) -> list[str]:
+    """Apply the supervisor's hard submission constraints without layout heuristics."""
+
+    errors: list[str] = []
+    if label == "paper":
+        if pages < 1 or pages > PAPER_MAX_PAGES:
+            errors.append(f"paper page count {pages} outside the hard 1-{PAPER_MAX_PAGES} page range")
+        if cited_references is not None and cited_references not in PAPER_REFERENCE_TARGET:
+            errors.append(
+                "paper cited-reference count "
+                f"{cited_references} outside the documented "
+                f"{min(PAPER_REFERENCE_TARGET)}-{max(PAPER_REFERENCE_TARGET)} target"
+            )
+    elif label == "thesis" and pages < THESIS_MIN_PAGES:
+        errors.append(f"thesis page count {pages} below the hard {THESIS_MIN_PAGES}-page minimum")
+    return errors
+
+
 def source_checks() -> tuple[list[str], dict[str, Any]]:
     errors: list[str] = []
     sources = read_sources()
@@ -105,6 +140,10 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         add_match_errors(errors, sources, description, pattern)
 
     combined = "\n".join(sources.values())
+    manuscript_groups = {
+        "paper": "\n".join(sources[path] for path in paper_tex_sources()),
+        "thesis": "\n".join(sources[path] for path in thesis_tex_sources()),
+    }
     labels = re.findall(r"\\label\{((?:fig|tab):[^}]+)\}", combined)
     duplicate_labels = sorted(label for label, count in Counter(labels).items() if count > 1)
     errors.extend(f"duplicate float label: {label}" for label in duplicate_labels)
@@ -115,15 +154,23 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         if not reference_pattern.search(combined):
             errors.append(f"unreferenced float label: {label}")
 
-    citation_keys: list[str] = []
-    for citation in re.findall(r"\\cite\{([^}]+)\}", combined):
-        citation_keys.extend(key.strip() for key in citation.split(",") if key.strip())
+    all_citation_keys = citation_keys(combined)
+    paper_citation_keys = citation_keys(manuscript_groups["paper"])
     bib_text = BIBLIOGRAPHY.read_text(encoding="utf-8")
     bib_keys = re.findall(r"@\w+\s*\{\s*([^,\s]+)\s*,", bib_text)
     duplicate_bib_keys = sorted(key for key, count in Counter(bib_keys).items() if count > 1)
     errors.extend(f"duplicate bibliography key: {key}" for key in duplicate_bib_keys)
-    missing_bib_keys = sorted(set(citation_keys) - set(bib_keys))
+    missing_bib_keys = sorted(set(all_citation_keys) - set(bib_keys))
     errors.extend(f"citation key missing from bibliography: {key}" for key in missing_bib_keys)
+
+    cited_reference_count = len(set(paper_citation_keys))
+    errors.extend(
+        manuscript_constraint_errors(
+            "paper",
+            1,
+            cited_references=cited_reference_count,
+        )
+    )
 
     required_identity = (
         "Jarod Esareesingh",
@@ -132,10 +179,6 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         "jarod.esareesingh@my.uwi.edu",
         "Trinidad and Tobago",
     )
-    manuscript_groups = {
-        "paper": "\n".join(sources[path] for path in paper_tex_sources()),
-        "thesis": "\n".join(sources[path] for path in thesis_tex_sources()),
-    }
     for manuscript, text in manuscript_groups.items():
         for value in required_identity:
             if value not in text:
@@ -148,8 +191,9 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         "paper_source_files": len(paper_tex_sources()),
         "thesis_source_files": len(thesis_tex_sources()),
         "float_labels": len(labels),
-        "citation_occurrences": len(citation_keys),
+        "citation_occurrences": len(all_citation_keys),
         "bibliography_entries": len(bib_keys),
+        "paper_cited_references": cited_reference_count,
     }
 
 
@@ -168,9 +212,9 @@ def parse_pdfinfo(path: Path) -> dict[str, str]:
 def pdf_checks() -> tuple[list[str], dict[str, Any]]:
     errors: list[str] = []
     report: dict[str, Any] = {}
-    for label, path, page_range, required_size in (
-        ("paper", PAPER_PDF, range(6, 9), "letter"),
-        ("thesis", THESIS_PDF, range(40, 501), "A4"),
+    for label, path, required_size in (
+        ("paper", PAPER_PDF, "letter"),
+        ("thesis", THESIS_PDF, "A4"),
     ):
         if not path.exists():
             errors.append(f"missing compiled PDF: {path.relative_to(ROOT)}")
@@ -185,11 +229,7 @@ def pdf_checks() -> tuple[list[str], dict[str, Any]]:
             pages = int(info.get("Pages", "0"))
         except ValueError:
             pages = 0
-        if pages not in page_range:
-            errors.append(
-                f"{label} page count {pages} outside required "
-                f"{min(page_range)}-{max(page_range)}"
-            )
+        errors.extend(manuscript_constraint_errors(label, pages))
         if required_size.casefold() not in info.get("Page size", "").casefold():
             errors.append(f"{label} page size is not {required_size}: {info.get('Page size', 'missing')}")
         for field in ("Title", "Author", "Subject", "Keywords"):

@@ -53,6 +53,10 @@ done
 [[ -n "$WORK" ]] || WORK="$ROOT/tmp/reproduce/$MODE"
 mkdir -p "$WORK/logs" "$WORK/artifacts"
 WORK="$(cd "$WORK" && pwd)"
+mkdir -p "$WORK/runtime-tmp"
+export TMPDIR="$WORK/runtime-tmp"
+export TEMP="$WORK/runtime-tmp"
+export TMP="$WORK/runtime-tmp"
 SOURCE_DB="$(realpath -m "$SOURCE_DB")"
 RUN_ROOT="$WORK/source"
 [[ ! -e "$RUN_ROOT" ]] || die "reproduction source snapshot already exists: $RUN_ROOT (choose a fresh --work-dir)"
@@ -146,14 +150,18 @@ if [[ "$MODE" == "full" ]]; then
 
   run_in_source seed-import "$PYTHON" -m app.ingestion.manual_import --seed "$RUN_ROOT/data/seed/papers.json"
   run_in_source metadata-repair "$PYTHON" -m app.ingestion.metadata_cleaner repair-authors
-  run_in_source pdf-identity-audit "$PYTHON" -m app.ingestion.metadata_cleaner audit-pdf-titles
   run_in_source extraction "$PYTHON" -m app.ingestion.pdf_parser extract --overwrite --out-dir "$RUN_ROOT/data/extracted_text"
+  run_in_source pdf-identity-audit "$PYTHON" -m app.ingestion.metadata_cleaner audit-pdf-titles
   run_in_source chunking "$PYTHON" -m app.indexing.chunker chunk --overwrite --out-dir "$RUN_ROOT/data/chunks"
   run_in_source keyword-index "$PYTHON" -m app.indexing.keyword_search rebuild
   run_in_source hashing-index "$PYTHON" -m app.indexing.embedder index \
-    --provider feature_hashing --out "$RUN_ROOT/data/indexes/feature_hashing_embeddings.json" --no-status-update
+    --provider feature_hashing --out "$RUN_ROOT/data/indexes/feature_hashing_embeddings.json"
   run_in_source dense-index "$PYTHON" -m app.indexing.embedder index \
-    --provider dense --out "$RUN_ROOT/data/indexes/dense_embeddings.json" --no-status-update --device cpu
+    --provider dense --out "$RUN_ROOT/data/indexes/dense_embeddings.json" --device cpu
+  run_in_source hashing-index-validation "$PYTHON" -m app.indexing.embedder validate \
+    --provider feature_hashing --index "$RUN_ROOT/data/indexes/feature_hashing_embeddings.json"
+  run_in_source dense-index-validation "$PYTHON" -m app.indexing.embedder validate \
+    --provider dense --index "$RUN_ROOT/data/indexes/dense_embeddings.json"
 
   [[ -z "$(git -C "$RUN_ROOT" status --porcelain --untracked-files=all)" ]] || die "source worktree changed before full performance benchmark"
   run_in_source performance-full "$PYTHON" -m app.evaluation.performance_benchmark \

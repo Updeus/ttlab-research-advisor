@@ -9,6 +9,7 @@ from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.indexing import embedder
 from app.indexing.embedder import (
+    DENSE_PROVIDER,
     DENSE_DIMENSIONS,
     DENSE_MODEL_NAME,
     DENSE_MODEL_REVISION,
@@ -87,6 +88,50 @@ def test_complete_manifest_records_required_provenance_and_repairs_statuses(tmp_
     assert len(report["index_sha256"]) == 64
     assert len(report["configuration_hash"]) == 64
     assert statuses == {"indexed:feature_hashing"}
+
+
+def test_sequential_authoritative_providers_keep_database_statuses_synchronized(tmp_path: Path) -> None:
+    """Regression for the full reproducer's feature-hashing then dense promotion."""
+
+    session, _engine = build_session(5)
+    feature_path = tmp_path / "feature.json"
+    dense_path = tmp_path / "dense.json"
+    dense_test_provider = HashingEmbeddingProvider(
+        dimensions=8,
+        name=DENSE_PROVIDER,
+        model_name="deterministic-test-dense",
+        model_revision="test-1",
+    )
+    try:
+        index_chunks(
+            session,
+            provider_name=FEATURE_HASHING_PROVIDER,
+            output_path=feature_path,
+            provider_override=small_hashing_provider(),
+        )
+        index_chunks(
+            session,
+            provider_name=DENSE_PROVIDER,
+            output_path=dense_path,
+            provider_override=dense_test_provider,
+        )
+        feature_report = validate_index_manifest(
+            session,
+            index_path=feature_path,
+            provider_name=FEATURE_HASHING_PROVIDER,
+        )
+        dense_report = validate_index_manifest(
+            session,
+            index_path=dense_path,
+            provider_name=DENSE_PROVIDER,
+        )
+        statuses = {chunk.embedding_status for chunk in session.exec(select(Chunk)).all()}
+    finally:
+        session.close()
+
+    assert feature_report["valid"] is True
+    assert dense_report["valid"] is True
+    assert statuses == {"indexed:dense,feature_hashing"}
 
 
 def test_25_of_756_partial_build_is_isolated_and_cannot_claim_readiness(tmp_path: Path) -> None:

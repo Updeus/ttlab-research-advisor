@@ -7,6 +7,7 @@ WORK=""
 INSTALL=0
 KEEP_WORK=1
 RELEASE_VERSION="0.1.0-remediation"
+RETAIN_DIR=""
 SOURCE_DB="$ROOT/data/papers.db"
 PYTHON="$ROOT/.venv/bin/python"
 RUN_ROOT=""
@@ -23,6 +24,7 @@ Options:
   --source-db PATH      authorized local source DB for full mode (default: data/papers.db)
   --install             install pinned Python and npm dependencies before verification
   --release-version V   sanitized release version (default: 0.1.0-remediation)
+  --retain-dir PATH     retain verified content-free attestations outside the isolated workspace
   --discard-work        remove the isolated workspace after a successful run
   -h, --help            show this help
 
@@ -43,6 +45,7 @@ while (($#)); do
     --source-db) SOURCE_DB="${2:-}"; shift 2 ;;
     --install) INSTALL=1; shift ;;
     --release-version) RELEASE_VERSION="${2:-}"; shift 2 ;;
+    --retain-dir) RETAIN_DIR="${2:-}"; shift 2 ;;
     --discard-work) KEEP_WORK=0; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "unknown option: $1" ;;
@@ -51,6 +54,9 @@ done
 
 [[ "$MODE" == "quick" || "$MODE" == "full" ]] || die "--mode must be quick or full"
 [[ -n "$WORK" ]] || WORK="$ROOT/tmp/reproduce/$MODE"
+if [[ -n "$RETAIN_DIR" && "$RETAIN_DIR" != /* ]]; then
+  RETAIN_DIR="$ROOT/$RETAIN_DIR"
+fi
 mkdir -p "$WORK/logs" "$WORK/artifacts"
 WORK="$(cd "$WORK" && pwd)"
 mkdir -p "$WORK/runtime-tmp"
@@ -265,7 +271,7 @@ REPRODUCED_RELEASE_ARCHIVE="$WORK/artifacts/reproduced_release_bundle/ttlab-rese
 run_in_source reproduced-release-verify "$PYTHON" -m app.reproducibility.release verify \
   "$REPRODUCED_RELEASE_ARCHIVE"
 
-log "final reproduction manifest (no output files are created after this gate)"
+log "final reproduction manifest (no further files are created inside the reproduction workspace)"
 (cd "$RUN_ROOT" && "$PYTHON" -m app.reproducibility.manifest \
   --root "$RUN_ROOT" --work "$WORK" --mode "$MODE" --out "$WORK/reproduction_manifest.json" \
   --source-commit "$SOURCE_COMMIT" --source-tree "$SOURCE_TREE" --source-clean-at-start)
@@ -273,6 +279,13 @@ log "final reproduction manifest (no output files are created after this gate)"
 log "independent reproduction checksum verification"
 (cd "$WORK" && sha256sum -c --quiet REPRODUCTION_SHA256SUMS)
 printf 'checksums=valid\n'
+
+if [[ -n "$RETAIN_DIR" ]]; then
+  log "retain verified content-free reproduction evidence"
+  "$PYTHON" "$RUN_ROOT/scripts/retain_reproduction_evidence.py" \
+    --work-dir "$WORK" --out-dir "$RETAIN_DIR" \
+    --expected-commit "$SOURCE_COMMIT" --expected-tree "$SOURCE_TREE"
+fi
 
 log "Reproduction completed: mode=$MODE source_commit=$SOURCE_COMMIT work=$WORK"
 if ((KEEP_WORK == 0)); then

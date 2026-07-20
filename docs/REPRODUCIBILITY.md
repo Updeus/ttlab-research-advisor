@@ -189,6 +189,24 @@ and yields a clean-source archive whose adjacent manifest/checksum and embedded
 manifest all verify. Those executed outputs, rather than an earlier local audit
 bundle, are authoritative.
 
+For a candidate-closing run, pass `--retain-dir` outside the isolated workspace:
+
+```bash
+candidate="$(git rev-parse --short HEAD)"
+scripts/reproduce_all.sh \
+  --mode full \
+  --source-db data/papers.db \
+  --work-dir "tmp/reproduce/final-${candidate}" \
+  --retain-dir "artifacts/phase6/reproduction/candidate-${candidate}"
+```
+
+The retention gate re-verifies the complete workspace inventory, exact source
+commit/tree, and clean starting state before atomically retaining only the
+reproduction manifest, checksum inventory, content-free summary, and sanitized
+release manifest/checksum attestations. Release archives stay in the isolated
+workspace and are referenced by hash; PDFs, databases, extracted/chunk text,
+indexes, model files, and archive payloads are not copied into the repository.
+
 The current standalone manuscript outputs are `build/ieee-paper.pdf` at 8
 Letter pages and `build/thesis.pdf` at 74 A4 pages. Their availability closes
 the earlier manuscript-drafting gap; exact-final-commit acceptance separately
@@ -220,6 +238,9 @@ tmp/reproduce/<mode>/artifacts/reproduced_release_bundle/*.manifest.json
 tmp/reproduce/<mode>/artifacts/reproduced_release_bundle/*.sha256
 tmp/reproduce/<mode>/source/build/ieee-paper.pdf
 tmp/reproduce/<mode>/source/build/thesis.pdf
+artifacts/phase6/reproduction/candidate-<commit>/RETAINED_EVIDENCE.json
+artifacts/phase6/reproduction/candidate-<commit>/reproduction_manifest.json
+artifacts/phase6/reproduction/candidate-<commit>/REPRODUCTION_SHA256SUMS
 ```
 
 These are reproduction-workspace paths. A standalone `make release` instead

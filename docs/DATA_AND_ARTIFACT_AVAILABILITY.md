@@ -83,6 +83,14 @@ embedded manifest and the actual archive root, source commit/tree, payload
 inventory, released sizes/hashes, redaction totals, or dependency-lock hashes.
 Existing commit-named release outputs are never silently overwritten.
 
+The final full reproducer can additionally retain repository-safe attestations
+with `--retain-dir artifacts/phase6/reproduction/candidate-<commit>`. This is a
+hash-and-metadata record, not a second data release: the retention command copies
+neither the archive nor any PDF, database, extracted/chunk text, index, model, or
+other restricted runtime payload. It records the isolated archive path, size,
+and SHA-256 and copies only the already sanitized adjacent release manifest and
+checksum.
+
 A standalone `make release` writes under `build/releases/`. The one-command
 reproduction instead constructs the same clean-source bundle under
 `tmp/reproduce/<mode>/artifacts/release_bundle/`, keeping run-local evidence

@@ -10,6 +10,7 @@ import type {
   ExtensionFinderResponse,
   ExtractionDiagnostics,
   GenerateArtifactsResponse,
+  IngestionSyncStatus,
   LocalLlmStatus,
   Paper,
   PaperArtifact,
@@ -81,6 +82,18 @@ async function getJson<T>(path: string): Promise<T> {
 async function patchJson<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw await parseError(response, path);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function postJson<T>(path: string, body: unknown = {}): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
   });
@@ -186,6 +199,18 @@ export async function generatePaperArtifacts(paperId: string): Promise<GenerateA
 
 export function fetchAdminOverview(): Promise<AdminOverview> {
   return getJson<AdminOverview>("/api/admin/overview");
+}
+
+export function fetchIngestionSyncStatus(): Promise<IngestionSyncStatus> {
+  return getJson<IngestionSyncStatus>("/api/admin/ingestion-sync");
+}
+
+export function requestIngestionSync(): Promise<{
+  accepted: boolean;
+  message: string;
+  sync: IngestionSyncStatus;
+}> {
+  return postJson("/api/admin/ingestion-sync/request");
 }
 
 export function fetchReviewQueue(params: {

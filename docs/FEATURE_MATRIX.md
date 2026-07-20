@@ -3,6 +3,7 @@
 | Feature | Implemented evidence | Public surface | Verification | Residual limitation |
 |---|---|---|---|---|
 | Catalogue discovery/import | `app.ingestion.ttlab_page`, `manual_import`, seeds | Papers/Dashboard | parser/import tests | Source markup and metadata can change; unknown fields remain unverified |
+| Scheduled catalogue synchronization | separate worker, daily timezone schedule, persisted lease/run history, new/changed/incomplete processing | Admin overview/status and manual request | sync orchestration/schedule/lease/auth/frontend tests | Requires a supervised worker and allowed egress; source changes can still require parser maintenance |
 | PDF acquisition | allowlisted/size/redirect/signature/path controls | Paper status | downloader/security tests | Permitted direct sources only; no paywall bypass |
 | Extraction and optional OCR | page provenance, scan diagnostics, PyMuPDF, optional Tesseract | Paper Detail | parser/OCR tests; Phase 1 evidence | Frozen corpus used no OCR; no OCR accuracy claim |
 | Corpus/PDF identity | eligibility/exclusion fields and title audit | Paper/Evaluation/Admin state | Phase 1 manifest/tests | 36 no-text records and two mismatches excluded |

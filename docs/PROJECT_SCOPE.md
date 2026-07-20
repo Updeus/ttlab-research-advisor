@@ -16,7 +16,8 @@ deployment.
 
 ## Included capabilities
 
-- archive discovery and idempotent seed import;
+- archive discovery, idempotent seed import, and a separately deployed daily
+  synchronization worker with persisted run status and an admin trigger;
 - allowlisted PDF acquisition, identity checks, page extraction, scan
   diagnostics, optional OCR, and conservative section-aware chunking;
 - explicit corpus eligibility and authoritative keyword/feature-hashing/dense

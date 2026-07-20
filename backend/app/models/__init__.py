@@ -1,6 +1,7 @@
 from app.models.author import Author, AuthorAlias
 from app.models.artifact import PaperArtifact
 from app.models.chunk import Chunk
+from app.models.ingestion import IngestionRun, IngestionSyncState
 from app.models.paper import Paper
 from app.models.rag import RAGAnswer
 from app.models.recommendation import ThesisRecommendation
@@ -12,6 +13,8 @@ __all__ = [
     "AuthorAlias",
     "AuthorTopic",
     "Chunk",
+    "IngestionRun",
+    "IngestionSyncState",
     "Paper",
     "PaperArtifact",
     "PaperTopic",

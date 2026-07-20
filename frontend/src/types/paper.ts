@@ -574,6 +574,46 @@ export type AdminOverview = {
   recent_review_events: ReviewEvent[];
 };
 
+export type IngestionRun = {
+  run_id: string;
+  source: string;
+  trigger: string;
+  requested_by: string | null;
+  status: "running" | "succeeded" | "failed" | "skipped" | string;
+  discovered_count: number;
+  created_count: number;
+  updated_count: number;
+  unchanged_count: number;
+  downloaded_count: number;
+  extracted_count: number;
+  chunked_count: number;
+  error_message: string | null;
+  summary: Record<string, unknown>;
+  started_at: string;
+  finished_at: string | null;
+};
+
+export type IngestionSyncStatus = {
+  source: "ttlab" | string;
+  enabled: boolean;
+  schedule: string;
+  timezone: string;
+  run_on_startup: boolean;
+  worker_poll_seconds: number;
+  download_pdfs: boolean;
+  dense_index_policy: "if_present" | "always" | "never" | string;
+  manual_trigger_allowed: boolean;
+  running: boolean;
+  manual_request_pending: boolean;
+  manual_requested_at: string | null;
+  manual_requested_by: string | null;
+  last_success_at: string | null;
+  last_failure_at: string | null;
+  next_scheduled_at: string | null;
+  last_run: IngestionRun | null;
+  recent_runs: IngestionRun[];
+};
+
 export type ReviewQueueItem = {
   item_type: "paper" | "rag_answer" | "thesis_recommendation" | "paper_artifact";
   item_id: string;

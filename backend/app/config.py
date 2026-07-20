@@ -1,7 +1,9 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -39,11 +41,50 @@ class Settings(BaseSettings):
     max_pdf_pages: int = 1_000
     max_pdf_redirects: int = 4
 
+    # The scheduler runs in a separate project-owned worker process.  The cron
+    # expression is intentionally restricted to one daily UTC/local-time run;
+    # this keeps the deployment deterministic without adding a scheduler
+    # dependency or allowing every API worker to launch ingestion.
+    sync_enabled: bool = False
+    sync_cron: str = "0 2 * * *"
+    sync_timezone: str = "America/La_Paz"
+    sync_run_on_startup: bool = False
+    sync_worker_poll_seconds: int = Field(default=30, ge=5, le=3_600)
+    sync_lock_minutes: int = Field(default=720, ge=5, le=1_440)
+    sync_max_pages: int = Field(default=3, ge=1, le=100)
+    sync_download_pdfs: bool = True
+    sync_dense_index_policy: Literal["if_present", "always", "never"] = "if_present"
+    sync_allow_dense_model_download: bool = False
+    sync_seed_path: Path = Path("data/seed/ttlab_publications_discovered.json")
+
     model_config = SettingsConfigDict(env_prefix="TTLAB_", env_file=".env")
 
     @property
     def project_root(self) -> Path:
         return Path(__file__).resolve().parents[2]
+
+    @field_validator("sync_cron")
+    @classmethod
+    def daily_sync_cron_only(cls, value: str) -> str:
+        fields = value.split()
+        if len(fields) != 5 or fields[2:] != ["*", "*", "*"]:
+            raise ValueError("TTLAB_SYNC_CRON must be a daily five-field expression such as '0 2 * * *'")
+        try:
+            minute, hour = (int(fields[0]), int(fields[1]))
+        except ValueError as exc:
+            raise ValueError("TTLAB_SYNC_CRON minute and hour must be integers") from exc
+        if not 0 <= minute <= 59 or not 0 <= hour <= 23:
+            raise ValueError("TTLAB_SYNC_CRON hour or minute is outside its valid range")
+        return f"{minute} {hour} * * *"
+
+    @field_validator("sync_timezone")
+    @classmethod
+    def valid_sync_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except ZoneInfoNotFoundError as exc:
+            raise ValueError("TTLAB_SYNC_TIMEZONE must be an installed IANA timezone") from exc
+        return value
 
 
 @lru_cache

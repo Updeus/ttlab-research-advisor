@@ -23,6 +23,12 @@ export TTLAB_AUTH_ACTORS_JSON='[{"token_sha256":"<digest>","actor_id":"<stable-i
 export TTLAB_ALLOWED_LLM_PROVIDERS='["offline_extractive","ollama"]'
 export TTLAB_ALLOWED_PDF_HOSTS='["lab.tt","temp.lab.tt"]'
 export TTLAB_DATABASE_URL=sqlite:////srv/ttlab/private/papers.db
+export TTLAB_SYNC_ENABLED=true
+export TTLAB_SYNC_CRON='0 2 * * *'
+export TTLAB_SYNC_TIMEZONE=America/La_Paz
+export TTLAB_SYNC_MAX_PAGES=3
+export TTLAB_SYNC_DOWNLOAD_PDFS=true
+export TTLAB_SYNC_DENSE_INDEX_POLICY=if_present
 ```
 
 Production startup validates the mode, actor/admin presence, HTTPS URL, exact
@@ -46,6 +52,58 @@ worker count.
 Serve the compiled frontend as static files. Configure SPA fallback to
 `index.html` only for frontend routes; never rewrite `/api/*`, `/health`, or
 `/ready` failures into HTML.
+
+## Scheduled ingestion worker
+
+Deploy one project-owned ingestion worker as a separate service. Do not start a
+scheduler in every API process. The worker uses the same database and derived-
+data directories as the API, while a persisted lease prevents a scheduled and
+manual run from overlapping. It imports only new or changed catalogue records;
+an empty or failed scrape records a failed run and preserves the current
+corpus.
+
+Example `/etc/systemd/system/ttlab-ingestion.service`:
+
+```ini
+[Unit]
+Description=TTLAB publication synchronization worker
+After=network-online.target ttlab-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ttlab
+Group=ttlab
+WorkingDirectory=/srv/ttlab/app
+EnvironmentFile=/etc/ttlab/advisor.env
+Environment=PYTHONPATH=/srv/ttlab/app/backend
+ExecStart=/srv/ttlab/app/.venv/bin/python -m app.ingestion.sync_worker
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/srv/ttlab/private /srv/ttlab/app/data
+
+[Install]
+WantedBy=multi-user.target
+```
+
+After installing or changing the unit:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now ttlab-ingestion.service
+sudo systemctl status ttlab-ingestion.service
+sudo journalctl -u ttlab-ingestion.service -n 100 --no-pager
+```
+
+The schedule accepts a fixed daily minute/hour expression only. The worker also
+polls for protected manual requests created from the Admin overview, even when
+`TTLAB_SYNC_ENABLED=false`. `TTLAB_SYNC_DENSE_INDEX_POLICY=if_present` avoids
+unexpected model acquisition: it refreshes dense retrieval only if an
+authoritative dense index already exists. Model download remains an explicit
+operator action.
 
 ## TLS proxy and network controls
 
@@ -72,7 +130,8 @@ Serve the compiled frontend as static files. Configure SPA fallback to
   local paths or internal exception details when a required gate fails.
 - Monitor liveness, readiness, 4xx/5xx rates, latency, disk/database size,
   backup age, index-manifest health, failed downloads/extractions, token failures,
-  and review/audit anomalies.
+  ingestion-worker liveness, missed/failed synchronization runs, pending manual
+  requests, and review/audit anomalies.
 
 Application logs intentionally contain only method, route template, status,
 duration, request ID, actor ID, and actor role. Disable Uvicorn raw access logs

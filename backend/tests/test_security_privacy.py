@@ -161,6 +161,19 @@ def test_admin_routes_require_token_enforce_roles_and_attribute_events() -> None
         client = TestClient(app)
         assert client.get("/api/admin/overview").status_code == 401
         assert client.get("/api/admin/overview", headers=auth(REVIEWER_TOKEN)).status_code == 200
+        reviewer_sync = client.get("/api/admin/ingestion-sync", headers=auth(REVIEWER_TOKEN))
+        assert reviewer_sync.status_code == 200
+        assert reviewer_sync.json()["manual_trigger_allowed"] is False
+        assert client.post("/api/admin/ingestion-sync/request", headers=auth(REVIEWER_TOKEN)).status_code == 403
+        queued_sync = client.post("/api/admin/ingestion-sync/request", headers=auth(ADMIN_TOKEN))
+        assert queued_sync.status_code == 202
+        assert queued_sync.json()["accepted"] is True
+        assert client.get("/api/admin/ingestion-sync", headers=auth(ADMIN_TOKEN)).json()[
+            "manual_trigger_allowed"
+        ] is True
+        duplicate_sync = client.post("/api/admin/ingestion-sync/request", headers=auth(ADMIN_TOKEN))
+        assert duplicate_sync.status_code == 202
+        assert duplicate_sync.json()["accepted"] is False
 
         forbidden = client.patch(
             "/api/admin/papers/secure-paper",

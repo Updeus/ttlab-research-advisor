@@ -19,7 +19,8 @@ claim is correct, complete, novel, feasible, or supervisor-approved.
 
 ## Implemented system
 
-- TTLAB archive discovery and deterministic seed import into SQLite.
+- TTLAB archive discovery, deterministic seed import, and an idempotent
+  project-owned synchronization worker for dedicated-server operation.
 - Allowlisted direct-PDF acquisition with file/size/page/redirect controls.
 - PyMuPDF page extraction, PDF/title identity checks, scanned-page diagnostics,
   optional Tesseract OCR, and page-aware deterministic chunking.
@@ -224,6 +225,46 @@ PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild
 The vector builders write atomic index/manifests and fail on incomplete
 authoritative coverage. Do not use a bounded demo path to regenerate published
 results.
+
+### Automated synchronization on a dedicated server
+
+Run synchronization as a separate long-lived process beside the one-worker API.
+It discovers the TTLAB catalogue on a daily schedule, imports only new or
+changed records, processes affected PDFs, rebuilds the required indexes, and
+persists every run and failure in SQLite. A database lease prevents overlapping
+runs. Empty discovery results fail without replacing the existing corpus.
+
+```bash
+export TTLAB_SYNC_ENABLED=true
+export TTLAB_SYNC_CRON='0 2 * * *'
+export TTLAB_SYNC_TIMEZONE=America/La_Paz
+export TTLAB_SYNC_MAX_PAGES=3
+export TTLAB_SYNC_DOWNLOAD_PDFS=true
+export TTLAB_SYNC_DENSE_INDEX_POLICY=if_present
+
+PYTHONPATH=backend .venv/bin/python -m app.ingestion.sync_worker
+```
+
+`TTLAB_SYNC_CRON` intentionally accepts one fixed daily hour/minute expression,
+such as `0 2 * * *`; the named IANA timezone controls its interpretation. The
+default dense policy rebuilds an existing dense index but does not download a
+model or create a new dense index unexpectedly. Keyword and feature-hashing
+indexes are rebuilt when paper chunks change.
+
+Useful operational commands:
+
+```bash
+# Run immediately in the foreground and return a non-zero status on failure.
+PYTHONPATH=backend .venv/bin/python -m app.ingestion.sync_worker --once
+
+# Inspect persisted scheduling state without contacting TTLAB.
+PYTHONPATH=backend .venv/bin/python -m app.ingestion.sync_worker --status
+```
+
+The protected Admin overview shows the schedule, recent result, and last error.
+An admin can queue an immediate run there; the API only records the request and
+the worker executes it, so web requests do not perform scraping or indexing.
+See [Deployment](docs/DEPLOYMENT.md) for a concrete service configuration.
 
 ## Use the intelligence features
 

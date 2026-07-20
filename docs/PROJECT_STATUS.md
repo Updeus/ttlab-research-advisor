@@ -10,6 +10,9 @@ Authoritative current status is maintained in
 
 - full-paper acquisition/extraction with identity, scan, optional OCR, and
   eligibility diagnostics;
+- a dedicated-server synchronization worker with a fixed daily timezone
+  schedule, overlap lease, new/changed/incomplete processing, persisted run
+  history, and protected admin trigger;
 - authoritative complete keyword, feature-hashing, and learned-dense
   representations over 96 eligible papers/719 eligible chunks;
 - route-based Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer,

@@ -16,6 +16,7 @@ state. It is not a synonym for factual correctness or complete entailment.
 
 ```text
 permitted catalogue/PDF sources
+  -> scheduled/manual sync request -> persisted lease and run history
   -> acquisition and identity audit
   -> page extraction / optional OCR
   -> deterministic section-aware chunks
@@ -49,6 +50,13 @@ dense index is not an acceptable degraded state.
 - `ingestion/ttlab_page.py` discovers and normalizes catalogue records without
   treating scraped fields as verified facts.
 - `ingestion/manual_import.py` idempotently imports seeds and author aliases.
+- `ingestion/sync.py` compares discoveries with stored records, atomically
+  snapshots normalized metadata, processes new/changed papers and retries
+  incomplete pipeline work, and records counts, failures, timestamps, and
+  request attribution.
+- `ingestion/sync_worker.py` owns the fixed daily schedule and manual-request
+  polling outside the API process. A SQLite lease with expiry prevents
+  overlapping workers; an empty discovery cannot replace the existing corpus.
 - `ingestion/pdf_downloader.py` limits permitted hosts, redirects, file size,
   URL schemes, and PDF validation; it does not bypass authentication or
   paywalls.
@@ -299,6 +307,14 @@ management, secrets, backups/restore tests, retention, monitoring/alerting,
 institutional identity or token provisioning, incident handling, correction/
 appeal contacts, and SPA fallback routing. Production must not expose local
 API docs or the insecure demo bypass.
+
+Dedicated-server operation uses one API worker plus one separately supervised
+ingestion worker. The API's reviewer-protected `GET /api/admin/ingestion-sync`
+exposes scheduling/run state; the admin-only
+`POST /api/admin/ingestion-sync/request` queues work rather than running network
+or indexing operations inside an HTTP request. The worker persists its next run,
+last success/failure, recent runs, and manual request state in SQLite. Filesystem
+and network restrictions remain deployment responsibilities.
 
 ## Current empirical design consequences
 

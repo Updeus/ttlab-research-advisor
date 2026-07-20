@@ -3,17 +3,19 @@ import type { KeyboardEvent, ReactNode } from "react";
 
 import {
   fetchAdminOverview,
+  fetchIngestionSyncStatus,
   fetchReviewEvents,
   fetchReviewQueue,
   patchAdminPaper,
   reviewAnswer,
   reviewArtifact,
   reviewRecommendation,
+  requestIngestionSync,
 } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { BusyButton, EmptyState, ListSkeleton, MetricSkeletonGrid } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
-import type { AdminOverview, Paper, ReviewEvent, ReviewQueueItem, ReviewStatus } from "../types/paper";
+import type { AdminOverview, IngestionSyncStatus, Paper, ReviewEvent, ReviewQueueItem, ReviewStatus } from "../types/paper";
 
 type AdminTab = "overview" | "queue" | "paper" | "artifacts" | "answers" | "recommendations" | "events";
 
@@ -38,6 +40,8 @@ const REVIEW_STATUSES: ReviewStatus[] = ["needs_review", "ai_reviewed", "reviewe
 export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReviewPageProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [syncStatus, setSyncStatus] = useState<IngestionSyncStatus | null>(null);
+  const [requestingSync, setRequestingSync] = useState(false);
   const [queue, setQueue] = useState<ReviewQueueItem[]>([]);
   const [queueTotal, setQueueTotal] = useState(0);
   const [events, setEvents] = useState<ReviewEvent[]>([]);
@@ -54,6 +58,7 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
     setError(null);
     Promise.all([
       fetchAdminOverview(),
+      fetchIngestionSyncStatus(),
       fetchReviewQueue({
         item_type: itemType || undefined,
         review_status: reviewStatus || undefined,
@@ -62,8 +67,9 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
       }),
       fetchReviewEvents({ limit: 30 }),
     ])
-      .then(([overviewData, queueData, eventRows]) => {
+      .then(([overviewData, syncData, queueData, eventRows]) => {
         setOverview(overviewData);
+        setSyncStatus(syncData);
         setQueue(queueData.items);
         setQueueTotal(queueData.total);
         setEvents(eventRows);
@@ -95,6 +101,17 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
     const text = err instanceof Error ? err.message : "Admin review action failed.";
     setError(text);
     onNotify?.(text, "error");
+  }
+
+  function queueIngestionSync() {
+    setRequestingSync(true);
+    requestIngestionSync()
+      .then((response) => {
+        setSyncStatus(response.sync);
+        onNotify?.(response.message, response.accepted ? "success" : "warning");
+      })
+      .catch(failAction)
+      .finally(() => setRequestingSync(false));
   }
 
   function handleTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -140,7 +157,15 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
       </div>
 
       <div role="tabpanel" id={`admin-panel-${activeTab}`} aria-labelledby={`admin-tab-${activeTab}`} tabIndex={0}>
-      {activeTab === "overview" ? <AdminOverviewPanel overview={overview} loading={loading} /> : null}
+      {activeTab === "overview" ? (
+        <AdminOverviewPanel
+          overview={overview}
+          syncStatus={syncStatus}
+          loading={loading}
+          requestingSync={requestingSync}
+          onRequestSync={queueIngestionSync}
+        />
+      ) : null}
       {activeTab === "queue" ? (
         <ReviewQueuePanel
           queue={queue}
@@ -191,7 +216,19 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify }: AdminReview
   );
 }
 
-function AdminOverviewPanel({ overview, loading }: { overview: AdminOverview | null; loading: boolean }) {
+function AdminOverviewPanel({
+  overview,
+  syncStatus,
+  loading,
+  requestingSync,
+  onRequestSync,
+}: {
+  overview: AdminOverview | null;
+  syncStatus: IngestionSyncStatus | null;
+  loading: boolean;
+  requestingSync: boolean;
+  onRequestSync: () => void;
+}) {
   if (loading && !overview) {
     return (
       <>
@@ -208,6 +245,50 @@ function AdminOverviewPanel({ overview, loading }: { overview: AdminOverview | n
   }
   return (
     <>
+      <article className="admin-card ingestion-sync-card" aria-labelledby="ingestion-sync-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Automated acquisition</p>
+            <h2 id="ingestion-sync-title">TTLAB publication synchronization</h2>
+          </div>
+          <StatusBadge
+            label={syncStatus?.running ? "running" : syncStatus?.enabled ? "scheduled" : "manual only"}
+            tone={syncStatus?.running ? "warn" : syncStatus?.enabled ? "good" : "neutral"}
+          />
+        </div>
+        {syncStatus ? (
+          <div className="ingestion-sync-details">
+            <p>
+              {syncStatus.enabled
+                ? `Daily schedule: ${syncStatus.schedule} (${syncStatus.timezone}).`
+                : "Scheduled polling is disabled. The dedicated worker can still process a protected manual request."}
+            </p>
+            <dl className="detail-list detail-list--compact">
+              <div><dt>Next scheduled run</dt><dd>{syncStatus.next_scheduled_at ? formatDate(syncStatus.next_scheduled_at) : "Not scheduled"}</dd></div>
+              <div><dt>Last successful run</dt><dd>{syncStatus.last_success_at ? formatDate(syncStatus.last_success_at) : "No successful run yet"}</dd></div>
+              <div><dt>Last result</dt><dd>{syncStatus.last_run?.status ?? "No runs recorded"}</dd></div>
+              <div><dt>Manual request</dt><dd>{syncStatus.manual_request_pending ? "Queued" : "None pending"}</dd></div>
+            </dl>
+            {syncStatus.last_run?.error_message ? <p className="notice notice--error">{syncStatus.last_run.error_message}</p> : null}
+          </div>
+        ) : <p>Worker status is unavailable.</p>}
+        <div>
+          <BusyButton
+            busy={requestingSync}
+            busyLabel="Queueing..."
+            onClick={onRequestSync}
+            disabled={Boolean(syncStatus?.manual_request_pending) || syncStatus?.manual_trigger_allowed === false}
+          >
+            {syncStatus?.manual_request_pending
+              ? "Synchronization queued"
+              : syncStatus?.manual_trigger_allowed === false
+                ? "Admin role required"
+                : "Request synchronization now"}
+          </BusyButton>
+        </div>
+        <p className="field-help">The API records this request; the separately deployed ingestion worker performs the network and indexing work.</p>
+      </article>
+
       <div className="metrics-grid admin-metrics">
         <Metric label="Papers needing review" value={overview.papers_needing_metadata_review} />
         <Metric label="Missing PDFs" value={overview.papers_missing_pdfs} />

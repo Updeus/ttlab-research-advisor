@@ -9,9 +9,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlmodel import Session, desc, func, select
 
+from app.config import Settings, get_settings
 from app.db import get_session
+from app.ingestion.sync import ingestion_sync_status, request_manual_sync
 from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
-from app.security import AuthenticatedActor, require_reviewer
+from app.security import AuthenticatedActor, require_admin, require_reviewer
 
 router = APIRouter(
     prefix="/api/admin",
@@ -91,6 +93,37 @@ class AnswerReviewRequest(BaseModel):
 class ExtractionReviewRequest(BaseModel):
     review_status: ReviewStatus
     reviewer_notes: Optional[str] = Field(default=None, max_length=4_000)
+
+
+@router.get("/ingestion-sync")
+def get_ingestion_sync(
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
+) -> dict[str, Any]:
+    return {
+        **ingestion_sync_status(session, settings),
+        "manual_trigger_allowed": actor.role == "admin",
+    }
+
+
+@router.post("/ingestion-sync/request", status_code=202)
+def request_ingestion_sync(
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    actor: Annotated[AuthenticatedActor, Depends(require_admin)],
+) -> dict[str, Any]:
+    _state, accepted = request_manual_sync(session, actor.actor_id)
+    return {
+        "accepted": accepted,
+        "message": "Synchronization request queued for the ingestion worker."
+        if accepted
+        else "A manual synchronization request is already pending.",
+        "sync": {
+            **ingestion_sync_status(session, settings),
+            "manual_trigger_allowed": True,
+        },
+    }
 
 
 @router.get("/overview")

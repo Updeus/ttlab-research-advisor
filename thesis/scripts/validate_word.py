@@ -28,8 +28,8 @@ NS = {
 }
 
 TITLE = (
-    "Engineering and Evaluating a Source-Traceable Research-Intelligence "
-    "Platform for a Laboratory Corpus"
+    "An AI-Based Platform for Content Summarization and Idea Generation "
+    "using a Research Lab’s Output"
 )
 AUTHOR = "Jarod Esareesingh"
 SUBJECT = (

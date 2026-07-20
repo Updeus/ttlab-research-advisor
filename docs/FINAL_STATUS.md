@@ -22,8 +22,8 @@ and venue decisions are in `docs/EXTERNAL_SUBMISSION_CHECKS.md`.
 ## Delivered manuscripts
 
 - `build/ieee-paper.pdf` is an eight-page US Letter IEEEtran paper titled
-  *Engineering and Evaluating a Source-Traceable Research-Intelligence Platform
-  for a Laboratory Corpus*.
+  *An AI-Based Platform for Content Summarization and Idea Generation using a
+  Research Lab’s Output*.
 - `build/thesis.pdf` is a 74-page A4 MSc Data Science project thesis.
 - Both documents identify Jarod Esareesingh, the Department of Computing &
   Information Technology, The University of the West Indies,

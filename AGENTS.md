@@ -15,7 +15,7 @@ The original paper automated publication collection, display, lay summarization,
 
 Working title:
 
-> From Publication Archive to Research Advisor: A RAG-Based Platform for Academic Discovery
+> An AI-Based Platform for Content Summarization and Idea Generation using a Research Lab’s Output
 
 ---
 

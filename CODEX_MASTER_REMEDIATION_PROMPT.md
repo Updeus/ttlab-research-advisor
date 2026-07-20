@@ -4,7 +4,7 @@ You are the principal engineer, empirical evaluator, research-methodology author
 
 - Repository: `https://github.com/Updeus/ttlab-research-advisor`
 - Project: **TTLAB Research Intelligence Platform**
-- Intended paper direction: **From Publication Archive to Research Advisor: A RAG-Based Platform for Academic Discovery**
+- Current thesis and paper title: **An AI-Based Platform for Content Summarization and Idea Generation using a Research Lab’s Output**
 
 This is an explicit, one-pass authorization to address multiple major phases. Do not stop after writing a plan, identifying issues, or making editorial changes. Continue through implementation, evaluation, documentation, manuscript revision, compilation, and final verification. Work in small, reviewable commits while completing the whole remediation program on one branch.
 
@@ -428,7 +428,7 @@ Commit this phase separately.
 
 Choose a title supported by the final evidence. If advisory usefulness is not human-validated, use restrained wording such as:
 
-> Engineering and Evaluating a Source-Traceable Research-Intelligence Platform for a Laboratory Corpus
+> An AI-Based Platform for Content Summarization and Idea Generation using a Research Lab’s Output
 
 or
 

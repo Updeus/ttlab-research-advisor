@@ -119,7 +119,8 @@ run_in_source python-lock-validation "$PYTHON" -m app.reproducibility.environmen
   --lock "$RUN_ROOT/backend/requirements-lock.txt" \
   --out "$WORK/artifacts/environment/python_environment.json"
 run_logged python-dependency-check "$PYTHON" -m pip check
-run_logged python-security-audit "$PYTHON" -m pip_audit --skip-editable
+run_logged python-security-audit "$PYTHON" -m pip_audit --skip-editable \
+  --vulnerability-service osv --strict
 run_logged frontend-security-audit npm --prefix "$RUN_ROOT/frontend" audit --audit-level=high
 
 [[ -z "$(git -C "$RUN_ROOT" status --porcelain --untracked-files=all)" ]] || die "source worktree changed before clean release construction"

@@ -35,6 +35,14 @@ def test_full_reproduction_enters_explicit_offline_worker_for_extraction() -> No
     assert "export TTLAB_SERVICE_ROLE=offline_worker" not in script
 
 
+def test_full_reproduction_fails_loudly_without_tesseract() -> None:
+    script = (ROOT / "scripts" / "reproduce_all.sh").read_text(encoding="utf-8")
+
+    assert 'if [[ "$MODE" == "full" ]]; then' in script
+    assert "command -v tesseract >/dev/null" in script
+    assert "full remediation-v2 OCR fixture and corpus extraction" in script
+
+
 def test_reproduction_workspace_is_new_sentinel_owned_and_cleanup_guarded() -> None:
     script_path = ROOT / "scripts" / "reproduce_all.sh"
     script = script_path.read_text(encoding="utf-8")

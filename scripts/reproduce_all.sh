@@ -116,6 +116,10 @@ command -v pdffonts >/dev/null || die "pdffonts is required for PDF preflight"
 command -v pdftotext >/dev/null || die "pdftotext is required for PDF preflight"
 command -v pdftoppm >/dev/null || die "pdftoppm is required for page rendering"
 command -v rg >/dev/null || die "ripgrep (rg) is required for fail-loud manuscript text checks"
+if [[ "$MODE" == "full" ]]; then
+  command -v tesseract >/dev/null || \
+    die "tesseract is required for the full remediation-v2 OCR fixture and corpus extraction"
+fi
 SOURCE_COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
 SOURCE_TREE="$(git -C "$ROOT" rev-parse "${SOURCE_COMMIT}^{tree}")"
 git -C "$ROOT" worktree add --detach "$RUN_ROOT" "$SOURCE_COMMIT" >/dev/null

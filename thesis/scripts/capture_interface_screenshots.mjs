@@ -506,33 +506,63 @@ async function stageLocatorScreenshot(page, filename, locator) {
 }
 
 async function stageRangeScreenshot(page, filename, locators) {
-  const boxes = [];
-  for (const locator of locators) {
-    await locator.waitFor({ state: "visible", timeout: 120_000 });
-    const box = await locator.boundingBox();
-    assert(box && box.width > 0 && box.height > 0, `Cannot resolve one screenshot range for ${filename}.`);
-    boxes.push(box);
+  const resolveClip = async () => {
+    const boxes = [];
+    for (const locator of locators) {
+      await locator.waitFor({ state: "visible", timeout: 120_000 });
+      const box = await locator.boundingBox();
+      assert(box && box.width > 0 && box.height > 0, `Cannot resolve one screenshot range for ${filename}.`);
+      boxes.push(box);
+    }
+    const left = Math.max(0, Math.min(...boxes.map((box) => box.x)) - 2);
+    const top = Math.max(0, Math.min(...boxes.map((box) => box.y)) - 2);
+    const right = Math.max(...boxes.map((box) => box.x + box.width)) + 2;
+    const bottom = Math.max(...boxes.map((box) => box.y + box.height)) + 2;
+    return { x: left, y: top, width: right - left, height: bottom - top };
+  };
+
+  const originalViewport = page.viewportSize();
+  assert(originalViewport, `Cannot resolve viewport before capturing ${filename}.`);
+  let clip = await resolveClip();
+  const requiredViewportHeight = Math.ceil(clip.y + clip.height + 8);
+  assert(requiredViewportHeight <= 4_000, `${filename} requires an unexpectedly tall capture viewport.`);
+  if (requiredViewportHeight > originalViewport.height) {
+    await page.setViewportSize({ width: originalViewport.width, height: requiredViewportHeight });
+    clip = await resolveClip();
   }
-  const left = Math.max(0, Math.min(...boxes.map((box) => box.x)) - 2);
-  const top = Math.max(0, Math.min(...boxes.map((box) => box.y)) - 2);
-  const right = Math.max(...boxes.map((box) => box.x + box.width)) + 2;
-  const bottom = Math.max(...boxes.map((box) => box.y + box.height)) + 2;
-  const clip = { x: left, y: top, width: right - left, height: bottom - top };
   const target = path.join(outputDirectory, filename);
   await refuseExistingFile(target);
   await page.screenshot({ path: target, clip, animations: "disabled", caret: "hide" });
   await recordCapture(filename, target, clip);
+  if (page.viewportSize()?.height !== originalViewport.height) {
+    await page.setViewportSize(originalViewport);
+  }
 }
 
 async function recordCapture(filename, target, bounds) {
   const stat = await fs.stat(target);
+  const png = await fs.readFile(target);
+  const dimensions = pngDimensions(png, filename);
+  assert(
+    dimensions.width >= Math.floor(bounds.width) - 1 && dimensions.height >= Math.floor(bounds.height) - 1,
+    `${filename} is physically smaller than its declared capture region (${dimensions.width}x${dimensions.height} versus ${Math.round(bounds.width)}x${Math.round(bounds.height)} CSS pixels).`,
+  );
   report.captures.push({
     filename,
-    sha256: sha256(await fs.readFile(target)),
+    sha256: sha256(png),
     bytes: stat.size,
     width_css_px: Math.round(bounds.width),
     height_css_px: Math.round(bounds.height),
+    width_px: dimensions.width,
+    height_px: dimensions.height,
   });
+}
+
+function pngDimensions(buffer, filename) {
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  assert(buffer.length >= 24 && buffer.subarray(0, 8).equals(signature), `${filename} is not a valid PNG capture.`);
+  assert(buffer.subarray(12, 16).toString("ascii") === "IHDR", `${filename} has no PNG IHDR header.`);
+  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
 }
 
 function localOrigin(raw, label) {

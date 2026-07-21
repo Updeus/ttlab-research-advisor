@@ -815,6 +815,22 @@ textarea:focus {
   margin-top: 18px;
 }
 
+.evaluation-v2-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #b9d8ce;
+  border-radius: 8px;
+  background: #f4faf7;
+}
+
+.evaluation-v2-panel > .paper-card__badges {
+  margin-top: 12px;
+}
+
+.evaluation-history {
+  margin-top: 30px;
+}
+
 .admin-grid,
 .evaluation-grid,
 .explorer-columns,

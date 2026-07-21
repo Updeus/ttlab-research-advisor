@@ -736,6 +736,101 @@ export type EvaluationSectionStatus = {
   [key: string]: unknown;
 };
 
+export type EvaluationV2QaSummary = {
+  case_count: number;
+  counts?: Record<string, number>;
+  metrics: {
+    answerability_precision?: number | null;
+    answerability_recall?: number | null;
+    false_positive_rate?: number | null;
+    abstention_rate?: number | null;
+    abstention_accuracy?: number | null;
+    exact_gold_locator_citation_precision?: number | null;
+    citation_completeness?: number | null;
+    returned_citation_utilization?: number | null;
+    answer_point_coverage?: number | null;
+  };
+};
+
+export type EvaluationV2FinderSummary = {
+  profile_count: number;
+  counts?: Record<string, number>;
+  metrics: {
+    evidence_only_hit_at_3?: number | null;
+    full_finder_hit_at_3?: number | null;
+    paired_hit_at_3_delta?: number | null;
+    evidence_only_mrr?: number | null;
+    full_finder_mrr?: number | null;
+    paired_mrr_delta?: number | null;
+    candidate_specific_template_conformance_rate?: number | null;
+    source_fact_suggestion_separation_rate?: number | null;
+    unknown_implementation_time_retention_rate?: number | null;
+    full_profile_constraint_contract_fidelity_rate?: number | null;
+  };
+};
+
+export type EvaluationV2TopicSummary = {
+  case_count: number;
+  vocabulary_size?: number;
+  label_scope?: "positive_only_not_exhaustive_closed_world" | string;
+  known_positive_micro?: {
+    matched?: number;
+    missed?: number;
+    recall?: number | null;
+  };
+  known_positive_case_coverage_rate?: number | null;
+  unadjudicated_predictions?: {
+    count?: number;
+    total_predictions?: number;
+    share?: number | null;
+    false_positive_interpretation_permitted?: boolean;
+  };
+};
+
+export type EvaluationV2OcrSummary = {
+  status?: string;
+  metrics?: {
+    normalized_exact_match?: boolean;
+    character_error_rate?: number | null;
+    word_error_rate?: number | null;
+    repeat_run_text_identical?: boolean;
+    repeat_run_text_artifact_identical?: boolean;
+    repeat_run_configuration_identical?: boolean;
+    repeat_run_sanitized_pipeline_result_identical?: boolean;
+    ocr_status?: string;
+  };
+  claim_boundary?: string;
+};
+
+export type EvaluationV2Package = {
+  status: string;
+  evaluation_id?: string | null;
+  evidence_tier: string;
+  reviewer_type?: string | null;
+  human_validation: boolean;
+  entailment_claimed?: boolean;
+  technical_scope_only?: boolean;
+  public_projection_exercised?: boolean;
+  qa_test?: EvaluationV2QaSummary | null;
+  finder_test?: EvaluationV2FinderSummary | null;
+  topics_test?: EvaluationV2TopicSummary | null;
+  ocr?: EvaluationV2OcrSummary | null;
+  claim_boundary?: string | null;
+  manifest_path?: string;
+  result_files?: Record<string, { path: string; exists: boolean; last_modified: string | null }>;
+};
+
+export type EvaluationV2Freshness = {
+  status: "current" | "stale" | "not_run" | "invalid" | string;
+  path?: string;
+  checks?: Record<string, string>;
+  identity_mismatches?: Record<string, string[]>;
+  errors?: string[];
+  freshness_contract?: string;
+  head_commit_compared?: boolean;
+  docs_only_commits_affect_freshness?: boolean;
+};
+
 export type EvaluationDashboard = {
   evaluation_label?: string;
   reviewer_type?: string;
@@ -747,6 +842,7 @@ export type EvaluationDashboard = {
     current_commit?: string;
     current_corpus_snapshot_hash?: string;
     current_configuration_hash?: string;
+    peer_review_remediation_v2?: EvaluationV2Freshness;
     artifacts?: Record<string, {
       status: string;
       checks?: Record<string, string>;
@@ -756,6 +852,7 @@ export type EvaluationDashboard = {
       path?: string;
     }>;
   };
+  peer_review_remediation_v2?: EvaluationV2Package;
   retrieval: EvaluationSectionStatus & {
     question_count: number;
     recall_at_3: number | null;

@@ -42,7 +42,8 @@ PYTHONPATH=backend .venv/bin/python -m app.reproducibility.database_snapshot \
   --source data/papers.db \
   --target "$capture_root/papers.db" \
   --evidence "$capture_root/database-snapshot.json"
-cp -a data/indexes "$capture_root/indexes"
+mkdir "$capture_root/data"
+cp -a data/indexes "$capture_root/data/indexes"
 ```
 
 Start the backend from `capture_root` so all relative index paths resolve to the
@@ -70,7 +71,7 @@ TTLAB_SCREENSHOT_SOURCE_DB_SHA256="$source_db_sha256" \
 TTLAB_SCREENSHOT_SOURCE_DB_FAMILY_SHA256="$source_db_family_sha256" \
 TTLAB_SCREENSHOT_RUNTIME_DB_PATH="$capture_root/papers.db" \
 TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE="$capture_root/database-snapshot.json" \
-TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR="$capture_root/indexes" \
+TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR="$capture_root/data/indexes" \
 TTLAB_SCREENSHOT_OUTPUT_DIR="$capture_root/staged" \
 node thesis/scripts/capture_interface_screenshots.mjs
 ```

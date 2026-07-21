@@ -60,18 +60,17 @@ Frontend route set & 12.496 & 12.807 & 12.463 & 12.631 \\}
 \newcommand{\QaCitationUtilization}{0.592}
 \newcommand{\QaClaimCount}{400}
 \newcommand{\QaCorrectCitationCount}{250}
-\newcommand{\QaPartialCitationCount}{142}
-\newcommand{\QaIncorrectCitationCount}{8}
 \newcommand{\QaCoveredAnswerPointCount}{11}
-\newcommand{\QaPartiallyCoveredAnswerPointCount}{37}
-\newcommand{\QaMissingAnswerPointCount}{33}
-\newcommand{\QaReturnedCitationCount}{250}
-\newcommand{\QaUsedReturnedCitationCount}{148}
 \newcommand{\QaFalsePositiveCaseCount}{4}
 \newcommand{\QaIncompleteCaseCount}{44}
 \newcommand{\QaIncorrectCitationCaseCount}{4}
+\newcommand{\QaIncorrectCitationCount}{8}
+\newcommand{\QaMissingAnswerPointCount}{33}
 \newcommand{\QaOffTopicRetrievalCaseCount}{42}
+\newcommand{\QaPartialCitationCount}{142}
+\newcommand{\QaPartiallyCoveredAnswerPointCount}{37}
 \newcommand{\QaPartiallySupportedClaimCount}{2}
+\newcommand{\QaReturnedCitationCount}{250}
 \newcommand{\QaSentenceSelectionMissCaseCount}{12}
 \newcommand{\QaSupportedClaimCount}{398}
 \newcommand{\QaSupportedClaimRate}{0.995}
@@ -81,6 +80,7 @@ Frontend route set & 12.496 & 12.807 & 12.463 & 12.631 \\}
 \newcommand{\QaUnanswerableAbstentionRate}{0.000}
 \newcommand{\QaUnanswerableCaseCount}{4}
 \newcommand{\QaUnsupportedClaimCount}{0}
+\newcommand{\QaUsedReturnedCitationCount}{148}
 \newcommand{\QaWithinPaperMissCaseCount}{14}
 \newcommand{\RawAuthorRowCount}{136}
 \newcommand{\RawChunkCount}{735}
@@ -149,15 +149,20 @@ Frontend route set & 12.496 & 12.807 & 12.463 & 12.631 \\}
 \newcommand{\TopicDensePrecision}{0.417}
 \newcommand{\TopicDenseRecall}{0.694}
 \newcommand{\TopicDevCount}{36}
+\newcommand{\TopicLabelErrorRows}{Agriculture & 2 & 1 & 0 & 0.667 & 1.000 \\
+AI & 0 & 0 & 4 & 0.000 & 0.000 \\
+Clustering & 3 & 1 & 0 & 0.750 & 1.000 \\
+Energy & 1 & 0 & 2 & 1.000 & 0.333 \\
+Networks & 0 & 2 & 2 & 0.000 & 0.000 \\
+RAG & 2 & 0 & 0 & 1.000 & 1.000 \\}
 \newcommand{\TopicLexicalCoverage}{0.875}
 \newcommand{\TopicLexicalFone}{0.556}
 \newcommand{\TopicLexicalPrecision}{0.652}
 \newcommand{\TopicLexicalRecall}{0.484}
+\newcommand{\TopicSupportedTestLabelCount}{26}
 \newcommand{\TopicTestCount}{24}
 \newcommand{\TopicVocabularyCount}{40}
-\newcommand{\TopicSupportedTestLabelCount}{26}
 \newcommand{\TopicZeroGoldTestLabelCount}{14}
-\newcommand{\TopicLabelErrorRows}{Agriculture & 2 & 1 & 0 & 0.667 & 1.000 \\ AI & 0 & 0 & 4 & 0.000 & 0.000 \\ Clustering & 3 & 1 & 0 & 0.750 & 1.000 \\ Energy & 1 & 0 & 2 & 1.000 & 0.333 \\ Networks & 0 & 2 & 2 & 0.000 & 0.000 \\ RAG & 2 & 0 & 0 & 1.000 & 1.000 \\}
 \newcommand{\TunedMinusDenseAdjustedP}{1.000}
 \newcommand{\TunedMinusDenseMrr}{-0.079}
 \newcommand{\TunedMinusDenseMrrHigh}{0.000}
@@ -173,3 +178,75 @@ Frontend route set & 12.496 & 12.807 & 12.463 & 12.631 \\}
 \newcommand{\TunedMinusKeywordMrrHigh}{0.044}
 \newcommand{\TunedMinusKeywordMrrLow}{-0.237}
 \newcommand{\TunedMinusKeywordRawP}{0.375}
+% Explicit layout-only fallback; remediation-v2 has not produced a validated package.
+% These values are placeholders, not experimental evidence and not submission-ready.
+\newcommand{\VTwoEvidenceTier}{not available (v2 not run)}
+\newcommand{\VTwoRunStatus}{not\_run}
+\newcommand{\VTwoEvaluationId}{peer-review-remediation-v2}
+\newcommand{\VTwoEvaluationSourceCommitPrefix}{not run}
+\newcommand{\VTwoProtocolShaPrefix}{not run}
+\newcommand{\VTwoFrozenDatasetShaPrefix}{not run}
+\newcommand{\VTwoLockedEnvironmentShaPrefix}{not run}
+\newcommand{\VTwoCorpusSnapshotId}{not run}
+\newcommand{\VTwoCorpusSnapshotShaPrefix}{not run}
+\newcommand{\VTwoTechnicalEligiblePapers}{not run}
+\newcommand{\VTwoTechnicalEligibleChunks}{not run}
+\newcommand{\VTwoKeywordIndexCompleteness}{not run}
+\newcommand{\VTwoKeywordConfigurationShaPrefix}{not run}
+\newcommand{\VTwoEvaluationScope}{not evaluated}
+\newcommand{\VTwoPublicProjectionExercised}{no}
+\newcommand{\VTwoExternalProviderInvoked}{no}
+\newcommand{\VTwoQAProvider}{not run}
+\newcommand{\VTwoQAModel}{not run}
+\newcommand{\VTwoFinderProvider}{not run}
+\newcommand{\VTwoFinderModel}{not run}
+\newcommand{\VTwoTopicMethod}{not run}
+\newcommand{\VTwoOCRProvider}{not run}
+\newcommand{\VTwoOCRProviderVersion}{not run}
+\newcommand{\VTwoQATestCases}{not run}
+\newcommand{\VTwoQAAnswerabilityPrecision}{not run}
+\newcommand{\VTwoQAAnswerabilityPrecisionCi}{not run}
+\newcommand{\VTwoQAAnswerabilityRecall}{not run}
+\newcommand{\VTwoQAAnswerabilityRecallCi}{not run}
+\newcommand{\VTwoQAFalsePositiveRate}{not run}
+\newcommand{\VTwoQAFalsePositiveRateCi}{not run}
+\newcommand{\VTwoQAAbstentionRate}{not run}
+\newcommand{\VTwoQAAbstentionRateCi}{not run}
+\newcommand{\VTwoQACitationLocatorPrecision}{not run}
+\newcommand{\VTwoQACitationLocatorPrecisionCi}{not run}
+\newcommand{\VTwoQACitationCompleteness}{not run}
+\newcommand{\VTwoQACitationCompletenessCi}{not run}
+\newcommand{\VTwoQAAnswerPointCoverage}{not run}
+\newcommand{\VTwoQAAnswerPointCoverageCi}{not run}
+\newcommand{\VTwoFinderTestProfiles}{not run}
+\newcommand{\VTwoFinderEvidenceHitAtThree}{not run}
+\newcommand{\VTwoFinderEvidenceHitAtThreeCi}{not run}
+\newcommand{\VTwoFinderFullHitAtThree}{not run}
+\newcommand{\VTwoFinderFullHitAtThreeCi}{not run}
+\newcommand{\VTwoFinderHitAtThreeDelta}{not run}
+\newcommand{\VTwoFinderHitAtThreeDeltaCi}{not run}
+\newcommand{\VTwoFinderEvidenceMRR}{not run}
+\newcommand{\VTwoFinderEvidenceMRRCi}{not run}
+\newcommand{\VTwoFinderFullMRR}{not run}
+\newcommand{\VTwoFinderFullMRRCi}{not run}
+\newcommand{\VTwoFinderMRRDelta}{not run}
+\newcommand{\VTwoFinderMRRDeltaCi}{not run}
+\newcommand{\VTwoFinderTemplateConformance}{not run}
+\newcommand{\VTwoFinderFactSuggestionSeparation}{not run}
+\newcommand{\VTwoFinderUnknownTimeRetention}{not run}
+\newcommand{\VTwoFinderConstraintFidelity}{not run}
+\newcommand{\VTwoTopicTestCases}{not run}
+\newcommand{\VTwoTopicKnownPositiveRecall}{not run}
+\newcommand{\VTwoTopicKnownPositiveRecallCi}{not run}
+\newcommand{\VTwoTopicKnownPositiveCaseCoverage}{not run}
+\newcommand{\VTwoTopicKnownPositiveCaseCoverageCi}{not run}
+\newcommand{\VTwoTopicUnadjudicatedPredictionCount}{not run}
+\newcommand{\VTwoTopicUnadjudicatedPredictionShare}{not run}
+\newcommand{\VTwoOCRStatus}{not run}
+\newcommand{\VTwoOCRCharacterErrorRate}{not run}
+\newcommand{\VTwoOCRWordErrorRate}{not run}
+\newcommand{\VTwoOCRExactMatch}{not run}
+\newcommand{\VTwoOCRRepeatable}{not run}
+\newcommand{\VTwoPackageStatus}{not completed or validated}
+\newcommand{\VTwoManifestShaPrefix}{not available}
+\newcommand{\VTwoValidationAttestationShaPrefix}{not available}

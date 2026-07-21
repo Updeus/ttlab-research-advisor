@@ -3,7 +3,7 @@
 
 \section{Layered architecture}
 
-The system uses four layers (\cref{fig:thesis-architecture}). The React 19/Vite/TypeScript presentation layer provides route-based public and protected screens. FastAPI supplies public read APIs, transient generation endpoints, authenticated reviewer/admin mutations, request/rate limits, security headers, exact CORS/host policies, and readiness checks. The intelligence layer implements acquisition, extraction, chunking, four retrieval modes, QA, recommendation, topics, generated artifacts, review, and evaluation. SQLite and local files retain entities, source material, atomic index files, manifests, silver labels, and raw results.
+The four layers (\cref{fig:thesis-architecture}) are a React route UI; FastAPI public-projection/protected APIs and security; ingestion, retrieval, selective QA, recommendation, discovery, review and evaluation logic; and SQLite plus immutable local generations. Only protected/local evaluation may select the technical corpus explicitly.
 
 \begin{figure}[htbp]
 \centering
@@ -14,11 +14,11 @@ The system uses four layers (\cref{fig:thesis-architecture}). The React 19/Vite/
 
 \section{Design principles}
 
-Five principles govern the design. First, derived index state is authoritative only when its manifest matches the current corpus. Second, source facts and generated interpretation use distinct fields and labels. Third, AI review has a distinct \texttt{ai\_reviewed} state and cannot create human approval. Fourth, public requests are privacy-minimised and administrative mutations are authenticated. Fifth, missing dependencies or evidence produce explicit unavailable, stale, partial, unsupported, or needs-reprocess states instead of silent success.
+Six principles govern the design. First, derived index state is authoritative only when its manifest and active generation pointer match the current corpus. Second, technical eligibility never implies publication or redistribution approval. Third, source facts and generated interpretation use distinct fields and labels. Fourth, AI review has a distinct \texttt{ai\_reviewed} state and cannot create human approval. Fifth, public requests are privacy-minimised and administrative mutations are authenticated. Sixth, missing dependencies or evidence produce explicit unavailable, stale, partial, \texttt{support\_unverified}, or needs-reprocess states instead of silent success.
 
 \section{Persistence and traceability model}
 
-\Cref{fig:entity-model} summarises the principal entities. A paper owns page-aware chunks and generated artifacts. RAG answers and thesis recommendations retain retrieved chunk and citation identifiers as structured JSON. Controlled topics link to papers and canonical author identities. Every administrative or AI-review transition creates an append-only \texttt{ReviewEvent} containing actor identity/type/role, request ID, field diff, previous hash, and event hash. This polymorphic audit model preserves historical decisions without falsely treating an AI event as human approval.
+\Cref{fig:entity-model} summarises the entities. Papers/chunks store extraction, chunk and approved-public generations; outputs retain structured source identifiers. Controlled topics link papers and canonical identities. Each transition appends an actor-typed, request-attributed, hash-linked \texttt{ReviewEvent}, preserving history without treating AI review as human approval.
 
 \begin{figure}[htbp]
 \centering
@@ -29,12 +29,12 @@ Five principles govern the design. First, derived index state is authoritative o
 
 \section{Authoritative index design}
 
-Each vector manifest binds corpus snapshot ID and SHA-256, eligible paper/chunk counts, ordered chunk IDs and source hashes, provider/model, exact revision or algorithm version, vector dimension, normalisation, configuration hash, creation timestamp, code commit, index role, and index-file hash. Index output is written atomically, and statuses are updated only for the successfully validated eligible set. A bounded demo index is assigned a non-authoritative role and cannot overwrite or validate the complete index. Startup and evaluation validate present authoritative indexes and fail on corpus, configuration, hash, or completeness mismatch.
+Each vector manifest binds the corpus and ordered chunks/hashes to provider/model/revision, dimension/normalisation, configuration/code/index hashes, role, and completeness. A rebuild validates an immutable generation, commits matching database status, then atomically moves the current pointer; failure leaves the prior pointer active. Demo indexes cannot target the canonical location, and validators reject missing, partial, stale, or mismatched state.
 
-The feature-hashing manifest identifies a 256-dimensional SHA-256 signed token projection. The learned-dense manifest identifies \texttt{sentence-transformers/all-MiniLM-L6-v2}, revision \texttt{826711e54e001c83835913827a843d8dd0a1def9}, 384 dimensions, L2 normalisation, CPU execution, token-window mean pooling, Apache-2.0 licensing, and model-artifact SHA-256 \texttt{18309e...a7c}. This distinction prevents a lexical hashing baseline from being mislabelled as learned semantic search.
+Feature hashing is a 256-dimensional signed lexical projection, not learned semantics. Dense retrieval pins \texttt{all-MiniLM-L6-v2} revision \texttt{826711e...a1def9}, its artifact hash, 384 dimensions, normalization, CPU/window pooling, and license. Optional Ollama tags are allowlisted by digest and checked before/after generation; absent response attestation is recorded as a mutable-tag limitation.
 
 \section{Security and privacy boundaries}
 
-Public reads and transient generation are separated from reviewer/admin mutations. Bearer credentials are configured through environment-provided SHA-256 token digests; no default secret is committed. Production mode requires an active admin actor, HTTPS public URL, explicit trusted host, and HTTPS CORS origins, and rejects insecure local-demo bypass. Review transitions enforce roles and prevent AI reviewers from issuing human approval states. Request-size limits, generation rate limits, exact CORS/hosts, redacted error responses/logs, output escaping, downloader host allowlists, public-IP checks, redirect limits, PDF signature/size/page checks, and readiness diagnostics address the principal deployment threats.
+Public reads/generation are separate from technical evaluation and protected mutations. Public metadata requires human approval, published state and cleared rights; searchable text also requires approved extraction/current public generation. No audited record met the full predicate, so anonymous evidence routes fail closed. Environment-digested bearer credentials, production HTTPS/host/CORS checks, role restrictions, size/rate limits, redaction, SSRF/redirect controls, and PDF limits address principal threats.
 
 Student interests, skills, time, constraints, and topic preferences remain client-side/in-request and are not persisted by default. Public generated-output serializers omit private reviewer notes and draft corrections. This minimisation reduces privacy risk but does not replace an institutional privacy review for a deployed service.

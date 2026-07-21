@@ -3,19 +3,27 @@
   "generator": "thesis/scripts/generate_manuscript_assets.py",
   "generation_provenance": {
     "committed_base": {
-      "commit": "782f990acb4f260ba7794f1b7cb5e68bd985c7cd",
-      "tree": "42403d1b92a041d2d1cfac18b952ad614ac02b4f",
+      "commit": "bd6eda0daf7f122a8d0f7e5450a8032b1af290e9",
+      "tree": "1802f4890cc091e87a989f3fef945d3dd64f1158",
       "backend_dirty": false
     },
     "exact_generator": {
       "path": "thesis/scripts/generate_manuscript_assets.py",
-      "sha256": "aeccf51ca19a91f844510ed198bedff3296aa7f77e9e23ebfb5607d0e0f1d558"
+      "sha256": "86828dc94fe17cf104d3bf6056b930cd6fd34b0637d62645e6320e58a3c09e70"
     },
     "expected_manuscript_output_dirty_boundary": [
       "thesis/generated/**",
       "build/thesis.pdf"
     ],
     "semantics": "The commit/tree identify the clean committed application base. Exact generator, input, and output hashes bind this asset set. The generated manuscript outputs are an explicit self-referential dirty boundary and are not claimed to originate from a final clean commit."
+  },
+  "remediation_v2": {
+    "status": "not_run",
+    "completed": false,
+    "layout_only": true,
+    "manifest_sha256": null,
+    "validation_attestation_sha256": null,
+    "macro_attestation_cycle_avoided": "Canonical v2 macros exclude manifest/attestation hashes; this downstream manifest binds both after completed-package validation."
   },
   "sources": {
     "evidence_snapshot": {
@@ -73,12 +81,16 @@
     "performance_validation": {
       "path": "artifacts/phase6/performance/performance_validation.json",
       "sha256": "c6ff67a680caccdf0fd518fbf1fd5b13f64a8498dcc3e483ca16fb94278bee43"
+    },
+    "v2_manuscript_package_helper": {
+      "path": "scripts/manuscript_v2_package.py",
+      "sha256": "1e040690bf79ecaa38abc405d7d2953da83c67364ff52c039b4b752e0f96926a"
     }
   },
   "outputs": {
     "macros": {
       "path": "thesis/generated/evidence_macros.tex",
-      "sha256": "85a5d12e6aad3cb2e3ef98838e8f9854ce1f8fda99792d2a07c2cf585f914cac"
+      "sha256": "018282b12a6864762de6f9cf3343fa4ec64ebfcdafa39fd79fa8b0496e81534d"
     },
     "retrieval_csv": {
       "path": "thesis/generated/retrieval_results.csv",
@@ -129,8 +141,14 @@
     "QaPartiallySupportedClaimCount": 2,
     "QaUnsupportedClaimCount": 0,
     "QaCorrectCitationCount": 250,
+    "QaPartialCitationCount": 142,
+    "QaIncorrectCitationCount": 8,
     "QaAnswerPointCount": 81,
     "QaCoveredAnswerPointCount": 11,
+    "QaPartiallyCoveredAnswerPointCount": 37,
+    "QaMissingAnswerPointCount": 33,
+    "QaReturnedCitationCount": 250,
+    "QaUsedReturnedCitationCount": 148,
     "QaUnanswerableCaseCount": 4,
     "QaUnanswerableAbstentionCount": 0,
     "QaSupportedClaimRate": "0.995",
@@ -175,6 +193,9 @@
     "TopicDenseRecall": "0.694",
     "TopicDenseFone": "0.521",
     "TopicDenseCoverage": "0.958",
+    "TopicVocabularyCount": 40,
+    "TopicSupportedTestLabelCount": 26,
+    "TopicZeroGoldTestLabelCount": 14,
     "RawAuthorRowCount": 136,
     "CanonicalAuthorCount": 133,
     "PossibleAuthorMergeCount": 13,
@@ -254,6 +275,7 @@
     "RetrievalTunedHybridRecallTen": "0.925",
     "RetrievalTunedHybridMrr": "0.860",
     "RetrievalTunedHybridNdcgTen": "0.871",
-    "RetrievalUnanswerableFalsePositiveCount": 1
+    "RetrievalUnanswerableFalsePositiveCount": 1,
+    "TopicLabelErrorRows": "Agriculture & 2 & 1 & 0 & 0.667 & 1.000 \\\\\nAI & 0 & 0 & 4 & 0.000 & 0.000 \\\\\nClustering & 3 & 1 & 0 & 0.750 & 1.000 \\\\\nEnergy & 1 & 0 & 2 & 1.000 & 0.333 \\\\\nNetworks & 0 & 2 & 2 & 0.000 & 0.000 \\\\\nRAG & 2 & 0 & 0 & 1.000 & 1.000 \\\\"
   }
 }

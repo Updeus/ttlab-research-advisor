@@ -23,13 +23,13 @@ The frozen audit records \AvailablePdfCount{} available PDFs, \NoPdfUrlCount{} r
 
 \section{Extraction and OCR-aware diagnostics}
 
-PyMuPDF extracts native text page by page and records page/character/word counts, empty pages, extraction status, and hashes. Content classification distinguishes textual, mixed, and unknown records. The repaired pipeline detects low-text/image-heavy pages and supports optional OCR with page-level engine/configuration, confidence/status, and review flags. OCR dependencies are optional and fail explicitly. All \CatalogPaperCount{} records in the frozen snapshot have \texttt{ocr\_status=not\_requested}; therefore, the thesis reports no OCR accuracy or latency.
+PyMuPDF records page-aware native extraction and hashes; image-heavy pages may use an optional bounded OCR worker with explicit failure/provenance. Corpus OCR status is \texttt{not\_requested}. A deterministic fixture produced character error \VTwoOCRCharacterErrorRate{} through the same path, which is regression evidence rather than scanned-corpus accuracy.
 
 The \AvailablePdfCount{} extracted PDFs contain \ExtractedPageCount{} pages and \ExtractedWordCount{} native-extraction words. These totals describe the local source snapshot; they are not included in the sanitized release. The suspected identity mismatches account for \MismatchChunkCount{} excluded chunks. The raw chunk table contains \RawChunkCount{} rows, while the eligible experiment and authoritative indexes contain \EligibleChunkCount{} rows.
 
 \section{Page-aware chunking and sections}
 
-Extracted sentences retain their page number. Chunks target 850 words with a 5,000-character limit and 125-word overlap; identifiers incorporate paper, sequence, page span, and source hash. Section names are inferred from headings and layout cues, with \texttt{Unknown} preserved when evidence is insufficient. Among eligible chunks, \EligibleUnknownChunkCount{} are unknown-section chunks (\EligibleUnknownChunkPercent\%).
+Chunks retain pages and target 850 words, 5,000 characters, and 125-word overlap. Extraction manifests bind PDF/configuration/exact text bytes; chunk manifests bind that generation to serialized and database chunks. Reconciliation quarantines any disagreement and clears public approval instead of inventing provenance. Inferred sections preserve \texttt{Unknown}; \EligibleUnknownChunkCount{} eligible chunks (\EligibleUnknownChunkPercent\%) have that state.
 
 A \SectionSilverCaseCount{}-case stratified AI-reviewed silver sample compared current section labels with source passages. Exact accuracy was \SectionSilverAccuracy{}, labeled coverage 0.900, macro precision \SectionSilverMacroPrecision{}, and macro recall \SectionSilverMacroRecall{}. Seven creation decisions required revision. These results support using section labels as a reranking feature with caution, not as authoritative document structure.
 
@@ -48,4 +48,4 @@ DOI, abstract, keyword, venue, and date fields carry provenance and review field
 \label{fig:years}
 \end{figure}
 
-The year distribution in \cref{fig:years} characterises the seed, not full-text eligibility. Raw PDFs, extracted text, chunks, local database, and indexes are excluded from the sanitized release because TTLAB project authorization does not itself confer redistribution rights for every third-party paper. The release retains redistributable metadata, schemas, prompts without restricted passages, labels, aggregate/raw sanitized results, source hashes, and reacquisition instructions.
+The distribution in \cref{fig:years} characterises the seed, not eligibility. The sanitized release excludes PDFs, derived text, databases/indexes, raw answers/snippets/recommendations, and other restricted content because project authorization is not blanket redistribution permission. It retains safe metadata, schemas, structural results, labels, hashes, and instructions. Paper-level rights/review/generation approval is independent; the current public projection is empty.

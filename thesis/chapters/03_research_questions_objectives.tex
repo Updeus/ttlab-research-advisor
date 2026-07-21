@@ -41,15 +41,15 @@ RQ & Method & Authoritative evidence & Conclusion type \\
 RQ & Method & Authoritative evidence & Conclusion type \\
 \midrule
 \endhead
-1 & corpus eligibility/identity audit; extraction diagnostics; section review; manifest validation & Phase 1 evidence; database integrity; three index manifests; 40 section cases & eligible-set coverage, integrity, and observed data failures \\
+1 & technical eligibility/identity/generation audit; extraction/OCR diagnostics; public-projection and manifest validation & Phase 1 evidence; database integrity; active index generations; section cases; remediation OCR fixture & technical coverage/integrity, public-gate state, and observed data failures \\
 \addlinespace
-2 & 30/20 development/test evaluation; baselines; tuning; ablation; paired statistics & raw per-query rankings; retrieval summary, statistics, and error taxonomy & bounded offline retrieval quality and heuristic sensitivity \\
+2 & historical v1 development/test evaluation; baselines; tuning; ablation; paired statistics & immutable raw per-query rankings; retrieval summary, statistics, and error taxonomy & bounded post-selection retrieval diagnosis and heuristic sensitivity \\
 \addlinespace
-3 & 50-case atomic claim, citation, answer-point, and answerability review & 400 claim labels; 81 answer points; case-bootstrap intervals; error records & bounded extractive QA evidence quality, not human-perceived usefulness \\
+3 & historical atomic diagnosis plus prospective source-first selective-response evaluation & v1 claim/link/point labels; prospective frozen cases, structural outputs, two-pass decisions, intervals & bounded extractive QA and repaired answerability/locator behavior, not entailment or human usefulness \\
 \addlinespace
-4 & paired 28-profile evidence-only/full comparison; weight sensitivity; criterion review & 168 arm items; criterion decisions; profile-level intervals; raw structured outputs & proxy recommendation behavior, not novelty, feasibility, supervisor fit, or student benefit \\
+4 & historical proxy diagnosis plus prospective paired evidence-only/full comparison and sensitivity & v1 criteria; prospective frozen profiles, paired rankings, contract checks, profile-level intervals & proxy ranking/contract behavior, not novelty, feasibility, supervisor fit, or student benefit \\
 \addlinespace
-5 & 60-case topic comparison; per-label analysis; identity/source audit; complete stored-output review & topic predictions/metrics; author audit; review decisions, events, and idempotence manifest & inspectable discovery/review behavior, not comprehensive expertise, endorsement, or human approval \\
+5 & historical topic comparison plus prospective positive-only recall; identity/source and stored-output review & historical/positive-only topic outputs; author audit; review events/idempotence & inspectable discovery/review behavior, not topic precision, expertise, public behavior, endorsement, or human approval \\
 \addlinespace
 6 & repeated benchmark; full/quick reproduction; release scan; external open-corpus sanity check; document preflight & Phase 6 raw results; reproduction and release manifests; Europe PMC manifest; PDF checks & bounded local reproducibility, operational characterization, and format compatibility \\
 \addlinespace
@@ -59,6 +59,6 @@ RQ & Method & Authoritative evidence & Conclusion type \\
 
 \section{Claim boundaries}
 
-RQ1 concerns the eligible subset and cannot make unavailable records searchable. RQ2 compares retrieval on source-derived AI-silver evidence and does not establish broader-corpus effectiveness or equivalence. RQ3 evaluates one deterministic extractive configuration; its intervals exclude AI-label uncertainty and it cannot represent every RAG generator. RQ4 evaluates synthetic profiles and an AI proxy; novelty, data access, time, prerequisite mastery, and supervisor suitability remain external. RQ5 measures a controlled vocabulary, source-backed relations, and review mechanics; it does not establish current author identity, availability, endorsement, or human approval.
+RQ1 concerns a generation-linked technical subset and cannot make unavailable or unapproved records publicly searchable. RQ2's immutable historical v1 comparison does not establish broader-corpus effectiveness or equivalence. RQ3 evaluates deterministic extractive configurations; its intervals exclude AI-label uncertainty and cannot represent every RAG generator. RQ4 evaluates source-derived profiles and an AI proxy; novelty, data access, time, prerequisite mastery, and supervisor suitability remain external. RQ5 measures known-positive controlled labels, source-backed relations, and review mechanics; it does not establish topic precision, current author identity, availability, endorsement, public behavior, or human approval.
 
 RQ6 reports concurrency-one local measurements, restricted-content-aware reproduction, and a three-article external XML check. It does not establish service capacity, PDF transfer, or broad generalization. RQ7 verifies coded contracts and automated regressions. It does not establish comprehension, trust, satisfaction, accessibility conformance, or usability with assistive technology. The complete method--evidence--result--conclusion mapping appears in Appendix~\ref{app:traceability}.

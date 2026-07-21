@@ -3,9 +3,9 @@
 
 \section{Traceability is an engineering property, not an accuracy score}
 
-The platform now preserves paper, chunk, page/section, provider, warning, timestamp, and review state through its principal workflows. Complete manifest coverage eliminates the earlier ambiguity between active index files and stale database flags. These are meaningful engineering results because they make an output auditable and a stale index detectable. They do not make the output correct.
+The platform now preserves paper, chunk, page/section, extraction/chunk/index generation, provider/configuration, warning, timestamp, and review state through its principal workflows. Validated active-generation pointers eliminate the earlier ambiguity between index files and stale database flags. These are meaningful engineering results because they make an output auditable and stale derived state detectable. They do not make the output correct.
 
-The QA evaluation illustrates the distinction. Extractive composition largely avoided unsupported statements by copying supported passages, yet claim--citation choice and answer-point coverage were much weaker. It selected off-topic evidence and omitted requested information even when every sentence carried a locator. Traceability reduces the cost of diagnosis; it does not substitute for diagnosis.
+The historical QA evaluation illustrates the distinction. Extractive composition largely avoided unsupported statements by copying supported passages, yet claim--citation choice and answer-point coverage were much weaker. It selected off-topic evidence and omitted requested information even when every sentence carried a locator. The prospective run separately tests the repaired selective-response and exact-locator contracts; its citation precision is \VTwoQACitationLocatorPrecision{} and answer-point coverage \VTwoQAAnswerPointCoverage{}. Neither measure turns a matching locator into entailment. Traceability reduces the cost of diagnosis; it does not substitute for diagnosis.
 
 \section{Simple lexical retrieval remained competitive}
 
@@ -13,17 +13,17 @@ Keyword retrieval produced the highest held-out MRR and nDCG@10 point estimates.
 
 Several features may explain the keyword result without establishing causality. The laboratory questions and paper titles share specialised vocabulary; relevant-paper labels may favour explicit lexical matches; the corpus is small; and the candidate pool is already rich. The post-selection ablation showing a stronger cumulative configuration is hypothesis-generating, not an invitation to retune on the held-out set. A future release needs a larger preregistered test partition and hard paraphrase cases.
 
-\section{Abstention is the principal end-to-end safety gap}
+\section{Selective response is improved but narrowly evaluated}
 
-All retrieval modes returned a positive result on the single held-out unanswerable case, and the answerer failed to abstain on all four QA unanswerable cases. This limitation is more consequential than small ranking differences: a user may receive a fluent, supported but irrelevant answer to a question the corpus cannot answer. An abstention mechanism should therefore combine calibrated top-score/margin signals, evidence coverage, corpus-scope classification, and explicit fallback wording, then be evaluated on a substantially larger unanswerable set.
+Historical v1 retrieval returned a positive result on its lone held-out unanswerable case, and the historical answerer failed to abstain on every QA unanswerable case. The repaired fixed coverage gate changes that behavior prospectively: answerability precision is \VTwoQAAnswerabilityPrecision{} with false-positive rate \VTwoQAFalsePositiveRate{} and abstention rate \VTwoQAAbstentionRate{}. This is stronger evidence of the implemented selective-response contract, but the held-out set remains small and source-derived. A later protocol should expand adversarial and out-of-corpus cases and report risk jointly with retained answer coverage.
 
 \section{Recommendation structure is stronger than recommendation validation}
 
-The extension schema successfully separates baseline evidence, explicit versus inferred gaps, system suggestions, MVP/stretch scope, risk, skills, data assumptions, and evaluation plans. All reviewed outputs retained those boundaries. However, every feasibility judgment was partial, and the relevance difference over an evidence-only baseline crossed zero. The full finder should be presented as a structured brainstorming aid, not as proof that an idea is novel, feasible, suitable for a degree, or approved by a supervisor. The evidence-only mode is valuable because it lets a cautious user stop before generation.
+The extension schema separates baseline evidence, explicit versus inferred gaps, system suggestions, MVP/stretch scope, risk, skills, data assumptions, and evaluation plans. Historical review found every feasibility judgment partial and an inconclusive relevance difference. The prospective paired test measures ranking and contract behavior: its Hit@3 change is \VTwoFinderHitAtThreeDelta{} (\VTwoFinderHitAtThreeDeltaCi{}), while fact/suggestion separation is \VTwoFinderFactSuggestionSeparation{} and unknown-time retention \VTwoFinderUnknownTimeRetention{}. These values do not establish student usefulness or real feasibility. The full Finder remains a structured brainstorming aid, and evidence-only mode lets a cautious user stop before generated advice.
 
 \section{Controlled discovery favors inspectability}
 
-The topic comparison exposes a practical trade-off. Dense prototypes increased coverage and recall but reduced precision. The controlled vocabulary had higher precision, slightly higher F1, deterministic rules, and an editable governance surface. That profile better suits a public laboratory archive where over-attributing a topic to a researcher can cause reputational harm. The remaining 13 identity candidates show why automatic name merging is intentionally conservative. Publication-derived relations should remain qualified even after identity resolution.
+Historical topic comparison exposed a practical trade-off: the dense prototype increased coverage/recall but reduced precision, while controlled rules were deterministic and editable. The prospective positive-only set instead asks whether known positives are recovered, yielding recall \VTwoTopicKnownPositiveRecall{} while leaving \VTwoTopicUnadjudicatedPredictionCount{} additional predictions unadjudicated. It cannot confirm precision or expertise. The remaining \PossibleAuthorMergeCount{} identity candidates show why automatic name merging is intentionally conservative. Publication-derived relations should remain qualified even after identity resolution.
 
 \section{Review and governance as first-class data}
 
@@ -31,7 +31,7 @@ Append-only AI review events close the earlier empty-governance state and demons
 
 \section{Interface conformance is not human validation}
 
-The requirement--API--view--test trace shows that the implemented public and protected flows preserve evidence, warnings, request-lifecycle boundaries, authorization, and correction state under the tested conditions. It also exposes what those checks cannot measure. A semantic label can exist while remaining confusing; keyboard focus can be visible while a full screen-reader workflow remains inefficient; and a Finder warning can render while a student still over-trusts the suggestion. RQ7 therefore closes an engineering traceability gap without converting automated conformance into usability, accessibility, trust, or educational evidence.
+The requirement--API--view--test trace shows that implemented public and protected flows preserve warnings, request-lifecycle boundaries, authorization, and correction state under tested conditions. At this snapshot the strict public projection is empty, which makes fail-closed behavior testable but provides no evidence about a populated public experience. A semantic label can exist while remaining confusing; keyboard focus can be visible while a screen-reader workflow remains inefficient; and a Finder warning can render while a student still over-trusts the suggestion. RQ7 therefore closes an engineering traceability gap without converting automated conformance into usability, accessibility, trust, or educational evidence.
 
 \section{Reproducibility with rights constraints}
 

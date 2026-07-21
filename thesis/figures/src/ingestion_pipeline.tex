@@ -1,7 +1,7 @@
 \begin{tikzpicture}[node distance=8mm and 10mm]
   \node[flowbox] (archive) {TTLAB WordPress\\publication archive};
   \node[flowbox, right=of archive] (discover) {Parse metadata, URLs\\and stable paper ID};
-  \node[datastore, right=of discover] (seed) {Seed JSON\\134 records};
+  \node[datastore, right=of discover] (seed) {Seed JSON\\\CatalogPaperCount{} records};
   \node[flowbox, right=of seed] (import) {Upsert Paper and\\raw Author strings};
 
   \node[flowbox, below=14mm of import] (download) {Allowlisted URL/IP/redirect,\\size and PDF-signature checks};
@@ -9,9 +9,9 @@
   \node[flowbox, left=12mm of available] (extract) {PyMuPDF page text; optional\\OCR status/provenance; hash};
   \node[flowbox, left=of extract] (chunk) {Sentence/page chunks\\850 words, overlap 125};
 
-  \node[datastore, below=14mm of chunk] (db) {Frozen corpus\\96 papers; 719 chunks};
-  \node[flowbox, right=of db] (fts) {SQLite FTS5\\719/719 eligible chunks};
-  \node[flowbox, right=of fts] (vectors) {Feature hashing + pinned dense\\719/719 each; atomic manifests};
+  \node[datastore, below=14mm of chunk] (db) {Technical corpus\\\EligiblePaperCount{} papers; \EligibleChunkCount{} chunks};
+  \node[flowbox, right=of db] (fts) {SQLite FTS5\\\EligibleChunkCount{}/\EligibleChunkCount{} technical chunks};
+  \node[flowbox, right=of fts] (vectors) {Feature hashing + pinned dense\\complete technical manifests};
   \node[flowbox, right=of vectors] (topics) {Controlled topics and canonical\\publication-derived author links};
 
   \draw[arrow] (archive) -- (discover);

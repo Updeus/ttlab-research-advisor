@@ -18,6 +18,9 @@
   \draw[dashedarrow] (answer) -- node[right,font=\scriptsize]{polymorphic item} (review);
   \draw[arrow] (paper) |- (papertopic);
   \draw[arrow] (topic) -- (papertopic);
-  \draw[arrow] (topic) -| (authortopic);
+  % Route below the middle association node.  An explicit waypoint avoids the
+  % ambiguous border-intersection route that PGF reports when ``-|'' crosses
+  % the PaperTopic node before entering AuthorTopic.
+  \draw[arrow] (topic.south) |- ($(papertopic.south)+(0,-5mm)$) -| (authortopic.south);
   \draw[dashedarrow] (artifact) -- node[left,font=\scriptsize]{may supply inferred topic text} (topic);
 \end{tikzpicture}

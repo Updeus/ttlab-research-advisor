@@ -3,23 +3,23 @@
 
 \section{Overview}
 
-\Cref{fig:evaluation-workflow} separates evaluation evidence into offline quality, engineering verification, and external-only validation. All datasets store schemas, source/rationale fields, reviewer type, timestamps, review passes, and hashes. Raw full-text prompts remain local when redistribution would expose third-party passages; sanitized labels and hashes remain in the release.
+\Cref{fig:evaluation-workflow} separates evaluation evidence into offline quality, engineering verification, and external-only validation. It also distinguishes immutable historical v1 diagnosis from the prospective remediation protocol. All datasets store schemas, source/rationale fields, reviewer type, timestamps, review passes, and hashes. Raw full-text prompts and outputs remain local when redistribution would expose third-party passages; sanitized structural records, labels, aggregates, and hashes remain in the release.
 
 \begin{figure}[htbp]
 \centering
 \resizebox{0.99\textwidth}{!}{\input{figures/src/evaluation_workflow}}
-\caption[Executed evaluation workflow and evidence boundary.]{Executed evaluation workflow. AI-reviewed silver evidence is versioned separately from external human or institutional validation.}
+\caption[Evaluation workflow and evidence boundary.]{Evaluation workflow. Historical diagnosis and prospective AI-reviewed silver evidence are versioned separately from external human or institutional validation.}
 \label{fig:evaluation-workflow}
 \end{figure}
 
 \section{Experiment inventory}
 
-\Cref{tab:experiment-inventory} lists the executed unit, comparison, and primary outcomes for every experiment family.
+\Cref{tab:experiment-inventory} lists the historical experiment families. The prospective protocol adds \VTwoQATestCases{} selective-QA cases, \VTwoFinderTestProfiles{} paired Finder profiles, \VTwoTopicTestCases{} known-positive topic cases, and one deterministic OCR fixture. Its declared evidence tier is \VTwoEvidenceTier{}, scope \VTwoEvaluationScope{}, and public-projection execution \VTwoPublicProjectionExercised{}; thus it does not establish public behavior, human validation, or entailment.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Executed experiments, units, and primary outcomes.}
+\caption{Historical v1 experiments, units, and primary outcomes.}
 \label{tab:experiment-inventory}
 \begin{tabularx}{\textwidth}{P{31mm}P{31mm}P{35mm}Y}
 \toprule
@@ -44,13 +44,13 @@ The retrieval dataset contains all eleven specified strata, including four out-o
 
 Development tuning searched nine keyword/dense weight pairs from 0.10/0.80 to 0.80/0.10, with a 0.42/0.48 implementation reference. The objective was development MRR with fixed secondary rules. The selected tuned configuration used keyword 0.10, dense 0.80, and all heuristic adjustments enabled. Sensitivity tested nearby 0.05/0.85, 0.15/0.75, 0.20/0.70, and 0.30/0.60 weights. Individual ablations removed one component from the selected hybrid; cumulative ablations added components in the documented order.
 
-\section{QA review procedure}
+\section{Historical v1 QA review procedure}
 
-The offline extractive answerer generated all 50 reviewed answers. Each atomic corpus claim was linked to inline source IDs and returned citation records. The AI reviewer performed a support-first creation pass and a shuffled contradiction-focused verification pass; the verification label was final, with disagreements retained. The metrics use strict treatment of partial labels. Confidence intervals resample whole QA cases 10,000 times, preserving within-case claim correlation. They do not include AI-label uncertainty.
+The offline extractive answerer generated all 50 historical reviewed answers. Each atomic corpus claim was linked to inline source IDs and returned citation records. The AI reviewer performed a support-first creation pass and a shuffled contradiction-focused verification pass; the verification label was final, with disagreements retained. The metrics use strict treatment of partial labels. Confidence intervals resample whole QA cases 10,000 times, preserving within-case claim correlation. They do not include AI-label uncertainty.
 
 An Ollama comparison was attempted at the configured local endpoint on port 11434. CLI version 0.21.2 was present, but version, tags, and process endpoints refused connections. No installed model, digest, quantisation, response, or latency could be verified, so the comparison is reported as unavailable rather than approximated.
 
-\section{Recommendation, topic, and review protocols}
+\section{Historical v1 recommendation, topic, and review protocols}
 
 The 28 synthetic profiles span one-month, two-week, and semester timelines; software, ML, analysis, dashboard, literature-support, and other project types; public/synthetic/no-external/supervisor data constraints; easy/medium/hard preferences; and avoid topics. Both arms return three items. Review criteria are applied to every item in two shuffled AI passes. The paired relevance contrast and sensitivity results resample profiles, not individual recommendations.
 

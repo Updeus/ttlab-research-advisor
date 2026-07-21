@@ -15,9 +15,9 @@ Entity & Principal fields \\
 Entity & Principal fields \\
 \midrule
 \endhead
-Paper & identifier; title; source authors; canonical identity links; year/date/venue; abstract; source/PDF paths; DOI; keywords; provenance; ingestion, extraction, eligibility, OCR, and review statuses; timestamps \\
-Chunk & identifier; paper foreign key; page start/end; inferred section; text; word/token count; source hash; eligibility/index status; timestamp \\
-Index manifest & corpus snapshot/hash; ordered chunk/source hashes; provider/model/revision; dimension/normalisation; configuration/code/index hashes; index role; completeness \\
+Paper & identifier; title; source authors; canonical identity links; metadata/provenance; ingestion, extraction, eligibility, OCR and review states; extraction/chunk/public-index generations; publication, rights and access states; timestamps \\
+Chunk & identifier; paper foreign key; page start/end; inferred section; exact text; word/token count; source hash; extraction generation; eligibility/index status; timestamp \\
+Index generation/manifest & immutable generation plus current pointer; corpus snapshot/hash; ordered chunk/source hashes; provider/model/revision; dimension/normalisation; configuration/code/index hashes; role/completeness \\
 RAGAnswer & question; answer; retrieved chunk/paper/citation structures; provider/model/configuration; grounding and unsupported-claim warnings; reviewer fields; timestamps \\
 Thesis Recommendation & transient request profile; ranked recommendation structures; evidence/gap/suggestion boundaries; citations; provider/model; grounding/review state; timestamp \\
 Paper Artifact & paper foreign key; artifact type; generated text/JSON; citations and source sections; provider/model; grounding/review state \\
@@ -39,11 +39,11 @@ ReviewEvent & item type/ID; previous/new state; reviewer ID/name/type/role; requ
 \toprule
 Group & Purpose & Access \\
 \midrule
-papers & statistics, browse/detail, extraction and public artifact views & public read \\
-search & keyword, feature-hashing, dense, and hybrid retrieval with evidence/diagnostics & public read \\
-ask & transient generation; persisted history/review operations separated & public transient; protected persistence \\
-recommendations & transient evidence-only/full profile-driven results & public transient \\
-topics/authors & explorer overview/detail and related papers; rebuild separated & public read; protected rebuild \\
+papers & approved statistics, browse/detail, extraction and artifact views & public projection \\
+search & projection-filtered retrieval; technical scope exists only in protected/local code & public projection \\
+ask & transient public generation; technical evaluation/persisted history separated & public projection; protected/local technical \\
+recommendations & transient evidence-only/full output over approved public evidence & public projection \\
+topics/authors & approved explorer relations; technical rebuild separated & public projection; protected rebuild \\
 artifacts & public reviewed-safe output; generation/review operations & mixed public/protected \\
 evaluation & evaluation state, corpus/index freshness, and public-safe results & public read \\
 admin & review queues, mutations, events, corrections & reviewer/admin bearer \\
@@ -52,7 +52,7 @@ health/readiness & liveness and database/index completeness state & public read 
 \end{tabularx}
 \end{table}
 
-FastAPI's generated OpenAPI document is available only in local-demo mode. Production disables interactive docs unless an operator creates an explicit boundary. Public serializers redact local paths, private reviewer notes, draft corrections, and restricted source text where appropriate.
+FastAPI's generated OpenAPI document is available only in local-demo mode. Production disables interactive docs unless an operator creates an explicit boundary. Public request models expose no technical-scope selector. Public serializers redact local paths, private reviewer notes, draft corrections, restricted source text, and technical identity hashes where appropriate.
 
 \section{Review-state semantics}
 

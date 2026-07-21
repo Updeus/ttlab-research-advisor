@@ -596,13 +596,27 @@ def record_for_decision(session: Session, decision: ReviewDecision) -> Any:
 
 
 def existing_version_event(session: Session, decision: ReviewDecision) -> ReviewEvent | None:
-    return session.exec(
+    events = session.exec(
         select(ReviewEvent)
         .where(ReviewEvent.item_type == decision.item_type)
         .where(ReviewEvent.item_id == decision.item_id)
         .where(ReviewEvent.reviewer_id == REVIEWER_ID)
         .where(ReviewEvent.request_id == REVIEW_REQUEST_ID)
-    ).first()
+        .order_by(desc(ReviewEvent.created_at), desc(ReviewEvent.review_event_id))
+    ).all()
+    # A review-version identifier describes the protocol, not the immutable
+    # generated payload.  Reusing an event after that payload (or the resulting
+    # decision) changed would suppress a necessary append-only review event and
+    # can falsely report status drift.  Idempotence therefore requires an exact
+    # match on protocol, payload hash, and decision.
+    for event in events:
+        diff = event.diff_json if isinstance(event.diff_json, dict) else {}
+        if (
+            diff.get("content_sha256") == decision.content_sha256
+            and event.new_status == decision.target_status
+        ):
+            return event
+    return None
 
 
 def make_review_event(

@@ -180,6 +180,35 @@ def test_disposable_proof_reuses_preexisting_version_events(tmp_path) -> None:
     assert proof["second_pass"]["skipped_existing"] == 2
 
 
+def test_changed_payload_creates_a_fresh_append_only_review_event() -> None:
+    engine = build_review_engine()
+    with Session(engine) as session:
+        initial = apply_reviews(session, plan_reviews(session))
+        answer = session.get(RAGAnswer, "answer-one")
+        assert answer is not None
+        answer.answer = "The generated payload changed after the earlier AI review."
+        answer.review_status = "needs_review"
+        answer.reviewed_by = None
+        answer.reviewed_at = None
+        session.add(answer)
+        session.commit()
+
+        refreshed = apply_reviews(session, plan_reviews(session))
+        events = session.exec(
+            select(ReviewEvent)
+            .where(ReviewEvent.item_type == "rag_answer")
+            .where(ReviewEvent.item_id == "answer-one")
+            .order_by(ReviewEvent.created_at)
+        ).all()
+
+    assert initial["created_events"] == 2
+    assert refreshed["created_events"] == 1
+    assert refreshed["skipped_existing"] == 1
+    assert len(events) == 2
+    assert events[0].event_hash != events[1].event_hash
+    assert events[1].previous_event_hash == events[0].event_hash or events[1].previous_event_hash is not None
+
+
 def test_recommendation_is_regenerated_and_ai_reviewed_when_boundaries_hold(monkeypatch) -> None:
     engine = build_review_engine()
     with Session(engine) as session:

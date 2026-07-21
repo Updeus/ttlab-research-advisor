@@ -225,7 +225,7 @@ workspace and are referenced by hash; PDFs, databases, extracted/chunk text,
 indexes, model files, and archive payloads are not copied into the repository.
 
 The current local standalone outputs are `build/ieee-paper.pdf` at 6 Letter
-pages and `build/thesis.pdf` at 84 A4 pages. These counts are an intermediate
+pages and `build/thesis.pdf` at 86 A4 pages. These counts are an intermediate
 workspace observation, not the final candidate attestation. Source-candidate
 acceptance separately rebuilds, recounts, preflights, and visually inspects both
 PDFs and records the resulting counts plus both commit identities in the

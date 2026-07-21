@@ -131,8 +131,28 @@ UI-10 & Keyboard/semantic labels, visible focus, reduced motion, table/chart alt
 
 This mapping clarifies the residual human boundary. Automated checks can detect a missing label, hidden focus, unauthorized status code, persistence regression, or absent warning. They cannot establish whether a student understands the distinction between inferred gap and paper-stated future work, whether a screen reader workflow is efficient, or whether a supervisor considers an extension feasible. Those outcomes belong to a later ethics-approved study and independent accessibility assessment.
 
-The requirement--API--test mapping is the authoritative interface evidence. Screenshot assets remain useful development records, but they are omitted here because a rendered state cannot establish behavior across failures, authorization states, viewports, or assistive technologies. The executable contracts in Appendix~\ref{app:schema-api} make those boundaries inspectable without treating a screenshot as evaluation.
+The requirement--API--test mapping remains the authoritative behavioural evidence. \Cref{fig:interface-governance-evidence} adds two bounded visual records of the implemented evidence boundary. In the Finder state, the fixed synthetic form profile was not sent to the API, diagnostics returned zero publicly searchable papers and chunks, and the action remained disabled. The technical evaluation corpus was not substituted for the empty public projection. In the protected Admin state, a service reviewer can see only aggregate workload counts; the interface identifies the actor type and states that human approval is unavailable. The capture used a physical SQLite snapshot, exact copied indexes, a browser firewall that rejected mutation methods, and before/after source hashes. Its manifest is retained at \codepath{thesis/figures/screenshots/governance-capture-manifest.json} and binds the images to clean commit \codepath{9a274b82d0f7fa68952369d5ec68565b0a93cbb1}.
+
+\begin{figure}[p]
+  \centering
+  \begin{subfigure}{0.98\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/screenshots/finder-public-projection-empty.png}
+    \caption{Finder with a transient synthetic profile, zero public evidence, and fail-closed recommendation action.}
+  \end{subfigure}
+  \vspace{4mm}
+
+  \begin{subfigure}{0.98\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/screenshots/admin-governance-shell-current.png}
+    \caption{Protected aggregate governance view for a service reviewer without human-approval authority.}
+  \end{subfigure}
+  \caption{Current interface evidence for public fail-closed behavior and protected review boundaries. The images demonstrate visible implementation state only; they are not usability evidence, an accessibility conformance result, a human review, a semantic-correctness result, an ethics approval, or a document-rights decision.}
+  \label{fig:interface-governance-evidence}
+\end{figure}
+
+The screenshots are therefore illustrative implementation evidence, not substitutes for the route, failure-state, and assistive-technology checks. The executable contracts in Appendix~\ref{app:schema-api} keep those distinctions inspectable.
 
 \section{Generated-output governance and deployment boundary}
 
-Admin mutations require authenticated roles; production fails closed without HTTPS and an admin actor, and AI actors cannot issue human states. A database-scoped no-follow process lock serializes review-event mutation/hash/commit, but is not distributed consensus. Automatic sync remains disabled until whole-snapshot promotion exists. TLS termination, identity, distributed limiting, monitoring, backup, and incident operations remain deployment responsibilities.
+Admin mutations require authenticated roles; production fails closed without HTTPS and an admin actor, and AI actors cannot issue human states. A process-local primitive lock safely spans FastAPI worker-thread handoff, while a database-scoped no-follow file lock serializes review-event mutation/hash/commit across local processes. Neither is distributed consensus. Automatic sync remains disabled until whole-snapshot promotion exists. TLS termination, identity, distributed limiting, monitoring, backup, and incident operations remain deployment responsibilities.

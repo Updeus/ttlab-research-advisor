@@ -615,7 +615,32 @@ def existing_version_event(session: Session, decision: ReviewDecision) -> Review
             diff.get("content_sha256") == decision.content_sha256
             and event.new_status == decision.target_status
         ):
-            return event
+            record = record_for_decision(session, decision)
+            if record is None:
+                return None
+            if record.review_status == event.new_status:
+                return event
+
+            latest_item_event = session.exec(
+                select(ReviewEvent)
+                .where(ReviewEvent.item_type == decision.item_type)
+                .where(ReviewEvent.item_id == decision.item_id)
+                .order_by(desc(ReviewEvent.created_at), desc(ReviewEvent.review_event_id))
+                .limit(1)
+            ).first()
+            externally_attributed = bool(record.reviewed_by) and record.reviewed_by != REVIEWER_ID
+            later_attributed_event = (
+                latest_item_event is not None
+                and latest_item_event.review_event_id != event.review_event_id
+            )
+            if externally_attributed or later_attributed_event or record.reviewed_at is not None:
+                raise RuntimeError(
+                    f"Review status changed after recorded event: {decision.item_type}/{decision.item_id}"
+                )
+            # Deterministic regeneration resets review fields without deleting
+            # append-only history.  The unchanged payload must receive a fresh
+            # event rather than reusing the pre-regeneration event.
+            return None
     return None
 
 

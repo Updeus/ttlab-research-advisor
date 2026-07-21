@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
@@ -207,6 +208,46 @@ def test_changed_payload_creates_a_fresh_append_only_review_event() -> None:
     assert len(events) == 2
     assert events[0].event_hash != events[1].event_hash
     assert events[1].previous_event_hash == events[0].event_hash or events[1].previous_event_hash is not None
+
+
+def test_regeneration_status_reset_creates_a_fresh_event_for_unchanged_payload() -> None:
+    engine = build_review_engine()
+    with Session(engine) as session:
+        initial = apply_reviews(session, plan_reviews(session))
+        artifact = session.get(PaperArtifact, "artifact-one")
+        assert artifact is not None
+        artifact.review_status = "needs_reprocess"
+        artifact.reviewed_by = None
+        artifact.reviewed_at = None
+        session.add(artifact)
+        session.commit()
+
+        refreshed = apply_reviews(session, plan_reviews(session))
+        artifact_events = session.exec(
+            select(ReviewEvent)
+            .where(ReviewEvent.item_type == "paper_artifact")
+            .where(ReviewEvent.item_id == "artifact-one")
+        ).all()
+
+    assert initial["created_events"] == 2
+    assert refreshed["created_events"] == 1
+    assert refreshed["skipped_existing"] == 1
+    assert len(artifact_events) == 2
+
+
+def test_later_attributed_reviewer_state_is_not_overwritten() -> None:
+    engine = build_review_engine()
+    with Session(engine) as session:
+        apply_reviews(session, plan_reviews(session))
+        artifact = session.get(PaperArtifact, "artifact-one")
+        assert artifact is not None
+        artifact.review_status = "approved"
+        artifact.reviewed_by = "human-reviewer"
+        session.add(artifact)
+        session.commit()
+
+        with pytest.raises(RuntimeError, match="Review status changed after recorded event"):
+            apply_reviews(session, plan_reviews(session))
 
 
 def test_recommendation_is_regenerated_and_ai_reviewed_when_boundaries_hold(monkeypatch) -> None:

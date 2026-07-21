@@ -5,6 +5,7 @@ import argparse
 import json
 import random
 import re
+from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -150,15 +151,37 @@ def build_reviews() -> dict[str, Any]:
             "generated_at": now(),
             "evaluation_status": "ai_assisted_formative",
             "reviewer_type": "ai",
+            # Compatibility aliases consumed by existing manuscript asset
+            # generators. They describe the configured generator; case-level
+            # effective identities are reported separately below.
             "answer_provider": "offline_extractive",
             "answer_model": "sentence-overlap-v1",
             "retrieval_mode": "hybrid_current_untuned_heuristic",
+            **_answer_identity_summary(final_rows),
         }
     )
     METRICS_PATH.write_text(json.dumps(metrics, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     manifest = _manifest(labels, final_rows, metrics)
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return manifest
+
+
+def _answer_identity_summary(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    return {
+        "configured_answer_provider": "offline_extractive",
+        "configured_answer_model": "sentence-overlap-v1",
+        "answer_identity_semantics": (
+            "answer_provider and answer_model are retained compatibility aliases for the configured generator; "
+            "observed case-level identities include not_invoked when the answerability gate abstains before generation."
+        ),
+        "observed_answer_providers": dict(sorted(Counter(str(row["provider"]) for row in rows).items())),
+        "observed_answer_models": dict(sorted(Counter(str(row["model"]) for row in rows).items())),
+        "provider_not_invoked_case_ids": sorted(
+            str(row["qa_case_id"])
+            for row in rows
+            if (row["provider"], row["model"]) == ("not_invoked", "not_invoked")
+        ),
+    }
 
 
 def _review_pass(

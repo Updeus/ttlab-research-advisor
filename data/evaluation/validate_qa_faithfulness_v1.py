@@ -26,6 +26,12 @@ RESULT_SCHEMA = ROOT / "data/evaluation/qa_faithfulness_results_v1.schema.json"
 METRICS = ROOT / "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json"
 MANIFEST = ROOT / "artifacts/phase3/qa/qa_faithfulness_manifest_v1.json"
 OLLAMA = ROOT / "artifacts/phase3/qa/ollama_availability_v1.json"
+EXPECTED_REQUESTED_PROVIDER = "offline_extractive"
+EXPECTED_GENERATED_PROVIDER_MODEL = ("offline_extractive", "sentence-overlap-v1")
+EXPECTED_NOT_INVOKED_PROVIDER_MODEL = ("not_invoked", "not_invoked")
+EXPECTED_RETRIEVAL_MODE = "hybrid"
+EXPECTED_RETRIEVAL_SCOPE = "technical"
+EXPECTED_TOP_K = 5
 
 
 def validate() -> None:
@@ -71,10 +77,7 @@ def validate() -> None:
             case_id = row["qa_case_id"]
             answer = answer_by_id[case_id]
             raw = raw_by_id[case_id]
-            assert hashlib.sha256(row["answer"].encode("utf-8")).hexdigest() == row["answer_sha256"]
-            assert row["answer_sha256"] == answer["answer_sha256"]
-            assert row["provider"] == "offline_extractive" and row["model"] == "sentence-overlap-v1"
-            assert row["retrieval_mode"] == "hybrid" and row["top_k"] == 5
+            _validate_answer_contract(row, answer, raw)
             assert row["creation_review"]["raw_prompt_sha256"] == create_by_id[case_id]["raw_prompt_sha256"]
             assert row["verification_review"]["raw_prompt_sha256"] == verify_by_id[case_id]["raw_prompt_sha256"]
             source_records = {source["chunk_id"]: source for source in raw["source_records"]}
@@ -97,7 +100,25 @@ def validate() -> None:
     for key in ("case_count", "metric_definitions", "counts", "metrics", "confidence_intervals", "category_results", "error_taxonomy", "review_consistency", "limitations"):
         assert metrics[key] == recomputed[key], f"Metric mismatch: {key}"
     assert metrics["reviewer_type"] == "ai"
-    assert metrics["metrics"]["unanswerable_abstention_rate"] == 0.0
+    assert metrics["answer_provider"] == metrics["configured_answer_provider"] == EXPECTED_REQUESTED_PROVIDER
+    assert metrics["answer_model"] == metrics["configured_answer_model"] == EXPECTED_GENERATED_PROVIDER_MODEL[1]
+    assert metrics["observed_answer_providers"] == dict(
+        sorted(Counter(str(row["provider"]) for row in final_rows).items())
+    )
+    assert metrics["observed_answer_models"] == dict(
+        sorted(Counter(str(row["model"]) for row in final_rows).items())
+    )
+    assert metrics["provider_not_invoked_case_ids"] == sorted(
+        str(row["qa_case_id"])
+        for row in final_rows
+        if (row["provider"], row["model"]) == EXPECTED_NOT_INVOKED_PROVIDER_MODEL
+    )
+    unanswerable_rows = [row for row in final_rows if row["answerability"] == "unanswerable"]
+    expected_unanswerable_abstention_rate = round(
+        sum(bool(row["did_abstain"]) for row in unanswerable_rows) / len(unanswerable_rows),
+        6,
+    )
+    assert metrics["metrics"]["unanswerable_abstention_rate"] == expected_unanswerable_abstention_rate
 
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     assert manifest["status"] == "executed_and_validated"
@@ -108,6 +129,103 @@ def validate() -> None:
     if ollama["status"] == "unavailable":
         assert ollama["comparison_status"] == "not_run"
         assert not ollama["installed_models"]
+
+
+def _validate_answer_contract(row: dict, answer: dict, raw: dict) -> None:
+    """Validate requested configuration and the conditional generation identity.
+
+    A pre-generation answerability rejection is a legitimate abstention. In
+    that branch the requested offline provider is deliberately not called, so
+    the effective provider/model pair is ``not_invoked``. Any non-abstaining
+    answer, and any abstention produced after generation, must retain the
+    pinned offline-extractive provider/model identity.
+    """
+
+    case_id = str(row["qa_case_id"])
+    raw_request = raw["request"]
+    raw_response = raw["response"]
+
+    assert raw["qa_case_id"] == answer["qa_case_id"] == case_id, f"{case_id}: record identity mismatch"
+    assert row["question"] == answer["question"] == raw_request["question"] == raw_response["question"], (
+        f"{case_id}: question mismatch"
+    )
+    assert row["answer"] == answer["answer"] == raw_response["answer"], f"{case_id}: answer text mismatch"
+    expected_answer_sha256 = hashlib.sha256(row["answer"].encode("utf-8")).hexdigest()
+    assert row["answer_sha256"] == answer["answer_sha256"] == expected_answer_sha256, (
+        f"{case_id}: answer hash mismatch"
+    )
+
+    provider_model = (str(row["provider"]), str(row["model"]))
+    assert provider_model == (answer["provider"], answer["model"]), f"{case_id}: public provider/model mismatch"
+    assert provider_model == (raw_response["provider"], raw_response["model"]), (
+        f"{case_id}: raw provider/model mismatch"
+    )
+    assert provider_model in {EXPECTED_GENERATED_PROVIDER_MODEL, EXPECTED_NOT_INVOKED_PROVIDER_MODEL}, (
+        f"{case_id}: unexpected provider/model pair {provider_model}"
+    )
+
+    did_abstain = bool(row["did_abstain"])
+    assert did_abstain == bool(answer["did_abstain"]), f"{case_id}: answer abstention mismatch"
+    assert did_abstain == bool(answer["segmentation"]["did_abstain"]), f"{case_id}: segmentation mismatch"
+    assert did_abstain == bool(row["creation_review"]["did_abstain"]), f"{case_id}: creation review mismatch"
+    assert did_abstain == bool(row["verification_review"]["did_abstain"]), (
+        f"{case_id}: verification review mismatch"
+    )
+
+    assert raw_request["provider"] == answer["requested_provider"] == EXPECTED_REQUESTED_PROVIDER, (
+        f"{case_id}: requested provider mismatch"
+    )
+    assert raw_request["model"] is None and answer["requested_model"] is None, f"{case_id}: requested model mismatch"
+    assert raw_request["mode"] == answer["retrieval_mode"] == row["retrieval_mode"] == raw_response["retrieval_mode"] == EXPECTED_RETRIEVAL_MODE, (
+        f"{case_id}: retrieval mode mismatch"
+    )
+    assert raw_request["top_k"] == answer["top_k"] == row["top_k"] == raw_response["top_k"] == EXPECTED_TOP_K, (
+        f"{case_id}: top-k mismatch"
+    )
+    assert raw_request["retrieval_scope"] == EXPECTED_RETRIEVAL_SCOPE, f"{case_id}: request scope mismatch"
+    assert answer["retrieval_metadata"]["retrieval_scope"] == EXPECTED_RETRIEVAL_SCOPE, (
+        f"{case_id}: public response scope mismatch"
+    )
+    assert raw_response["retrieval_metadata"]["retrieval_scope"] == EXPECTED_RETRIEVAL_SCOPE, (
+        f"{case_id}: raw response scope mismatch"
+    )
+
+    raw_citation_ids = [citation["chunk_id"] for citation in raw_response["citations"]]
+    assert row["returned_citation_ids"] == answer["returned_citation_ids"] == raw_citation_ids, (
+        f"{case_id}: returned citation mismatch"
+    )
+    resolution = raw_response["generation_metadata"]["provider_resolution"]
+    assert resolution["requested_provider"] == EXPECTED_REQUESTED_PROVIDER, f"{case_id}: resolution request mismatch"
+    assert resolution["requested_model"] is None, f"{case_id}: resolution model request mismatch"
+    assert resolution["configured_provider"] == EXPECTED_REQUESTED_PROVIDER, (
+        f"{case_id}: configured provider mismatch"
+    )
+    assert resolution["configured_model"] == EXPECTED_GENERATED_PROVIDER_MODEL[1], (
+        f"{case_id}: configured model mismatch"
+    )
+    assert resolution["fallback_used"] is False, f"{case_id}: unexpected provider fallback"
+
+    if provider_model == EXPECTED_NOT_INVOKED_PROVIDER_MODEL:
+        assert did_abstain, f"{case_id}: a non-invocation must be an abstention"
+        assert raw_response["answerability"]["answerable"] is False, (
+            f"{case_id}: non-invocation requires a failed answerability gate"
+        )
+        assert raw_response["grounding_status"] == "unsupported", f"{case_id}: abstention grounding mismatch"
+        assert not raw_citation_ids and not row["returned_citation_ids"], (
+            f"{case_id}: a pre-generation abstention cannot cite generated evidence"
+        )
+        assert not answer["segmentation"]["claims"] and not row["adjudicated_claims"], (
+            f"{case_id}: a pre-generation abstention cannot contain adjudicated claims"
+        )
+        assert resolution["effective_provider"] == "not_invoked" and resolution["effective_model"] is None, (
+            f"{case_id}: non-invocation resolution mismatch"
+        )
+    else:
+        assert raw_response["answerability"]["answerable"] is True, (
+            f"{case_id}: generation requires a passed answerability gate"
+        )
+        assert resolution["effective_provider"] == provider_model[0], f"{case_id}: effective provider mismatch"
+        assert resolution["effective_model"] == provider_model[1], f"{case_id}: effective model mismatch"
 
 
 def _validate_schema(rows: list[dict], schema_path: Path) -> None:

@@ -191,3 +191,45 @@ def test_external_binding_receipt_path_is_recordable(tmp_path: Path) -> None:
     path = tmp_path / "binding.json"
 
     assert topic_author_eval.display_path(path) == str(path.resolve())
+
+
+def test_frozen_phase1_loader_uses_tracked_blob_after_current_regeneration(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    path = tmp_path / "artifacts" / "phase1" / "phase1_evidence.json"
+    path.parent.mkdir(parents=True)
+
+    def payload(snapshot_hash: str) -> dict:
+        return {
+            "indexes": {
+                "dense": {
+                    "manifest": {
+                        "corpus": {
+                            "snapshot_hash": snapshot_hash,
+                            "eligible_chunks": [],
+                        }
+                    }
+                }
+            }
+        }
+
+    path.write_text(json.dumps(payload("current")), encoding="utf-8")
+    tracked = json.dumps(payload("frozen")).encode("utf-8")
+    monkeypatch.setattr(VALIDATOR, "ROOT", tmp_path)
+    monkeypatch.setattr(
+        VALIDATOR.subprocess,
+        "run",
+        lambda *args, **kwargs: VALIDATOR.subprocess.CompletedProcess(
+            args=args[0], returncode=0, stdout=tracked, stderr=b""
+        ),
+    )
+
+    loaded, provenance = VALIDATOR.load_frozen_phase1_evidence(
+        path,
+        expected_snapshot_hash="frozen",
+    )
+
+    assert loaded["indexes"]["dense"]["manifest"]["corpus"]["snapshot_hash"] == "frozen"
+    assert provenance["source"] == "tracked_commit_blob"
+    assert provenance["working_tree_snapshot_hash"] == "current"

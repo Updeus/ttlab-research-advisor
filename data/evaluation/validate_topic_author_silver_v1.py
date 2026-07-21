@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import sqlite3
+import subprocess
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -52,6 +53,54 @@ def display_path(path: Path) -> str:
 
 def canonical_bytes(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def load_frozen_phase1_evidence(
+    path: Path,
+    *,
+    expected_snapshot_hash: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load the tracked historical evidence even after a full run regenerates its working copy."""
+
+    working_payload = json.loads(path.read_text(encoding="utf-8"))
+    working_corpus = working_payload["indexes"]["dense"]["manifest"]["corpus"]
+    if working_corpus["snapshot_hash"] == expected_snapshot_hash:
+        return working_payload, {
+            "source": "working_tree",
+            "path": display_path(path),
+            "sha256": sha256_file(path),
+        }
+
+    try:
+        relative = path.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError as error:
+        raise ValueError(
+            "frozen Phase 1 evidence differs from the silver snapshot and is outside the repository"
+        ) from error
+    result = subprocess.run(
+        ["git", "show", f"HEAD:{relative}"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        raise ValueError(
+            "frozen Phase 1 evidence differs from the silver snapshot and the tracked commit blob is unavailable"
+        )
+    try:
+        tracked_payload = json.loads(result.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("tracked Phase 1 evidence is not valid UTF-8 JSON") from error
+    tracked_corpus = tracked_payload["indexes"]["dense"]["manifest"]["corpus"]
+    if tracked_corpus["snapshot_hash"] != expected_snapshot_hash:
+        raise ValueError("tracked Phase 1 evidence does not match the frozen silver snapshot")
+    return tracked_payload, {
+        "source": "tracked_commit_blob",
+        "path": relative,
+        "git_revision": "HEAD",
+        "sha256": sha256_bytes(result.stdout),
+        "working_tree_snapshot_hash": working_corpus["snapshot_hash"],
+    }
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -167,7 +216,13 @@ def validate(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     dense_manifest = json.loads(dense_manifest_path.read_text(encoding="utf-8"))
-    phase1 = json.loads(frozen_phase1_evidence.read_text(encoding="utf-8"))
+    try:
+        phase1, frozen_phase1_provenance = load_frozen_phase1_evidence(
+            frozen_phase1_evidence,
+            expected_snapshot_hash=manifest["corpus"]["snapshot_hash"],
+        )
+    except (KeyError, ValueError, FileNotFoundError, json.JSONDecodeError) as error:
+        raise SystemExit(f"topic/author silver validation failed:\n- {error}") from error
     frozen_corpus = phase1["indexes"]["dense"]["manifest"]["corpus"]
     current_corpus = dense_manifest["corpus"]
     current_dense_chunk_ids = {str(item["chunk_id"]) for item in current_corpus["eligible_chunks"]}
@@ -311,6 +366,7 @@ def validate(
             "manifest_sha256": sha256_file(dense_manifest_path),
         },
         "frozen_annotation_corpus": manifest["corpus"],
+        "frozen_phase1_evidence": frozen_phase1_provenance,
         "current_execution_corpus": {
             key: current_corpus[key]
             for key in ("snapshot_id", "snapshot_hash", "eligible_paper_count", "eligible_chunk_count")

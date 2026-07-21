@@ -168,10 +168,12 @@ def test_paper_metadata_patch_updates_only_provided_fields_and_creates_event() -
 
     assert response.status_code == 200
     assert response.json()["paper"]["review_status"] == "needs_review"
-    assert paper.json()["title"] == "Corrected Title"
-    assert paper.json()["venue"] == "Demo Venue"
+    assert response.json()["paper"]["title"] == "Corrected Title"
+    assert response.json()["paper"]["venue"] == "Demo Venue"
+    assert paper.status_code == 404
     assert events.status_code == 200
-    assert events.json()[0]["action"] == "corrected"
+    assert events.json()["total"] == 1
+    assert events.json()["items"][0]["action"] == "corrected"
 
 
 def test_artifact_recommendation_and_answer_review_endpoints_create_events() -> None:
@@ -181,8 +183,8 @@ def test_artifact_recommendation_and_answer_review_endpoints_create_events() -> 
     try:
         client = TestClient(app)
         artifact = client.patch(
-            "/api/admin/artifacts/artifact-1/review",
-            json={"review_status": "approved", "reviewer_notes": "Summary is faithful.", "corrected_text": "Reviewed text."},
+            "/api/admin/artifacts/artifact-1/correction",
+            json={"reviewer_notes": "Summary needs a corrected draft.", "corrected_text": "Reviewed text."},
         )
         recommendation = client.patch(
             "/api/admin/recommendations/recommendation-1/review",
@@ -208,7 +210,8 @@ def test_artifact_recommendation_and_answer_review_endpoints_create_events() -> 
     assert recommendation.json()["recommendation"]["review_status"] == "rejected"
     assert answer.status_code == 200
     assert answer.json()["answer"]["citation_correct"] is True
-    assert len(events.json()) == 3
+    assert events.json()["total"] == 3
+    assert len(events.json()["items"]) == 3
 
 
 def test_review_queue_overview_events_and_stats_work() -> None:
@@ -225,20 +228,21 @@ def test_review_queue_overview_events_and_stats_work() -> None:
         app.dependency_overrides.clear()
 
     assert queue.status_code == 200
-    assert queue.json()["total"] == 4
+    assert queue.json()["total"] == 5
     assert overview.status_code == 200
     assert overview.json()["papers_needing_metadata_review"] == 1
     assert events.status_code == 200
-    assert events.json() == []
+    assert events.json()["total"] == 0
+    assert events.json()["items"] == []
     assert stats.status_code == 200
-    assert stats.json()["admin_review_queue_count"] == 4
+    assert "admin_review_queue_count" not in stats.json()
     assert stats.json()["evaluation_files_present"] == {
         "retrieval": True,
         "qa": True,
         "extension": True,
         "artifact": True,
     }
-    assert stats.json()["top_topics"] == [["Retrieval", 1]]
+    assert stats.json()["top_topics"] == []
 
 
 def test_evaluation_dashboard_returns_not_run_when_files_are_absent(tmp_path: Path) -> None:
@@ -324,7 +328,10 @@ def test_default_evaluation_dashboard_exposes_executed_silver_experiments() -> N
 
     assert dashboard["evaluation_label"].startswith("AI-reviewed silver")
     assert dashboard["human_validation"] is False
-    assert dashboard["retrieval"]["status"] == "available"
+    assert dashboard["retrieval"]["status"] == "historical"
+    assert dashboard["qa"]["status"] == "historical"
+    assert dashboard["extension"]["status"] == "historical"
+    assert dashboard["artifact"]["status"] == "historical"
     assert dashboard["retrieval"]["question_count"] == 50
     assert dashboard["retrieval"]["recall_at_10"] == 1.0
     assert dashboard["qa"]["claim_count"] == 400

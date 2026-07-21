@@ -34,7 +34,6 @@ from app.indexing.embedder import (
     FEATURE_HASHING_PROVIDER,
     corpus_descriptor,
     eligible_chunks,
-    manifest_path_for,
 )
 from app.indexing.keyword_search import SearchFilters, enrich_keyword_results, search_keyword
 from app.indexing.retriever import (
@@ -136,7 +135,7 @@ def precompute_components(
 ) -> tuple[dict[str, dict[bool, dict[str, Any]]], dict[str, Any]]:
     """Load each validated vector index once and cache no source text on disk."""
 
-    before = corpus_descriptor(eligible_chunks(session))
+    before = corpus_descriptor(session, eligible_chunks(session))
     contexts: dict[str, VectorSearchContext] = {
         FEATURE_HASHING_PROVIDER: load_vector_search_context(
             session,
@@ -191,7 +190,7 @@ def precompute_components(
             # pool instead of repeating all three retrieval passes.
             cache[case_id][True] = cache[case_id][False]
         print(f"precompute={offset}/{len(questions)} case_id={case_id}", flush=True)
-    after = corpus_descriptor(eligible_chunks(session))
+    after = corpus_descriptor(session, eligible_chunks(session))
     if before != after:
         raise RuntimeError("corpus changed while retrieval candidate pools were being computed")
     return cache, {
@@ -201,9 +200,11 @@ def precompute_components(
         "contexts": {
             provider: {
                 "index_path": str(context.index_path.relative_to(Path.cwd().resolve())),
-                "index_sha256": sha256_file(context.index_path),
-                "manifest_path": str(manifest_path_for(context.index_path).relative_to(Path.cwd().resolve())),
-                "manifest_sha256": sha256_file(manifest_path_for(context.index_path)),
+                "active_index_path": str(context.active_index_path.relative_to(Path.cwd().resolve())),
+                "index_sha256": sha256_file(context.active_index_path),
+                "manifest_path": str(context.active_manifest_path.relative_to(Path.cwd().resolve())),
+                "manifest_sha256": sha256_file(context.active_manifest_path),
+                "generation_source": context.generation_source,
                 "model_name": context.payload.get("model_name"),
                 "model_revision": context.payload.get("model_revision"),
                 "model_artifact_sha256": context.payload.get("model_artifact_sha256"),
@@ -228,7 +229,7 @@ def response_factory(
         vector_provider = provider or FEATURE_HASHING_PROVIDER
         vector_results = (
             list(variant["vectors"][vector_provider])
-            if mode in {"feature_hashing", "dense", "semantic", "hybrid"}
+            if mode in {"feature_hashing", "dense", "hybrid"}
             else []
         )
         keyword_results = list(variant["keyword"]) if mode in {"keyword", "hybrid"} else []

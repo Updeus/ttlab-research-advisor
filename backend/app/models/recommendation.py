@@ -27,9 +27,14 @@ class ThesisRecommendation(SQLModel, table=True):
     top_k: int = 5
     grounding_status: str = Field(default="unsupported", index=True)
     warnings_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    runtime_provenance_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     review_status: str = Field(default="needs_review", index=True)
     reviewer_notes: Optional[str] = None
     reviewed_at: Optional[datetime] = None
     reviewed_by: Optional[str] = None
     corrected_recommendations_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    correction_grounding_status: str = Field(default="not_applicable", index=True)
+    correction_source_chunk_ids_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    correction_citations_json: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    correction_runtime_provenance_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     created_at: datetime = Field(default_factory=utc_now)

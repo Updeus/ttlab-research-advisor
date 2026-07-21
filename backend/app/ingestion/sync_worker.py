@@ -11,6 +11,7 @@ from sqlmodel import Session
 from app.config import Settings, get_settings
 from app.db import create_db_and_tables, engine
 from app.ingestion.sync import (
+    ATOMIC_GENERATION_PROMOTION_IMPLEMENTED,
     SOURCE,
     as_utc,
     ensure_sync_state,
@@ -47,7 +48,13 @@ def next_scheduled_run(settings: Settings, now: datetime) -> datetime:
 
 
 def scheduled_sync_due(settings: Settings, session: Session, now: datetime) -> bool:
-    if not settings.sync_enabled:
+    if (
+        not ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
+        or not settings.sync_enabled
+        or settings.sync_execution_mode != "offline_single_writer"
+        or settings.security_mode == "production"
+        or settings.service_role != "offline_worker"
+    ):
         return False
     state = get_sync_state(session)
     if settings.sync_run_on_startup and (state is None or state.last_run_id is None):
@@ -72,7 +79,14 @@ def scheduled_sync_due(settings: Settings, session: Session, now: datetime) -> b
 
 def update_next_scheduled_at(session: Session, settings: Settings, now: datetime) -> None:
     state = ensure_sync_state(session)
-    next_run = next_scheduled_run(settings, now).replace(tzinfo=None) if settings.sync_enabled else None
+    enabled = bool(
+        ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
+        and settings.sync_enabled
+        and settings.sync_execution_mode == "offline_single_writer"
+        and settings.security_mode != "production"
+        and settings.service_role == "offline_worker"
+    )
+    next_run = next_scheduled_run(settings, now).replace(tzinfo=None) if enabled else None
     if state.next_scheduled_at != next_run:
         state.next_scheduled_at = next_run
         state.updated_at = utc_now()
@@ -81,6 +95,22 @@ def update_next_scheduled_at(session: Session, settings: Settings, now: datetime
 
 
 def run_worker(settings: Settings) -> None:
+    if not ATOMIC_GENERATION_PROMOTION_IMPLEMENTED:
+        print(
+            json.dumps(
+                {
+                    "event": "sync_worker_disabled",
+                    "source": SOURCE,
+                    "reason": "atomic_generation_promotion_not_implemented",
+                    "configured_enabled": settings.sync_enabled,
+                    "effective_enabled": False,
+                    "legacy_manual_request_action": "left_pending_for_operator_review",
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        return
     create_db_and_tables()
     print(
         json.dumps(
@@ -88,6 +118,9 @@ def run_worker(settings: Settings) -> None:
                 "event": "sync_worker_started",
                 "source": SOURCE,
                 "schedule_enabled": settings.sync_enabled,
+                "execution_mode": settings.sync_execution_mode,
+                "service_role": settings.service_role,
+                "single_writer": True,
                 "schedule": settings.sync_cron,
                 "timezone": settings.sync_timezone,
                 "poll_seconds": settings.sync_worker_poll_seconds,
@@ -129,14 +162,28 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     settings = get_settings()
-    create_db_and_tables()
     if args.status:
+        create_db_and_tables()
         with Session(engine) as session:
             state = get_sync_state(session)
+            effective_enabled = bool(
+                ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
+                and settings.sync_enabled
+                and settings.sync_execution_mode == "offline_single_writer"
+                and settings.security_mode != "production"
+                and settings.service_role == "offline_worker"
+            )
             print(
                 json.dumps(
                     {
-                        "enabled": settings.sync_enabled,
+                        "enabled": effective_enabled,
+                        "configured_enabled": settings.sync_enabled,
+                        "effective_enabled": effective_enabled,
+                        "disabled_reason": (
+                            None if effective_enabled else "atomic_generation_promotion_not_implemented"
+                        ),
+                        "execution_mode": settings.sync_execution_mode,
+                        "service_role": settings.service_role,
                         "schedule": settings.sync_cron,
                         "timezone": settings.sync_timezone,
                         "manual_request_pending": bool(state and state.manual_requested_at),
@@ -147,6 +194,7 @@ def main() -> None:
             )
         return
     if args.once:
+        create_db_and_tables()
         with Session(engine) as session:
             result = execute_ttlab_sync(
                 session,

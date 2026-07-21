@@ -248,13 +248,20 @@ def execute_profiles(
                 build_retrieval_query(request),
                 mode=request.retrieval_mode,
                 top_k=max(request.top_k * 6, request.top_k),
+                scope="technical",
             )
-            baseline = evidence_only_baseline(session, request, retrieval_response=retrieval_trace)
+            baseline = evidence_only_baseline(
+                session,
+                request,
+                retrieval_response=retrieval_trace,
+                retrieval_scope="technical",
+            )
             full = recommend_extensions(
                 session,
                 request,
                 persist=False,
                 retrieval_response=retrieval_trace,
+                retrieval_scope="technical",
             )
             outputs.append(
                 {

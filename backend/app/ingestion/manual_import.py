@@ -7,10 +7,20 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from sqlalchemy import delete
 from sqlmodel import Session, select
 
 from app.db import create_db_and_tables, engine
-from app.models import Author, Paper
+from app.models import (
+    Author,
+    AuthorTopic,
+    Chunk,
+    Paper,
+    PaperArtifact,
+    PaperTopic,
+    RAGAnswer,
+    ThesisRecommendation,
+)
 from app.ingestion.metadata_cleaner import (
     build_metadata_provenance,
     clean_author_name,
@@ -32,7 +42,15 @@ def load_seed(seed_path: Path) -> list[dict[str, Any]]:
 
 
 def upsert_papers(session: Session, records: list[dict[str, Any]]) -> dict[str, int]:
-    summary = {"created": 0, "updated": 0, "skipped": 0, "missing_pdf": 0, "authors": 0}
+    summary = {
+        "created": 0,
+        "updated": 0,
+        "skipped": 0,
+        "missing_pdf": 0,
+        "authors": 0,
+        "reviewed_field_conflicts": 0,
+        "descendants_invalidated": 0,
+    }
     for record in records:
         paper_id = record.get("paper_id")
         title = record.get("title")
@@ -96,16 +114,63 @@ def upsert_papers(session: Session, records: list[dict[str, Any]]) -> dict[str, 
             "metadata_field_reviews": field_reviews,
             "ingestion_status": str(record.get("ingestion_status") or "discovered"),
             "pdf_text_status": str(pdf_text_status),
-            "review_status": "needs_review",
             "updated_at": utc_now(),
         }
 
         if existing is None:
-            session.add(Paper(paper_id=str(paper_id), **values))
+            session.add(Paper(paper_id=str(paper_id), review_status="needs_review", **values))
             summary["created"] += 1
         else:
+            accepted_changes: set[str] = set()
+            existing_provenance = dict(existing.metadata_provenance or {})
+            existing_reviews = dict(existing.metadata_field_reviews or {})
             for key, value in values.items():
+                if key in {"metadata_provenance", "metadata_field_reviews", "raw_record", "updated_at"}:
+                    continue
+                if getattr(existing, key) == value:
+                    continue
+                if key in REVIEWABLE_METADATA_FIELDS and field_is_reviewed(existing, key):
+                    conflict = {
+                        "incoming_value": value,
+                        "preserved_value": getattr(existing, key),
+                        "source": "automated_import",
+                        "recorded_at": utc_now().isoformat(),
+                        "status": "conflict_needs_human_review",
+                    }
+                    prior = dict(existing_provenance.get(key) or {})
+                    prior["incoming_conflict"] = conflict
+                    existing_provenance[key] = prior
+                    summary["reviewed_field_conflicts"] += 1
+                    continue
                 setattr(existing, key, value)
+                accepted_changes.add(key)
+            existing.raw_record = record
+            existing.metadata_provenance = {**provenance, **existing_provenance}
+            existing.metadata_field_reviews = {**field_reviews, **existing_reviews}
+            existing.updated_at = utc_now()
+            if accepted_changes.intersection(MATERIAL_SOURCE_FIELDS):
+                retained_local_path = (
+                    existing.local_pdf_path if "local_pdf_path" in accepted_changes else None
+                )
+                invalidate_paper_descendants(
+                    session,
+                    existing,
+                    retained_local_pdf_path=retained_local_path,
+                    reason="material_source_change_requires_reprocessing",
+                )
+                summary["descendants_invalidated"] += 1
+            if accepted_changes.intersection(REVIEWABLE_METADATA_FIELDS):
+                existing.review_status = "needs_review"
+                reset_dependent_graph_reviews_for_paper(
+                    session,
+                    existing.paper_id,
+                    reason="Paper metadata changed; topic relationships require re-review.",
+                )
+                invalidate_generated_outputs_for_paper(
+                    session,
+                    existing.paper_id,
+                    reason="Paper metadata changed; generated outputs require regeneration and re-review.",
+                )
             session.add(existing)
             summary["updated"] += 1
 
@@ -118,6 +183,196 @@ def upsert_papers(session: Session, records: list[dict[str, Any]]) -> dict[str, 
     summary["authors_recovered"] = repair_summary["source_backed_authors_recovered"]
     update_author_counts(session)
     return summary
+
+
+REVIEWED_STATES = {"reviewed", "approved"}
+REVIEWABLE_METADATA_FIELDS = {
+    "title",
+    "authors",
+    "year",
+    "publication_date_raw",
+    "venue",
+    "abstract",
+    "source_url",
+    "post_url",
+    "pdf_url",
+    "doi",
+    "keywords",
+    "topics",
+}
+MATERIAL_SOURCE_FIELDS = {"source_url", "post_url", "pdf_url", "local_pdf_path"}
+
+
+def field_is_reviewed(paper: Paper, field_name: str) -> bool:
+    field_reviews = paper.metadata_field_reviews if isinstance(paper.metadata_field_reviews, dict) else {}
+    return paper.review_status in REVIEWED_STATES or str(field_reviews.get(field_name) or "") in REVIEWED_STATES
+
+
+def invalidate_paper_descendants(
+    session: Session,
+    paper: Paper,
+    *,
+    retained_local_pdf_path: str | None = None,
+    reason: str = "material_source_change_requires_reprocessing",
+) -> None:
+    """Invalidate derived text/chunks when the accepted source identity changes."""
+
+    session.exec(delete(Chunk).where(Chunk.paper_id == paper.paper_id))
+    reset_dependent_graph_reviews_for_paper(
+        session,
+        paper.paper_id,
+        reason="Paper source identity changed; topic relationships require re-review.",
+    )
+    paper.local_pdf_path = retained_local_pdf_path
+    paper.pdf_text_status = "not_extracted" if paper.pdf_url or retained_local_pdf_path else "missing_pdf"
+    paper.extracted_json_path = None
+    paper.extracted_text_path = None
+    paper.extraction_generation_id = None
+    paper.extraction_input_pdf_sha256 = None
+    paper.extraction_config_sha256 = None
+    paper.chunk_extraction_generation_id = None
+    paper.chunk_generation_id = None
+    paper.public_index_generation_id = None
+    paper.extraction_diagnostics = {
+        "status": "invalidated_source_change",
+        "warnings": ["Derived extraction and chunks were invalidated after a material source change."],
+    }
+    paper.extraction_content_type = "unknown"
+    paper.page_count = None
+    paper.total_char_count = 0
+    paper.total_word_count = 0
+    paper.pages_with_text = 0
+    paper.pages_without_text = 0
+    paper.possible_scanned_pdf = False
+    paper.chunk_count = 0
+    paper.corpus_eligibility_status = "needs_review"
+    paper.corpus_exclusion_reason = reason
+    paper.pdf_title_match_status = "not_assessed"
+    paper.pdf_title_match_score = None
+    paper.extraction_review_status = "needs_review"
+    paper.extraction_reviewer_notes = None
+    paper.extraction_reviewed_at = None
+    paper.extraction_reviewed_by = None
+    paper.publication_status = "pending_review"
+    paper.public_access_level = "hidden"
+    paper.rights_status = "unknown"
+    invalidate_generated_outputs_for_paper(
+        session,
+        paper.paper_id,
+        reason="Source or metadata identity changed; regenerate and reapprove this output.",
+    )
+
+
+def invalidate_generated_outputs_for_paper(
+    session: Session,
+    paper_id: str,
+    *,
+    reason: str,
+) -> dict[str, list[str]]:
+    """Reset approvals on generated records whose evidence cites a changed paper."""
+
+    invalidated: dict[str, list[str]] = {
+        "artifact_ids": [],
+        "answer_ids": [],
+        "recommendation_ids": [],
+    }
+    for artifact in session.exec(select(PaperArtifact).where(PaperArtifact.paper_id == paper_id)).all():
+        if artifact.review_status != "needs_reprocess":
+            invalidated["artifact_ids"].append(artifact.artifact_id)
+        artifact.review_status = "needs_reprocess"
+        artifact.reviewer_notes = None
+        artifact.reviewed_at = None
+        artifact.reviewed_by = None
+        artifact.warnings_json = append_warning(artifact.warnings_json, reason)
+        artifact.updated_at = utc_now()
+        session.add(artifact)
+
+    for answer in session.exec(select(RAGAnswer)).all():
+        cites_paper = paper_id in list(answer.cited_paper_ids or []) or any(
+            isinstance(item, dict) and item.get("paper_id") == paper_id
+            for item in [*list(answer.citations_json or []), *list(answer.retrieved_chunks_json or [])]
+        )
+        if not cites_paper:
+            continue
+        if answer.review_status != "needs_reprocess":
+            invalidated["answer_ids"].append(answer.answer_id)
+        answer.review_status = "needs_reprocess"
+        answer.reviewer_notes = None
+        answer.reviewed_at = None
+        answer.reviewed_by = None
+        answer.citation_correct = None
+        answer.answer_faithfulness_score = None
+        answer.usefulness_score = None
+        answer.warnings_json = append_warning(answer.warnings_json, reason)
+        session.add(answer)
+
+    for recommendation in session.exec(select(ThesisRecommendation)).all():
+        payloads = list(recommendation.recommendations_json or [])
+        corrected = recommendation.corrected_recommendations_json
+        if isinstance(corrected, dict):
+            corrected_items = corrected.get("items")
+            if isinstance(corrected_items, list):
+                payloads.extend(item for item in corrected_items if isinstance(item, dict))
+        cites_paper = any(
+            isinstance(item, dict)
+            and (
+                item.get("paper_id") == paper_id
+                or any(
+                    isinstance(citation, dict) and citation.get("paper_id") == paper_id
+                    for citation in list(item.get("citations") or [])
+                )
+            )
+            for item in payloads
+        )
+        if not cites_paper:
+            continue
+        if recommendation.review_status != "needs_reprocess":
+            invalidated["recommendation_ids"].append(recommendation.recommendation_id)
+        recommendation.review_status = "needs_reprocess"
+        recommendation.reviewer_notes = None
+        recommendation.reviewed_at = None
+        recommendation.reviewed_by = None
+        recommendation.warnings_json = append_warning(recommendation.warnings_json, reason)
+        session.add(recommendation)
+    return invalidated
+
+
+def append_warning(existing: list[str] | None, warning: str) -> list[str]:
+    return list(dict.fromkeys([*list(existing or []), warning]))
+
+
+def reset_dependent_graph_reviews_for_paper(
+    session: Session,
+    paper_id: str,
+    *,
+    reason: str,
+) -> dict[str, list[str]]:
+    """Fail closed on graph approvals derived from changed paper facts."""
+
+    reset: dict[str, list[str]] = {"paper_topic_ids": [], "author_topic_ids": []}
+    now = utc_now()
+    for link in session.exec(select(PaperTopic).where(PaperTopic.paper_id == paper_id)).all():
+        if link.review_status != "needs_review":
+            reset["paper_topic_ids"].append(link.link_id)
+        link.review_status = "needs_review"
+        link.reviewer_notes = reason
+        link.reviewed_at = None
+        link.reviewed_by = None
+        link.updated_at = now
+        session.add(link)
+    for link in session.exec(select(AuthorTopic)).all():
+        evidence = link.evidence_json if isinstance(link.evidence_json, list) else []
+        if not any(isinstance(item, dict) and item.get("paper_id") == paper_id for item in evidence):
+            continue
+        if link.review_status != "needs_review":
+            reset["author_topic_ids"].append(link.link_id)
+        link.review_status = "needs_review"
+        link.reviewer_notes = reason
+        link.reviewed_at = None
+        link.reviewed_by = None
+        link.updated_at = now
+        session.add(link)
+    return reset
 
 
 def upsert_author(session: Session, author_name: str) -> bool:

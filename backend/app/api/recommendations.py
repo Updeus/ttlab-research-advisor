@@ -21,7 +21,7 @@ def create_extension_recommendations(
     request: ExtensionFinderRequest,
     session: Annotated[Session, Depends(get_session)],
 ) -> dict[str, object]:
-    return recommend_extensions(session, request, persist=False)
+    return recommend_extensions(session, request, persist=False, retrieval_scope="public")
 
 
 @router.get("/extensions/history")

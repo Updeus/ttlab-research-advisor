@@ -31,9 +31,12 @@ from app.ingestion.pdf_downloader import download_pdfs, filter_records, load_rec
 from app.ingestion.pdf_parser import extract_from_db
 from app.ingestion.ttlab_page import discover_publications
 from app.intelligence.topic_explorer import rebuild_topic_index
+from app.io_utils import fsync_directory
 from app.models import IngestionRun, IngestionSyncState, Paper
+from app.security import require_offline_pdf_worker
 
 SOURCE = "ttlab"
+ATOMIC_GENERATION_PROMOTION_IMPLEMENTED = False
 DISCOVERY_FIELDS = (
     "title",
     "authors",
@@ -217,6 +220,7 @@ def atomic_write_seed(records: list[dict[str, Any]], output_path: Path) -> None:
         handle.flush()
         os.fsync(handle.fileno())
     os.replace(temporary, output_path)
+    fsync_directory(output_path.parent)
 
 
 def lease_owner() -> str:
@@ -272,6 +276,28 @@ def execute_ttlab_sync(
     discoverer: Callable[[str, int, bool], list[dict[str, Any]]] = discover_publications,
 ) -> dict[str, Any]:
     settings = settings or get_settings()
+    if not ATOMIC_GENERATION_PROMOTION_IMPLEMENTED:
+        return {
+            "run_id": None,
+            "source": SOURCE,
+            "trigger": trigger,
+            "status": "disabled",
+            "reason": "atomic_generation_promotion_not_implemented",
+            "authoritative_rebuild_path": "manual_isolated_reproduce_all",
+        }
+    if (
+        settings.sync_execution_mode != "offline_single_writer"
+        or settings.security_mode == "production"
+        or settings.service_role != "offline_worker"
+    ):
+        return {
+            "run_id": None,
+            "source": SOURCE,
+            "trigger": trigger,
+            "status": "disabled",
+            "reason": "ingestion_requires_explicit_offline_single_writer_worker_mode",
+        }
+    require_offline_pdf_worker(settings, "TTLAB ingestion synchronization")
     owner = lease_owner()
     run_id = str(uuid.uuid4())
     if not acquire_sync_lease(session, owner, settings.sync_lock_minutes):
@@ -336,6 +362,7 @@ def execute_ttlab_sync(
                     settings.project_root / "data" / "pdfs",
                     download=True,
                     session=session,
+                    settings_override=settings,
                 )
                 if candidates
                 else {"skipped": "no missing PDFs among processing candidates"}
@@ -350,6 +377,7 @@ def execute_ttlab_sync(
                 session,
                 paper_ids=processing_ids,
                 output_dir=settings.project_root / "data" / "extracted_text",
+                settings_override=settings,
             )
             if processing_ids
             else {"attempted": 0, "extracted": 0, "skipped_existing": 0}
@@ -487,7 +515,18 @@ def ingestion_sync_status(session: Session, settings: Settings | None = None) ->
     locked_until = as_utc(state.locked_until) if state else None
     return {
         "source": SOURCE,
-        "enabled": settings.sync_enabled,
+        "enabled": False,
+        "disabled_reason": "atomic_generation_promotion_not_implemented",
+        "atomic_generation_promotion_implemented": ATOMIC_GENERATION_PROMOTION_IMPLEMENTED,
+        "execution_mode": settings.sync_execution_mode,
+        "service_role": settings.service_role,
+        "api_or_production_mode_blocked": (
+            settings.service_role == "api" or settings.security_mode == "production"
+        ),
+        "single_writer_enforced": True,
+        "network_and_process_isolation_implemented_by_application": False,
+        "external_worker_controls_required": True,
+        "discovery_output_path": str(resolve_project_path(settings, settings.sync_seed_path)),
         "schedule": settings.sync_cron,
         "timezone": settings.sync_timezone,
         "run_on_startup": settings.sync_run_on_startup,

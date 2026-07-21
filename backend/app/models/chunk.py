@@ -22,4 +22,5 @@ class Chunk(SQLModel, table=True):
     token_count_estimate: Optional[int] = None
     embedding_status: str = "not_indexed"
     source_hash: Optional[str] = None
+    extraction_generation_id: Optional[str] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=utc_now)

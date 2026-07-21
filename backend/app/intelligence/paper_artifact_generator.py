@@ -11,9 +11,11 @@ from typing import Any
 from sqlmodel import Session, desc, func, select
 
 from app.db import create_db_and_tables, engine
+from app.io_utils import atomic_write_json
 from app.intelligence.artifact_verifier import verify_artifact_payload
 from app.intelligence.podcast_script_generator import generate_podcast_script
 from app.models import Chunk, Paper, PaperArtifact
+from app.runtime_provenance import build_runtime_provenance
 
 DEFAULT_PROVIDER = "offline_deterministic"
 DEFAULT_MODEL = "paper-artifact-template-v1"
@@ -31,6 +33,23 @@ SECTION_TYPES = [
     "evaluation_plan",
 ]
 ARTIFACT_TYPES = set(SECTION_TYPES + ["podcast_script", "paper_intelligence_bundle"])
+TEXT_ARTIFACT_TYPES = {
+    "public_summary",
+    "technical_summary",
+    "contribution",
+    "methods",
+    "limitations",
+    "future_work",
+    "evaluation_plan",
+}
+CORRECTION_EVIDENCE_KEYS = {
+    "citations",
+    "citation",
+    "source_chunk_ids",
+    "source_chunk_ids_json",
+    "source_basis",
+    "cited_source_papers",
+}
 
 SECTION_PRIORITIES = {
     "abstract": 120,
@@ -586,17 +605,34 @@ def upsert_artifact(
     )
     if existing and not overwrite:
         return existing[0]
-    for record in existing:
-        session.delete(record)
+    # Overwrite means "create a newer draft", not "destroy the audit history".
+    # Public selection resolves the latest approved version separately.
     now = utc_now()
     citations = collect_citations(payload)
+    source_chunk_ids = sorted({citation["chunk_id"] for citation in citations if citation.get("chunk_id")})
+    runtime_provenance = build_runtime_provenance(
+        session,
+        record_type="paper_artifact",
+        generation_config={
+            "artifact_type": artifact_type,
+            "generation_status": generation_status,
+            "grounding_contract": "structural_support_unverified_v1",
+            "template_model": model,
+        },
+        provider=provider,
+        model=model,
+        generated_at=now,
+        retrieval_mode=None,
+        source_chunk_ids=source_chunk_ids,
+        corpus_scope="technical",
+    )
     artifact = PaperArtifact(
         artifact_id=str(uuid.uuid4()),
         paper_id=paper.paper_id,
         artifact_type=artifact_type,
         generated_json=payload,
         generated_text=extract_generated_text(payload),
-        source_chunk_ids_json=sorted({citation["chunk_id"] for citation in citations if citation.get("chunk_id")}),
+        source_chunk_ids_json=source_chunk_ids,
         citations_json=citations,
         provider=provider,
         model=model,
@@ -604,6 +640,7 @@ def upsert_artifact(
         grounding_status=grounding_status,
         review_status="needs_review",
         warnings_json=dedupe_preserve_order(warnings),
+        runtime_provenance_json=runtime_provenance,
         created_at=now,
         updated_at=now,
     )
@@ -632,7 +669,12 @@ def serialize_artifact(artifact: PaperArtifact) -> dict[str, Any]:
         "reviewed_by": artifact.reviewed_by,
         "corrected_text": artifact.corrected_text,
         "corrected_json": artifact.corrected_json,
+        "correction_grounding_status": artifact.correction_grounding_status,
+        "correction_source_chunk_ids": artifact.correction_source_chunk_ids_json,
+        "correction_citations": artifact.correction_citations_json,
+        "correction_runtime_provenance": artifact.correction_runtime_provenance_json,
         "warnings": artifact.warnings_json,
+        "runtime_provenance": artifact.runtime_provenance_json,
         "created_at": artifact.created_at.isoformat(),
         "updated_at": artifact.updated_at.isoformat(),
     }
@@ -648,13 +690,298 @@ def serialize_public_artifact(artifact: PaperArtifact) -> dict[str, Any]:
     reviewer or disclosing work in progress.
     """
 
-    payload = serialize_artifact(artifact)
-    payload.pop("reviewer_notes", None)
-    payload.pop("reviewed_by", None)
     if artifact.review_status != "approved":
-        payload.pop("corrected_text", None)
-        payload.pop("corrected_json", None)
-    return payload
+        raise ValueError("Only approved artifacts may be serialized for public output")
+    correction_blockers = artifact_correction_blockers(artifact)
+    if correction_blockers:
+        raise ValueError(f"Artifact correction is not publishable: {', '.join(correction_blockers)}")
+    corrected_json = artifact.corrected_json if isinstance(artifact.corrected_json, dict) else {}
+    use_corrected_json = bool(corrected_json)
+    correction_used = use_corrected_json
+    effective_source_chunk_ids = (
+        artifact.correction_source_chunk_ids_json if correction_used else artifact.source_chunk_ids_json
+    )
+    effective_citations = artifact.correction_citations_json if correction_used else artifact.citations_json
+    effective_grounding = artifact.correction_grounding_status if correction_used else artifact.grounding_status
+    effective_warnings = list(artifact.warnings_json or [])
+    if correction_used and artifact.correction_grounding_status != "grounded":
+        effective_warnings = dedupe_preserve_order(
+            [
+                *effective_warnings,
+                "Reviewer-corrected content has not been reverified against source chunks; original generated evidence was not inherited.",
+            ]
+        )
+    return {
+        "artifact_id": artifact.artifact_id,
+        "paper_id": artifact.paper_id,
+        "artifact_type": artifact.artifact_type,
+        "effective_json": corrected_json if use_corrected_json else artifact.generated_json,
+        "effective_text": extract_generated_text(corrected_json) if correction_used else artifact.generated_text,
+        "source_chunk_ids": effective_source_chunk_ids,
+        "citations": effective_citations,
+        "generation_status": artifact.generation_status,
+        "grounding_status": effective_grounding,
+        "review_status": artifact.review_status,
+        "reviewed_at": artifact.reviewed_at.isoformat() if artifact.reviewed_at else None,
+        "warnings": effective_warnings,
+        "provenance": {
+            "source": "reviewer_correction" if correction_used else "generated",
+            "provider": None if correction_used else artifact.provider,
+            "model": None if correction_used else artifact.model,
+            "generated_at": None if correction_used else artifact.created_at.isoformat(),
+            "approved_version": "corrected" if correction_used else "generated",
+            "correction_fields": ["json"] if correction_used else [],
+            "derived_fields": ["text"] if correction_used else [],
+            "runtime": (
+                artifact.correction_runtime_provenance_json
+                if correction_used
+                else artifact.runtime_provenance_json
+            ),
+            "evidence_verification": "not_performed" if correction_used else "generation_time_structural_check",
+            "original_generated_evidence_inherited": False if correction_used else None,
+        },
+    }
+
+
+def strip_nested_correction_evidence(value: Any) -> Any:
+    """Remove inherited or reviewer-supplied evidence locators recursively.
+
+    A correction is new authored content. It cannot inherit citations from the
+    generated draft merely because the surrounding JSON shape was copied. A
+    future re-verification workflow may add correction-specific evidence, but
+    the current conservative contract strips it and records the correction as
+    unsupported.
+    """
+
+    if isinstance(value, dict):
+        return {
+            key: strip_nested_correction_evidence(child)
+            for key, child in value.items()
+            if key not in CORRECTION_EVIDENCE_KEYS
+        }
+    if isinstance(value, list):
+        return [strip_nested_correction_evidence(child) for child in value]
+    return value
+
+
+def canonicalize_artifact_correction(
+    artifact: PaperArtifact,
+    *,
+    corrected_json: dict[str, Any] | None,
+    corrected_text: str | None,
+) -> tuple[dict[str, Any], str]:
+    """Return one type-checked JSON authority and its derived text mirror."""
+
+    if corrected_json is None:
+        if artifact.artifact_type not in TEXT_ARTIFACT_TYPES:
+            raise ValueError(f"{artifact.artifact_type} corrections require structured JSON")
+        if corrected_text is None:
+            raise ValueError("A correction value is required")
+        source = artifact.corrected_json if isinstance(artifact.corrected_json, dict) and artifact.corrected_json else artifact.generated_json
+        payload = dict(source or {})
+        payload["text"] = corrected_text
+    else:
+        payload = dict(corrected_json)
+
+    canonical = strip_nested_correction_evidence(payload)
+    if not isinstance(canonical, dict):  # pragma: no cover - dict input is enforced above
+        raise ValueError("Artifact correction must be a JSON object")
+    validate_canonical_artifact_payload(artifact.artifact_type, canonical, paper_id=artifact.paper_id)
+    canonical = normalize_canonical_artifact_payload(artifact.artifact_type, canonical)
+    derived_text = extract_generated_text(canonical)
+    if corrected_text is not None and corrected_text != derived_text:
+        raise ValueError("corrected_text must exactly match the text derived from corrected_json")
+    return canonical, derived_text
+
+
+def normalize_canonical_artifact_payload(artifact_type: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Project a validated correction onto its one supported public shape."""
+
+    if artifact_type in TEXT_ARTIFACT_TYPES:
+        result: dict[str, Any] = {"text": payload["text"], "citations": []}
+        for key in ("support_status", "basis"):
+            if isinstance(payload.get(key), str) and payload[key].strip():
+                result[key] = payload[key]
+        return result
+    if artifact_type == "required_skills":
+        result = {
+            "skills": dedupe_preserve_order([item.strip() for item in payload["skills"]]),
+            "citations": [],
+        }
+        if isinstance(payload.get("basis"), str) and payload["basis"].strip():
+            result["basis"] = payload["basis"]
+        return result
+    if artifact_type == "possible_extensions":
+        return {
+            "items": [_canonical_extension_item(item) for item in payload["items"]],
+            "citations": [],
+            "review_status": "needs_review",
+        }
+    if artifact_type == "podcast_script":
+        script = [
+            {"speaker": turn["speaker"].strip(), "text": turn["text"].strip()}
+            for turn in payload["script"]
+        ]
+        speakers = payload.get("speakers")
+        normalized_speakers = (
+            dedupe_preserve_order([item.strip() for item in speakers if isinstance(item, str) and item.strip()])
+            if isinstance(speakers, list)
+            else dedupe_preserve_order([turn["speaker"] for turn in script])
+        )
+        return {
+            "episode_title": payload["episode_title"].strip(),
+            "short_description": str(payload.get("short_description") or "").strip(),
+            "audience": str(payload.get("audience") or "general public").strip(),
+            "duration_target": "3-5 minutes",
+            "speakers": normalized_speakers,
+            "script": script,
+            "cited_source_papers": [],
+            "citations": [],
+            "warnings": _string_list(payload.get("warnings")),
+            "review_status": "needs_review",
+        }
+    if artifact_type == "paper_intelligence_bundle":
+        return {
+            "paper_id": payload["paper_id"],
+            "paper_title": payload["paper_title"].strip(),
+            "authors": _string_list(payload.get("authors")),
+            "year": payload.get("year"),
+            "generated_notice": str(payload.get("generated_notice") or "Reviewer-corrected content; source support has not been reverified.").strip(),
+            "public_summary": normalize_canonical_artifact_payload("public_summary", payload["public_summary"]),
+            "technical_summary": normalize_canonical_artifact_payload("technical_summary", payload["technical_summary"]),
+            "contribution": normalize_canonical_artifact_payload("contribution", payload["contribution"]),
+            "methods": normalize_canonical_artifact_payload("methods", payload["methods"]),
+            "limitations": normalize_canonical_artifact_payload("limitations", payload["limitations"]),
+            "future_work": normalize_canonical_artifact_payload("future_work", payload["future_work"]),
+            "possible_extensions": [_canonical_extension_item(item) for item in payload["possible_extensions"]],
+            "required_skills": normalize_canonical_artifact_payload("required_skills", payload["required_skills"]),
+            "evaluation_plan": normalize_canonical_artifact_payload("evaluation_plan", payload["evaluation_plan"]),
+            "warnings": _string_list(payload.get("warnings")),
+            "review_status": "needs_review",
+        }
+    raise ValueError(f"Unsupported artifact correction type: {artifact_type}")
+
+
+def _canonical_extension_item(item: dict[str, Any]) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "title": item["title"].strip(),
+        "summary": item["summary"].strip(),
+        "citations": [],
+    }
+    if isinstance(item.get("support_status"), str) and item["support_status"].strip():
+        result["support_status"] = item["support_status"]
+    else:
+        result["support_status"] = "suggested_extension"
+    return result
+
+
+def _string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return dedupe_preserve_order([item.strip() for item in value if isinstance(item, str) and item.strip()])
+
+
+def validate_canonical_artifact_payload(
+    artifact_type: str,
+    payload: dict[str, Any],
+    *,
+    paper_id: str | None = None,
+) -> None:
+    """Validate the minimum type-specific public rendering contract."""
+
+    if artifact_type in TEXT_ARTIFACT_TYPES:
+        _require_nonempty_text(payload, "text", f"{artifact_type} correction")
+        return
+    if artifact_type == "required_skills":
+        skills = payload.get("skills")
+        if not isinstance(skills, list) or not skills or any(not isinstance(item, str) or not item.strip() for item in skills):
+            raise ValueError("required_skills correction requires a non-empty skills list")
+        return
+    if artifact_type == "possible_extensions":
+        _validate_extension_items(payload.get("items"))
+        return
+    if artifact_type == "podcast_script":
+        _require_nonempty_text(payload, "episode_title", "Podcast correction")
+        script = payload.get("script")
+        if not isinstance(script, list) or not script:
+            raise ValueError("Podcast correction requires a non-empty script")
+        for turn in script:
+            if not isinstance(turn, dict):
+                raise ValueError("Each podcast script turn requires speaker and text")
+            _require_nonempty_text(turn, "speaker", "Podcast script turn")
+            _require_nonempty_text(turn, "text", "Podcast script turn")
+        return
+    if artifact_type == "paper_intelligence_bundle":
+        if paper_id is not None and payload.get("paper_id") != paper_id:
+            raise ValueError("Paper intelligence correction paper_id does not match its artifact")
+        _require_nonempty_text(payload, "paper_title", "Paper intelligence correction")
+        for section in (
+            "public_summary",
+            "technical_summary",
+            "contribution",
+            "methods",
+            "limitations",
+            "future_work",
+            "evaluation_plan",
+        ):
+            value = payload.get(section)
+            if not isinstance(value, dict):
+                raise ValueError(f"Paper intelligence correction requires object section '{section}'")
+            _require_nonempty_text(value, "text", f"Paper intelligence section '{section}'")
+        skills = payload.get("required_skills")
+        if not isinstance(skills, dict):
+            raise ValueError("Paper intelligence correction requires required_skills")
+        validate_canonical_artifact_payload("required_skills", skills)
+        _validate_extension_items(payload.get("possible_extensions"))
+        return
+    raise ValueError(f"Unsupported artifact correction type: {artifact_type}")
+
+
+def _require_nonempty_text(payload: dict[str, Any], key: str, label: str) -> None:
+    value = payload.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label} requires non-empty {key}")
+
+
+def _validate_extension_items(value: Any) -> None:
+    if not isinstance(value, list) or not value:
+        raise ValueError("possible_extensions correction requires non-empty items")
+    for item in value:
+        if not isinstance(item, dict):
+            raise ValueError("Each corrected extension requires title and summary")
+        _require_nonempty_text(item, "title", "Corrected extension")
+        _require_nonempty_text(item, "summary", "Corrected extension")
+
+
+def artifact_correction_blockers(artifact: PaperArtifact) -> list[str]:
+    """Describe why an existing correction cannot be approved or delivered."""
+
+    corrected_json = artifact.corrected_json if isinstance(artifact.corrected_json, dict) else {}
+    correction_used = bool(corrected_json) or artifact.corrected_text is not None
+    if not correction_used:
+        return []
+    blockers: list[str] = []
+    if not corrected_json:
+        blockers.append("correction_json_missing")
+        return blockers
+    try:
+        canonical, derived_text = canonicalize_artifact_correction(
+            artifact,
+            corrected_json=corrected_json,
+            corrected_text=artifact.corrected_text,
+        )
+    except ValueError:
+        blockers.append("correction_payload_invalid_or_text_mismatch")
+        return blockers
+    if canonical != corrected_json:
+        blockers.append("correction_contains_unverified_evidence")
+    if artifact.corrected_text != derived_text:
+        blockers.append("correction_text_json_mismatch")
+    if artifact.correction_source_chunk_ids_json or artifact.correction_citations_json:
+        blockers.append("correction_evidence_not_reverified")
+    if artifact.correction_grounding_status != "unsupported":
+        blockers.append("correction_grounding_status_inconsistent")
+    return blockers
 
 
 def save_artifacts_json(
@@ -674,7 +1001,7 @@ def save_artifacts_json(
         "warnings": dedupe_preserve_order(warnings),
         "artifacts": artifacts,
     }
-    output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    atomic_write_json(output_path, payload)
     return output_path
 
 
@@ -796,13 +1123,26 @@ def list_paper_artifacts(
     *,
     public: bool = False,
 ) -> list[dict[str, Any]]:
-    records = session.exec(
+    statement = (
         select(PaperArtifact)
         .where(PaperArtifact.paper_id == paper_id)
         .order_by(PaperArtifact.artifact_type, desc(PaperArtifact.created_at))
-    ).all()
+    )
+    if public:
+        statement = statement.where(PaperArtifact.review_status == "approved")
+    records = session.exec(statement).all()
     serializer = serialize_public_artifact if public else serialize_artifact
-    return [serializer(record) for record in records]
+    serialized: list[dict[str, Any]] = []
+    for record in records:
+        try:
+            serialized.append(serializer(record))
+        except ValueError:
+            if not public:
+                raise
+            # A legacy or externally modified approved correction is withheld
+            # rather than becoming a public 500 response or inconsistent view.
+            continue
+    return serialized
 
 
 def get_latest_paper_artifact(
@@ -812,15 +1152,23 @@ def get_latest_paper_artifact(
     *,
     public: bool = False,
 ) -> dict[str, Any] | None:
-    record = session.exec(
+    statement = (
         select(PaperArtifact)
         .where(PaperArtifact.paper_id == paper_id)
         .where(PaperArtifact.artifact_type == artifact_type)
         .order_by(desc(PaperArtifact.created_at))
-    ).first()
-    if record is None:
-        return None
-    return serialize_public_artifact(record) if public else serialize_artifact(record)
+    )
+    if public:
+        statement = statement.where(PaperArtifact.review_status == "approved")
+    records = list(session.exec(statement).all())
+    for record in records:
+        try:
+            return serialize_public_artifact(record) if public else serialize_artifact(record)
+        except ValueError:
+            if not public:
+                raise
+            continue
+    return None
 
 
 def clean_text(text: str) -> str:

@@ -18,11 +18,18 @@ def local_llms() -> dict[str, object]:
     # The public UI needs availability and model metadata, not the internal
     # provider address or socket/HTTP exception details.
     payload.pop("base_url", None)
-    public_warnings = [UNVALIDATED_MODEL_WARNING]
-    if not payload.get("available"):
+    public_warnings = [
+        UNVALIDATED_MODEL_WARNING,
+        (
+            "Installed-tag digest checks establish configuration readiness only. Ask TTLAB checks the tag before "
+            "and after each generation; without a response-reported digest, output remains attributed to the "
+            "mutable tag and is not claimed to have reproducible generation-time model identity."
+        ),
+    ]
+    if not payload.get("generation_available"):
         public_warnings.insert(
             0,
-            "The configured local model provider is unavailable; operational details are withheld from this public response.",
+            "No digest-verified local generation model is currently usable; Ask TTLAB defaults to the offline extractive provider.",
         )
     payload["warnings"] = public_warnings
     return redact_local_paths(payload)

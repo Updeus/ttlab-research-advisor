@@ -1,10 +1,16 @@
 from pathlib import Path
 
+from app.config import Settings
 from app.evaluation import ollama_benchmark
 from app.intelligence.llm_provider import LLMAnswerDraft
 
 
 def test_ollama_benchmark_writes_json_and_csv(monkeypatch, tmp_path: Path) -> None:
+    digest = "c" * 64
+    settings = Settings(
+        ollama_allowed_model_digests={"qwen3:4b-instruct-2507-q4_K_M": digest},
+    )
+
     def fake_generate(self, question, context_chunks, audience="general", max_words=250):
         chunk_id = context_chunks[0]["chunk_id"]
         return LLMAnswerDraft(
@@ -21,6 +27,8 @@ def test_ollama_benchmark_writes_json_and_csv(monkeypatch, tmp_path: Path) -> No
         )
 
     monkeypatch.setattr("app.intelligence.llm_provider.OllamaProvider.generate_answer", fake_generate)
+    monkeypatch.setattr("app.intelligence.llm_provider.get_settings", lambda: settings)
+    monkeypatch.setattr(ollama_benchmark, "get_settings", lambda: settings)
     output_path = tmp_path / "ollama_benchmark_results.json"
 
     payload = ollama_benchmark.run_benchmark(

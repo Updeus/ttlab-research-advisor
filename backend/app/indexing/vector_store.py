@@ -17,8 +17,8 @@ from app.indexing.embedder import (
     cosine_similarity,
     default_index_path,
     get_provider,
+    index_artifacts_available,
     load_validated_index,
-    manifest_path_for,
 )
 from app.models import Chunk, Paper
 
@@ -29,6 +29,9 @@ class VectorSearchContext:
 
     provider_name: str
     index_path: Path
+    active_index_path: Path
+    active_manifest_path: Path
+    generation_source: str
     payload: dict[str, Any]
     provider: EmbeddingProvider
 
@@ -41,11 +44,11 @@ def load_vector_search_context(
 ) -> VectorSearchContext:
     canonical = canonical_provider_name(provider_name)
     resolved_path = (index_path or default_index_path(canonical)).resolve()
-    if not resolved_path.exists() or not manifest_path_for(resolved_path).exists():
+    if not index_artifacts_available(resolved_path):
         raise FileNotFoundError(
             f"{canonical} index is unavailable at {resolved_path}. Build and validate the complete index first."
         )
-    payload, _report = load_validated_index(
+    payload, report = load_validated_index(
         session,
         index_path=resolved_path,
         provider_name=canonical,
@@ -54,6 +57,9 @@ def load_vector_search_context(
     return VectorSearchContext(
         provider_name=canonical,
         index_path=resolved_path,
+        active_index_path=Path(str(report["index_path"])).resolve(),
+        active_manifest_path=Path(str(report["manifest_path"])).resolve(),
+        generation_source=str(report.get("generation_source") or "unknown"),
         payload=payload,
         provider=provider,
     )
@@ -88,9 +94,13 @@ def search_vector_store(
     else:
         payload = None
         provider = None
-    if not resolved_path.exists() or not manifest_path_for(resolved_path).exists():
+    if not index_artifacts_available(resolved_path):
         return [], [
-            f"{canonical} index is unavailable at {resolved_path}. Build and validate the complete index first."
+            (
+                "The learned-dense index is unavailable; no vector results were returned."
+                if canonical == "dense"
+                else "The feature-hashing index is unavailable; no vector results were returned."
+            )
         ]
 
     if payload is None or provider is None:
@@ -103,8 +113,8 @@ def search_vector_store(
         )
         try:
             provider = get_provider(canonical, dimensions=int(payload.get("dimensions") or 0) or None)
-        except DenseProviderUnavailable as exc:
-            return [], [str(exc)]
+        except DenseProviderUnavailable:
+            return [], ["The learned-dense provider is unavailable; no vector results were returned."]
 
     query_vector = provider.embed(query)
     scored: list[tuple[float, dict[str, Any]]] = []

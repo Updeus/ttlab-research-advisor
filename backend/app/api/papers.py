@@ -5,32 +5,26 @@ from sqlmodel import Session, func, select
 
 from app.db import get_session
 from app.evaluation.dashboard import evaluation_files_present, latest_evaluation_timestamp
-from app.indexing.embedder import (
-    DEFAULT_INDEX_PATH,
-    DENSE_INDEX_PATH,
-    DENSE_PROVIDER,
-    FEATURE_HASHING_PROVIDER,
-    eligible_chunks,
-    index_diagnostics,
-)
-from app.indexing.keyword_search import diagnostics as keyword_diagnostics
+from app.indexing.embedder import eligible_chunks
 from app.intelligence.topic_explorer import list_topics
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, RAGAnswer, ReviewEvent, ThesisRecommendation, Topic
-from app.security import AuthenticatedActor, get_optional_actor
+from app.publication import content_generation_diagnostics, is_public_content, is_public_metadata, public_papers
+from app.api.index_health import public_index_projection_health
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
 
 @router.get("/papers")
 def list_papers(session: Annotated[Session, Depends(get_session)]) -> list[dict[str, object]]:
-    papers = session.exec(select(Paper).order_by(Paper.year.desc(), Paper.title)).all()
+    papers = public_papers(session)
+    papers.sort(key=lambda item: (item.year or 0, item.title), reverse=True)
     return [serialize_public_paper(paper) for paper in papers]
 
 
 @router.get("/papers/{paper_id}")
 def get_paper(paper_id: str, session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
     paper = session.get(Paper, paper_id)
-    if paper is None:
+    if paper is None or not is_public_metadata(paper):
         raise HTTPException(status_code=404, detail="Paper not found")
     return serialize_public_paper(paper)
 
@@ -38,7 +32,10 @@ def get_paper(paper_id: str, session: Annotated[Session, Depends(get_session)]) 
 @router.get("/papers/{paper_id}/extraction")
 def get_extraction(paper_id: str, session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
     paper = session.get(Paper, paper_id)
-    if paper is None:
+    if (
+        paper is None
+        or not is_public_content(session, paper)
+    ):
         raise HTTPException(status_code=404, detail="Paper not found")
     diagnostics = paper.extraction_diagnostics if isinstance(paper.extraction_diagnostics, dict) else {}
     return {
@@ -72,17 +69,23 @@ def get_paper_chunks(
     paper_id: str,
     session: Annotated[Session, Depends(get_session)],
     full: bool = Query(default=False),
-    actor: Annotated[AuthenticatedActor | None, Depends(get_optional_actor)] = None,
 ) -> list[dict[str, object]]:
     paper = session.get(Paper, paper_id)
-    if paper is None:
+    if (
+        paper is None
+        or not is_public_content(session, paper)
+    ):
         raise HTTPException(status_code=404, detail="Paper not found")
-    if paper.corpus_eligibility_status != "eligible" and actor is None:
-        raise HTTPException(status_code=404, detail="Paper chunks are not publicly available")
-    if full and actor is None:
-        raise HTTPException(status_code=403, detail="Full extracted chunks require reviewer authentication")
+    if full:
+        raise HTTPException(
+            status_code=403,
+            detail="Full extracted chunks are available only through the labeled admin publication preview",
+        )
     chunks = session.exec(
-        select(Chunk).where(Chunk.paper_id == paper_id).order_by(Chunk.chunk_index)
+        select(Chunk)
+        .where(Chunk.paper_id == paper_id)
+        .where(Chunk.extraction_generation_id == paper.extraction_generation_id)
+        .order_by(Chunk.chunk_index)
     ).all()
     return [serialize_chunk(chunk, full=full) for chunk in chunks]
 
@@ -93,47 +96,56 @@ def search_chunks(
     q: str = Query(min_length=1, max_length=2_000),
     limit: int = Query(default=10, ge=1, le=50),
     full: bool = Query(default=False),
-    actor: Annotated[AuthenticatedActor | None, Depends(get_optional_actor)] = None,
 ) -> list[dict[str, object]]:
     if not q.strip():
         return []
-    if full and actor is None:
-        raise HTTPException(status_code=403, detail="Full extracted chunks require reviewer authentication")
+    if full:
+        raise HTTPException(
+            status_code=403,
+            detail="Full extracted chunks are available only through the labeled admin publication preview",
+        )
     pattern = f"%{q.strip()}%"
     chunks = session.exec(
         select(Chunk)
         .join(Paper, Paper.paper_id == Chunk.paper_id)
         .where(Paper.corpus_eligibility_status == "eligible")
+        .where(Paper.review_status == "approved")
+        .where(Paper.publication_status == "published")
+        .where(Paper.rights_status == "cleared")
+        .where(Paper.public_access_level == "searchable")
+        .where(Paper.extraction_review_status == "approved")
+        .where(Paper.extraction_generation_id.is_not(None))
+        .where(Paper.chunk_generation_id.is_not(None))
+        .where(Paper.chunk_extraction_generation_id == Paper.extraction_generation_id)
+        .where(Paper.public_index_generation_id == Paper.chunk_generation_id)
+        .where(Paper.chunk_count > 0)
+        .where(Chunk.extraction_generation_id == Paper.extraction_generation_id)
         .where(Chunk.text.ilike(pattern))
         .order_by(Chunk.paper_id, Chunk.chunk_index)
         .limit(limit)
     ).all()
-    return [serialize_chunk(chunk, full=full) for chunk in chunks]
+    papers_by_id = {
+        paper_id: paper
+        for paper_id in {chunk.paper_id for chunk in chunks}
+        if (paper := session.get(Paper, paper_id)) is not None
+        and content_generation_diagnostics(session, paper)["ready"]
+    }
+    return [serialize_chunk(chunk, full=full) for chunk in chunks if chunk.paper_id in papers_by_id]
 
 
 @router.get("/stats")
 def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
-    papers = list(session.exec(select(Paper)).all())
-    total = session.exec(select(func.count()).select_from(Paper)).one()
-    total_chunks = session.exec(select(func.count()).select_from(Chunk)).one()
-    total_authors = session.exec(
-        select(func.count())
-        .select_from(Author)
-        .where(Author.identity_status.notin_(["merged", "invalid"]))
-    ).one()
-    total_topics = session.exec(select(func.count()).select_from(Topic)).one()
-    paper_topic_links = session.exec(select(func.count()).select_from(PaperTopic)).one()
-    author_topic_links = session.exec(select(func.count()).select_from(AuthorTopic)).one()
-    total_answers = session.exec(select(func.count()).select_from(RAGAnswer)).one()
-    recommendation_runs = list(session.exec(select(ThesisRecommendation)).all())
-    artifacts = list(session.exec(select(PaperArtifact)).all())
-    review_events = list(session.exec(select(ReviewEvent)).all())
-    eligible = eligible_chunks(session)
+    papers = public_papers(session)
+    public_ids = {paper.paper_id for paper in papers}
+    total = len(papers)
+    eligible = eligible_chunks(session, public_only=True)
     searchable_papers = len({chunk.paper_id for chunk in eligible})
     searchable_chunks = len(eligible)
-    keyword = keyword_diagnostics(session)
-    feature_hashing = index_diagnostics(session, DEFAULT_INDEX_PATH, FEATURE_HASHING_PROVIDER)
-    dense = index_diagnostics(session, DENSE_INDEX_PATH, DENSE_PROVIDER)
+    index_health = public_index_projection_health(
+        session,
+        public_eligible_chunks=searchable_chunks,
+    )
+    total_chunks = searchable_chunks
     with_pdf = sum(1 for paper in papers if paper.pdf_url)
     downloaded = sum(1 for paper in papers if paper.local_pdf_path)
     extracted = sum(1 for paper in papers if paper.pdf_text_status == "extracted")
@@ -146,9 +158,10 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
             pdf_unavailability_reasons[paper.pdf_unavailability_reason] = (
                 pdf_unavailability_reasons.get(paper.pdf_unavailability_reason, 0) + 1
             )
+    topic_result = list_topics(session, limit=10)
     top_topics = [
         (item["name"], item["paper_count"])
-        for item in list_topics(session, limit=10)["items"]
+        for item in topic_result["items"]
     ]
     recent = sorted(papers, key=lambda item: (item.year or 0, item.created_at), reverse=True)[:5]
     eval_files = evaluation_files_present()
@@ -165,51 +178,26 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "extraction_content_type_counts": count_values([paper.extraction_content_type for paper in papers]),
         "corpus_eligibility_status_counts": count_values([paper.corpus_eligibility_status for paper in papers]),
         "total_chunks": total_chunks,
-        "topic_count": total_topics,
-        "author_count": total_authors,
-        "paper_topic_links": paper_topic_links,
-        "author_topic_links": author_topic_links,
-        "papers_with_topics": session.exec(select(func.count(func.distinct(PaperTopic.paper_id))).select_from(PaperTopic)).one(),
-        "authors_with_topics": session.exec(select(func.count(func.distinct(AuthorTopic.author_id))).select_from(AuthorTopic)).one(),
+        "topic_count": topic_result["total"],
+        "author_count": len({author for paper in papers for author in paper.authors}),
+        "paper_topic_links": session.exec(select(func.count()).select_from(PaperTopic).where(PaperTopic.paper_id.in_(public_ids))).one() if public_ids else 0,
+        "author_topic_links": None,
+        "papers_with_topics": session.exec(select(func.count(func.distinct(PaperTopic.paper_id))).select_from(PaperTopic).where(PaperTopic.paper_id.in_(public_ids))).one() if public_ids else 0,
+        "authors_with_topics": None,
         "searchable_papers": searchable_papers,
         "searchable_chunks": searchable_chunks,
         "eligible_chunks": searchable_chunks,
         "raw_chunks": total_chunks,
-        "keyword_indexed_chunks": keyword["keyword_indexed_chunks"],
-        "semantic_indexed_chunks": feature_hashing["indexed_chunks"],  # legacy field
-        "feature_hashing_indexed_chunks": feature_hashing["indexed_chunks"],
-        "dense_indexed_chunks": dense["indexed_chunks"],
-        "feature_hashing_index_status": feature_hashing["status"],
-        "dense_index_status": dense["status"],
-        "total_ask_answers": total_answers,
-        "grounded_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "grounded")).one(),
-        "partial_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "partial")).one(),
-        "unsupported_answers": session.exec(select(func.count()).select_from(RAGAnswer).where(RAGAnswer.grounding_status == "unsupported")).one(),
-        "default_ask_provider": "ollama",
-        "total_extension_recommendation_runs": len(recommendation_runs),
-        "total_extension_ideas": sum(len(record.recommendations_json or []) for record in recommendation_runs),
-        "grounded_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "grounded"),
-        "partial_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "partial"),
-        "unsupported_extension_runs": sum(1 for record in recommendation_runs if record.grounding_status == "unsupported"),
-        "total_paper_artifacts": len(artifacts),
-        "papers_with_artifacts": len({artifact.paper_id for artifact in artifacts if artifact.generation_status == "generated"}),
-        "podcast_scripts_generated": sum(1 for artifact in artifacts if artifact.artifact_type == "podcast_script" and artifact.generation_status == "generated"),
-        "artifacts_needing_review": sum(1 for artifact in artifacts if artifact.review_status == "needs_review"),
-        "admin_review_queue_count": (
-            sum(1 for paper in papers if paper.review_status == "needs_review")
-            + sum(1 for answer in session.exec(select(RAGAnswer)).all() if answer.review_status == "needs_review")
-            + sum(1 for recommendation in recommendation_runs if recommendation.review_status == "needs_review")
-            + sum(1 for artifact in artifacts if artifact.review_status == "needs_review")
-        ),
-        "papers_needing_review": sum(1 for paper in papers if paper.review_status == "needs_review"),
-        "answers_needing_review": session.exec(
-            select(func.count()).select_from(RAGAnswer).where(RAGAnswer.review_status == "needs_review")
-        ).one(),
-        "recommendations_needing_review": sum(1 for record in recommendation_runs if record.review_status == "needs_review"),
-        "total_review_events": len(review_events),
-        "latest_review_event_at": max((event.created_at for event in review_events), default=None).isoformat()
-        if review_events
-        else None,
+        "keyword_indexed_chunks": index_health["keyword"]["indexed_chunks"],
+        "semantic_indexed_chunks": None,
+        "semantic_indexed_chunks_deprecated": "Use feature_hashing_indexed_chunks; feature hashing is lexical, not semantic.",
+        "feature_hashing_indexed_chunks": index_health["feature_hashing"]["indexed_chunks"],
+        "dense_indexed_chunks": index_health["dense"]["indexed_chunks"],
+        "keyword_index_status": index_health["keyword"]["status"],
+        "feature_hashing_index_status": index_health["feature_hashing"]["status"],
+        "dense_index_status": index_health["dense"]["status"],
+        "index_health": index_health,
+        "default_ask_provider": "offline_extractive",
         "evaluation_files_present": eval_files,
         "evaluation_last_run_at": latest_evaluation_timestamp(),
         "top_topics": top_topics,
@@ -264,6 +252,9 @@ def serialize_public_paper(paper: Paper) -> dict[str, object]:
         "page_count": paper.page_count,
         "chunk_count": paper.chunk_count,
         "review_status": paper.review_status,
+        "publication_status": paper.publication_status,
+        "rights_status": paper.rights_status,
+        "public_access_level": paper.public_access_level,
         "reviewed_at": paper.reviewed_at.isoformat() if paper.reviewed_at else None,
         "created_at": paper.created_at.isoformat(),
         "updated_at": paper.updated_at.isoformat(),

@@ -19,6 +19,9 @@ frontend/vite.config.d.ts
 frontend/vite.config.js
 
 *.db
+*.db-wal
+*.db-shm
+*.db-journal
 *.sqlite
 *.sqlite3
 
@@ -32,6 +35,7 @@ data/indexes/*
 !data/indexes/.gitkeep
 data/generated/*
 !data/generated/.gitkeep
+data/runtime/
 backend/data/
 data/evaluation/*_results.json
 data/evaluation/*_results.csv

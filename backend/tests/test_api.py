@@ -2,9 +2,10 @@ from collections.abc import Generator
 
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.db import get_session
+from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.main import app
 from app.models import Chunk, Paper
 
@@ -29,7 +30,44 @@ def test_root_and_favicon_are_demo_friendly() -> None:
     assert favicon.status_code == 204
 
 
+def test_anonymous_search_warning_never_discloses_local_index_path(monkeypatch) -> None:
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    def override_session() -> Generator[Session, None, None]:
+        with Session(engine) as session:
+            yield session
+
+    monkeypatch.setattr(
+        "app.indexing.retriever.search_vector_store",
+        lambda *_args, **_kwargs: (
+            [],
+            ["feature_hashing index is unavailable at /private/workstation/data/index.json"],
+        ),
+    )
+    app.dependency_overrides[get_session] = override_session
+    try:
+        response = TestClient(app).get(
+            "/api/search",
+            params={"q": "retrieval", "mode": "feature_hashing"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    serialized = str(response.json())
+    assert "/private/workstation" not in serialized
+    assert response.json()["warnings"] == [
+        "A retrieval component is unavailable; local configuration details are not exposed."
+    ]
+
+
 def test_api_papers_returns_imported_records() -> None:
+    extraction_generation = "a" * 64
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -37,23 +75,28 @@ def test_api_papers_returns_imported_records() -> None:
     )
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
-        session.add(
-            Paper(
-                paper_id="api-paper",
-                title="API Paper",
-                authors=["Asha Singh"],
-                year=2026,
-                local_pdf_path="data/pdfs/api-paper.pdf",
-                pdf_text_status="missing_pdf",
-                page_count=2,
-                total_word_count=120,
-                pages_with_text=2,
-                pages_without_text=0,
-                    chunk_count=1,
-                    corpus_eligibility_status="eligible",
-                    review_status="needs_review",
-            )
+        paper = Paper(
+            paper_id="api-paper",
+            title="API Paper",
+            authors=["Asha Singh"],
+            year=2026,
+            local_pdf_path="data/pdfs/api-paper.pdf",
+            pdf_text_status="missing_pdf",
+            page_count=2,
+            total_word_count=120,
+            pages_with_text=2,
+            pages_without_text=0,
+            chunk_count=1,
+            corpus_eligibility_status="eligible",
+            review_status="approved",
+            extraction_review_status="approved",
+            publication_status="published",
+            rights_status="cleared",
+            public_access_level="searchable",
+            extraction_generation_id=extraction_generation,
+            chunk_extraction_generation_id=extraction_generation,
         )
+        session.add(paper)
         session.add(
             Chunk(
                 chunk_id="api-paper-chunk-0001",
@@ -67,8 +110,14 @@ def test_api_papers_returns_imported_records() -> None:
                 word_count=11,
                 token_count_estimate=14,
                 source_hash="abc123",
+                extraction_generation_id=extraction_generation,
             )
         )
+        session.flush()
+        chunks = list(session.exec(select(Chunk).where(Chunk.paper_id == paper.paper_id)).all())
+        paper.chunk_generation_id = canonical_chunks_sha256(db_chunk_payload(chunks))
+        paper.public_index_generation_id = paper.chunk_generation_id
+        session.add(paper)
         session.commit()
 
     def override_session() -> Generator[Session, None, None]:

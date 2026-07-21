@@ -364,7 +364,12 @@ def review_recommendation(session: Session, record: ThesisRecommendation) -> Rev
     fresh_response: dict[str, Any] | None = None
     try:
         request = ExtensionFinderRequest.model_validate(record.request_json)
-        fresh_response = recommend_extensions(session, request, persist=False)
+        fresh_response = recommend_extensions(
+            session,
+            request,
+            persist=False,
+            retrieval_scope="technical",
+        )
         recommendations = list(fresh_response["recommendations"] or [])
     except Exception as exc:  # fail closed while retaining the original output for audit
         regeneration_error = f"{type(exc).__name__}: {exc}"

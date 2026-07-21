@@ -150,11 +150,24 @@ def list_ollama_models(
 
 def local_llm_status() -> dict[str, Any]:
     settings = get_settings()
-    models, warnings, available = list_ollama_models(base_url=settings.ollama_base_url)
+    models, warnings, provider_reachable = list_ollama_models(base_url=settings.ollama_base_url)
     benchmark_summary = benchmark_by_model()
     warnings.append(UNVALIDATED_MODEL_WARNING)
+    warnings.append(
+        "Installed-tag digest checks establish configuration readiness only. Ask TTLAB checks the tag before "
+        "and after each generation; when Ollama does not report a response digest, output remains attributed "
+        "to the mutable tag and is not claimed to have reproducible generation-time model identity."
+    )
+    allowed = {
+        name: digest.removeprefix("sha256:").lower()
+        for name, digest in settings.ollama_allowed_model_digests.items()
+    }
     enriched = []
     for model in models:
+        name = str(model.get("name") or "")
+        actual_digest = str(model.get("digest") or "").removeprefix("sha256:").lower()
+        if name not in allowed or actual_digest != allowed[name]:
+            continue
         metadata = model_metadata(model["name"])
         enriched.append(
             {
@@ -162,13 +175,30 @@ def local_llm_status() -> dict[str, Any]:
                 **metadata,
                 "benchmark": benchmark_summary.get(model["name"]),
                 "is_default": model["name"] == settings.ollama_default_model,
+                "digest_verified": True,  # deprecated: preflight scope only
+                "digest_verification_scope": "preflight_only",
+                "generation_time_digest_verified": False,
+                "tag_stability_checked_per_generation": True,
+                "configured_model_identity": f"{name}@sha256:{actual_digest}",
             }
         )
+    generation_available = bool(
+        provider_reachable
+        and enriched
+        and "ollama" in {provider.strip().lower() for provider in settings.allowed_llm_providers}
+    )
     return {
-        "available": available,
+        "available": generation_available,
+        "generation_available": generation_available,
+        "provider_reachable": provider_reachable,
         "base_url": settings.ollama_base_url,
-        "default_model": settings.ollama_default_model,
-        "model_count": sum(1 for model in enriched if model.get("installed")),
+        "default_provider": settings.default_llm_provider,
+        "default_model": (
+            f"{settings.ollama_default_model}@sha256:{allowed[settings.ollama_default_model]}"
+            if generation_available and settings.ollama_default_model in allowed
+            else "sentence-overlap-v1"
+        ),
+        "model_count": len(enriched),
         "models": enriched,
         "candidate_pulls": CANDIDATE_PULLS,
         "recommended_pulls": CANDIDATE_PULLS,  # deprecated response key retained for client compatibility

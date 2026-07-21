@@ -14,6 +14,7 @@ def sha256_path(path: Path) -> str:
 
 
 def test_repeated_keyword_search_does_not_mutate_sqlite_file(tmp_path: Path) -> None:
+    extraction_generation = "a" * 64
     database = tmp_path / "keyword.db"
     engine = create_engine(f"sqlite:///{database}")
     SQLModel.metadata.create_all(engine)
@@ -24,6 +25,9 @@ def test_repeated_keyword_search_does_not_mutate_sqlite_file(tmp_path: Path) -> 
                 title="Read-only retrieval",
                 authors=["Test Author"],
                 corpus_eligibility_status="eligible",
+                extraction_generation_id=extraction_generation,
+                chunk_extraction_generation_id=extraction_generation,
+                chunk_generation_id="b" * 64,
             )
         )
         session.add(
@@ -34,6 +38,7 @@ def test_repeated_keyword_search_does_not_mutate_sqlite_file(tmp_path: Path) -> 
                 text="Keyword retrieval must not mutate the persisted corpus database.",
                 word_count=9,
                 source_hash="read-only-source",
+                extraction_generation_id=extraction_generation,
             )
         )
         session.commit()

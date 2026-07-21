@@ -64,6 +64,15 @@ identity/type, timestamp, and pass. The same AI reviewer first creates labels
 and later verifies them in a fixed-seed shuffled order. Verification decisions
 are the adjudicated labels; disagreements remain in the artifacts.
 
+Historical chunk IDs and source hashes are content-derived and are therefore
+not assumed to survive a later deterministic extraction rebuild. The section
+validator requires the exact frozen ID when validating the historical snapshot.
+For an explicitly requested current-database score, a missing ID may bind only
+to one unambiguous row with the same paper ID, chunk ordinal, and page interval;
+the source-page heading evidence is rechecked, and every changed ID/hash is
+reported in `current_case_binding`. This permits an honest current-label
+comparison without describing it as exact-text reproduction of the v1 sample.
+
 Consistency statistics quantify repeatability of one AI-assisted procedure.
 They must not be described as human inter-rater reliability or independent
 review. The retrieval set recorded exact case agreement 0.88 and a Cohen-style

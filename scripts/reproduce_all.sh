@@ -281,7 +281,8 @@ if [[ "$MODE" == "full" ]]; then
   run_in_source phase1-evidence "$PYTHON" scripts/capture_phase1_evidence.py \
     --database "$RUN_ROOT/data/papers.db" --out "$RUN_ROOT/artifacts/phase1/phase1_evidence.json"
   run_in_source section-silver-validator "$PYTHON" data/evaluation/validate_section_quality_silver_v1.py \
-    --database "$RUN_ROOT/data/papers.db" --evaluate-current
+    --database "$RUN_ROOT/data/papers.db" --evaluate-current \
+    --json-out "$RUN_ROOT/artifacts/phase1/section_quality_metrics.json"
 
   run_in_source retrieval-label-validator "$PYTHON" data/evaluation/validate_retrieval_silver_v1.py
   run_in_source retrieval-experiment "$PYTHON" -m app.evaluation.retrieval_experiment \

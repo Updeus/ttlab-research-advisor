@@ -57,7 +57,7 @@ PYTHONPATH=backend .venv/bin/python \
   data/evaluation/validate_peer_review_remediation_v2.py
 \end{lstlisting}
 
-Exact CLI arguments and phase-specific seeds are preserved in their manifests and the reproduction script. The prospective evaluator refuses changed frozen inputs, writes rights-sensitive raw outputs only to an ignored operator directory, and emits a closed allowlist of versionable structural outputs. The validator recomputes case identities, metrics, bootstrap intervals, and manuscript macros instead of trusting reported aggregates.
+Exact CLI arguments and phase-specific seeds are preserved in their manifests and the reproduction script. The prospective evaluator refuses changed frozen inputs, writes rights-sensitive raw outputs only to an ignored operator directory, and emits a closed allowlist of versionable structural outputs. The validator recomputes case identities, metrics, bootstrap intervals, and manuscript macros instead of trusting reported aggregates. The historical topic validator separately records \TopicExactBindingCount{} exact chunk identities and \TopicReboundBindingCount{} conservative rebound based on a unique same-paper page/section/chunk-index locator plus exact bounded-excerpt match. Its receipt preserves the fact that the frozen label and rebuilt technical snapshots differ. Consequently, historical and prospective QA aggregates are reproduced as separate estimands, not converted into a paired before/after effect.
 
 \section{Application and document verification}
 

@@ -37,11 +37,11 @@ Cumulative ablations were descriptive because they were examined after configura
 
 \section{RQ3: historical v1 claim support, citations, completeness, and abstention}
 
-\Cref{tab:qa-results} separates support from completeness. Of \QaClaimCount{} checkable claims, \QaSupportedClaimCount{} were supported, \QaPartiallySupportedClaimCount{} partially supported, and \QaUnsupportedClaimCount{} unsupported. Strict supported-claim rate was \QaSupportedClaimRate{} (95\% CI \QaSupportedClaimRateLow{}--\QaSupportedClaimRateHigh{}). Every checkable claim carried a citation, but only \QaCorrectCitationCount{}/\QaClaimCount{} claim--citation links were fully correct: \QaCitationCorrectness{} (95\% CI \QaCitationCorrectnessLow{}--\QaCitationCorrectnessHigh{}). Strict answer-point coverage was \QaCoveredAnswerPointCount{}/\QaAnswerPointCount{}, or \QaAnswerPointCoverage{} (95\% CI \QaAnswerPointCoverageLow{}--\QaAnswerPointCoverageHigh{}). Returned citation utilisation was \QaCitationUtilization{}.
+\Cref{tab:qa-results} separates support from completeness. Of \QaClaimCount{} checkable claims, \QaSupportedClaimCount{} were supported, \QaPartiallySupportedClaimCount{} partially supported, and \QaUnsupportedClaimCount{} unsupported. Strict supported-claim rate was \QaSupportedClaimRate{} (95\% CI \QaSupportedClaimRateLow{}--\QaSupportedClaimRateHigh{}). Every checkable claim carried a citation, but only \QaCorrectCitationCount{}/\QaClaimCount{} claim--citation links were fully correct: \QaCitationCorrectness{} (95\% CI \QaCitationCorrectnessLow{}--\QaCitationCorrectnessHigh{}). Strict answer-point coverage was \QaCoveredAnswerPointCount{}/\QaAnswerPointCount{}, or \QaAnswerPointCoverage{} (95\% CI \QaAnswerPointCoverageLow{}--\QaAnswerPointCoverageHigh{}). Returned citation utilisation was \QaCitationUtilization{}. Of \QaCaseCount{} cases, \QaResponseCount{} received a response and \QaAbstentionCount{} abstained.
 
 \begin{table}[htbp]
 \centering
-\caption{AI-assisted QA review over \QaCaseCount{} offline extractive answers. Partial labels do not count in strict estimates.}
+\caption{AI-assisted QA review over \QaCaseCount{} offline extractive cases. Partial labels do not count in strict estimates.}
 \label{tab:qa-results}
 \begin{tabularx}{\textwidth}{Yccc}
 \toprule
@@ -52,18 +52,36 @@ Citation correctness & \QaCitationCorrectness{} & [\QaCitationCorrectnessLow{}, 
 Citation completeness & \QaCitationCompleteness{} & [1.000, 1.000] & citation presence only \\
 Answer-point coverage & \QaAnswerPointCoverage{} & [\QaAnswerPointCoverageLow{}, \QaAnswerPointCoverageHigh{}] & strict expected-content coverage \\
 Answerability accuracy & \QaAbstentionAccuracy{} & [\QaAbstentionAccuracyLow{}, \QaAbstentionAccuracyHigh{}] & answer/abstain decision \\
-Unanswerable abstention & \QaUnanswerableAbstentionRate{} & [0.000, 0.000] & \QaUnanswerableAbstentionCount{}/\QaUnanswerableCaseCount{} cases abstained \\
+Unanswerable abstention & \QaUnanswerableAbstentionRate{} & [\QaUnanswerableAbstentionRateLow{}, \QaUnanswerableAbstentionRateHigh{}] & \QaUnanswerableAbstentionCount{}/\QaUnanswerableCaseCount{} cases abstained \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The error analysis found incomplete answers in \QaIncompleteCaseCount{}/\QaCaseCount{} cases, off-topic retrieval in \QaOffTopicRetrievalCaseCount{}, within-paper evidence misses in \QaWithinPaperMissCaseCount{}, full answer-point omissions in \QaAnswerPointOmissionCaseCount{}, answer sentence-selection misses in \QaSentenceSelectionMissCaseCount{}, incorrect citations in \QaIncorrectCitationCaseCount{}, and false-positive answers for all \QaFalsePositiveCaseCount{} unanswerable cases. Thus, source-traceable extraction produced few locally unsupported claims in this sample, but it did not deliver complete answers or correct abstention. The RQ3 conclusion is a negative/mixed result: high local claim support coexists with weak citation choice, low answer-point coverage, and failed abstention, so structural citation presence overstates end-to-end answer quality.
+The error analysis found incomplete answers in \QaIncompleteCaseCount{}/\QaCaseCount{} cases, off-topic retrieval in \QaOffTopicRetrievalCaseCount{}, within-paper evidence misses in \QaWithinPaperMissCaseCount{}, full answer-point omissions in \QaAnswerPointOmissionCaseCount{}, answer sentence-selection misses in \QaSentenceSelectionMissCaseCount{}, incorrect citations in \QaIncorrectCitationCaseCount{}, and \QaFalsePositiveCaseCount{} false-positive unanswerable cases. Thus, source-traceable extraction produced few locally unsupported claims in this sample, but it did not deliver complete answers and abstained on only \QaUnanswerableAbstentionCount{}/\QaUnanswerableCaseCount{} unanswerable cases. The RQ3 conclusion is a negative/mixed result: high local claim support coexists with weak citation choice, \QaCoveredAnswerPointCount{}/\QaAnswerPointCount{} strict point coverage, and poor abstention, so structural citation presence overstates end-to-end answer quality.
 
 \section{RQ4: historical v1 recommendation proxy evaluation}
 
-Across \RecommendationProfileCount{} profiles, each arm produced \RecommendationItemCountPerArm{} reviewed items. Evidence-only AI-proxy paper relevance was \RecommendationEvidenceRelevance{} (95\% CI \RecommendationEvidenceRelevanceLow{}--\RecommendationEvidenceRelevanceHigh{}); full-finder relevance was \RecommendationFullRelevance{} (95\% CI \RecommendationFullRelevanceLow{}--\RecommendationFullRelevanceHigh{}). The paired full-minus-baseline estimate was \RecommendationRelevanceDifference{} (95\% CI \RecommendationDifferenceLow{}--\RecommendationDifferenceHigh{}), so improvement was not demonstrated.
+Across \RecommendationProfileCount{} profiles, the evidence-only arm filled \RecommendationEvidenceReturnedCount{}/\RecommendationRequestedSlotCount{} requested ranks. The full Finder filled \RecommendationFullReturnedCount{}/\RecommendationRequestedSlotCount{} (\RecommendationFullReturnCoverage{}), leaving \RecommendationFullMissingCount{} ranks unfilled; only \RecommendationFullProfilesAtCutoff{}/\RecommendationProfileCount{} profiles reached the requested cutoff. Missing ranks receive zero relevance in the paired top-$k$ score. Evidence-only AI-proxy relevance was \RecommendationEvidenceRelevance{} (95\% CI \RecommendationEvidenceRelevanceLow{}--\RecommendationEvidenceRelevanceHigh{}); full-Finder relevance was \RecommendationFullRelevance{} (95\% CI \RecommendationFullRelevanceLow{}--\RecommendationFullRelevanceHigh{}). The paired full-minus-baseline estimate was \RecommendationRelevanceDifference{} (95\% CI \RecommendationDifferenceLow{}--\RecommendationDifferenceHigh{}), so improvement was not demonstrated.
 
-All \RecommendationItemCountPerArm{} full-finder outputs passed source-fidelity, fact/future-work/gap/suggestion separation, novelty-caution, MVP, stretch-goal, risk, and required-skill checks. All \RecommendationFeasibilityPartialCount{} feasibility judgments were partial because the source evidence could not validate time, skill mastery, or data access. Evaluation-plan quality passed in \RecommendationEvaluationPlanPassCount{} cases and was partial in \RecommendationEvaluationPlanPartialCount{}. The two AI passes agreed exactly at \RecommendationReviewAgreement{} over \RecommendationCriterionCount{} criterion judgments; this is same-reviewer consistency, not human reliability. Weight sensitivity showed the interest term was the most disruptive removal, while most $\pm25\%$ changes retained high top-three overlap. This component of RQ4 finds that claim separation is structurally strong, but relevance improvement is small and inconclusive and feasibility remains external.
+\begin{table}[htbp]
+\centering
+\small
+\caption{Historical Finder AI-proxy judgments conditional on the \RecommendationFullReturnedCount{} emitted items. Missing ranking slots are excluded here but score zero in paired relevance.}
+\label{tab:recommendation-criteria}
+\begin{tabularx}{\textwidth}{Yrrr}
+\toprule
+Criterion & Pass & Partial & Fail \\
+\midrule
+Fact/suggestion separation & \RecommendationSeparationPassCount{} & \RecommendationSeparationPartialCount{} & \RecommendationSeparationFailCount{} \\
+Feasibility support & \RecommendationFeasibilityPassCount{} & \RecommendationFeasibilityPartialCount{} & \RecommendationFeasibilityFailCount{} \\
+MVP quality & \RecommendationMvpPassCount{} & \RecommendationMvpPartialCount{} & \RecommendationMvpFailCount{} \\
+Evaluation-plan quality & \RecommendationEvaluationPlanPassCount{} & \RecommendationEvaluationPlanPartialCount{} & \RecommendationEvaluationPlanFailCount{} \\
+AI-proxy usefulness & \RecommendationUsefulnessPassCount{} & \RecommendationUsefulnessPartialCount{} & \RecommendationUsefulnessFailCount{} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Source fidelity passed for all \RecommendationFullReturnedCount{} emitted items, while fact/suggestion separation passed for \RecommendationSeparationPassCount{}/\RecommendationFullReturnedCount{}. Feasibility had no pass or partial judgment and failed for \RecommendationFeasibilityFailCount{}/\RecommendationFullReturnedCount{} because source evidence could not establish time, skill mastery, or data access; this does not prove that the projects are infeasible. MVP quality passed in \RecommendationMvpPassCount{} cases and was partial in \RecommendationMvpPartialCount{}; evaluation-plan quality passed/was partial/failed in \RecommendationEvaluationPlanPassCount{}/\RecommendationEvaluationPlanPartialCount{}/\RecommendationEvaluationPlanFailCount{}; and AI-proxy usefulness failed for \RecommendationUsefulnessFailCount{}/\RecommendationFullReturnedCount{}. The two AI passes agreed exactly at \RecommendationReviewAgreement{} over \RecommendationCriterionCount{} criterion judgments; this is same-process consistency, not human inter-rater reliability. Weight sensitivity showed the interest term was the most disruptive removal, while most $\pm25\%$ changes retained high top-three overlap. RQ4 therefore finds no relevance improvement and no demonstrated usefulness or feasibility, despite generally strong structural separation among returned items.
 
 \section{RQ5: historical v1 topics, authors, and generated review}
 
@@ -83,7 +101,7 @@ Dense prototype & \TopicDensePrecision{} & \TopicDenseRecall{} & \TopicDenseFone
 \end{tabularx}
 \end{table}
 
-Aggregate topic metrics are supported unevenly across labels. Only \TopicSupportedTestLabelCount{} of the \TopicVocabularyCount{} vocabulary labels had a positive held-out example; \TopicZeroGoldTestLabelCount{} labels had no gold support and cannot contribute an observed positive-label recall. \Cref{tab:topic-label-errors} reports representative confusion counts selected before manuscript drafting to include strong, weak, broad, and domain-specific behavior.
+Aggregate topic metrics are supported unevenly across labels. Only \TopicSupportedTestLabelCount{} of the \TopicVocabularyCount{} vocabulary labels had a positive held-out example; \TopicZeroGoldTestLabelCount{} labels had no gold support and cannot contribute an observed positive-label recall. Historical evidence revalidation resolved \TopicExactBindingCount{} labels by exact chunk identity and \TopicReboundBindingCount{} by a unique same-paper locator with exact bounded-excerpt agreement. The latter is a conservative locator rebound across distinct corpus snapshots, not permission to treat snapshot identities as equal. \Cref{tab:topic-label-errors} reports representative confusion counts selected before manuscript drafting to include strong, weak, broad, and domain-specific behavior.
 
 \begin{table}[htbp]
 \centering
@@ -107,7 +125,7 @@ Generated-output review processed all \GeneratedReviewTotalCount{} stored record
 
 Package \VTwoPackageStatus{} (\VTwoEvidenceTier{}) binds protocol \texttt{\VTwoProtocolShaPrefix}, datasets \texttt{\VTwoFrozenDatasetShaPrefix}, environment \texttt{\VTwoLockedEnvironmentShaPrefix}, source \texttt{\VTwoEvaluationSourceCommitPrefix}, snapshot \texttt{\VTwoCorpusSnapshotShaPrefix}, and \VTwoKeywordIndexCompleteness{} keyword state. These identify an execution; they do not prove correctness.
 
-Selective QA over \VTwoQATestCases{} cases produced answerability precision/recall \VTwoQAAnswerabilityPrecision{} (\VTwoQAAnswerabilityPrecisionCi{}) / \VTwoQAAnswerabilityRecall{} (\VTwoQAAnswerabilityRecallCi{}), false-positive rate \VTwoQAFalsePositiveRate{} (\VTwoQAFalsePositiveRateCi{}), and abstention \VTwoQAAbstentionRate{} (\VTwoQAAbstentionRateCi{}). Locator precision was \VTwoQACitationLocatorPrecision{} (\VTwoQACitationLocatorPrecisionCi{}), citation completeness \VTwoQACitationCompleteness{}, and point coverage \VTwoQAAnswerPointCoverage{}. These test repaired contracts, not entailment.
+Selective QA over \VTwoQATestCases{} cases produced answerability precision/recall \VTwoQAAnswerabilityPrecision{} (\VTwoQAAnswerabilityPrecisionCi{}) / \VTwoQAAnswerabilityRecall{} (\VTwoQAAnswerabilityRecallCi{}), false-positive rate \VTwoQAFalsePositiveRate{} (\VTwoQAFalsePositiveRateCi{}), and abstention \VTwoQAAbstentionRate{} (\VTwoQAAbstentionRateCi{}). Locator precision was \VTwoQACitationLocatorPrecision{} (\VTwoQACitationLocatorPrecisionCi{}), citation completeness \VTwoQACitationCompleteness{}, and point coverage \VTwoQAAnswerPointCoverage{} (\VTwoQAAnswerPointCoverageCi{}). These test repaired contracts, not entailment. In particular, the prospective coverage estimate must not be subtracted from historical \QaAnswerPointCoverage{} as if it were a paired improvement: the case sets, protocol, and technical snapshots differ, so the comparison is descriptive only.
 
 Across \VTwoFinderTestProfiles{} profiles, evidence/full Hit@3 was \VTwoFinderEvidenceHitAtThree{} (\VTwoFinderEvidenceHitAtThreeCi{}) / \VTwoFinderFullHitAtThree{} (\VTwoFinderFullHitAtThreeCi{}), with change \VTwoFinderHitAtThreeDelta{} (\VTwoFinderHitAtThreeDeltaCi{}). Corresponding MRRs were \VTwoFinderEvidenceMRR{} and \VTwoFinderFullMRR{} (change \VTwoFinderMRRDelta{}). Template, fact/suggestion, unknown-time, and constraint contracts were \VTwoFinderTemplateConformance{}, \VTwoFinderFactSuggestionSeparation{}, \VTwoFinderUnknownTimeRetention{}, and \VTwoFinderConstraintFidelity{}. These are contract/proxy evidence, not usefulness, novelty, feasibility, or supervisor fit.
 

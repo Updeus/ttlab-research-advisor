@@ -44,6 +44,8 @@ REQUIRED_V2_MACRO_USAGE = (
     "VTwoQATestCases",
     "VTwoQAAnswerabilityPrecision",
     "VTwoQAAnswerabilityPrecisionCi",
+    "VTwoQAAnswerPointCoverage",
+    "VTwoQAAnswerPointCoverageCi",
     "VTwoQACitationLocatorPrecision",
     "VTwoQACitationLocatorPrecisionCi",
     "VTwoFinderTestProfiles",

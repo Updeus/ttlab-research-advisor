@@ -5,9 +5,9 @@
 
 Only \EligiblePaperCount{} of \CatalogPaperCount{} records enter full-text experiments; \NoTextPaperCount{} lack text and \MismatchPaperCount{} mismatches require review. Extraction is heuristic, corpus OCR was not run, and the fixture is not scanned-corpus accuracy. \EligibleUnknownChunkCount{} chunks lack sections, metadata are incomplete, \PossibleAuthorMergeCount{} identities remain unresolved, and the empty public projection supplies no populated-public evidence.
 
-Historical v1 retrieval has 50 AI-silver cases and 20 held out, including one unanswerable; pools may omit relevance, unjudged documents count negative, and ablation was post-selection. Prospective sets are also small, source-derived and technical-only. All intervals omit label and corpus-selection uncertainty.
+Historical v1 retrieval has 50 AI-silver cases and 20 held out, including one unanswerable; pools may omit relevance, unjudged documents count negative, and ablation was post-selection. Historical QA covered only \QaCoveredAnswerPointCount{}/\QaAnswerPointCount{} strict points and contains \QaUnanswerableCaseCount{} unanswerable cases, while historical Finder comparison includes \RecommendationFullMissingCount{} unfilled full-Finder ranks scored as zero. Its item-level judgments are conditional on the \RecommendationFullReturnedCount{} emitted outputs. Prospective sets are also small, source-derived and technical-only. Historical and prospective QA results use different cases, protocols, and snapshots, so they are descriptive rather than paired before/after estimates. All intervals omit label and corpus-selection uncertainty.
 
-QA uses one extractive answerer and one AI-review process; high historical support partly reflects copying, and prospective results cover only frozen cases. Ollama was unavailable, so no generative comparison exists. Recommendation/topics remain AI-proxy/silver, not user judgments. Single-machine concurrency-one performance is not capacity testing.
+QA uses one extractive answerer and one AI-review process; high historical support partly reflects copying, and prospective results cover only frozen cases. Ollama was unavailable, so no generative comparison exists. Recommendation and topic judgments remain AI-proxy/silver, not user judgments or human labels. A feasibility or usefulness failure records absence of supporting evidence under the rubric; it is not a human determination that a project is infeasible or useless. Single-machine concurrency-one performance is not capacity testing.
 
 \section{Ethics, permissions, and responsible AI}
 
@@ -23,7 +23,7 @@ Set Recall@$k$, Hit@$k$, MRR, nDCG, citation correctness, citation completeness,
 
 \section{Internal validity}
 
-Development/test separation and prospective pre-execution case/split freezing reduce leakage. Nevertheless, source-derived labels came from one AI-assisted process and may reflect corpus vocabulary; the same AI reviewer verified them. Error tags are non-causal, and WSL load/caches affect performance.
+Development/test separation and prospective pre-execution case/split freezing reduce leakage. Nevertheless, source-derived labels came from one AI-assisted process and may reflect corpus vocabulary; the same AI reviewer verified them. Historical topic revalidation includes \TopicReboundBindingCount{} conservative locator rebound across distinct snapshots, guarded by unique same-paper location and exact bounded-excerpt matching; this preserves a label binding but does not independently re-adjudicate it. Error tags are non-causal, and WSL load/caches affect performance.
 
 \section{External validity}
 
@@ -31,7 +31,7 @@ The system and controlled taxonomy are tailored to one laboratory, English-langu
 
 \section{Reproducibility validity}
 
-Code, structural results, model/environment identities, seeds, and manifests are versioned and bind active index generations. Exact replication still needs lawful sources, model availability and compatible tools. Restricted-raw hashes attest runner observations, not independently inspectable content; open analytical and conditional full-corpus reproduction remain distinct.
+Code, structural results, model/environment identities, seeds, and manifests are versioned and bind active index generations. The historical topic receipt distinguishes \TopicExactBindingCount{} exact identities from \TopicReboundBindingCount{} excerpt-verified rebound rather than presenting a rebuilt snapshot as the original. Exact replication still needs lawful sources, model availability and compatible tools. Restricted-raw hashes attest runner observations, not independently inspectable content; open analytical and conditional full-corpus reproduction remain distinct.
 
 \section{Security and deployment limitations}
 

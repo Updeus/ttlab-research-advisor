@@ -19,8 +19,10 @@ SCRIPTS_DIR = ROOT / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 from manuscript_v2_package import load_manuscript_v2_package
+from recommendation_manuscript_metrics import derive_recommendation_manuscript_metrics
 
 V2_HELPER = SCRIPTS_DIR / "manuscript_v2_package.py"
+RECOMMENDATION_HELPER = SCRIPTS_DIR / "recommendation_manuscript_metrics.py"
 REQUIRED = {
     "phase1": ROOT / "artifacts" / "phase1" / "phase1_evidence.json",
     "section_metrics": ROOT / "artifacts" / "phase1" / "section_quality_metrics.json",
@@ -77,6 +79,30 @@ def macro(name: str, value: Any) -> str:
 
 def ci(metric: dict[str, Any]) -> str:
     return f"[{fmt(metric['ci_lower'])}, {fmt(metric['ci_upper'])}]"
+
+
+def topic_binding_counts(
+    topics: dict[str, Any], *, allow_layout_fallback: bool
+) -> dict[str, Any]:
+    """Return current-snapshot binding counts, or explicit WIP placeholders."""
+
+    binding = topics.get("evidence_binding")
+    if binding is None:
+        if allow_layout_fallback:
+            return {"exact": "--", "rebound": "--", "drift": "--", "layout_fallback": True}
+        raise ValueError(
+            "Final paper assets require topic_metrics.json evidence_binding from the current "
+            "topic-silver binding receipt"
+        )
+    resolutions = binding.get("resolution_counts")
+    if not isinstance(resolutions, dict):
+        raise ValueError("Topic evidence_binding is missing resolution_counts")
+    exact = int(resolutions.get("exact_chunk_id", 0))
+    rebound = int(resolutions.get("stable_paper_chunk_page_section_locator", 0))
+    drift = int(binding.get("source_snapshot_drift_count", 0))
+    if exact < 0 or rebound < 0 or drift < 0 or drift > exact + rebound:
+        raise ValueError("Topic evidence_binding contains impossible counts")
+    return {"exact": exact, "rebound": rebound, "drift": drift, "layout_fallback": False}
 
 
 def generation_provenance() -> dict[str, Any]:
@@ -138,6 +164,22 @@ def main(argv: list[str] | None = None) -> None:
     retrieval_error = data["retrieval_error"]
     external_sanity = data["external_sanity"]
     provenance = generation_provenance()
+    recommendation_metrics = derive_recommendation_manuscript_metrics(
+        rec, allow_layout_fallback=args.allow_v2_not_run
+    )
+    recommendation_full = recommendation_metrics["arms"]["full_finder"]
+    recommendation_evidence = recommendation_metrics["arms"]["evidence_only"]
+    recommendation_criteria = recommendation_full["criteria"]
+    topic_binding = topic_binding_counts(
+        topics, allow_layout_fallback=args.allow_v2_not_run
+    )
+    qa_answered_count = int(qa["counts"]["answerable_responses"]) + (
+        int(qa["counts"]["unanswerable_cases"])
+        - int(qa["counts"]["unanswerable_abstentions"])
+    )
+    qa_abstention_count = int(qa["case_count"]) - qa_answered_count
+    if not 0 <= qa_answered_count <= int(qa["case_count"]):
+        raise ValueError("QA response counts are inconsistent with the case count")
     if section_metrics["dataset_sha256"] != sha256(SECTION_CASES):
         raise ValueError("Section-quality metrics do not match the committed silver dataset")
     if section_metrics["prediction_source"] != "current_database":
@@ -200,17 +242,44 @@ def main(argv: list[str] | None = None) -> None:
         "PaperQaReturnedCitationCount": qa["counts"]["returned_citations"],
         "PaperQaUsedReturnedCitationCount": qa["counts"]["used_returned_citations"],
         "PaperQaUnanswerableCount": qa["counts"]["unanswerable_cases"],
+        "PaperQaAnsweredCount": qa_answered_count,
+        "PaperQaAbstentionCount": qa_abstention_count,
         "PaperQaAnswerProvider": tex_escape(qa["answer_provider"]),
         "PaperQaAnswerModel": tex_escape(qa["answer_model"]),
         "PaperQaRetrievalMode": tex_escape(qa["retrieval_mode"]),
-        "PaperRecommendationProfileCount": rec["profile_coverage"]["profile_count"],
-        "PaperRecommendationItemsPerArm": rec["metrics"]["evidence_only"]["reviewed_items"],
-        "PaperRecommendationFeasibilityPartialCount": rec["metrics"]["full_finder"]["criteria"][
+        "PaperRecommendationProfileCount": recommendation_metrics["profile_count"],
+        "PaperRecommendationRequestedSlotCount": recommendation_metrics["requested_slots_per_arm"],
+        "PaperRecommendationEvidenceReturnedCount": recommendation_evidence["returned_items"],
+        "PaperRecommendationFullReturnedCount": recommendation_full["returned_items"],
+        "PaperRecommendationFullMissingCount": recommendation_full["missing_slots"],
+        "PaperRecommendationFullReturnCoverage": fmt(recommendation_full["return_coverage"]),
+        "PaperRecommendationFullProfilesAtCutoff": recommendation_full["profiles_at_cutoff"],
+        "PaperRecommendationFullShortProfileCount": recommendation_full["short_profile_count"],
+        "PaperRecommendationSeparationPass": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["pass"],
+        "PaperRecommendationSeparationFail": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["fail"],
+        "PaperRecommendationFeasibilityPass": recommendation_criteria[
             "skills_time_data_feasibility"
-        ]["counts"]["partial"],
-        "PaperRecommendationPlanPartialCount": rec["metrics"]["full_finder"]["criteria"][
-            "evaluation_plan_quality"
-        ]["counts"]["partial"],
+        ]["pass"],
+        "PaperRecommendationFeasibilityPartial": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["partial"],
+        "PaperRecommendationFeasibilityFail": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["fail"],
+        "PaperRecommendationMvpPass": recommendation_criteria["mvp_scope"]["pass"],
+        "PaperRecommendationMvpPartial": recommendation_criteria["mvp_scope"]["partial"],
+        "PaperRecommendationMvpFail": recommendation_criteria["mvp_scope"]["fail"],
+        "PaperRecommendationPlanPass": recommendation_criteria["evaluation_plan_quality"]["pass"],
+        "PaperRecommendationPlanPartial": recommendation_criteria["evaluation_plan_quality"]["partial"],
+        "PaperRecommendationPlanFail": recommendation_criteria["evaluation_plan_quality"]["fail"],
+        "PaperRecommendationUsefulnessFail": recommendation_criteria["usefulness_as_ai_proxy"]["fail"],
+        "PaperRecommendationLayoutFallback": str(
+            recommendation_metrics["layout_fallback_used"]
+        ).lower(),
         "PaperRecommendationPerturbationCount": len(rec["sensitivity_summary"]) - 1,
         "PaperRecommendationConfigurationCount": len(rec["sensitivity_summary"]),
         "PaperTopicCaseCount": topics["methods"]["controlled_lexical"]["dev"]["case_count"]
@@ -226,6 +295,9 @@ def main(argv: list[str] | None = None) -> None:
             row["tp"] + row["fn"] == 0
             for row in topics["methods"]["controlled_lexical"]["test"]["per_label"].values()
         ),
+        "PaperTopicBindingExactCount": topic_binding["exact"],
+        "PaperTopicBindingReboundCount": topic_binding["rebound"],
+        "PaperTopicBindingDriftCount": topic_binding["drift"],
         "PaperPossibleAuthorPairCount": len(author_audit["possible_same_person_pairs_not_merged"]),
         "PaperReviewEventCount": review["counts"]["total"],
         "PaperAiReviewedCount": review["counts"]["by_target_status"]["ai_reviewed"],
@@ -288,6 +360,7 @@ def main(argv: list[str] | None = None) -> None:
     }.items():
         values[f"Paper{suffix}"] = fmt(qa_metrics[key])
         values[f"Paper{suffix}Ci"] = ci(qa_intervals[key])
+    values["PaperQaAnswerCoverage"] = fmt(qa_metrics["answer_point_coverage"], 4)
 
     comparison = rec["metrics"]["arm_comparison"]
     delta = comparison["full_minus_baseline_relevance"]
@@ -452,6 +525,10 @@ def main(argv: list[str] | None = None) -> None:
         "path": str(V2_HELPER.relative_to(ROOT)),
         "sha256": sha256(V2_HELPER),
     }
+    sources["recommendation_manuscript_metrics_helper"] = {
+        "path": str(RECOMMENDATION_HELPER.relative_to(ROOT)),
+        "sha256": sha256(RECOMMENDATION_HELPER),
+    }
     sources.update(v2["sources"])
     sources["section_cases"] = {
         "path": str(SECTION_CASES.relative_to(ROOT)),
@@ -485,6 +562,11 @@ def main(argv: list[str] | None = None) -> None:
                 "supported": qa["counts"]["supported_claims"],
                 "partial": qa["counts"]["partially_supported_claims"],
                 "unsupported": qa["counts"]["unsupported_claims"],
+            },
+            "recommendation_coverage": {
+                "source": recommendation_metrics["coverage_source"],
+                "layout_fallback_used": recommendation_metrics["layout_fallback_used"],
+                "final_evidence_eligible": recommendation_metrics["final_evidence_eligible"],
             },
         },
         "remediation_v2": {

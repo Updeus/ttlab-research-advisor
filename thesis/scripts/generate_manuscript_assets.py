@@ -25,8 +25,10 @@ SCRIPTS_DIR = ROOT / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 from manuscript_v2_package import load_manuscript_v2_package
+from recommendation_manuscript_metrics import derive_recommendation_manuscript_metrics
 
 V2_HELPER = SCRIPTS_DIR / "manuscript_v2_package.py"
+RECOMMENDATION_HELPER = SCRIPTS_DIR / "recommendation_manuscript_metrics.py"
 SOURCES = {
     "evidence_snapshot": ROOT / "thesis" / "generated" / "evidence_snapshot.json",
     "phase1": ROOT / "artifacts" / "phase1" / "phase1_evidence.json",
@@ -127,6 +129,30 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None
         writer.writerows(rows)
 
 
+def topic_binding_counts(
+    topics: dict[str, Any], *, allow_layout_fallback: bool
+) -> dict[str, Any]:
+    """Return current-snapshot binding counts, or explicit WIP placeholders."""
+
+    binding = topics.get("evidence_binding")
+    if binding is None:
+        if allow_layout_fallback:
+            return {"exact": "--", "rebound": "--", "drift": "--", "layout_fallback": True}
+        raise ValueError(
+            "Final thesis assets require topic_metrics.json evidence_binding from the current "
+            "topic-silver binding receipt"
+        )
+    resolutions = binding.get("resolution_counts")
+    if not isinstance(resolutions, dict):
+        raise ValueError("Topic evidence_binding is missing resolution_counts")
+    exact = int(resolutions.get("exact_chunk_id", 0))
+    rebound = int(resolutions.get("stable_paper_chunk_page_section_locator", 0))
+    drift = int(binding.get("source_snapshot_drift_count", 0))
+    if exact < 0 or rebound < 0 or drift < 0 or drift > exact + rebound:
+        raise ValueError("Topic evidence_binding contains impossible counts")
+    return {"exact": exact, "rebound": rebound, "drift": drift, "layout_fallback": False}
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -171,6 +197,22 @@ def main(argv: list[str] | None = None) -> None:
     qa_ci = qa["confidence_intervals"]["metrics"]
     rec_metrics = recommendation["metrics"]
     rec_comparison = rec_metrics["arm_comparison"]
+    recommendation_metrics = derive_recommendation_manuscript_metrics(
+        recommendation, allow_layout_fallback=args.allow_v2_not_run
+    )
+    recommendation_full = recommendation_metrics["arms"]["full_finder"]
+    recommendation_evidence = recommendation_metrics["arms"]["evidence_only"]
+    recommendation_criteria = recommendation_full["criteria"]
+    topic_binding = topic_binding_counts(
+        topics, allow_layout_fallback=args.allow_v2_not_run
+    )
+    qa_response_count = int(qa["counts"]["answerable_responses"]) + (
+        int(qa["counts"]["unanswerable_cases"])
+        - int(qa["counts"]["unanswerable_abstentions"])
+    )
+    qa_abstention_count = int(qa["case_count"]) - qa_response_count
+    if not 0 <= qa_response_count <= int(qa["case_count"]):
+        raise ValueError("QA response counts are inconsistent with the case count")
     lexical_topic = topics["methods"]["controlled_lexical"]["test"]
     dense_topic = topics["methods"]["dense_prototype"]["test"]
     database = evidence_snapshot["database"]
@@ -237,6 +279,8 @@ def main(argv: list[str] | None = None) -> None:
         "QaUsedReturnedCitationCount": qa["counts"]["used_returned_citations"],
         "QaUnanswerableCaseCount": qa["counts"]["unanswerable_cases"],
         "QaUnanswerableAbstentionCount": qa["counts"]["unanswerable_abstentions"],
+        "QaResponseCount": qa_response_count,
+        "QaAbstentionCount": qa_abstention_count,
         "QaSupportedClaimRate": number(qa_metrics["supported_claim_rate"]),
         "QaSupportedClaimRateLow": number(qa_ci["supported_claim_rate"]["ci_lower"]),
         "QaSupportedClaimRateHigh": number(qa_ci["supported_claim_rate"]["ci_upper"]),
@@ -244,15 +288,21 @@ def main(argv: list[str] | None = None) -> None:
         "QaCitationCorrectnessLow": number(qa_ci["citation_precision_correctness"]["ci_lower"]),
         "QaCitationCorrectnessHigh": number(qa_ci["citation_precision_correctness"]["ci_upper"]),
         "QaCitationCompleteness": number(qa_metrics["citation_completeness"]),
-        "QaAnswerPointCoverage": number(qa_metrics["answer_point_coverage"]),
+        "QaAnswerPointCoverage": number(qa_metrics["answer_point_coverage"], 4),
         "QaAnswerPointCoverageLow": number(qa_ci["answer_point_coverage"]["ci_lower"]),
         "QaAnswerPointCoverageHigh": number(qa_ci["answer_point_coverage"]["ci_upper"]),
         "QaUnanswerableAbstentionRate": number(qa_metrics["unanswerable_abstention_rate"]),
+        "QaUnanswerableAbstentionRateLow": number(
+            qa_ci["unanswerable_abstention_rate"]["ci_lower"]
+        ),
+        "QaUnanswerableAbstentionRateHigh": number(
+            qa_ci["unanswerable_abstention_rate"]["ci_upper"]
+        ),
         "QaAbstentionAccuracy": number(qa_metrics["abstention_accuracy"]),
         "QaAbstentionAccuracyLow": number(qa_ci["abstention_accuracy"]["ci_lower"]),
         "QaAbstentionAccuracyHigh": number(qa_ci["abstention_accuracy"]["ci_upper"]),
         "QaCitationUtilization": number(qa_metrics["returned_citation_utilization"]),
-        "RecommendationProfileCount": recommendation["profile_coverage"]["profile_count"],
+        "RecommendationProfileCount": recommendation_metrics["profile_count"],
         "RecommendationEvidenceRelevance": number(rec_comparison["baseline_mean_relevance_score"]),
         "RecommendationFullRelevance": number(rec_comparison["full_finder_mean_relevance_score"]),
         "RecommendationRelevanceDifference": number(rec_comparison["full_minus_baseline_relevance"]["estimate"]),
@@ -262,10 +312,55 @@ def main(argv: list[str] | None = None) -> None:
         "RecommendationEvidenceRelevanceHigh": number(rec_metrics["evidence_only"]["criteria"]["paper_relevance"]["weighted_score_ci"]["ci_upper"]),
         "RecommendationFullRelevanceLow": number(rec_metrics["full_finder"]["criteria"]["paper_relevance"]["weighted_score_ci"]["ci_lower"]),
         "RecommendationFullRelevanceHigh": number(rec_metrics["full_finder"]["criteria"]["paper_relevance"]["weighted_score_ci"]["ci_upper"]),
-        "RecommendationItemCountPerArm": rec_metrics["evidence_only"]["reviewed_items"],
-        "RecommendationFeasibilityPartialCount": rec_metrics["full_finder"]["criteria"]["skills_time_data_feasibility"]["counts"]["partial"],
-        "RecommendationEvaluationPlanPassCount": rec_metrics["full_finder"]["criteria"]["evaluation_plan_quality"]["counts"]["pass"],
-        "RecommendationEvaluationPlanPartialCount": rec_metrics["full_finder"]["criteria"]["evaluation_plan_quality"]["counts"]["partial"],
+        "RecommendationRequestedSlotCount": recommendation_metrics["requested_slots_per_arm"],
+        "RecommendationEvidenceReturnedCount": recommendation_evidence["returned_items"],
+        "RecommendationFullReturnedCount": recommendation_full["returned_items"],
+        "RecommendationFullMissingCount": recommendation_full["missing_slots"],
+        "RecommendationFullReturnCoverage": number(recommendation_full["return_coverage"]),
+        "RecommendationFullProfilesAtCutoff": recommendation_full["profiles_at_cutoff"],
+        "RecommendationFullShortProfileCount": recommendation_full["short_profile_count"],
+        "RecommendationSeparationPassCount": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["pass"],
+        "RecommendationSeparationPartialCount": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["partial"],
+        "RecommendationSeparationFailCount": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["fail"],
+        "RecommendationFeasibilityPassCount": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["pass"],
+        "RecommendationFeasibilityPartialCount": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["partial"],
+        "RecommendationFeasibilityFailCount": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["fail"],
+        "RecommendationMvpPassCount": recommendation_criteria["mvp_scope"]["pass"],
+        "RecommendationMvpPartialCount": recommendation_criteria["mvp_scope"]["partial"],
+        "RecommendationMvpFailCount": recommendation_criteria["mvp_scope"]["fail"],
+        "RecommendationEvaluationPlanPassCount": recommendation_criteria[
+            "evaluation_plan_quality"
+        ]["pass"],
+        "RecommendationEvaluationPlanPartialCount": recommendation_criteria[
+            "evaluation_plan_quality"
+        ]["partial"],
+        "RecommendationEvaluationPlanFailCount": recommendation_criteria[
+            "evaluation_plan_quality"
+        ]["fail"],
+        "RecommendationUsefulnessPassCount": recommendation_criteria[
+            "usefulness_as_ai_proxy"
+        ]["pass"],
+        "RecommendationUsefulnessPartialCount": recommendation_criteria[
+            "usefulness_as_ai_proxy"
+        ]["partial"],
+        "RecommendationUsefulnessFailCount": recommendation_criteria[
+            "usefulness_as_ai_proxy"
+        ]["fail"],
+        "RecommendationLayoutFallback": str(
+            recommendation_metrics["layout_fallback_used"]
+        ).lower(),
         "RecommendationReviewAgreement": number(rec_metrics["repeatability"]["exact_agreement"]),
         "RecommendationCriterionCount": rec_metrics["repeatability"]["criterion_judgments_compared"],
         "TopicCaseCount": (
@@ -287,6 +382,9 @@ def main(argv: list[str] | None = None) -> None:
         "TopicZeroGoldTestLabelCount": sum(
             row["tp"] + row["fn"] == 0 for row in lexical_topic["per_label"].values()
         ),
+        "TopicExactBindingCount": topic_binding["exact"],
+        "TopicReboundBindingCount": topic_binding["rebound"],
+        "TopicBindingDriftCount": topic_binding["drift"],
         "RawAuthorRowCount": phase1["metadata_identity"]["author_count"],
         "CanonicalAuthorCount": authors["active_canonical_identity_count"],
         "PossibleAuthorMergeCount": len(authors["possible_same_person_pairs_not_merged"]),
@@ -511,6 +609,10 @@ def main(argv: list[str] | None = None) -> None:
         "path": str(V2_HELPER.relative_to(ROOT)),
         "sha256": sha256(V2_HELPER),
     }
+    source_manifest["recommendation_manuscript_metrics_helper"] = {
+        "path": str(RECOMMENDATION_HELPER.relative_to(ROOT)),
+        "sha256": sha256(RECOMMENDATION_HELPER),
+    }
     source_manifest.update(v2["sources"])
     manifest = {
         "schema_version": 2,
@@ -526,6 +628,11 @@ def main(argv: list[str] | None = None) -> None:
                 "Canonical v2 macros exclude manifest/attestation hashes; this downstream manifest "
                 "binds both after completed-package validation."
             ),
+        },
+        "recommendation_coverage": {
+            "source": recommendation_metrics["coverage_source"],
+            "layout_fallback_used": recommendation_metrics["layout_fallback_used"],
+            "final_evidence_eligible": recommendation_metrics["final_evidence_eligible"],
         },
         "sources": source_manifest,
         "outputs": {

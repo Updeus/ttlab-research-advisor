@@ -781,6 +781,25 @@ def database_engine(path: Path) -> Any:
     return create_engine(f"sqlite:///{path.resolve()}", connect_args={"check_same_thread": False})
 
 
+def checkpoint_database(engine: Any, database: Path) -> dict[str, Any]:
+    """Materialize committed WAL pages before hashing or freezing the database."""
+    engine.dispose()
+    with sqlite3.connect(database) as connection:
+        journal_mode = str(connection.execute("PRAGMA journal_mode").fetchone()[0]).lower()
+        checkpoint_row = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+    busy, log_frames, checkpointed_frames = (int(value) for value in checkpoint_row)
+    if busy:
+        raise RuntimeError(f"SQLite WAL checkpoint remained busy for {database}")
+    return {
+        "status": "PASS",
+        "journal_mode": journal_mode,
+        "busy": busy,
+        "log_frames_remaining": log_frames,
+        "checkpointed_frames": checkpointed_frames,
+        "wal_exists_after_close": database.with_name(f"{database.name}-wal").exists(),
+    }
+
+
 def status_counts(decisions: list[ReviewDecision]) -> dict[str, Any]:
     return {
         "total": len(decisions),
@@ -853,6 +872,7 @@ def write_outputs(
     apply_result: dict[str, Any] | None,
     idempotence: dict[str, Any],
     compatibility: dict[str, Any],
+    database_checkpoint: dict[str, Any],
     database_hash_before: str,
     database_hash_after: str,
 ) -> dict[str, Any]:
@@ -890,6 +910,7 @@ def write_outputs(
         "review_code_sha256": sha256_file(Path(__file__)),
         "database_sha256_before": database_hash_before,
         "database_sha256_after": database_hash_after,
+        "database_checkpoint": database_checkpoint,
         "database_bytes_redistributed": False,
         "reviewer_type": REVIEWER_TYPE,
         "human_validation": False,
@@ -921,6 +942,11 @@ def run(database: Path, *, apply_live: bool, output_dir: Path) -> dict[str, Any]
                 key: second[key]
                 for key in ("created_events", "changed_records", "skipped_existing", "review_event_integrity")
             }
+    database_checkpoint = (
+        checkpoint_database(engine, database)
+        if apply_live
+        else {"status": "not_required", "reason": "audit_only"}
+    )
     after_hash = sha256_file(database)
     manifest = write_outputs(
         output_dir,
@@ -928,6 +954,7 @@ def run(database: Path, *, apply_live: bool, output_dir: Path) -> dict[str, Any]
         result,
         idempotence,
         compatibility,
+        database_checkpoint,
         before_hash,
         after_hash,
     )
@@ -937,6 +964,7 @@ def run(database: Path, *, apply_live: bool, output_dir: Path) -> dict[str, Any]
         "counts": status_counts(decisions),
         "apply_result": result,
         "idempotence": idempotence,
+        "database_checkpoint": database_checkpoint,
         "manifest": manifest,
     }
 

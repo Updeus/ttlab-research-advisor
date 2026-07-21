@@ -13,6 +13,8 @@ from app.evaluation.generated_output_review import (
     disposable_idempotence,
     plan_reviews,
     review_recommendation,
+    run,
+    sha256_file,
 )
 from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
 
@@ -299,3 +301,20 @@ def test_sanitized_review_corrections_do_not_redistribute_generated_payload() ->
     assert all("after" not in correction and "before" not in correction for correction in sanitized["corrections"])
     assert all(len(correction["after_sha256"]) == 64 for correction in sanitized["corrections"])
     assert sanitized["human_validation"] is False
+
+
+def test_live_run_checkpoints_wal_before_recording_database_hash(tmp_path) -> None:
+    database = tmp_path / "review-live.db"
+    output_dir = tmp_path / "review-evidence"
+    engine = build_review_engine(f"sqlite:///{database}")
+    with engine.connect() as connection:
+        connection.exec_driver_sql("PRAGMA journal_mode=WAL")
+    engine.dispose()
+
+    result = run(database, apply_live=True, output_dir=output_dir)
+
+    assert result["status"] == "PASS"
+    assert result["database_checkpoint"]["status"] == "PASS"
+    assert result["database_checkpoint"]["busy"] == 0
+    assert result["manifest"]["database_sha256_after"] == sha256_file(database)
+    assert result["manifest"]["database_sha256_before"] != result["manifest"]["database_sha256_after"]

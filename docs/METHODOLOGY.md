@@ -85,7 +85,8 @@ sample size:
 | Topic classification | paper case and label decision | 60 papers: 36 development, 24 test |
 | Generated-output review | persisted output | 48 records |
 | External sanity check | openly licensed document/query | 3 documents; 3 fixed queries |
-| Performance | process-cold or warm repetition | protocol implemented; full result not committed at this snapshot |
+| Performance | process-cold or warm repetition | 17 stages; 102 executed samples/RSS records |
+| Remediation v2 | Ask case, synthetic Finder profile, positive-only topic case, OCR fixture | prospective frozen protocol: 18, 10, 12, and 1 respectively |
 
 ## Corpus snapshot, provenance, and eligibility
 
@@ -97,14 +98,23 @@ excluded rather than silently attributed to the catalogue records. The 36
 records without usable text remain visible as `needs_review` but are not
 experimental retrieval items.
 
-The frozen experimental snapshot is `corpus-04a010207327069a`, SHA-256-derived
+The historical-v1 frozen experimental snapshot is
+`corpus-04a010207327069a`, SHA-256-derived
 snapshot hash
 `04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5`.
 It contains 96 eligible papers and 719 eligible chunks from 735 raw chunks.
 Every included chunk retains a stable ID, paper ID, page range, section label,
-text hash, and extraction provenance. The current snapshot used native PDF text;
+text hash, and extraction provenance. That historical snapshot used native PDF text;
 OCR status is `not_requested` for all 134 records. OCR support and scanned-page
 detection exist, but no OCR accuracy or latency is reported for this corpus.
+
+This is the technical evaluation boundary, not a public corpus. Anonymous
+metadata additionally requires approved review status, `published`, cleared
+rights, and `metadata_only|searchable` access. Anonymous source text/search also
+requires technical eligibility, approved extraction, a current extraction-to-
+chunk generation chain, and a promoted public index generation. Unknown legacy
+states fail closed, and a zero-record public projection does not fall back to
+the technical corpus.
 
 Section heuristics were checked on 40 source-backed silver cases. Current-label
 accuracy was 0.900, labeled accuracy 0.8889, labeled coverage 0.900, macro
@@ -123,8 +133,9 @@ The system has five cooperating layers:
    ranking, extractive/offline or optional local generation, citation checking,
    recommendation, artifact generation, and topic/author exploration.
 3. **Persistence and integrity:** SQLModel/SQLite records, immutable source
-   hashes, atomic index files, authoritative manifests, generated-output review
-   status, and append-only application-level review events with a hash chain.
+   hashes, immutable index generations with atomically promoted checksum-bound
+   current pointers, authoritative manifests, generated-output review status,
+   and append-only application-level review events with a hash chain.
 4. **Service and interface:** FastAPI public/read and protected mutation routes,
    plus a React/Vite route-based interface that displays source locators,
    provider/model metadata, freshness, review state, and responsible-AI notices.
@@ -140,6 +151,9 @@ dense retrieval uses `sentence-transformers/all-MiniLM-L6-v2` at revision
 L2 normalization on CPU. Both feature-hashing and dense manifests cover all
 719 eligible chunks. A missing or stale dense model/index is reported as a
 provider state; the system does not silently describe hashing as dense search.
+Present-but-invalid pointers, payloads, manifests, configuration, or live
+corpus identities fail rather than falling back to an older compatibility
+mirror. Bounded/demo generations cannot update authoritative database status.
 
 ## Evaluation procedure
 
@@ -209,6 +223,7 @@ pass produced zero changes.
 
 ### Performance and external sanity
 
+The following measurements are retained historical-v1 engineering evidence.
 The committed full profile contains all 17 required stages, three process-cold
 and three warm samples per stage, 102 RSS-bearing samples, and zero failures.
 It ran at concurrency one on WSL2 with an AMD Ryzen 7 5800X, 16 logical CPUs,
@@ -227,15 +242,48 @@ them into the production chunker contract, and achieved 3/3 fixed lexical
 top-one matches. It did not validate the main PDF-ingestion path, TTLAB
 effectiveness, or cross-domain retrieval quality.
 
+### Prospective remediation-v2 procedure
+
+The v1 experiments above are retained as historical post-selection evidence.
+The remediation-v2 protocol was authored source-first and freezes its code,
+locked environment, generation-linked technical corpus, PDF/extraction/chunk
+artifact inventory, source locators, datasets, split IDs, answerability rule,
+Finder weights, OCR fixture/configuration, and bootstrap seed before retrieval
+or generation. It records but does not exercise the independent public
+projection.
+
+Within each fresh freeze/workspace, the full isolated reproducer invokes
+`prepare`, one `evaluate` invocation, then an independent validator. The first
+accepted source candidate is the confirmatory run. A later full run is an
+unchanged-protocol deterministic replication and must not retune, relabel, add
+cases, or select among outcomes. `prepare` rejects dirty/uncommitted evaluation
+sources and writes a freeze receipt. `evaluate` refuses any changed identity,
+uses a temporary SQLite backup and keyword index, and separates structural
+versionable outputs from operator-local rights-sensitive raw text. The
+validator recomputes case membership, identities, metrics, 5,000-replicate
+cluster-bootstrap intervals, deterministic manuscript macros, and the exact
+flat package inventory before accepting an attestation.
+
+The fixed workstreams cover selective Ask answerability/citation/answer-point
+behaviour, paired evidence-only/full-Finder ranking and contract behaviour,
+known-positive topic recall/coverage, and one deterministic scanned-fixture OCR
+path. The two shuffled passes are repeated applications of the same AI-authored
+procedure. They are AI-silver repeatability evidence, not human inter-rater
+reliability, semantic entailment, public-projection quality, student usefulness,
+supervisor validation, practical feasibility, novelty, or corpus OCR accuracy.
+Results enter a manuscript only through the completed, independently validated
+canonical package under `artifacts/peer_review_remediation/v2/`; a layout-only
+`not run` package is not experimental evidence.
+
 ## Research-question traceability
 
-| RQ | Method | Authoritative evidence | Current result and conclusion |
+| RQ | Method | Authoritative evidence | Historical-v1 result and bounded conclusion |
 |---|---|---|---|
 | RQ1 | Identity audit, eligibility freeze, section silver review, manifest verification | `artifacts/phase1/phase1_evidence.json` and index manifests | 96 papers/719 chunks are eligible; feature-hashing and dense indexes cover 719/719. Two mismatched PDFs and 36 no-text records are excluded. |
 | RQ2 | 30/20 development/test silver retrieval experiment, ablations, bootstrap, paired tests | `artifacts/phase2/retrieval/` | Keyword led held-out MRR (0.9474); tuned hybrid MRR was 0.8596. No tuned-vs-baseline contrast survived family correction. Hybrid superiority is not demonstrated. |
 | RQ3 | Atomic-claim/citation/answer-point AI review with clustered bootstrap | `artifacts/phase3/qa/` | Claim support was high (0.995), but citation correctness was 0.625, strict answer-point coverage 0.1358, and all four unanswerable cases failed to abstain. Traceability did not ensure completeness. |
 | RQ4 | Synthetic-profile proxy review, topic split comparison, author audit, full persisted-output review | `artifacts/phase4/` | Full-Finder relevance exceeded evidence-only by only 0.0238 (95% CI -0.0238 to 0.0714); lexical topics traded recall for higher precision; 27 stale RAG answers require reprocessing. No human usefulness claim follows. |
-| RQ5 | Security/privacy/accessibility tests, clean-commit reproduction/release verification, full performance profile, external sanity | code/tests, `docs/FRONTEND_REQUIREMENTS.md`, `artifacts/phase6/`, final reproduction manifest | The validated 17-stage profile completed 102/102 samples without failure; the clean-commit reproduction and sanitized-release verifiers passed while excluding restricted inputs. Public inputs are transient and mutations authenticated. Automated accessibility regressions passed but do not establish WCAG conformance or assistive-technology usability; the three-document JATS/XML check is only a chunker-contract sanity result. |
+| RQ5 | Security/privacy/accessibility tests, source-candidate reproduction/release verification, full performance profile, external sanity | code/tests, `docs/FRONTEND_REQUIREMENTS.md`, `artifacts/phase6/`, final reproduction manifest | The historical validated 17-stage profile completed 102/102 samples without failure. Current source-candidate reproduction/release acceptance is not inferred from that run; its source and later evidence commit identities belong only in `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`. Public inputs are transient and mutations authenticated. Automated accessibility regressions passed but do not establish WCAG conformance or assistive-technology usability; the three-document JATS/XML check is only a chunker-contract sanity result. |
 
 ## Validity, ethics, and reproducibility controls
 

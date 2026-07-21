@@ -14,7 +14,10 @@ This protocol separates four kinds of evidence:
 Only the first three can be produced from the repository. A green test suite or
 a structurally cited answer is never substituted for a quality judgment.
 
-## Current execution registry
+## Historical v1 execution registry
+
+The rows below are retained descriptive v1 evidence. They are not upgraded or
+relabeled as prospective evidence after remediation.
 
 | Evaluation | Status at this snapshot | Cases/units | Primary evidence |
 |---|---|---:|---|
@@ -26,10 +29,11 @@ a structurally cited answer is never substituted for a quality judgment.
 | Topic classification and author audit | Executed, AI silver | 60 papers; 39 labels | `artifacts/phase4/topic_author/` |
 | Persisted generated-output review | Executed, AI review | 48 outputs | `artifacts/phase4/generated_output_review/` |
 | External format sanity | Executed | 3 CC BY documents/queries | `artifacts/phase6/external_sanity/` |
-| Full performance profile | Not yet evidenced | Protocol is defined | expected under `artifacts/phase6/performance/` |
+| Full performance profile | Executed and independently validated | 17 stages; 102 timed/RSS samples | `artifacts/phase6/performance/` |
 | Human usability/advisory validation | Not conducted | No participants | external/future study only |
+| Peer-review remediation v2 | Prospectively specified; completion is established only by the canonical package manifest and attestation | 18 Ask cases; 10 Finder profiles; 12 topic cases; one deterministic OCR fixture | `data/evaluation/peer_review_remediation_v2_protocol.json`; when run, `artifacts/peer_review_remediation/v2/` |
 
-## Corpus and common controls
+## Historical v1 corpus and common controls
 
 All corpus-dependent quality experiments use snapshot
 `corpus-04a010207327069a`, hash
@@ -44,6 +48,12 @@ Every experiment retains its input hash, code/configuration identity, fixed
 seeds, raw per-case output, aggregate result, and limitations. A manifest or
 validator failure invalidates the associated aggregate; a missing result is
 `not_run`, not zero.
+
+The v2 run does not silently inherit this historical identity. Its `prepare`
+gate recomputes and freezes the current generation-linked technical corpus,
+effective retrieval-source hashes (including retrieval-affecting metadata),
+source PDF/extraction/chunk artifact inventory, exact code/lock identities, and
+the public-selection predicate that is recorded but not exercised.
 
 ## AI-reviewed silver procedure
 
@@ -61,6 +71,12 @@ binary candidate-judgment kappa 0.7059 over 70 candidate judgments. The topic
 set recorded exact case agreement 0.8333 (50/60). QA review recorded claim-label
 exact agreement 1.0 and answer-point exact agreement 0.963. These figures do not
 measure correctness against a human reference.
+
+The v2 shuffled passes retain the same boundary: they are repeated applications
+of one AI-authored deterministic review procedure, not two independent raters.
+The v2 validator may establish structural repeatability and exact recomputation
+of recorded decisions; it cannot convert them into human validation or semantic
+entailment.
 
 ## Retrieval evaluation
 
@@ -190,8 +206,10 @@ reported.
 Twenty-eight synthetic profiles produce three ranked items per arm (84 each).
 The evidence-only baseline returns papers and passages. The full Finder adds
 structured fact/gap/suggestion separation, MVP/stretch scope, risk, skills,
-data, and evaluation-plan fields. Public requests use `persist=False` for the
-experiment, leaving live recommendation rows unchanged.
+data, and evaluation-plan fields. The evaluator calls the explicitly authorized
+technical scope with `persist=False`, leaving live recommendation rows
+unchanged. This is an offline experiment boundary, not evidence about public
+request behavior or the independently governed public projection.
 
 The evidence-only paper-relevance score was 0.6310 (95% CI 0.5238–0.7262); the
 full Finder score was 0.6548 (0.5595–0.7500). The paired difference was 0.0238
@@ -257,6 +275,90 @@ chunker contract, and produced 3/3 expected fixed lexical top-one matches. It
 did not exercise the main PDF-ingestion path and is not cross-domain retrieval-
 quality evidence.
 
+## Prospective remediation-v2 protocol
+
+The immutable v1 files above remain historical post-selection descriptions.
+The source-first v2 protocol is a new, fixed execution designed to evaluate the
+remediated selective-response and Finder contracts without tuning on held-out
+outputs. Its scope is the current generation-linked **technical** corpus; it
+records the independent public predicate but sets
+`public_projection_evaluated=false`.
+
+### Freeze and execution order
+
+Each fresh frozen workspace uses the following order:
+
+```bash
+PYTHONPATH=backend .venv/bin/python data/evaluation/run_peer_review_remediation_v2.py prepare
+PYTHONPATH=backend .venv/bin/python data/evaluation/run_peer_review_remediation_v2.py evaluate
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_peer_review_remediation_v2.py
+```
+
+`prepare` must precede any v2 retrieval or generation. It requires clean,
+committed protocol/code/dataset inputs and a lock-valid Python environment,
+verifies every source locator against SQLite, freezes code/corpus/retrieval/
+generation identities and data splits, inventories the PDF/extraction/chunk
+generation chain, and creates the deterministic OCR fixture. `evaluate` refuses
+any changed identity, snapshots SQLite into a temporary database, reconciles
+generation links fail closed, builds a temporary keyword representation, and
+permits one `evaluate` invocation for that freeze/workspace. The first accepted
+source candidate is the confirmatory execution. A subsequent full run is a
+deterministic replication of the same locked protocol and cases; no retuning,
+relabeling, case changes, or result selection is permitted. The final validator independently recomputes
+case membership, metrics, all 5,000-replicate seeded cluster-bootstrap
+intervals, manuscript macros, manifest contents, and exact package inventory
+before writing/accepting the attestation.
+
+### Fixed cases and permitted metrics
+
+- **Ask:** 12 source-derived answerable cases and six named-paper exact-phrase
+  absence probes, fixed keyword retrieval, top five, offline extractive model,
+  and the already-fixed answerability threshold. The negative probes establish
+  structural exact-phrase absence only, not semantic absence under paraphrase.
+  Metrics cover answerability/abstention, exact gold-locator citations,
+  citation completeness/utilization, and answer-point coverage.
+- **Finder:** four development, five held-out test, and one sensitivity-only
+  synthetic profile; paired evidence-only and full-Finder rankings share the
+  same retrieval response. The weights are frozen. Candidate-specific template
+  conformance and profile-field propagation are deterministic contract checks,
+  not independent usefulness or feasibility judgments.
+- **Topics:** four development and eight test paper cases contain positive-only,
+  non-exhaustive source labels. Permitted results are known-positive recall,
+  known-positive case coverage, per-label support/misses, and counts/share of
+  unadjudicated predictions. Precision, F1, exact match, and false-positive
+  interpretations are prohibited.
+- **OCR:** one raster-only deterministic fixture invokes the production parser
+  and Tesseract configuration. Tesseract is therefore a required system
+  prerequisite for every full v2 reproduction, even though the historical TTLAB
+  corpus itself recorded no OCR-processed pages. The fixture verifies that the OCR path runs against known
+  fixture text; it does not estimate accuracy on TTLAB papers or scanned
+  document populations.
+
+### Evidence and release separation
+
+Exactly one versionable location is permitted:
+`artifacts/peer_review_remediation/v2/`. It has a closed flat-file allowlist and
+contains structural IDs, hashes, labels, aggregates, macros, manifest, and
+attestation. Full extractive answers, source snippets, generated Finder bodies,
+and topic evidence text are required locally under
+`tmp/restricted/peer_review_remediation/v2/` (or another ignored operator path)
+and cannot be committed or released. The restricted-output manifest records
+hash/size attestations; this is not independent proof of unseen content.
+
+The two shuffled passes use the same AI procedure. Their disagreements and
+repeatability are AI-silver evidence, not human inter-rater reliability. No v2
+metric may be described as student benefit, supervisor approval, real-world
+feasibility, novelty, semantic entailment, public-corpus effectiveness, or
+general OCR accuracy.
+
+The accepted package is bound to the clean source-candidate commit/tree that
+the isolated workspace executed. A later evidence commit may contain only the
+validated canonical package, retained content-free attestations, generated
+manuscript evidence/PDFs, and closure documents. That evidence commit is not
+called the reproduced source. Any protocol, dataset, source locator,
+application, or manuscript-source change requires a new candidate freeze and
+full execution.
+
 ## Error analysis and reporting rules
 
 Error reports include extraction/structure, intent mismatch, lexical mismatch,
@@ -283,9 +385,12 @@ PYTHONPATH=backend .venv/bin/python data/evaluation/validate_topic_author_silver
 PYTHONPATH=backend .venv/bin/python data/evaluation/validate_section_quality_silver_v1.py --evaluate-current
 PYTHONPATH=backend .venv/bin/python -m app.evaluation.generated_output_review
 PYTHONPATH=backend .venv/bin/python -m app.evaluation.external_sanity
+PYTHONPATH=backend .venv/bin/python data/evaluation/validate_peer_review_remediation_v2.py --static-only
 ```
 
 The aggregate artifacts already committed under `artifacts/phase1` through
 `artifacts/phase4` and `artifacts/phase6/external_sanity` are the evidence for
 the results above. Re-execution must not overwrite them from a different corpus
-without producing a new snapshot and manifest.
+without producing a new snapshot and manifest. Do not run the v2 `evaluate`
+command as an ad-hoc validator or layout prerequisite; `make reproduce` executes
+the freeze/evaluate/validate sequence in its detached full-corpus workspace.

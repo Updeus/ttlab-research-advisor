@@ -16,14 +16,17 @@ state. It is not a synonym for factual correctness or complete entailment.
 
 ```text
 permitted catalogue/PDF sources
-  -> scheduled/manual sync request -> persisted lease and run history
+  -> explicit operator-run staging (automated promotion disabled)
   -> acquisition and identity audit
   -> page extraction / optional OCR
   -> deterministic section-aware chunks
-  -> authoritative corpus snapshot
+  -> authoritative technical corpus snapshot
        |-> SQLite keyword/FTS index
        |-> 256-d feature-hashing index + manifest
        |-> 384-d learned-dense index + manifest
+  -> explicit retrieval scope
+       |-> technical: named offline evaluation/reproduction call sites
+       |-> public: published + rights-cleared + searchable projection
   -> retrieval and explicit reranking configuration
        |-> Search
        |-> Ask TTLAB -> answer/citation verifier
@@ -50,27 +53,34 @@ dense index is not an acceptable degraded state.
 - `ingestion/ttlab_page.py` discovers and normalizes catalogue records without
   treating scraped fields as verified facts.
 - `ingestion/manual_import.py` idempotently imports seeds and author aliases.
-- `ingestion/sync.py` compares discoveries with stored records, atomically
-  snapshots normalized metadata, processes new/changed papers and retries
-  incomplete pipeline work, and records counts, failures, timestamps, and
-  request attribution.
-- `ingestion/sync_worker.py` owns the fixed daily schedule and manual-request
-  polling outside the API process. A SQLite lease with expiry prevents
-  overlapping workers; an empty discovery cannot replace the existing corpus.
+- `ingestion/sync.py` retains comparison/invalidation logic for future staged
+  generation work, but its orchestration gate returns
+  `atomic_generation_promotion_not_implemented` before discovery or mutation.
+  Separate phase commits/files cannot be promoted safely as one active corpus.
+- `ingestion/sync_worker.py` and the Admin trigger expose that fail-closed state;
+  no configuration enables scheduled or manual automated promotion. Corpus
+  updates are explicit operator-run builds in an isolated copy followed by
+  complete validation and a deliberate maintenance-window replacement.
 - `ingestion/pdf_downloader.py` limits permitted hosts, redirects, file size,
   URL schemes, and PDF validation; it does not bypass authentication or
   paywalls.
 - `ingestion/metadata_cleaner.py` repairs known parser artifacts, audits
   paper/PDF title identity, and preserves unresolved author state.
-- `ingestion/pdf_parser.py` performs page extraction, records per-page method
-  and diagnostics, and can invoke optional OCR from `ingestion/ocr.py`.
+- `ingestion/pdf_parser.py` performs page extraction, records per-page method,
+  input-PDF/configuration hashes and diagnostics, atomically writes derived
+  files, and can invoke pinned optional OCR from `ingestion/ocr.py`. The JSON
+  record is authoritative and validates its paired text-file hash before reuse.
 - `indexing/chunker.py` deterministically emits page-aware chunks with stable
   source hashes and conservative section labels.
 
-Every catalogue record keeps an eligibility/review state. The current frozen
+Every catalogue record keeps independent technical eligibility, editorial
+publication, source-rights, public-access, and review states. Unknown legacy
+publication decisions migrate to `pending_review` / `unknown` / `hidden`; they
+cannot appear anonymously. The current frozen
 corpus has 134 records, 96 eligible papers, 719 eligible chunks, 36 no-text
 `needs_review` records, and two metadata/PDF mismatches excluded with their 16
-chunks. Catalogue visibility is distinct from experimental eligibility.
+chunks. The 719-chunk technical evaluation boundary therefore remains distinct
+from the currently unapproved public projection.
 
 ### Retrieval and index integrity
 
@@ -92,6 +102,18 @@ code commit, index checksum, index role, and completeness state. SQLite status
 is a diagnostic, not the source of truth. A bounded demo writes only to
 `data/indexes/demo/` and cannot set authoritative completeness.
 
+Each authoritative build writes an immutable payload/manifest generation,
+fsyncs it, commits the corresponding SQLite embedding statuses, and atomically
+promotes a checksum-bound current-generation pointer while holding an exclusive
+writer lock. Readers hold the matching shared lock and validate the pointer,
+payload, manifest, provider, configuration, and live ordered corpus identity
+before use. Once generation storage exists, an invalid pointer never falls back
+to the compatibility mirror or an unpointed generation. Build failure rolls
+back database state, restores the old pointer, and removes the uncommitted
+generation. This is atomicity for each vector representation; it is not the
+unimplemented whole-corpus promotion across metadata, extracted files, chunks,
+all indexes, topics, and publication decisions.
+
 Supported request modes are:
 
 - `keyword` — lexical FTS/fallback;
@@ -100,17 +122,21 @@ Supported request modes are:
   `826711e54e001c83835913827a843d8dd0a1def9`; and
 - `hybrid` — explicit keyword/vector/heuristic combination.
 
-`semantic` is accepted only as a legacy alias for feature hashing. When the
-dense dependency/model/index is absent, the response exposes provider state and
-warning instead of presenting hashing as learned dense retrieval.
+The legacy ambiguous value `semantic` is rejected rather than aliased to feature
+hashing. When the dense dependency/model/index is absent, the response exposes
+provider state and warning instead of presenting hashing as learned dense
+retrieval. Index writers use an exclusive lock; readers validate the manifest
+and payload identity they consume.
 
 ### Intelligence services
 
-- `intelligence/rag_answerer.py` retrieves evidence, calls an allowed answer
-  provider, preserves retrieved chunks/citations/provider metadata, verifies
-  structural grounding, and defaults public calls to `persist=False`.
-- `intelligence/citation_verifier.py` checks citation mapping and lexical
-  support. Runtime `grounded` is a structural/lexical status, not a truth label.
+- `intelligence/rag_answerer.py` applies a fixed source-term answerability gate
+  before provider invocation, retrieves within an explicit scope, removes
+  unused citations, preserves requested/configured/effective provider metadata,
+  and defaults public calls to `persist=False` and keyword retrieval.
+- `intelligence/citation_verifier.py` decomposes answer sentences and checks
+  citation mapping plus lexical overlap. Its strongest automatic label is
+  `support_unverified`; runtime checks do not establish entailment or truth.
 - `intelligence/extension_recommender.py` provides an evidence-only mode and a
   full structured Finder. The full path separates paper-supported facts,
   explicit/inferred/not-found gaps, and newly generated suggestions.
@@ -124,8 +150,13 @@ warning instead of presenting hashing as learned dense retrieval.
 - `intelligence/topic_explorer.py` applies the retained controlled lexical
   vocabulary, derives author-topic evidence only from eligible publication
   authorship, and explains related-paper scores.
-- `intelligence/llm_provider.py` keeps deterministic offline extraction as a
-  supported path and isolates optional local Ollama/external adapters.
+- `intelligence/llm_provider.py` keeps deterministic offline extraction as the
+  default path. Optional Ollama use requires an allowlisted model name and exact
+  service-reported SHA-256 digest, checked before and after generation. Because
+  the standard generation response may report only a mutable tag, the provider
+  records `generation_time_digest_verified=false` and attributes that output to
+  the tag unless the response itself reports the matching digest. The
+  incomplete OpenAI stub is not a supported provider.
 
 The platform never treats a generated extension as paper-stated future work.
 Potential researcher fit is a bibliographic discovery hint, not confirmation of
@@ -137,6 +168,12 @@ SQLModel models cover papers, authors/aliases, chunks, topics/links, RAG
 answers, thesis recommendations, paper artifacts, and `ReviewEvent`. Review
 states distinguish `needs_review`, `ai_reviewed`, human review/approval states,
 rejection, and `needs_reprocess` where applicable.
+
+Corrections and review decisions are separate endpoints. Saving a correction
+creates an attributed event and reopens the item at `needs_review`; it cannot be
+approved in the same request. Public artifact serialization uses corrected
+content only after a subsequent human-admin approval. Actor capabilities and
+allowed transitions are returned explicitly so clients do not guess policy.
 
 Review events record item/action, prior/new state, actor ID/name/type/role,
 request ID, notes/diff, timestamp, previous-event hash, and event hash. SQLite
@@ -184,10 +221,11 @@ candidate bundle is not substituted for that gate.
 ### Paper and extraction
 
 Paper records retain catalogue/source fields, local acquisition status,
-eligibility and exclusion reason, PDF/title identity state, extraction/OCR
+technical eligibility and exclusion reason, editorial publication status,
+rights status, public-access level, PDF/title identity state, extraction/OCR
 state, metadata provenance/review fields, and review timestamps. Unknown DOI,
-abstract, keyword, date, venue, or identity fields remain empty/unresolved
-rather than inferred.
+abstract, keyword, date, venue, identity, rights, or publication decisions remain
+empty/unresolved or fail-closed rather than inferred.
 
 Extraction JSON retains:
 
@@ -219,9 +257,11 @@ Public APIs redact server-local storage paths.
 ### Ask response
 
 ```text
-question, answer, provider/model, retrieval mode/config,
-citations[], retrieved_chunks[], grounding status, unsupported warnings,
-generation timestamp, persistence/review state
+question, answer, requested/configured/effective provider, model identity,
+configured/observed digest and generation-time attestation state, retrieval
+mode/scope/config, answerability decision, citations[],
+retrieved_chunks[], claim-support rows, support/grounding status, unsupported
+warnings, generation timestamp, persistence/review state
 ```
 
 Public `POST /api/ask` is transient. History and item retrieval require a
@@ -230,28 +270,36 @@ reviewer/admin actor. Provider selection must be in the deployment allowlist.
 ### Extension response
 
 Each result includes ranked paper identity, fit rationale, source-supported
-facts, explicit/inferred gap status, system suggestion, MVP, stretch goals,
-skills/gaps, data needs/availability, evaluation plan, difficulty, risk,
-implementation time, related papers, researcher-fit hint, citations, and
-warnings. Public requests are transient. History/item routes are protected.
+facts, paper-stated future work, explicit/inferred/missing gap state, system
+suggestion, assumptions and external confirmations, candidate-specific MVP and
+stretch goals, skills/gaps, data needs/availability, evaluation plan,
+difficulty, risk, implementation-time status, related papers, researcher-fit
+hint, citations, and warnings. Unknown evidence remains `unknown` or
+`needs_supervisor`; it is not copied from the requested preference. Public
+requests are transient. History/item routes are protected.
 
 ### Paper artifacts
 
-Public reads are limited to eligible papers and public-safe artifact state.
+Public reads require approved metadata, cleared rights, searchable access for
+source evidence, and an approved effective artifact state.
 Generating an artifact for one paper requires reviewer authorization; batch
 generation requires admin. Payloads retain provider/model/time, support labels,
 source chunk IDs/citations, grounding, warnings, and review state.
 
 ## API authorization boundary
 
-Public/read routes include health/readiness, public paper metadata, search,
-transient Ask/Finder, diagnostics with local paths redacted, explorer views, and
-the read-only evaluation dashboard. Protected routes include:
+Public/read routes include health/readiness, explicitly published paper
+metadata, the rights-cleared searchable projection, transient Ask/Finder,
+diagnostics with local paths redacted, approved explorer views, and the read-only
+evaluation dashboard. A public request cannot select technical/evaluation
+scope. Protected routes include:
 
 - RAG/recommendation histories and individual persisted records;
-- full extracted chunks and non-public review detail;
+- the labeled `NOT PUBLIC` publication preview, full extracted chunks, and
+  non-public review detail;
 - paper artifact generation and batch generation;
-- all admin review, correction, extraction decision, and review-event routes.
+- actor capabilities, all admin review/correction/publication/extraction
+  decisions, and paginated review-event routes.
 
 Bearer actors are configured through `TTLAB_AUTH_ACTORS_JSON` using only token
 SHA-256 digests and stable actor metadata. Production requires at least one
@@ -259,7 +307,11 @@ active admin actor, HTTPS public base URL, exact HTTPS CORS origins, explicit
 trusted hosts, and disabled demo bypass. No default secret is committed.
 
 Public request bodies are limited and generation endpoints are rate-limited.
-Downloader hosts and sizes are bounded. Security middleware supplies request
+The in-memory limiter supports only the declared one-API-worker topology;
+production startup rejects a larger configured worker count unless the
+application is replaced with an external distributed control. Downloader hosts
+and sizes are bounded, but DNS rebinding TOCTOU and hostile-parser isolation
+remain external controls; production API mode disables live PDF work. Security middleware supplies request
 IDs, safe headers, path/body-minimized logs, and a visible security-mode header.
 Token mode does not use cookies, so browser CSRF tokens are not the applicable
 control; exact CORS, HTTPS, token secrecy, and authorization are.
@@ -293,6 +345,13 @@ unsupported/partial warnings. Student profile and question content remains in
 component/request memory and is not written to browser storage or URLs. Admin
 bearer tokens remain in page/module memory and disappear on reload.
 
+Every public route treats zero approved records as a governed empty projection,
+not as permission to fall back to the technical corpus. Admin Review separately
+shows actor capabilities, paginated queues/events, extraction diagnostics, full
+recommendation fields, correction-versus-review actions, effective corrected
+content, and the visibly labeled publication preview. Successful mutations
+refresh shared catalogue state and clear stale selected-item data.
+
 The automated frontend checks cover route loading/history, responsible-AI
 labels, source citations, error/no-evaluation states, keyboard skip navigation,
 anonymous admin protection, axe regressions on representative routes, and
@@ -302,21 +361,27 @@ conformance across assistive technologies or browsers.
 ## Deployment and operational boundaries
 
 The repository supplies configuration and documentation, not a deployed
-production service. An operator must provide TLS/reverse proxy, process/service
-management, secrets, backups/restore tests, retention, monitoring/alerting,
+production service. SQLite connections enable foreign keys, a busy timeout, and
+WAL where supported, while the application declares one writer. An operator
+must provide TLS/reverse proxy, process/service management, secrets,
+backups/restore tests, retention, monitoring/alerting,
 institutional identity or token provisioning, incident handling, correction/
 appeal contacts, and SPA fallback routing. Production must not expose local
 API docs or the insecure demo bypass.
 
-Dedicated-server operation uses one API worker plus one separately supervised
-ingestion worker. The API's reviewer-protected `GET /api/admin/ingestion-sync`
-exposes scheduling/run state; the admin-only
-`POST /api/admin/ingestion-sync/request` queues work rather than running network
-or indexing operations inside an HTTP request. The worker persists its next run,
-last success/failure, recent runs, and manual request state in SQLite. Filesystem
-and network restrictions remain deployment responsibilities.
+Production operation is narrowed to one API worker with synchronization
+disabled. Corpus acquisition/parsing and complete rebuilds are explicit
+operator-run staging tasks with no public listener or bearer/provider secrets;
+the repository does not automate their promotion. The API's reviewer-protected
+diagnostics expose the disabled boundary rather than queuing unsafe work.
+Network egress isolation, DNS pinning/proxying, process/resource isolation, and
+any multi-worker rate limiter remain deployment responsibilities.
 
-## Current empirical design consequences
+## Historical-v1 empirical design consequences
+
+The measurements below are retained AI-assisted v1 evidence. They describe the
+frozen historical experiment, not the remediated current runtime or prospective
+v2 result package.
 
 - Complete index coverage is an integrity result, not a relevance score.
 - Keyword and dense retrieval both outperformed the tuned hybrid on held-out

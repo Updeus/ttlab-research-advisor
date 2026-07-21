@@ -9,23 +9,29 @@ approval, copyright ownership, permission to redistribute every third-party
 publication, institutional approval of public deployment, or endorsement by
 any publication author.
 
-The repository therefore distinguishes source availability from experiment
-auditability. Restricted source PDFs and full derived text remain local;
-redistributable code, schemas, judgments, configurations, aggregates, and
-hash-linked sanitized records can be bundled without exposing the papers.
+The repository therefore distinguishes technical corpus eligibility, anonymous
+publication eligibility, source availability, and experiment auditability.
+Anonymous API projections fail closed unless a separate publication decision
+and rights/source-access states explicitly permit them. The sanitized release
+uses a tracked-file allowlist and field/content scanning rather than the runtime
+publication ledger. Restricted source PDFs and full derived text remain local;
+code, schemas, judgments, configurations, aggregates, and hash-linked
+sanitized records can be bundled without exposing paper text, but authority to
+release even allowlisted bibliographic metadata remains an external RIGHTS-001
+decision.
 
 ## Availability classes
 
 | Class | Examples | Repository/release treatment |
 |---|---|---|
 | Source code | FastAPI/React code, tests, build/evaluation scripts, resolved Python and npm locks | Tracked; included in sanitized release |
-| Redistributable metadata | paper IDs/titles/authors/source URLs where present, schemas | Tracked; allowlisted after field scan |
+| Bibliographic metadata | paper IDs/titles/authors/source URLs where present, schemas | Tracked for audit; anonymous API delivery follows the runtime ledger, while the sanitizer can include allowlisted fields but does not establish release authority |
 | Evaluation evidence | silver labels, rationales, source locators, per-case rankings, metrics, prompts without full text | Tracked; included or field-sanitized |
 | Derived aggregate evidence | corpus counts, hashes, manifests, result summaries, figures | Tracked; included |
 | Restricted source payload | PDFs, substantial extracted/chunk text, runtime SQLite DB, vector indexes | Local/ignored; excluded |
 | Private operational content | questions/profile history, bearer tokens, private prompts containing full source passages, logs with content | Local/protected; excluded |
 | Reacquirable open sanity input | Europe PMC CC BY XML | Raw cache ignored; manifest retains ID, license evidence, source URL, and hash |
-| Compiled manuscripts | current 8-Letter-page IEEE paper and 74-A4-page thesis | Built separately under `build/`; omitted from sanitized code/data tarball by policy |
+| Compiled manuscripts | locally compliant IEEE paper and MSc thesis; exact final counts are recorded in the candidate readiness report | Built separately under `build/`; omitted from sanitized code/data tarball by policy |
 | Interface screenshots | local implementation evidence that can render source/answer text | Tracked with manuscript materials where applicable; all excluded from the sanitized tarball because binary content cannot be field-redacted |
 
 ## Committed evidence inventory
@@ -112,11 +118,14 @@ inspect reliably.
 
 ## Current release state
 
-Only a bundle built and verified from the exact final clean source commit is
-authoritative. The final closure therefore rebuilds from that commit, verifies
-the adjacent SHA-256 and every archive member, records the versioned path in the
-closure report, and creates the release tag only after the gate passes. Earlier
-local audit bundles are non-authoritative even when their scans pass. The
+Only a bundle built and verified from the recorded clean source-candidate
+commit/tree is authoritative. Final closure verifies the adjacent SHA-256 and
+every archive member and records that source identity separately from the later
+evidence commit that adds validated artifacts and closure records. The evidence
+commit is not relabeled as reproduced; any source, protocol, case, application,
+or manuscript change requires a new candidate run. A release tag is created
+only after the gate passes. Earlier local audit bundles are non-authoritative
+even when their scans pass. The
 builder prepares `v0.1.0-remediation`; it does not itself create a tag, publish
 the repository, or change visibility.
 

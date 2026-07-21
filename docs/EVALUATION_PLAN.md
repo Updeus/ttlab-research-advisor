@@ -19,23 +19,30 @@ interval procedures, exact results, and evidence paths are in
 - Treat `not_run` and unavailable providers as missing evidence, never zero or
   success.
 - Publish negative findings and residual limitations.
+- Keep immutable historical v1 results labeled post-selection/descriptive and
+  separate from the prospectively frozen v2 remediation protocol; never
+  relabel old evidence as prospective.
 
 ## RQ-to-evaluation map
 
 | RQ | Evaluation | Status | Decision supported |
 |---|---|---|---|
-| RQ1 corpus/traceability | eligibility/PDF identity audit, section silver review, manifest one-to-one coverage | Executed | 96 papers/719 chunks form the frozen eligible corpus; two mismatches and 36 no-text records remain excluded |
-| RQ2 retrieval | keyword, feature-hashing, dense, heuristic/tuned hybrid; dev tuning; test; ablation/sensitivity/statistics | Executed | keyword is the strongest held-out MRR baseline; tuned hybrid superiority is not established |
-| RQ3 RAG | atomic claim, citation-link, completeness, answer-point, unsupported knowledge, abstention review | Executed | source support is high but citation correctness, completeness of answers, and abstention need improvement |
-| RQ4 advisory/discovery | evidence-only vs full Finder, topic lexical-vs-dense, author audit, full stored-output review | Executed | advisory improvement is not demonstrated; publication evidence and AI-review boundaries must remain visible |
-| RQ5 engineering readiness | backend/frontend/security/accessibility tests, performance, reproduction, release scan, PDF preflight | Performance and manuscript builds executed; exact candidate accepted only by the recorded full gate | validated 17-stage local performance evidence and current 8-Letter-page paper/74-A4-page thesis are available; final clean-commit reproduction and release are separately verified before tag/push |
+| RQ1 corpus/traceability | eligibility/PDF identity audit, section silver review, manifest one-to-one coverage | Historical v1 executed | 96 papers/719 chunks form the historical frozen eligible corpus; two mismatches and 36 no-text records remain excluded |
+| RQ2 retrieval | keyword, feature-hashing, dense, heuristic/tuned hybrid; dev tuning; test; ablation/sensitivity/statistics | Historical v1 executed | keyword is the strongest historical held-out MRR baseline; tuned hybrid superiority is not established |
+| RQ3 RAG | atomic claim, citation-link, completeness, answer-point, unsupported knowledge, abstention review | Historical v1 executed | source support was high but citation correctness, completeness of answers, and abstention needed improvement |
+| RQ4 advisory/discovery | evidence-only vs full Finder, topic lexical-vs-dense, author audit, full stored-output review | Historical v1 executed | advisory improvement was not demonstrated; publication evidence and AI-review boundaries must remain visible |
+| RQ5 engineering readiness | backend/frontend/security/accessibility tests, performance, reproduction, release scan, PDF preflight | Historical performance and compliant manuscript builds exist; the source candidate is accepted only by its retained full gate | engineering and format evidence is revision-bound; reproduction/release must identify the executed source-candidate commit/tree separately from the later evidence commit and cannot establish effectiveness |
+| Remediation-v2 selective response/Finder/topic/OCR | source-first frozen cases, fixed technical-scope execution, two shuffled passes of one AI procedure, seeded cluster bootstrap, exact package validation | Prospective protocol; result status is authoritative only in `artifacts/peer_review_remediation/v2/manifest_v2.json` plus its validation attestation | measures held-out selective-response behaviour and deterministic contracts without claiming public-projection quality, entailment, human usefulness, or corpus OCR accuracy |
 
-## Executed datasets
+## Historical-v1 executed datasets
+
+All results in this section are retained AI-assisted v1 evidence. They do not
+describe the remediated current runtime or the prospective-v2 outcome.
 
 ### Section quality
 
 - 40 source-backed AI-reviewed chunks.
-- Current output: overall accuracy 0.900; labeled accuracy 0.8889; labeled
+- Historical-v1 output: overall accuracy 0.900; labeled accuracy 0.8889; labeled
   coverage 0.900; macro precision 0.8917; macro recall 0.9040.
 - `Unknown` remains an allowed label.
 - Evidence: `data/evaluation/section_quality_silver_v1.jsonl` and
@@ -133,6 +140,53 @@ interval procedures, exact results, and evidence paths are in
   Evidence: `artifacts/phase6/performance/performance_full_results.json` and
   `artifacts/phase6/performance/performance_validation.json`.
 
+### Prospective peer-review remediation v2
+
+`data/evaluation/peer_review_remediation_v2_protocol.json` freezes the protocol
+before system rankings or answers are consulted. Source-derived case files
+freeze Ask development/test IDs, Finder development/test/sensitivity IDs,
+positive-only topic labels, exact source locators, technical-corpus selection,
+the fixed keyword mode, deterministic providers, answerability threshold,
+Finder weights, OCR fixture/configuration, and 5,000-replicate cluster-bootstrap
+seed. The public projection is recorded but explicitly not evaluated.
+
+Execution is deliberately separated into three ordered gates:
+
+1. `prepare` validates the exact locked Python environment, clean committed
+   evaluation sources, database/source locators, generation-linked technical
+   corpus, artifact inventory, splits, and OCR runtime, then writes a freeze
+   receipt before retrieval/generation;
+2. `evaluate` refuses changed inputs, operates on a temporary SQLite copy,
+   rebuilds a temporary keyword index, permits one Ask/Finder/topic/OCR
+   evaluation invocation for that fresh freeze/workspace, writes
+   structural versionable outputs plus operator-local restricted raw outputs,
+   and produces deterministic manuscript macros; and
+3. the validator recomputes source identities, case membership, all aggregate
+   metrics/intervals/macros, the exact flat-file allowlist, and a completed-
+package attestation.
+
+The first accepted source candidate is the confirmatory execution. Later full
+runs are deterministic replications of the unchanged protocol and cases, with
+no retuning, relabeling, case changes, or result selection. The final report
+records that reproduced source-candidate identity separately from the later
+evidence commit; any source or protocol change requires a fresh run.
+
+The two fixed-seed shuffled reviews are the same AI-authored procedure applied
+twice. Agreement/disagreement describes repeatability only; it is not human
+inter-rater reliability or independent validation. Ask labels do not establish
+semantic entailment. Finder profiles are synthetic and cannot establish
+usefulness, novelty, feasibility, data access, or supervisor fit. Topic labels
+are non-exhaustive known positives, so only known-positive recall/coverage and
+unadjudicated prediction counts are permitted—not precision, F1, or exact
+match. The synthetic scanned fixture exercises the OCR code path but is not a
+TTLAB-corpus OCR accuracy study.
+
+The canonical versionable package is
+`artifacts/peer_review_remediation/v2/`; extractive answers, source snippets,
+generated recommendations, and full topic evidence remain under the ignored
+operator-controlled restricted directory and are excluded from release. A
+missing or partial package is `not_run`/invalid, never zero or success.
+
 ## Engineering verification plan
 
 From the final clean commit, the delivery gate runs:
@@ -147,8 +201,10 @@ npm --prefix frontend audit --audit-level=high
 PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 make reproduce
 make release
+make peer-review-v2-validate
 make paper
-make thesis
+make thesis-assets-frozen
+make thesis-compile
 ```
 
 It additionally runs every evaluation validator, dependency audits, manuscript
@@ -156,7 +212,12 @@ source validation, qpdf/pdfinfo/pdffonts/text checks, page rendering, and visual
 inspection. `make reproduce` and `make release` are fail-loud delivery gates;
 neither a prior performance run nor a partial command proves that the final
 clean commit passes them. Exact final commands and outcomes belong in
-`docs/FINAL_STATUS.md`.
+`docs/peer_review_readiness/FINAL_READINESS_REPORT.md`.
+
+Before the prospective run, manuscript layout may be checked only with
+`make paper-layout`, `make thesis-layout`, and
+`scripts/validate_manuscripts.py --allow-v2-not-run`. Those targets visibly
+emit `not run` v2 macros and are not final-readiness builds.
 
 ## Legacy scaffold files
 

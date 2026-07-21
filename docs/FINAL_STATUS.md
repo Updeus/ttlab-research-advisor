@@ -1,8 +1,16 @@
-# Final Remediation Status
+# Historical v1 Remediation Status
+
+> **Superseded checkpoint.** This file records the pre-peer-review-audit v1
+> evidence boundary and its then-current counts. It is retained because the
+> negative results and revision-specific measurements remain part of the
+> research record. It must not be used as current checkout status. Current
+> issue disposition, manuscript counts, commands, and candidate provenance are
+> reported in `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`.
 
 ## Closure boundary
 
-The July 2026 remediation is complete at the final-candidate level. The
+The earlier July 2026 remediation was reported complete at its v1 candidate
+boundary. The
 authoritative register contains 89 findings: 87 are `closed`, `RAG-01` is
 `mitigated by claim reduction`, and `PAPER-14` is `external-only`. No finding is
 silently omitted or described as closed by an invented experiment, metric,

@@ -8,10 +8,11 @@ the browser-to-API boundary. It describes the controls in this repository; it
 does not claim that a public production deployment has been completed or
 penetration-tested.
 
-The objective is to keep publication discovery publicly readable while
-preventing anonymous mutation, minimizing collection of student/profile data,
-preserving attributable review decisions, and preventing untrusted URLs or
-files from reaching local-network services or unbounded parser resources.
+The objective is to keep only explicitly publishable publication discovery
+publicly readable while preventing anonymous mutation, minimizing collection
+of student/profile data, preserving attributable review decisions, and
+preventing untrusted URLs or files from reaching local-network services or
+unbounded parser resources.
 
 ## Assets
 
@@ -28,7 +29,9 @@ files from reaching local-network services or unbounded parser resources.
 ## Trust boundaries and data flows
 
 1. **Public browser to FastAPI.** Public metadata/search/read routes and the
-   transient Ask/Finder computations cross an untrusted network boundary.
+   transient Ask/Finder computations cross an untrusted network boundary. The
+   anonymous projection requires explicit publication, rights, and
+   source-access eligibility independently of technical corpus eligibility.
 2. **Reviewer browser to FastAPI.** A bearer token authorizes protected history,
    generation, review, and admin routes. The application uses no authentication
    cookie or server-side browser session.
@@ -39,7 +42,9 @@ files from reaching local-network services or unbounded parser resources.
    scheme, host, port, resolved addresses, redirect destinations, response type,
    signature, and size are checked.
 5. **PDF parser/OCR boundary.** PDFs may be malformed, compressed, or expensive
-   to render. PyMuPDF and optional OCR run in the application environment.
+   to render. Production API mode disables acquisition/parsing. PyMuPDF and
+   optional OCR run only in the separately launched corpus-maintenance process,
+   which still requires external resource isolation for higher assurance.
 6. **Model-provider boundary.** Offline extraction and local Ollama stay within
    the configured host. An external provider is disabled by the default
    allowlist and must be an explicit operator/privacy decision.
@@ -53,11 +58,11 @@ files from reaching local-network services or unbounded parser resources.
 | Privilege escalation or false approval | Reviewer and admin roles are distinct. Reviewers cannot approve/reject. AI reviewers must use `ai_reviewed` and cannot grant `reviewed`/`approved`. Same-status requests still enforce actor rules, and every content/metadata correction is forced to `needs_review` before a separate decision. | A compromised human-admin token has application-level approval authority. |
 | Audit-event tampering through the application/database connection | Events contain actor ID/type/role, request ID, diff, previous hash, and event hash. SQLite triggers reject `UPDATE` and `DELETE`. | The SQLite file owner can remove triggers or rewrite the file; external append-only/WORM logging is not bundled. Legacy pre-control rows may be unattributed/unhashed. |
 | Student/profile over-collection | Public Ask and Finder calls pass `persist=False`; their history/item routes are protected. No public opt-in persistence endpoint exists. | Operator/proxy logs and legacy local-demo rows still require lifecycle controls. |
-| Review-workspace or uncleared-source disclosure | Public artifacts omit reviewer notes/IDs and unapproved corrections. Public chunk/artifact evidence is limited to papers whose corpus status is exactly `eligible`; authenticated reviewers can inspect non-eligible material. Local-model status omits the internal provider URL and raw connection errors. | Approved corrected content and eligible source snippets remain intentionally public and require corpus-rights review. |
+| Review-workspace or uncleared-source disclosure | Anonymous paper, search, topic, author, snippet, and artifact projections require technical eligibility plus explicit public publication, rights, and source-access states. Public artifacts omit reviewer notes/IDs and unapproved corrections; authenticated reviewers can inspect unresolved material. Local-model status omits the internal provider URL and raw connection errors. | Public-approved corrected content and bounded snippets remain intentionally visible; the human rights decision is external and per source. |
 | SSRF, redirect pivot, or local metadata-service access | PDF URLs require `http(s)`, no embedded credentials, ports 80/443, an explicit host allowlist, and only globally routable resolved IPs. Every redirect is validated before the next request. | DNS can theoretically change between validation and connection. A permitted public host can be compromised. Use egress filtering for a higher-assurance deployment. |
 | Oversized/mislabelled download or partial-file corruption | Downloads stream with a byte cap, validate Content-Type and `%PDF` signature, use a redirect cap, and atomically replace the destination only after validation. | A small PDF can still expand heavily during parsing. |
 | Path traversal | Derived PDF/extraction filenames are sanitized, collision-suffixed, and checked against the configured output directory. Admin API users cannot set local filesystem paths. | Command-line operators retain filesystem authority and must protect configuration/working directories. |
-| PDF bomb or parser exploit | Downloader/parser byte caps and a parser page cap reject obvious resource bombs; non-PDF suffixes are rejected. | PyMuPDF/OCR still parse in process. Public production should isolate ingestion in a low-privilege, resource-limited worker/container with no secrets. |
+| PDF bomb or parser exploit | Downloader/parser byte caps and a parser page cap reject obvious resource bombs; non-PDF suffixes are rejected. Production API and automated synchronization paths disable acquisition/parsing; explicit operator staging must carry no serving or provider credentials. | PyMuPDF/OCR still parse during operator-run staging. A public deployment must add low-privilege container/process isolation and CPU/memory/time/filesystem limits. |
 | Oversized or abusive API input | ASGI middleware enforces a one-MiB default cap, including chunked bodies. Pydantic fields/list sizes and result limits are bounded. Public Ask/Finder have a conservative single-process rate limiter. | The limiter is not shared across processes and is not a DDoS control; proxy/WAF limits remain necessary. |
 | SQL/command injection | SQLModel/SQLAlchemy parameterize application queries. User inputs are not interpolated into shell commands. | Future raw SQL or subprocess additions require renewed review. |
 | Stored/reflected XSS | The API returns JSON, not server-rendered HTML; API responses receive restrictive CSP/nosniff/frame headers. Frontend code must render text as text rather than unsanitized HTML. | CSP on API responses does not replace frontend encoding. Generated Markdown/HTML libraries require separate sanitization. |

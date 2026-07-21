@@ -15,26 +15,29 @@ Set secrets through the deployment secret manager, not a committed `.env`:
 ```bash
 export TTLAB_SECURITY_MODE=production
 export TTLAB_ALLOW_INSECURE_LOCAL_DEMO=false
+export TTLAB_SERVICE_ROLE=api
+export TTLAB_API_WORKER_COUNT=1
+export TTLAB_SYNC_EXECUTION_MODE=disabled
+export TTLAB_SYNC_ENABLED=false
+export TTLAB_PUBLIC_GENERATION_MAX_CONCURRENCY=2
+export TTLAB_PUBLIC_GENERATION_MAX_QUEUE=4
+export TTLAB_PUBLIC_GENERATION_QUEUE_TIMEOUT_SECONDS=2.0
 export TTLAB_PUBLIC_BASE_URL=https://advisor.example.edu
 export TTLAB_FRONTEND_URL=https://advisor.example.edu
 export TTLAB_TRUSTED_HOSTS='["advisor.example.edu"]'
 export TTLAB_CORS_ORIGINS='["https://advisor.example.edu"]'
 export TTLAB_AUTH_ACTORS_JSON='[{"token_sha256":"<digest>","actor_id":"<stable-id>","display_name":"<name>","role":"admin","reviewer_type":"human","active":true}]'
 export TTLAB_ALLOWED_LLM_PROVIDERS='["offline_extractive","ollama"]'
+export TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS='{"<approved-model-name>":"<64-hex-digest>"}'
 export TTLAB_ALLOWED_PDF_HOSTS='["lab.tt","temp.lab.tt"]'
 export TTLAB_DATABASE_URL=sqlite:////srv/ttlab/private/papers.db
-export TTLAB_SYNC_ENABLED=true
-export TTLAB_SYNC_CRON='0 2 * * *'
-export TTLAB_SYNC_TIMEZONE=America/La_Paz
-export TTLAB_SYNC_MAX_PAGES=3
-export TTLAB_SYNC_DOWNLOAD_PDFS=true
-export TTLAB_SYNC_DENSE_INDEX_POLICY=if_present
 ```
 
 Production startup validates the mode, actor/admin presence, HTTPS URL, exact
-CORS origins, and trusted host. The service should run as an unprivileged user
-with read access only to approved corpus files and write access only to its
-database/derived-data directories.
+CORS origins, trusted host, one-worker topology, and disabled ingestion/PDF
+boundary. The service should run as an unprivileged user with read access only
+to approved corpus files and write access only to its database/derived-data
+directories.
 
 Recommended API launch (behind a TLS proxy, without development reload):
 
@@ -44,66 +47,32 @@ PYTHONPATH=backend .venv/bin/uvicorn app.main:app \
   --no-access-log --proxy-headers --forwarded-allow-ips=127.0.0.1
 ```
 
-SQLite supports this bounded deployment best with one API worker. Multi-worker
-or multi-host deployment requires deliberate database/locking, distributed rate
-limit, shared index, and migration design rather than merely increasing the
-worker count.
+SQLite supports this bounded deployment best with one API worker. The public-
+generation concurrency and bounded-wait queue controls above are process-local
+backstops. Multi-worker or multi-host deployment requires deliberate database/
+locking, distributed request/concurrency controls, workload timeouts, shared
+index, and migration design rather than merely increasing the worker count.
 
 Serve the compiled frontend as static files. Configure SPA fallback to
 `index.html` only for frontend routes; never rewrite `/api/*`, `/health`, or
 `/ready` failures into HTML.
 
-## Scheduled ingestion worker
+## Offline corpus-maintenance boundary
 
-Deploy one project-owned ingestion worker as a separate service. Do not start a
-scheduler in every API process. The worker uses the same database and derived-
-data directories as the API, while a persisted lease prevents a scheduled and
-manual run from overlapping. It imports only new or changed catalogue records;
-an empty or failed scrape records a failed run and preserves the current
-corpus.
+The production API cannot acquire or parse PDFs. Automated synchronization is
+also unavailable in an offline worker: both scheduled and manual paths stop
+before discovery or mutation with
+`atomic_generation_promotion_not_implemented`. This is intentional because the
+repository has no atomic active-generation pointer spanning seed metadata,
+SQLite rows, extracted files, chunks, vector indexes, and topic indexes.
 
-Example `/etc/systemd/system/ttlab-ingestion.service`:
-
-```ini
-[Unit]
-Description=TTLAB publication synchronization worker
-After=network-online.target ttlab-api.service
-Wants=network-online.target
-
-[Service]
-Type=simple
-User=ttlab
-Group=ttlab
-WorkingDirectory=/srv/ttlab/app
-EnvironmentFile=/etc/ttlab/advisor.env
-Environment=PYTHONPATH=/srv/ttlab/app/backend
-ExecStart=/srv/ttlab/app/.venv/bin/python -m app.ingestion.sync_worker
-Restart=on-failure
-RestartSec=15
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ReadWritePaths=/srv/ttlab/private /srv/ttlab/app/data
-
-[Install]
-WantedBy=multi-user.target
-```
-
-After installing or changing the unit:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now ttlab-ingestion.service
-sudo systemctl status ttlab-ingestion.service
-sudo journalctl -u ttlab-ingestion.service -n 100 --no-pager
-```
-
-The schedule accepts a fixed daily minute/hour expression only. The worker also
-polls for protected manual requests created from the Admin overview, even when
-`TTLAB_SYNC_ENABLED=false`. `TTLAB_SYNC_DENSE_INDEX_POLICY=if_present` avoids
-unexpected model acquisition: it refreshes dense retrieval only if an
-authoritative dense index already exists. Model download remains an explicit
-operator action.
+To update a corpus, an operator must run discovery/import/extraction/indexing in
+an isolated copy with restricted network access and no HTTP listener, bearer
+tokens, or provider secrets. Validate the entire staged snapshot and checksum
+inventory, quiesce API writes, create a recoverable backup, and replace the
+active snapshot in a maintenance window. This deployment guide does not claim
+that the final switch is automated, online-safe, or multi-process atomic. The
+Admin surface reports the same disabled reason and cannot queue work.
 
 ## TLS proxy and network controls
 
@@ -114,11 +83,13 @@ operator action.
   maximum header sizes.
 - Allow inbound access only through the proxy. Bind Uvicorn to loopback/private
   service networking.
-- Restrict ingestion-worker egress to approved DNS/resolvers and PDF/model
+- Restrict staging-job egress to approved DNS/resolvers and PDF/model
   destinations. Block link-local, RFC1918, metadata-service, and control-plane
   ranges at the network layer as defense in depth.
 - Run PDF acquisition/parsing separately under CPU/memory/time/filesystem limits,
-  without bearer/provider secrets, for higher assurance.
+  without bearer/provider secrets. The application reports that DNS rebinding
+  TOCTOU and process isolation are not fully mitigated; enforce DNS pinning or an
+  egress proxy plus sandbox/resource controls externally.
 
 ## Health, readiness, and monitoring
 
@@ -130,8 +101,7 @@ operator action.
   local paths or internal exception details when a required gate fails.
 - Monitor liveness, readiness, 4xx/5xx rates, latency, disk/database size,
   backup age, index-manifest health, failed downloads/extractions, token failures,
-  ingestion-worker liveness, missed/failed synchronization runs, pending manual
-  requests, and review/audit anomalies.
+  denied synchronization attempts and review/audit anomalies.
 
 Application logs intentionally contain only method, route template, status,
 duration, request ID, actor ID, and actor role. Disable Uvicorn raw access logs
@@ -162,8 +132,15 @@ of a public backup/release. For private operational recovery:
 PYTHONPATH=backend .venv/bin/python -m compileall -q backend/app
 PYTHONPATH=backend .venv/bin/python -m pytest
 (cd frontend && npm ci && npm run build && npm audit --omit=dev)
-.venv/bin/python -m pip_audit -r backend/requirements.txt
+PYTHONPATH=backend .venv/bin/python -m app.reproducibility.environment \
+  --lock backend/requirements-lock.txt
+.venv/bin/python -m pip check
+.venv/bin/python -m pip_audit --skip-editable --vulnerability-service osv --strict
 ```
+
+The lock validator covers all 95 exact current pins, and `pip-audit` examines
+the resolved installed environment. Auditing only `backend/requirements.txt`
+would not establish either installed-state identity or lock conformance.
 
 Then verify configuration with production environment variables, start in an
 isolated staging environment, require anonymous 401 on admin/history/mutation

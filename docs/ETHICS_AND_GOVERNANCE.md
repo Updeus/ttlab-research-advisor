@@ -31,12 +31,22 @@ establish:
   or
 - a right to infer sensitive or current facts about an author.
 
-The sanitized release excludes local PDFs, the runtime database, interface
+The public API fails closed: technical corpus eligibility does not imply
+publication eligibility. Anonymous paper, search, topic, author, snippet, and
+generated-artifact projections require an explicit public publication decision
+plus source-access and rights states that permit the projection. Unresolved
+records remain available only to the protected technical/review workflow.
+
+The sanitized release applies a separate tracked-file allowlist, field
+sanitization, and payload scan. It excludes local PDFs, the runtime database, interface
 screenshots, private histories, secrets, model caches, and unlicensed full
 text. Catalogue metadata, source hashes, bounded evidence summaries, schemas,
 AI-reviewed silver labels, raw experimental rankings/judgments, and aggregate
 results are included only to the extent supported by the repository's release
-review.
+review. That technical sanitizer does not consult the runtime publication
+ledger and is not evidence of per-paper redistribution authority; release of
+allowlisted titles, authors, and source URLs remains subject to RIGHTS-001 and
+an accountable human rights decision.
 
 ## Responsible-AI boundaries
 
@@ -85,7 +95,10 @@ and a hash chain. This does not make the SQLite file tamper-proof against its
 owner. Any content or metadata correction returns the item to `needs_review`;
 approval requires a distinct subsequent, attributable human-admin decision.
 AI actors may record `ai_reviewed` but cannot represent human review or approve
-content.
+content. Corrections and review/publication decisions are separate operations:
+a correction invalidates the prior decision and requires a new attributable
+review. Publication decisions also remain independent of technical corpus
+eligibility and per-source rights/access decisions.
 
 ## Codex and LLM assistance disclosure
 

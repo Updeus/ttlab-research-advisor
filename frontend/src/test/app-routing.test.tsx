@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
 import { App } from "../App";
-import { installBaseFetchMock, json } from "./fixtures";
+import { installBaseFetchMock, json, paper } from "./fixtures";
 
 describe("route-based application shell", () => {
   beforeEach(() => {
@@ -37,31 +37,7 @@ describe("route-based application shell", () => {
         return json({ detail: "Catalogue unavailable" }, { status: 503 });
       }
       if (url.pathname === "/api/papers/paper-1") {
-        return json({
-          paper_id: "paper-1",
-          title: "Grounded Research Discovery",
-          authors: ["A. Researcher"],
-          year: 2025,
-          publication_date_raw: "2025",
-          venue: "Test venue",
-          abstract: null,
-          source_url: "https://lab.tt/paper-1",
-          post_url: "https://lab.tt/paper-1",
-          pdf_url: "https://lab.tt/paper-1.pdf",
-          topics: ["retrieval"],
-          ingestion_status: "imported",
-          pdf_text_status: "extracted",
-          corpus_eligibility_status: "eligible",
-          corpus_exclusion_reason: null,
-          publication_status: "published",
-          rights_status: "cleared",
-          public_access_level: "searchable",
-          page_count: 4,
-          chunk_count: 1,
-          review_status: "approved",
-          created_at: "2026-01-01T00:00:00Z",
-          updated_at: "2026-01-01T00:00:00Z",
-        });
+        return json(paper);
       }
       return baseImplementation!(input, init);
     });

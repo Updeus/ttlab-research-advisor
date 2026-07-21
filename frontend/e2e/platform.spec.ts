@@ -12,17 +12,24 @@ const paper = {
   source_url: "https://lab.tt/paper-1",
   post_url: "https://lab.tt/paper-1",
   pdf_url: "https://lab.tt/paper-1.pdf",
+  doi: null,
+  keywords: [],
   topics: ["retrieval"],
   ingestion_status: "imported",
   pdf_text_status: "extracted",
+  extraction_content_type: "digital_text",
+  ocr_status: "not_requested",
+  ocr_review_required: false,
   corpus_eligibility_status: "eligible",
   corpus_exclusion_reason: null,
   publication_status: "published",
   rights_status: "cleared",
   public_access_level: "searchable",
+  pdf_title_match_status: "matched",
   page_count: 4,
   chunk_count: 1,
-  review_status: "needs_review",
+  review_status: "approved",
+  reviewed_at: null,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
 };
@@ -43,23 +50,37 @@ const secondPaper = {
 
 const stats = {
   papers: 1, with_pdf_url: 1, downloaded_pdfs: 1, extracted_pdfs: 1, extraction_failed: 0,
-  no_text_pdfs: 0, missing_pdf: 0, total_chunks: 1, topic_count: 1, author_count: 1,
-  paper_topic_links: 1, author_topic_links: 1, papers_with_topics: 1, authors_with_topics: 1,
-  searchable_papers: 1, searchable_chunks: 1, keyword_indexed_chunks: 1, semantic_indexed_chunks: 1,
+  no_text_pdfs: 0, missing_pdf: 0, pdf_unavailability_reasons: {}, ocr_status_counts: { not_requested: 1 },
+  extraction_content_type_counts: { digital_text: 1 }, corpus_eligibility_status_counts: { eligible: 1 },
+  total_chunks: 1, topic_count: 1, author_count: 1,
+  paper_topic_links: 1, author_topic_links: null, papers_with_topics: 1, authors_with_topics: null,
+  searchable_papers: 1, searchable_chunks: 1, eligible_chunks: 1, raw_chunks: 1,
+  keyword_indexed_chunks: 1, semantic_indexed_chunks: null,
+  semantic_indexed_chunks_deprecated: "Use feature_hashing_indexed_chunks; feature hashing is lexical, not semantic.",
   feature_hashing_indexed_chunks: 1, dense_indexed_chunks: 0, feature_hashing_index_status: "ready",
-  dense_index_status: "missing", total_ask_answers: 0, grounded_answers: 0, partial_answers: 0,
-  unsupported_answers: 0, default_ask_provider: "offline_extractive", total_extension_recommendation_runs: 0,
-  total_extension_ideas: 0, grounded_extension_runs: 0, partial_extension_runs: 0, unsupported_extension_runs: 0,
-  total_paper_artifacts: 0, papers_with_artifacts: 0, podcast_scripts_generated: 0, artifacts_needing_review: 0,
-  admin_review_queue_count: 0, papers_needing_review: 1, answers_needing_review: 0, recommendations_needing_review: 0,
-  total_review_events: 0, latest_review_event_at: null, evaluation_files_present: {}, evaluation_last_run_at: null,
+  keyword_index_status: "ready", dense_index_status: "missing",
+  index_health: {
+    keyword: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z" },
+    feature_hashing: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z", classification: "lexical_feature_hashing" },
+    dense: { status: "missing", projection_status: "underlying_index_not_ready", indexed_chunks: 0, public_eligible_chunks: 1, underlying_index_status: "missing", underlying_representation_valid: false, underlying_error_count: 0, last_indexed_at: null },
+  },
+  default_ask_provider: "offline_extractive", evaluation_files_present: {}, evaluation_last_run_at: null,
   top_topics: [["retrieval", 1]], recent_papers: [paper], evaluation_status: "not_started",
+};
+
+const retrieverConfig = {
+  enable_query_expansion: true, enable_metadata_boost: true, enable_section_boost: true,
+  enable_evidence_adjustment: true, enable_topic_adjustment: true, enable_diversity_penalty: true,
+  keyword_weight: 0.42, vector_weight: 0.48, metadata_scale: 1, section_scale: 1,
+  evidence_scale: 1, topic_scale: 1, diversity_scale: 1, candidate_multiplier: 3,
 };
 
 const sourceResult = {
   rank: 1, paper_id: "paper-1", paper_title: paper.title, authors: paper.authors, year: 2025,
-  chunk_id: "paper-1-0001", section: "Methodology", page_start: 2, page_end: 2,
-  snippet: "A source-grounded passage about retrieval.", scores: { keyword: 0.8, semantic: 0.4, combined: 0.8 },
+  venue: paper.venue, topics: paper.topics, chunk_id: "paper-1-0001", chunk_index: 0,
+  section: "Methodology", page_start: 2, page_end: 2,
+  snippet: "A source-grounded passage about retrieval.",
+  scores: { keyword: 0.8, vector: 0, vector_provider: null, metadata: 0, section_boost: 0, evidence_quality: 0, topical_alignment: 0, diversity_penalty: 0, combined: 0.8 },
   source: { pdf_url: paper.pdf_url, post_url: paper.post_url },
 };
 
@@ -220,14 +241,31 @@ async function mockApi(page: Page) {
     else if (url.pathname === "/api/stats") body = stats;
     else if (url.pathname === "/api/search/diagnostics") body = {
       searchable_chunks: 1, searchable_papers: 1, chunks_indexed_for_keyword_search: 1,
-      chunks_indexed_for_feature_hashing: 1, chunks_indexed_for_dense_search: 0, chunks_indexed_for_semantic_search: 1,
-      embedding_provider: "feature_hashing", embedding_dimensions: 384, index_path: "redacted", index_status: "ready",
-      last_indexed_timestamp: "2026-01-01T00:00:00Z", keyword: { status: "ready" },
-      feature_hashing: { embedding_provider: "feature_hashing", embedding_dimensions: 384, indexed_chunks: 1, index_path: "redacted", status: "ready", index_status: "ready", last_indexed_at: "2026-01-01T00:00:00Z" },
-      dense: { embedding_provider: "dense", embedding_dimensions: 384, indexed_chunks: 0, index_path: "redacted", status: "missing", index_status: "missing", last_indexed_at: null },
+      total_chunks: 1, raw_chunks: null, eligible_chunks: 1,
+      chunks_indexed_for_feature_hashing: 1, chunks_indexed_for_dense_search: 0, chunks_indexed_for_semantic_search: null,
+      semantic_search_deprecation: "Feature hashing is a lexical baseline; use feature_hashing explicitly.",
+      embedding_provider: null, embedding_dimensions: null, index_status: "ready",
+      last_indexed_timestamp: null,
+      keyword: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z" },
+      feature_hashing: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z", classification: "lexical_feature_hashing" },
+      dense: { status: "missing", projection_status: "underlying_index_not_ready", indexed_chunks: 0, public_eligible_chunks: 1, underlying_index_status: "missing", underlying_representation_valid: false, underlying_error_count: 0, last_indexed_at: null },
     };
-    else if (url.pathname === "/api/search") body = { query: url.searchParams.get("q") ?? "", mode: url.searchParams.get("mode") ?? "keyword", result_count: 1, results: [sourceResult], warnings: [] };
-    else if (url.pathname === "/api/ask/diagnostics") body = { total_stored_answers: 0, grounded_answers: 0, partial_answers: 0, unsupported_answers: 0, default_provider: "offline_extractive", external_provider_available: false, searchable_chunks: 1, semantic_indexed_chunks: 1, last_answer_timestamp: null };
+    else if (url.pathname === "/api/search") {
+      const query = url.searchParams.get("q") ?? "";
+      body = { query, expanded_query: query, query_expansions: [], mode: "keyword", result_count: 1, results: [sourceResult], warnings: [], vector_provider: null, retrieval_strategy: "explicit_config_v1", retriever_config: retrieverConfig, retrieval_scope: "public" };
+    }
+    else if (url.pathname === "/api/ask/diagnostics") body = {
+      total_stored_answers: null, grounded_answers: null, partial_answers: null, unsupported_answers: null,
+      history_counts_visibility: "protected_reviewer_only", history_counts_observed: false,
+      default_provider: "offline_extractive", allowed_providers: ["offline_extractive"],
+      provider_matrix: { offline_extractive: { enabled: true, effective_model: "sentence-overlap-v1", identity_scope: "versioned_deterministic_algorithm" } },
+      external_provider_available: false, external_provider_availability_scope: "configured_pinned_model_not_runtime_reachability",
+      last_answer_timestamp: null, scope: "public", searchable_chunks: 1, raw_chunks: null,
+      semantic_indexed_chunks: null, semantic_index_deprecation: "Feature hashing is lexical, not semantic.",
+      keyword_index: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z" },
+      feature_hashing_index: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z", classification: "lexical_feature_hashing" },
+      dense_index: { status: "missing", projection_status: "underlying_index_not_ready", indexed_chunks: 0, public_eligible_chunks: 1, underlying_index_status: "missing", underlying_representation_valid: false, underlying_error_count: 0, last_indexed_at: null },
+    };
     else if (url.pathname === "/api/llms/local") body = { available: false, base_url: "", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: ["Ollama unavailable"] };
     else if (url.pathname === "/api/recommendations/extensions/diagnostics") body = { searchable_chunks: 1, searchable_papers: 1, total_recommendation_runs: 0, total_recommendations_generated: 0, grounded_runs: 0, partial_runs: 0, unsupported_runs: 0, default_provider: "offline_deterministic", last_recommendation_timestamp: null };
     else if (url.pathname === "/api/explorer/overview") body = { topic_count: 1, author_count: 0, paper_count: 2, linked_paper_topics: 1, linked_author_topics: 0, top_topics: [topicSummary()], top_authors: [], recent_papers: [paper, secondPaper], explorer_index_status: "ready" };
@@ -235,7 +273,7 @@ async function mockApi(page: Page) {
     else if (url.pathname === "/api/topics/retrieval") body = { ...topicSummary(), papers: [], authors: [], related_topics: [] };
     else if (url.pathname === "/api/authors") body = { total: 0, limit: 50, offset: 0, items: [] };
     else if (url.pathname === "/api/evaluation/dashboard") body = evaluationDashboard();
-    else if (url.pathname === "/api/papers/paper-1/extraction") body = { paper_id: "paper-1", pdf_url: paper.pdf_url, pdf_text_status: "extracted", page_count: 4, total_char_count: 800, total_word_count: 120, pages_with_text: 4, pages_without_text: 0, possible_scanned_pdf: false, warnings: [], chunk_count: 1 };
+    else if (url.pathname === "/api/papers/paper-1/extraction") body = { paper_id: "paper-1", pdf_url: paper.pdf_url, pdf_text_status: "extracted", pdf_unavailability_reason: null, page_count: 4, total_char_count: 800, total_word_count: 120, pages_with_text: 4, pages_without_text: 0, possible_scanned_pdf: false, extraction_content_type: "digital_text", ocr_status: "not_requested", ocr_provider: null, ocr_provider_version: null, ocr_pages_count: 0, ocr_review_required: false, pdf_title_match_status: "matched", pdf_title_match_score: 1, corpus_eligibility_status: "eligible", corpus_exclusion_reason: null, warnings: [], chunk_count: 1 };
     else if (url.pathname === "/api/papers/paper-1/chunks") body = [{ chunk_id: "paper-1-0001", paper_id: "paper-1", chunk_index: 0, page_start: 2, page_end: 2, section: "Methodology", snippet: "A source-grounded passage.", text: "A source-grounded passage.", char_count: 26, word_count: 4, token_count_estimate: 6, source_hash: "fixture" }];
     else if (url.pathname === "/api/papers/paper-1/artifacts" || url.pathname === "/api/papers/paper-1/related") body = [];
     else return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ detail: `Unhandled ${url.pathname}` }) });

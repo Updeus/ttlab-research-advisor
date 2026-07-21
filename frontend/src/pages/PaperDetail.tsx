@@ -106,9 +106,7 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
       ? "No direct PDF URL was discovered for this publication."
       : extraction?.possible_scanned_pdf
         ? "This PDF may be scanned or image-heavy; extracted text is limited."
-        : extraction?.extraction_error
-          ? "Text extraction failed for this PDF."
-          : null;
+        : null;
 
   const bundleArtifact = artifacts.find((artifact) => artifact.artifact_type === "paper_intelligence_bundle");
   const podcastArtifact = artifacts.find((artifact) => artifact.artifact_type === "podcast_script");
@@ -203,11 +201,11 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
           </article>
           <article className="metric">
             <span className="metric__label">Words</span>
-            <strong>{extraction?.total_word_count ?? paper.total_word_count ?? "Not available"}</strong>
+            <strong>{extraction?.total_word_count ?? "Not available"}</strong>
           </article>
           <article className="metric">
             <span className="metric__label">Pages with text</span>
-            <strong>{extraction?.pages_with_text ?? paper.pages_with_text ?? "Not available"}</strong>
+            <strong>{extraction?.pages_with_text ?? "Not available"}</strong>
           </article>
           <article className="metric">
             <span className="metric__label">Chunks</span>

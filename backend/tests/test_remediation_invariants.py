@@ -23,6 +23,7 @@ from app.api.admin import (
     save_recommendation_correction,
 )
 from app.api.ask import AskRequest
+from app.api.index_health import _project_health
 from app.config import Settings
 from app.db import (
     assert_sqlite_json_integrity,
@@ -71,6 +72,30 @@ HUMAN_ADMIN = AuthenticatedActor(
 )
 EXTRACTION_GENERATION = "a" * 64
 CHUNK_GENERATION = "b" * 64
+
+
+def test_public_index_health_exposes_freshness_without_local_paths_or_technical_counts() -> None:
+    projected = _project_health(
+        {
+            "status": "ready",
+            "last_indexed_at": "2026-07-20T12:00:00Z",
+            "index_path": "/private/index.json",
+            "indexed_chunks": 719,
+            "errors": [],
+        },
+        3,
+    )
+
+    assert projected == {
+        "status": "ready",
+        "projection_status": "public_projection_ready",
+        "indexed_chunks": 3,
+        "public_eligible_chunks": 3,
+        "underlying_index_status": "ready",
+        "underlying_representation_valid": True,
+        "underlying_error_count": 0,
+        "last_indexed_at": "2026-07-20T12:00:00Z",
+    }
 
 
 def memory_session() -> tuple[Session, object]:
@@ -313,6 +338,40 @@ def test_answerability_claim_support_and_unused_citations(monkeypatch) -> None:
     assert response["support_status"] == "support_unverified"
     assert response["claim_support"][0]["entailment_verified"] is False
     assert [citation["chunk_id"] for citation in response["citations"]] == ["c1"]
+    assert response["retrieval_metadata"] == {
+        "expanded_query": "retrieval augmented generation",
+        "query_expansions": [],
+        "retrieval_strategy": "test",
+        "retrieval_scope": "public",
+    }
+
+
+def test_abstained_answer_retains_the_same_public_retrieval_metadata_contract(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.intelligence.rag_answerer.retrieve",
+        lambda *_args, **_kwargs: {
+            "results": [],
+            "warnings": [],
+            "expanded_query": "volcanic mineral policy",
+            "query_expansions": [],
+            "retrieval_strategy": "explicit_config_v1",
+            "retriever_config": {},
+            "vector_provider": None,
+        },
+    )
+    session, _engine = memory_session()
+    try:
+        response = ask_question(session, "volcanic mineral policy", persist=False)
+    finally:
+        session.close()
+
+    assert response["grounding_status"] == "unsupported"
+    assert response["retrieval_metadata"] == {
+        "expanded_query": "volcanic mineral policy",
+        "query_expansions": [],
+        "retrieval_strategy": "explicit_config_v1",
+        "retrieval_scope": "public",
+    }
 
 
 def test_ollama_requires_digest_and_records_immutable_provenance(monkeypatch) -> None:

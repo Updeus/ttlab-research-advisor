@@ -204,8 +204,8 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
           <span>{diagnostics.searchable_chunks} searchable chunks</span>
           <span>{diagnostics.total_stored_answers === null ? "Stored answer history protected" : `${diagnostics.total_stored_answers} stored answers`}</span>
           <span>{diagnostics.default_provider.replaceAll("_", " ")}</span>
-          {diagnostics.feature_hashing_index ? <span>Feature hashing: {diagnostics.feature_hashing_index.status} · {formatTimestamp(diagnostics.feature_hashing_index.last_indexed_at)}</span> : null}
-          {diagnostics.dense_index ? <span>Dense semantic: {diagnostics.dense_index.status}</span> : null}
+          <span>Feature hashing: {diagnostics.feature_hashing_index.projection_status} · {formatTimestamp(diagnostics.feature_hashing_index.last_indexed_at)}</span>
+          <span>Dense semantic: {diagnostics.dense_index.projection_status}</span>
           {llmStatus ? <span>{llmGenerationAvailable ? `${installedModels.length} digest-verified local Ollama models` : "Ollama generation unavailable"}</span> : null}
         </div>
       ) : null}

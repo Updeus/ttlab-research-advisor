@@ -330,7 +330,7 @@ export function fetchReviewEvents(params: { item_type?: string; item_id?: string
 export function patchAdminPaper(
   paperId: string,
   body: Partial<
-    Pick<
+    Omit<Pick<
       Paper,
       | "title"
       | "authors"
@@ -342,11 +342,10 @@ export function patchAdminPaper(
       | "pdf_url"
       | "abstract"
       | "review_status"
-      | "reviewer_notes"
-    >
+    >, "review_status"> & { review_status: ReviewStatus; reviewer_notes: string | null }
   >,
-): Promise<{ paper: Paper; review_event: ReviewEvent }> {
-  return patchJson<{ paper: Paper; review_event: ReviewEvent }>(`/api/admin/papers/${paperId}`, body);
+): Promise<{ paper: Record<string, unknown>; review_event: ReviewEvent }> {
+  return patchJson<{ paper: Record<string, unknown>; review_event: ReviewEvent }>(`/api/admin/papers/${paperId}`, body);
 }
 
 export function reviewArtifact(

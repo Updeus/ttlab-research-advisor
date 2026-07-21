@@ -79,6 +79,12 @@ The ambiguous legacy API value `semantic` is rejected. Callers must select
 diagnostics must show eligible/searchable counts, per-index status, and the
 latest available snapshot timestamp. Missing, invalid, partial, or stale
 indexes are states, not zero-valued success.
+Anonymous surfaces display each index's `projection_status`, not the underlying
+technical-index `status`: `public_projection_empty` remains unavailable even
+when the authoritative technical index is healthy. The underlying state is
+retained only as diagnostic context. Public statistics and Ask diagnostics do
+not expose stored answer, recommendation, artifact, review-queue, or reviewer
+activity counts.
 
 ## Evidence and generated-content contract
 

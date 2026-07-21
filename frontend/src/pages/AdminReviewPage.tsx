@@ -1954,7 +1954,7 @@ function paperFormFrom(paper: Paper | undefined, details: Record<string, unknown
     pdf_url: getString(details, "pdf_url") || paper?.pdf_url || "",
     abstract: getString(details, "abstract") || paper?.abstract || "",
     review_status: getString(details, "review_status") || paper?.review_status || "needs_review",
-    reviewer_notes: getString(details, "reviewer_notes") || paper?.reviewer_notes || "",
+    reviewer_notes: getString(details, "reviewer_notes"),
   };
 }
 

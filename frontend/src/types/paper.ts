@@ -11,32 +11,24 @@ export type Paper = {
   source_url: string | null;
   post_url: string | null;
   pdf_url: string | null;
-  local_pdf_path?: string | null;
+  doi: string | null;
+  keywords: string[];
   topics: string[];
   ingestion_status: string;
   pdf_text_status: string;
-  extraction_content_type?: string;
-  ocr_status?: string;
-  ocr_review_required?: boolean;
-  corpus_eligibility_status?: string;
-  corpus_exclusion_reason?: string | null;
-  publication_status?: string;
-  rights_status?: string;
-  public_access_level?: string;
-  pdf_title_match_status?: string;
-  extracted_json_path?: string | null;
-  extracted_text_path?: string | null;
+  extraction_content_type: string;
+  ocr_status: string;
+  ocr_review_required: boolean;
+  corpus_eligibility_status: string;
+  corpus_exclusion_reason: string | null;
+  publication_status: "published";
+  rights_status: "cleared";
+  public_access_level: "metadata_only" | "searchable";
+  pdf_title_match_status: string;
   page_count: number | null;
-  total_char_count?: number;
-  total_word_count?: number;
-  pages_with_text?: number;
-  pages_without_text?: number;
-  possible_scanned_pdf?: boolean;
   chunk_count: number;
-  review_status: ReviewStatus | string;
-  reviewer_notes?: string | null;
+  review_status: "approved";
   reviewed_at: string | null;
-  reviewed_by?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -49,41 +41,35 @@ export type Stats = {
   extraction_failed: number;
   no_text_pdfs: number;
   missing_pdf: number;
+  pdf_unavailability_reasons: Record<string, number>;
+  ocr_status_counts: Record<string, number>;
+  extraction_content_type_counts: Record<string, number>;
+  corpus_eligibility_status_counts: Record<string, number>;
   total_chunks: number;
   topic_count: number;
   author_count: number;
   paper_topic_links: number;
-  author_topic_links: number | null;
+  author_topic_links: null;
   papers_with_topics: number;
-  authors_with_topics: number | null;
+  authors_with_topics: null;
   searchable_papers: number;
   searchable_chunks: number;
+  eligible_chunks: number;
+  raw_chunks: number;
   keyword_indexed_chunks: number;
-  semantic_indexed_chunks: number | null;
+  semantic_indexed_chunks: null;
+  semantic_indexed_chunks_deprecated: string;
   feature_hashing_indexed_chunks: number;
   dense_indexed_chunks: number;
+  keyword_index_status: string;
   feature_hashing_index_status: string;
   dense_index_status: string;
-  total_ask_answers?: number;
-  grounded_answers?: number;
-  partial_answers?: number;
-  unsupported_answers?: number;
+  index_health: {
+    keyword: IndexDiagnostics;
+    feature_hashing: IndexDiagnostics;
+    dense: IndexDiagnostics;
+  };
   default_ask_provider: string;
-  total_extension_recommendation_runs?: number;
-  total_extension_ideas?: number;
-  grounded_extension_runs?: number;
-  partial_extension_runs?: number;
-  unsupported_extension_runs?: number;
-  total_paper_artifacts?: number;
-  papers_with_artifacts?: number;
-  podcast_scripts_generated?: number;
-  artifacts_needing_review?: number;
-  admin_review_queue_count?: number;
-  papers_needing_review?: number;
-  answers_needing_review?: number;
-  recommendations_needing_review?: number;
-  total_review_events?: number;
-  latest_review_event_at?: string | null;
   evaluation_files_present: Record<string, boolean>;
   evaluation_last_run_at: string | null;
   top_topics: [string, number][];
@@ -94,18 +80,25 @@ export type Stats = {
 export type ExtractionDiagnostics = {
   paper_id: string;
   pdf_url: string | null;
-  local_pdf_path?: string | null;
   pdf_text_status: string;
+  pdf_unavailability_reason: string | null;
   page_count: number | null;
   total_char_count: number;
   total_word_count: number;
   pages_with_text: number;
   pages_without_text: number;
   possible_scanned_pdf: boolean;
+  extraction_content_type: string;
+  ocr_status: string;
+  ocr_provider: string | null;
+  ocr_provider_version: string | null;
+  ocr_pages_count: number;
+  ocr_review_required: boolean;
+  pdf_title_match_status: string;
+  pdf_title_match_score: number | null;
+  corpus_eligibility_status: string;
+  corpus_exclusion_reason: string | null;
   warnings: string[];
-  extraction_error?: string | null;
-  extracted_json_path?: string | null;
-  extracted_text_path?: string | null;
   chunk_count: number;
 };
 
@@ -126,23 +119,33 @@ export type PaperChunk = {
 
 export type SearchMode = "keyword" | "feature_hashing" | "dense" | "hybrid";
 
+export type RetrieverConfig = {
+  enable_query_expansion: boolean;
+  enable_metadata_boost: boolean;
+  enable_section_boost: boolean;
+  enable_evidence_adjustment: boolean;
+  enable_topic_adjustment: boolean;
+  enable_diversity_penalty: boolean;
+  keyword_weight: number;
+  vector_weight: number;
+  metadata_scale: number;
+  section_scale: number;
+  evidence_scale: number;
+  topic_scale: number;
+  diversity_scale: number;
+  candidate_multiplier: number;
+};
+
 export type IndexDiagnostics = {
-  embedding_provider: string;
-  embedding_dimensions: number | null;
-  indexed_chunks: number;
-  eligible_chunks?: number;
-  coverage_ratio?: number;
-  index_path: string;
-  manifest_path?: string;
   status: string;
-  projection_status?: string;
-  underlying_index_status?: string;
-  underlying_representation_valid?: boolean;
-  index_status: string;
-  completeness_status?: string | null;
+  indexed_chunks: number;
+  public_eligible_chunks: number;
+  projection_status: string;
+  underlying_index_status: string;
+  underlying_representation_valid: boolean;
+  underlying_error_count: number;
   last_indexed_at: string | null;
-  corpus_snapshot_id?: string | null;
-  errors?: string[];
+  classification?: "lexical_feature_hashing";
 };
 
 export type SearchResult = {
@@ -151,54 +154,61 @@ export type SearchResult = {
   paper_title: string;
   authors: string[];
   year: number | null;
+  venue: string | null;
+  topics: string[];
   chunk_id: string;
+  chunk_index: number | null;
   section: string | null;
   page_start: number | null;
   page_end: number | null;
   snippet: string;
   scores: {
     keyword: number;
-    semantic: number;
+    vector: number;
+    vector_provider: string | null;
+    metadata: number;
+    section_boost: number;
+    evidence_quality: number;
+    topical_alignment: number;
+    diversity_penalty: number;
     combined: number;
   };
   source: {
     pdf_url: string | null;
     post_url: string | null;
-    local_pdf_path: string | null;
   };
 };
 
 export type SearchResponse = {
   query: string;
+  expanded_query: string;
+  query_expansions: string[];
   mode: SearchMode;
   result_count: number;
   results: SearchResult[];
   warnings: string[];
+  vector_provider: string | null;
+  retrieval_strategy: string;
+  retriever_config: RetrieverConfig;
+  retrieval_scope: "public";
 };
 
 export type SearchDiagnostics = {
-  total_chunks?: number;
-  raw_chunks?: number;
-  eligible_chunks?: number;
+  total_chunks: number;
+  raw_chunks: null;
+  eligible_chunks: number;
   searchable_chunks: number;
   searchable_papers: number;
   chunks_indexed_for_keyword_search: number;
   chunks_indexed_for_semantic_search: null;
   chunks_indexed_for_feature_hashing: number;
   chunks_indexed_for_dense_search: number;
-  embedding_provider: string;
-  embedding_dimensions: number;
-  index_path: string;
+  semantic_search_deprecation: string;
+  embedding_provider: null;
+  embedding_dimensions: null;
   index_status: string;
-  last_indexed_timestamp: string | null;
-  keyword?: {
-    status?: string;
-    keyword_indexed_chunks?: number;
-    eligible_chunks?: number;
-    last_indexed_at?: string | null;
-    corpus_snapshot_id?: string | null;
-    errors?: string[];
-  };
+  last_indexed_timestamp: null;
+  keyword: IndexDiagnostics;
   feature_hashing: IndexDiagnostics;
   dense: IndexDiagnostics;
 };
@@ -240,9 +250,19 @@ export type AskRetrievedChunk = {
   section: string | null;
   snippet: string;
   scores: {
-    keyword?: number;
-    semantic?: number;
-    combined?: number;
+    keyword: number;
+    vector: number;
+    vector_provider: string | null;
+    metadata: number;
+    section_boost: number;
+    evidence_quality: number;
+    topical_alignment: number;
+    diversity_penalty: number;
+    combined: number;
+  };
+  source: {
+    pdf_url: string | null;
+    post_url: string | null;
   };
 };
 
@@ -250,40 +270,63 @@ export type AskResponse = {
   answer_id: string;
   question: string;
   answer: string;
-  grounding_status: "grounded" | "partial" | "unsupported";
+  grounding_status: "partial" | "unsupported";
+  support_status: "support_unverified" | "unsupported";
   provider: string;
   model: string;
   retrieval_mode: SearchMode;
   top_k: number;
-  paper_id?: string | null;
+  paper_id: string | null;
   citations: AskCitation[];
   retrieved_chunks: AskRetrievedChunk[];
-  retrieval_metadata?: {
-    expanded_query?: string | null;
-    query_expansions?: string[];
-    retrieval_strategy?: string;
+  retrieval_metadata: {
+    expanded_query: string | null;
+    query_expansions: string[];
+    retrieval_strategy: string;
+    retrieval_scope: "public";
   };
-  generation_metadata?: Record<string, unknown>;
+  generation_metadata: Record<string, unknown>;
+  answerability: {
+    answerable: boolean;
+    reason: string;
+    query_terms: string[];
+    matched_query_terms: string[];
+    max_query_coverage: number;
+    minimum_query_coverage?: number;
+    relevant_chunk_ids: string[];
+    warnings: string[];
+  };
+  claim_support: Array<{
+    claim: string;
+    classification: "support_unverified" | "unsupported";
+    cited_chunk_ids: string[];
+    supporting_chunk_ids: string[];
+    citation_support: Array<{
+      chunk_id: string;
+      lexical_overlap: number;
+      classification: "support_unverified" | "unsupported";
+      entailment_verified: false;
+    }>;
+    lexical_overlap: number;
+    entailment_verified: false;
+  }>;
+  runtime_provenance: Record<string, unknown>;
+  source_text_delivery: "bounded_snippets_only";
   warnings: string[];
   unsupported_claims: string[];
-  review_status?: ReviewStatus;
-  reviewer_notes?: string | null;
-  reviewed_at?: string | null;
-  reviewed_by?: string | null;
-  citation_correct?: boolean | null;
-  answer_faithfulness_score?: number | null;
-  usefulness_score?: number | null;
   created_at: string;
 };
 
 export type AskDiagnostics = {
-  total_stored_answers: number | null;
-  grounded_answers: number | null;
-  partial_answers: number | null;
-  unsupported_answers: number | null;
+  total_stored_answers: null;
+  grounded_answers: null;
+  partial_answers: null;
+  unsupported_answers: null;
   default_provider: string;
-  allowed_providers?: string[];
-  provider_matrix?: Record<string, {
+  history_counts_visibility: string;
+  history_counts_observed: false;
+  allowed_providers: string[];
+  provider_matrix: Record<string, {
     enabled: boolean;
     effective_model?: string;
     configured_model?: string;
@@ -292,12 +335,16 @@ export type AskDiagnostics = {
     identity_scope: string;
   }>;
   external_provider_available: boolean;
-  external_provider_availability_scope?: string;
+  external_provider_availability_scope: string;
+  scope: "public";
   searchable_chunks: number;
-  semantic_indexed_chunks: number;
-  last_answer_timestamp: string | null;
-  feature_hashing_index?: IndexDiagnostics;
-  dense_index?: IndexDiagnostics;
+  raw_chunks: null;
+  semantic_indexed_chunks: null;
+  semantic_index_deprecation: string;
+  last_answer_timestamp: null;
+  keyword_index: IndexDiagnostics;
+  feature_hashing_index: IndexDiagnostics;
+  dense_index: IndexDiagnostics;
 };
 
 export type LocalLlmBenchmarkSummary = {

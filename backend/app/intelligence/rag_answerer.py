@@ -48,6 +48,12 @@ def ask_question(
     retrieved_chunks = [format_retrieved_chunk(result) for result in retrieval["results"]]
     warnings = list(retrieval.get("warnings", []))
     answerability = assess_answerability(question, retrieval["results"], paper_id=paper_id)
+    response_retrieval_metadata = {
+        "expanded_query": retrieval.get("expanded_query"),
+        "query_expansions": retrieval.get("query_expansions", []),
+        "retrieval_strategy": retrieval.get("retrieval_strategy", "explicit_config_v1"),
+        "retrieval_scope": retrieval_scope,
+    }
     if not retrieved_chunks or not answerability["answerable"]:
         answer = build_unsupported_answer(
             question,
@@ -59,6 +65,7 @@ def ask_question(
             paper_id=paper_id,
             retrieved_chunks=retrieved_chunks,
             answerability=answerability,
+            retrieval_metadata=response_retrieval_metadata,
             provider_settings=provider_settings,
         )
         answer["runtime_provenance"] = build_runtime_provenance(
@@ -78,9 +85,8 @@ def ask_question(
             retrieval_mode=mode,
             source_chunk_ids=[chunk["chunk_id"] for chunk in retrieved_chunks],
             generation_metadata=answer.get("generation_metadata", {}),
-            retrieval_metadata={
-                "retrieval_scope": retrieval_scope,
-                "retrieval_strategy": retrieval.get("retrieval_strategy"),
+            retrieval_metadata=response_retrieval_metadata
+            | {
                 "retriever_config": retrieval.get("retriever_config", {}),
                 "vector_provider": retrieval.get("vector_provider"),
             },
@@ -116,12 +122,7 @@ def ask_question(
         "paper_id": paper_id,
         "citations": citations,
         "retrieved_chunks": retrieved_chunks,
-        "retrieval_metadata": {
-            "expanded_query": retrieval.get("expanded_query"),
-            "query_expansions": retrieval.get("query_expansions", []),
-            "retrieval_strategy": retrieval.get("retrieval_strategy", "standard"),
-            "retrieval_scope": retrieval_scope,
-        },
+        "retrieval_metadata": response_retrieval_metadata,
         "generation_metadata": draft.prompt_metadata,
         "answerability": answerability,
         "claim_support": verification["claim_support"],
@@ -169,6 +170,7 @@ def build_unsupported_answer(
     paper_id: str | None = None,
     retrieved_chunks: list[dict[str, Any]] | None = None,
     answerability: dict[str, Any] | None = None,
+    retrieval_metadata: dict[str, Any] | None = None,
     provider_settings: Settings | None = None,
 ) -> dict[str, Any]:
     created_at = utc_now()
@@ -208,7 +210,13 @@ def build_unsupported_answer(
         "paper_id": paper_id,
         "citations": [],
         "retrieved_chunks": retrieved_chunks or [],
-        "retrieval_metadata": {"expanded_query": None, "query_expansions": [], "retrieval_strategy": "standard"},
+        "retrieval_metadata": retrieval_metadata
+        or {
+            "expanded_query": None,
+            "query_expansions": [],
+            "retrieval_strategy": "explicit_config_v1",
+            "retrieval_scope": "public",
+        },
         "generation_metadata": {"provider_resolution": resolution},
         "answerability": resolved_answerability,
         "claim_support": [],

@@ -5,7 +5,25 @@ import { MemoryRouter } from "react-router-dom";
 
 import { App } from "../App";
 import { setReviewerToken } from "../api/client";
+import type { AskResponse, SearchResponse } from "../types/paper";
 import { installBaseFetchMock, json, paper } from "./fixtures";
+
+const retrieverConfig = {
+  enable_query_expansion: true,
+  enable_metadata_boost: true,
+  enable_section_boost: true,
+  enable_evidence_adjustment: true,
+  enable_topic_adjustment: true,
+  enable_diversity_penalty: true,
+  keyword_weight: 0.42,
+  vector_weight: 0.48,
+  metadata_scale: 1,
+  section_scale: 1,
+  evidence_scale: 1,
+  topic_scale: 1,
+  diversity_scale: 1,
+  candidate_multiplier: 3,
+};
 
 describe("automated accessibility smoke", () => {
   beforeEach(() => installBaseFetchMock());
@@ -36,7 +54,7 @@ describe("automated accessibility smoke", () => {
           answer_id: "a11y-answer",
           question: "Which paper discusses retrieval?",
           answer: "The cited paper discusses retrieval.",
-          grounding_status: "grounded",
+          grounding_status: "partial",
           support_status: "support_unverified",
           provider: "offline_extractive",
           model: "sentence-overlap-v1",
@@ -67,16 +85,29 @@ describe("automated accessibility smoke", () => {
             page_end: 2,
             section: "Methodology",
             snippet: "A source-grounded passage.",
-            scores: { keyword: 0.8, vector: 0, combined: 0.8 },
+            scores: {
+              keyword: 0.8,
+              vector: 0,
+              vector_provider: null,
+              metadata: 0,
+              section_boost: 0,
+              evidence_quality: 0,
+              topical_alignment: 0,
+              diversity_penalty: 0,
+              combined: 0.8,
+            },
+            source: { pdf_url: paper.pdf_url, post_url: paper.source_url },
           }],
-          retrieval_metadata: { retrieval_strategy: "standard" },
+          retrieval_metadata: { expanded_query: "Which paper discusses retrieval?", query_expansions: [], retrieval_strategy: "explicit_config_v1", retrieval_scope: "public" },
           generation_metadata: {},
-          answerability: { answerable: true, reason: "source_terms_matched" },
-          claim_support: [],
+          answerability: { answerable: true, reason: "source_term_coverage", query_terms: ["retrieval"], matched_query_terms: ["retrieval"], max_query_coverage: 1, minimum_query_coverage: 0.34, relevant_chunk_ids: ["paper-1-0001"], warnings: [] },
+          claim_support: [{ claim: "The cited paper discusses retrieval [paper-1-0001].", classification: "support_unverified", cited_chunk_ids: ["paper-1-0001"], supporting_chunk_ids: ["paper-1-0001"], citation_support: [{ chunk_id: "paper-1-0001", lexical_overlap: 0.5, classification: "support_unverified", entailment_verified: false }], lexical_overlap: 0.5, entailment_verified: false }],
+          runtime_provenance: { schema_version: 1 },
+          source_text_delivery: "bounded_snippets_only",
           warnings: [],
           unsupported_claims: [],
           created_at: "2026-07-20T12:00:00Z",
-        });
+        } satisfies AskResponse);
       }
       return undefined;
     });
@@ -106,16 +137,35 @@ describe("automated accessibility smoke", () => {
             paper_title: paper.title,
             authors: paper.authors,
             year: paper.year,
+            venue: paper.venue,
+            topics: paper.topics,
             chunk_id: "paper-1-0001",
+            chunk_index: 0,
             section: "Methodology",
             page_start: 2,
             page_end: 2,
             snippet: "A source-grounded passage.",
-            scores: { keyword: 0.8, vector: 0, combined: 0.8 },
+            scores: {
+              keyword: 0.8,
+              vector: 0,
+              vector_provider: null,
+              metadata: 0,
+              section_boost: 0,
+              evidence_quality: 0,
+              topical_alignment: 0,
+              diversity_penalty: 0,
+              combined: 0.8,
+            },
             source: { pdf_url: paper.pdf_url, post_url: paper.source_url },
           }],
           warnings: [],
-        });
+          expanded_query: "retrieval",
+          query_expansions: [],
+          vector_provider: null,
+          retrieval_strategy: "explicit_config_v1",
+          retriever_config: retrieverConfig,
+          retrieval_scope: "public",
+        } satisfies SearchResponse);
       }
       return undefined;
     });

@@ -60,4 +60,5 @@ def _project_health(health: dict[str, Any], public_count: int) -> dict[str, Any]
         "underlying_index_status": underlying_status,
         "underlying_representation_valid": underlying_valid,
         "underlying_error_count": len(health.get("errors") or []),
+        "last_indexed_at": health.get("last_indexed_at"),
     }

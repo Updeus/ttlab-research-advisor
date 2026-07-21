@@ -118,16 +118,16 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
       {diagnostics ? (
         <section className="search-diagnostics" aria-label="Current index snapshot">
           <span>{diagnostics.searchable_chunks} eligible searchable chunks</span>
-          <span>Keyword: {diagnostics.chunks_indexed_for_keyword_search} · {diagnostics.keyword?.status ?? "status unavailable"}</span>
-          <span>Feature hashing: {diagnostics.chunks_indexed_for_feature_hashing} · {diagnostics.feature_hashing.status}</span>
-          <span>Dense semantic: {diagnostics.chunks_indexed_for_dense_search} · {diagnostics.dense.status}</span>
+          <span>Keyword: {diagnostics.chunks_indexed_for_keyword_search} · {diagnostics.keyword.projection_status}</span>
+          <span>Feature hashing: {diagnostics.chunks_indexed_for_feature_hashing} · {diagnostics.feature_hashing.projection_status}</span>
+          <span>Dense semantic: {diagnostics.chunks_indexed_for_dense_search} · {diagnostics.dense.projection_status}</span>
           <span>Feature-hashing snapshot: {formatTimestamp(diagnostics.feature_hashing.last_indexed_at)}</span>
         </section>
       ) : null}
-      {diagnostics && [diagnostics.keyword?.status, diagnostics.feature_hashing.status].some((status) => status && !isReadyIndexStatus(status)) ? (
+      {diagnostics && [diagnostics.keyword.projection_status, diagnostics.feature_hashing.projection_status].some((status) => !isReadyIndexStatus(status)) ? (
         <p className="notice notice--warning" role="status">A required search index is not ready for the current eligible corpus. Results may fail until an administrator rebuilds it.</p>
       ) : null}
-      {diagnostics && !isReadyIndexStatus(diagnostics.dense.status) ? (
+      {diagnostics && !isReadyIndexStatus(diagnostics.dense.projection_status) ? (
         <p className="notice" role="status">Dense semantic search is unavailable for this snapshot. Keyword and feature-hashing modes remain distinct alternatives.</p>
       ) : null}
       {diagnosticsError ? (
@@ -201,7 +201,7 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
 }
 
 function isReadyIndexStatus(status: string | null | undefined): boolean {
-  return status === "ready" || status === "public_projection_ready";
+  return status === "public_projection_ready";
 }
 
 function formatTimestamp(value: string | null | undefined): string {

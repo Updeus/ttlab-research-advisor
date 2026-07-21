@@ -46,6 +46,6 @@ describe("admin author identity governance", () => {
         reviewer_notes: "Ambiguous initials",
       },
     }));
-    expect(requests.at(-1)?.body).not.toHaveProperty("review_status");
+    expect(requests[requests.length - 1]?.body).not.toHaveProperty("review_status");
   });
 });

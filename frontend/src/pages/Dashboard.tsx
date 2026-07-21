@@ -30,12 +30,12 @@ export function Dashboard({ stats, papers }: DashboardProps) {
   ];
   const intelligenceMetrics: MetricItem[] = [
     { label: "Keyword indexed", value: stats?.keyword_indexed_chunks ?? 0 },
-    { label: "Feature-hashing baseline", value: stats?.feature_hashing_indexed_chunks ?? stats?.semantic_indexed_chunks ?? 0, note: stats?.feature_hashing_index_status ?? "status unavailable" },
-    { label: "Dense semantic", value: stats?.dense_indexed_chunks ?? 0, note: stats?.dense_index_status ?? "status unavailable" },
-    { label: "Ask answers", value: stats?.total_ask_answers ?? "Not published" },
-    { label: "Extension ideas", value: stats?.total_extension_ideas ?? "Not published" },
-    { label: "Papers with artifacts", value: stats?.papers_with_artifacts ?? "Not published" },
-    { label: "Podcast scripts", value: stats?.podcast_scripts_generated ?? "Not published" },
+    { label: "Feature-hashing baseline", value: stats?.feature_hashing_indexed_chunks ?? 0, note: stats?.index_health.feature_hashing.projection_status ?? "status unavailable" },
+    { label: "Dense semantic", value: stats?.dense_indexed_chunks ?? 0, note: stats?.index_health.dense.projection_status ?? "status unavailable" },
+    { label: "Ask answers", value: "Not published" },
+    { label: "Extension ideas", value: "Not published" },
+    { label: "Papers with artifacts", value: "Not published" },
+    { label: "Podcast scripts", value: "Not published" },
   ];
   const reviewMetrics: MetricItem[] = [
     { label: "Admin review queue", value: "Protected", note: "Open Admin Review with reviewer access" },
@@ -47,7 +47,7 @@ export function Dashboard({ stats, papers }: DashboardProps) {
   return (
     <section className="page-section" aria-labelledby="dashboard-title">
       <h2 id="dashboard-title" className="sr-only">Research intelligence dashboard</h2>
-      {stats && (!isReadyIndexStatus(stats.feature_hashing_index_status) || stats.keyword_indexed_chunks !== stats.searchable_chunks) ? (
+      {stats && (!isReadyIndexStatus(stats.index_health.keyword.projection_status) || !isReadyIndexStatus(stats.index_health.feature_hashing.projection_status)) ? (
         <p className="notice notice--warning" role="status">The search snapshot is incomplete or stale for the currently eligible corpus. Index counts below are diagnostics, not retrieval-quality measurements.</p>
       ) : null}
       <div className="dashboard-hero">
@@ -108,7 +108,7 @@ export function Dashboard({ stats, papers }: DashboardProps) {
 }
 
 function isReadyIndexStatus(status: string | null | undefined): boolean {
-  return status === "ready" || status === "public_projection_ready";
+  return status === "public_projection_ready";
 }
 
 function MetricGroup({ title, metrics }: { title: string; metrics: MetricItem[] }) {

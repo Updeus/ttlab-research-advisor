@@ -6,6 +6,7 @@ import { Dashboard } from "../pages/Dashboard";
 import { PaperDetail } from "../pages/PaperDetail";
 import { SearchPage } from "../pages/SearchPage";
 import { ThesisExtensionFinder } from "../pages/ThesisExtensionFinder";
+import type { AskDiagnostics, AskResponse, ExtractionDiagnostics, RetrieverConfig, SearchDiagnostics, SearchMode, SearchResponse, SearchResult } from "../types/paper";
 import { json, paper, stats } from "./fixtures";
 
 const sourceResult = {
@@ -14,14 +15,65 @@ const sourceResult = {
   paper_title: paper.title,
   authors: paper.authors,
   year: paper.year,
+  venue: paper.venue,
+  topics: paper.topics,
   chunk_id: "paper-1-0001",
+  chunk_index: 0,
   section: "Methodology",
   page_start: 2,
   page_end: 2,
   snippet: "A source-grounded passage about retrieval.",
-  scores: { keyword: 0.8, semantic: 0.4, combined: 0.8 },
-  source: { pdf_url: paper.pdf_url, post_url: paper.post_url, local_pdf_path: null },
-};
+  scores: {
+    keyword: 0.8,
+    vector: 0,
+    vector_provider: null,
+    metadata: 0,
+    section_boost: 0,
+    evidence_quality: 0,
+    topical_alignment: 0,
+    diversity_penalty: 0,
+    combined: 0.8,
+  },
+  source: { pdf_url: paper.pdf_url, post_url: paper.post_url },
+} satisfies SearchResult;
+
+const hybridSourceResult = {
+  ...sourceResult,
+  scores: { ...sourceResult.scores, vector: 0.4, vector_provider: "feature_hashing" },
+} satisfies SearchResult;
+
+const retrieverConfig = {
+  enable_query_expansion: true,
+  enable_metadata_boost: true,
+  enable_section_boost: true,
+  enable_evidence_adjustment: true,
+  enable_topic_adjustment: true,
+  enable_diversity_penalty: true,
+  keyword_weight: 0.42,
+  vector_weight: 0.48,
+  metadata_scale: 1,
+  section_scale: 1,
+  evidence_scale: 1,
+  topic_scale: 1,
+  diversity_scale: 1,
+  candidate_multiplier: 3,
+} satisfies RetrieverConfig;
+
+function searchPayload(query: string, mode: SearchMode, results: SearchResult[] = [sourceResult]): SearchResponse {
+  return {
+    query,
+    expanded_query: query,
+    query_expansions: [],
+    mode,
+    result_count: results.length,
+    results,
+    warnings: [],
+    vector_provider: mode === "keyword" ? null : "feature_hashing",
+    retrieval_strategy: "explicit_config_v1",
+    retriever_config: retrieverConfig,
+    retrieval_scope: "public",
+  };
+}
 
 const unknownDifficultyRecommendation = {
   rank: 1,
@@ -54,21 +106,72 @@ const unknownDifficultyRecommendation = {
 };
 
 const indexDiagnostics = {
+  total_chunks: 1,
+  raw_chunks: null,
+  eligible_chunks: 1,
   searchable_chunks: 1,
   searchable_papers: 1,
   chunks_indexed_for_keyword_search: 1,
   chunks_indexed_for_feature_hashing: 1,
   chunks_indexed_for_dense_search: 0,
   chunks_indexed_for_semantic_search: null,
-  embedding_provider: "feature_hashing",
-  embedding_dimensions: 384,
-  index_path: "redacted",
+  semantic_search_deprecation: "Feature hashing is a lexical baseline; use feature_hashing explicitly.",
+  embedding_provider: null,
+  embedding_dimensions: null,
   index_status: "ready",
-  last_indexed_timestamp: "2026-01-01T00:00:00Z",
-  keyword: { status: "ready", keyword_indexed_chunks: 1 },
-  feature_hashing: { embedding_provider: "feature_hashing", embedding_dimensions: 384, indexed_chunks: 1, index_path: "redacted", status: "ready", index_status: "ready", last_indexed_at: "2026-01-01T00:00:00Z" },
-  dense: { embedding_provider: "dense", embedding_dimensions: 384, indexed_chunks: 0, index_path: "redacted", status: "missing", index_status: "missing", last_indexed_at: null },
-};
+  last_indexed_timestamp: null,
+  keyword: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z" },
+  feature_hashing: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z", classification: "lexical_feature_hashing" },
+  dense: { status: "missing", projection_status: "underlying_index_not_ready", indexed_chunks: 0, public_eligible_chunks: 1, underlying_index_status: "missing", underlying_representation_valid: false, underlying_error_count: 0, last_indexed_at: null },
+} satisfies SearchDiagnostics;
+
+const askDiagnostics = {
+  total_stored_answers: null,
+  grounded_answers: null,
+  partial_answers: null,
+  unsupported_answers: null,
+  history_counts_visibility: "protected_reviewer_only",
+  history_counts_observed: false,
+  default_provider: "offline_extractive",
+  allowed_providers: ["offline_extractive"],
+  provider_matrix: { offline_extractive: { enabled: true, effective_model: "sentence-overlap-v1", identity_scope: "versioned_deterministic_algorithm" } },
+  external_provider_available: false,
+  external_provider_availability_scope: "configured_pinned_model_not_runtime_reachability",
+  scope: "public",
+  searchable_chunks: 1,
+  raw_chunks: null,
+  semantic_indexed_chunks: null,
+  semantic_index_deprecation: "Feature hashing is lexical, not semantic.",
+  last_answer_timestamp: null,
+  keyword_index: indexDiagnostics.keyword,
+  feature_hashing_index: indexDiagnostics.feature_hashing,
+  dense_index: indexDiagnostics.dense,
+} satisfies AskDiagnostics;
+
+const extractionDiagnostics = {
+  paper_id: paper.paper_id,
+  pdf_url: paper.pdf_url,
+  pdf_text_status: "extracted",
+  pdf_unavailability_reason: null,
+  page_count: 4,
+  total_char_count: 800,
+  total_word_count: 120,
+  pages_with_text: 4,
+  pages_without_text: 0,
+  possible_scanned_pdf: false,
+  extraction_content_type: "digital_text",
+  ocr_status: "not_requested",
+  ocr_provider: null,
+  ocr_provider_version: null,
+  ocr_pages_count: 0,
+  ocr_review_required: false,
+  pdf_title_match_status: "matched",
+  pdf_title_match_score: 1,
+  corpus_eligibility_status: "eligible",
+  corpus_exclusion_reason: null,
+  warnings: [],
+  chunk_count: 1,
+} satisfies ExtractionDiagnostics;
 
 describe("evidence and responsible-AI interfaces", () => {
   it("does not report dense search unavailable before diagnostics finish loading", () => {
@@ -80,8 +183,8 @@ describe("evidence and responsible-AI interfaces", () => {
   it("treats a healthy public index projection as ready on Search and Dashboard", async () => {
     const projected = {
       ...indexDiagnostics,
-      keyword: { ...indexDiagnostics.keyword, status: "public_projection_ready" },
-      feature_hashing: { ...indexDiagnostics.feature_hashing, status: "public_projection_ready", underlying_index_status: "ready" },
+      keyword: { ...indexDiagnostics.keyword, projection_status: "public_projection_ready" },
+      feature_hashing: { ...indexDiagnostics.feature_hashing, projection_status: "public_projection_ready", underlying_index_status: "ready" },
     };
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
@@ -92,14 +195,14 @@ describe("evidence and responsible-AI interfaces", () => {
     await screen.findByText(/Feature hashing: 1 · public_projection_ready/);
     expect(screen.queryByText(/A required search index is not ready/)).not.toBeInTheDocument();
 
-    render(<Dashboard stats={{ ...stats, feature_hashing_index_status: "public_projection_ready" } as never} papers={[paper as never]} />);
+    render(<Dashboard stats={stats} papers={[paper]} />);
     expect(screen.queryByText(/search snapshot is incomplete or stale/)).not.toBeInTheDocument();
   });
 
   it("keeps Ollama disabled without a digest-verified model and labels protected diagnostics", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
-      if (url.pathname === "/api/ask/diagnostics") return json({ total_stored_answers: null, grounded_answers: null, partial_answers: null, unsupported_answers: null, default_provider: "offline_extractive", external_provider_available: false, searchable_chunks: 1, semantic_indexed_chunks: 1, last_answer_timestamp: null });
+      if (url.pathname === "/api/ask/diagnostics") return json(askDiagnostics);
       if (url.pathname === "/api/llms/local") return json({
         available: true,
         generation_available: false,
@@ -154,11 +257,11 @@ describe("evidence and responsible-AI interfaces", () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
       if (url.pathname === "/api/search/diagnostics") return json(indexDiagnostics);
-      if (url.pathname === "/api/search") return json({ query: "RAG", mode: "keyword", result_count: 1, results: [sourceResult], warnings: [] });
+      if (url.pathname === "/api/search") return json(searchPayload("RAG", "keyword"));
       return json({}, { status: 404 });
     });
     render(<SearchPage papers={[paper as never]} onSelectPaper={() => undefined} />);
-    expect(await screen.findByText(/Dense semantic: 0 · missing/)).toBeInTheDocument();
+    expect(await screen.findByText(/Dense semantic: 0 · underlying_index_not_ready/)).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Search mode" })).toHaveValue("keyword");
     expect(screen.getByRole("option", { name: "Hybrid (experimental; not validated as better)" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Feature-hashing baseline" })).toBeInTheDocument();
@@ -197,9 +300,9 @@ describe("evidence and responsible-AI interfaces", () => {
     fireEvent.submit(form!);
     await waitFor(() => expect(pending).toHaveLength(2));
 
-    await act(async () => pending[1](await json({ query: "newer query", mode: "hybrid", result_count: 1, results: [{ ...sourceResult, snippet: "Newer result" }], warnings: [] })));
+    await act(async () => pending[1](await json(searchPayload("newer query", "hybrid", [{ ...hybridSourceResult, snippet: "Newer result" }]))));
     expect(await screen.findByText("Newer result")).toBeInTheDocument();
-    await act(async () => pending[0](await json({ query: "older query", mode: "hybrid", result_count: 1, results: [{ ...sourceResult, snippet: "Older result" }], warnings: [] })));
+    await act(async () => pending[0](await json(searchPayload("older query", "hybrid", [{ ...hybridSourceResult, snippet: "Older result" }]))));
     expect(screen.getByText(/Results for “newer query”/)).toBeInTheDocument();
     expect(screen.queryByText("Older result")).not.toBeInTheDocument();
   });
@@ -209,7 +312,7 @@ describe("evidence and responsible-AI interfaces", () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
       if (url.pathname.endsWith("/extensions/diagnostics")) return json({ searchable_chunks: 1, searchable_papers: 1, total_recommendation_runs: 0, total_recommendations_generated: 0, grounded_runs: 0, partial_runs: 0, unsupported_runs: 0, default_provider: "offline_deterministic", last_recommendation_timestamp: null });
-      if (url.pathname === "/api/search") return json({ query: "profile", mode: "hybrid", result_count: 1, results: [sourceResult], warnings: [] });
+      if (url.pathname === "/api/search") return json(searchPayload("profile", "hybrid", [hybridSourceResult]));
       return json({}, { status: 404 });
     });
     render(<ThesisExtensionFinder papers={[paper as never]} onSelectPaper={() => undefined} />);
@@ -227,26 +330,44 @@ describe("evidence and responsible-AI interfaces", () => {
     const user = userEvent.setup();
     vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
       const url = new URL(String(input));
-      if (url.pathname === "/api/ask/diagnostics") return json({ total_stored_answers: 0, grounded_answers: 0, partial_answers: 0, unsupported_answers: 0, default_provider: "offline_extractive", external_provider_available: false, searchable_chunks: 1, semantic_indexed_chunks: 1, last_answer_timestamp: null });
+      if (url.pathname === "/api/ask/diagnostics") return json(askDiagnostics);
       if (url.pathname === "/api/llms/local") return json({ available: false, base_url: "http://localhost:11434", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: ["Ollama unavailable"] });
       if (url.pathname === "/api/ask" && init?.method === "POST") return json({
         answer_id: "answer-1",
         question: "Which paper?",
         answer: "The cited paper discusses retrieval.",
-        grounding_status: "grounded",
+        grounding_status: "partial",
+        support_status: "support_unverified",
         provider: "offline_extractive",
         model: "sentence-overlap-v1",
         retrieval_mode: "hybrid",
         top_k: 5,
         paper_id: null,
-        citations: [{ ...sourceResult, title: sourceResult.paper_title, score: 0.8, source_url: paper.post_url, pdf_url: paper.pdf_url }],
-        retrieved_chunks: [{ chunk_id: sourceResult.chunk_id, paper_id: paper.paper_id, title: paper.title, authors: paper.authors, year: paper.year, page_start: 2, page_end: 2, section: "Methodology", snippet: sourceResult.snippet, scores: sourceResult.scores }],
-        retrieval_metadata: {},
+        citations: [{
+          paper_id: paper.paper_id,
+          title: paper.title,
+          authors: paper.authors,
+          year: paper.year,
+          chunk_id: hybridSourceResult.chunk_id,
+          section: "Methodology",
+          page_start: 2,
+          page_end: 2,
+          snippet: hybridSourceResult.snippet,
+          score: 0.8,
+          source_url: paper.post_url,
+          pdf_url: paper.pdf_url,
+        }],
+        retrieved_chunks: [{ chunk_id: hybridSourceResult.chunk_id, paper_id: paper.paper_id, title: paper.title, authors: paper.authors, year: paper.year, page_start: 2, page_end: 2, section: "Methodology", snippet: hybridSourceResult.snippet, scores: hybridSourceResult.scores, source: hybridSourceResult.source }],
+        retrieval_metadata: { expanded_query: "Which paper?", query_expansions: [], retrieval_strategy: "explicit_config_v1", retrieval_scope: "public" },
         generation_metadata: {},
+        answerability: { answerable: true, reason: "source_term_coverage", query_terms: ["retrieval"], matched_query_terms: ["retrieval"], max_query_coverage: 1, minimum_query_coverage: 0.34, relevant_chunk_ids: [hybridSourceResult.chunk_id], warnings: [] },
+        claim_support: [],
+        runtime_provenance: { schema_version: 1 },
+        source_text_delivery: "bounded_snippets_only",
         warnings: [],
         unsupported_claims: [],
         created_at: "2026-01-01T00:00:00Z",
-      });
+      } satisfies AskResponse);
       return json({}, { status: 404 });
     });
     render(<AskPage papers={[paper as never]} onSelectPaper={() => undefined} />);
@@ -274,7 +395,7 @@ describe("evidence and responsible-AI interfaces", () => {
     };
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
-      if (url.pathname === "/api/ask/diagnostics") return json({ total_stored_answers: 0, grounded_answers: 0, partial_answers: 0, unsupported_answers: 0, default_provider: "offline_extractive", external_provider_available: false, searchable_chunks: 1, semantic_indexed_chunks: 1, last_answer_timestamp: null });
+      if (url.pathname === "/api/ask/diagnostics") return json(askDiagnostics);
       if (url.pathname === "/api/llms/local") return json({ available: false, base_url: "", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: [] });
       return json({}, { status: 404 });
     });
@@ -305,7 +426,7 @@ describe("evidence and responsible-AI interfaces", () => {
         top_k: 5,
         created_at: "2026-01-01T00:00:00Z",
       });
-      if (url.pathname === "/api/search") return json({ query: "profile", mode: "hybrid", result_count: 1, results: [sourceResult], warnings: [] });
+      if (url.pathname === "/api/search") return json(searchPayload("profile", "hybrid", [hybridSourceResult]));
       return json({}, { status: 404 });
     });
 
@@ -325,7 +446,7 @@ describe("evidence and responsible-AI interfaces", () => {
   it("renders only the approved effective artifact payload on public paper detail", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
-      if (url.pathname.endsWith("/extraction")) return json({ paper_id: paper.paper_id, pdf_text_status: "extracted", page_count: 4, total_char_count: 800, total_word_count: 120, pages_with_text: 4, pages_without_text: 0, possible_scanned_pdf: false, warnings: [], chunk_count: 1 });
+      if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
       if (url.pathname.endsWith("/chunks")) return json([{ chunk_id: "paper-1-0001", paper_id: paper.paper_id, chunk_index: 0, page_start: 1, page_end: 1, section: "Summary", snippet: "Loaded source chunk", text: "Loaded source chunk", char_count: 19, word_count: 3, token_count_estimate: 4, source_hash: "fixture" }]);
       if (url.pathname.endsWith("/artifacts")) return json([{
         artifact_id: "artifact-approved",
@@ -354,7 +475,7 @@ describe("evidence and responsible-AI interfaces", () => {
   it("fails closed when an artifact has generated content but no approved effective version", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
-      if (url.pathname.endsWith("/extraction")) return json({ paper_id: paper.paper_id, pdf_text_status: "extracted", page_count: 4, total_char_count: 800, total_word_count: 120, pages_with_text: 4, pages_without_text: 0, possible_scanned_pdf: false, warnings: [], chunk_count: 1 });
+      if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
       if (url.pathname.endsWith("/chunks")) return json([{ chunk_id: "paper-1-0001", paper_id: paper.paper_id, chunk_index: 0, page_start: 1, page_end: 1, section: "Summary", snippet: "Loaded source chunk", text: "Loaded source chunk", char_count: 19, word_count: 3, token_count_estimate: 4, source_hash: "fixture" }]);
       if (url.pathname.endsWith("/artifacts")) return json([{
         artifact_id: "artifact-needs-review",

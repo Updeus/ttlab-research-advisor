@@ -230,6 +230,15 @@ reproduction manifest, checksum inventory, content-free summary, and sanitized
 release manifest/checksum attestations. Release archives stay in the isolated
 workspace and are referenced by hash; PDFs, databases, extracted/chunk text,
 indexes, model files, and archive payloads are not copied into the repository.
+The clean pre-evaluation archive contains only files already present in the
+candidate commit. The post-evaluation archive uses an explicit fail-closed
+release mode to add exactly the 17 canonical files that have just passed the
+strict v2 validator; its embedded manifest records
+`package_source=validated_generated_worktree` and
+`tracked_in_source_commit=false`. No other untracked file is admitted. After
+promotion, the evidence commit must pass a separate clean `make release`, whose
+manifest records `package_source=source_commit_tracked` and
+`tracked_in_source_commit=true`.
 
 The current local standalone outputs are `build/ieee-paper.pdf` at 6 Letter
 pages and `build/thesis.pdf` at 86 A4 pages. These counts are an intermediate

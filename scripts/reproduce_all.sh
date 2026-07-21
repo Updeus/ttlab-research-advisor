@@ -412,9 +412,20 @@ for document in ieee-paper thesis; do
   [[ "$PAGE_COUNT" == "$EXPECTED_PAGES" ]] || die "rendered page count mismatch for $document"
 done
 
+REPRODUCED_RELEASE_ARGS=(
+  --version "${RELEASE_VERSION}-reproduced"
+  --out-dir "$WORK/artifacts/reproduced_release_bundle"
+  --evidence-dir "$WORK/artifacts/reproduced_release"
+  --allow-dirty
+)
+if [[ "$MODE" == "full" ]]; then
+  # The candidate commit intentionally predates its one-shot evidence. Include
+  # only the exact 17-file package that just passed strict validation, and make
+  # the release manifest record that it is generated rather than commit-tracked.
+  REPRODUCED_RELEASE_ARGS+=(--include-validated-generated-v2)
+fi
 run_in_source reproduced-release-build "$PYTHON" -m app.reproducibility.release build \
-  --version "${RELEASE_VERSION}-reproduced" --out-dir "$WORK/artifacts/reproduced_release_bundle" \
-  --evidence-dir "$WORK/artifacts/reproduced_release" --allow-dirty
+  "${REPRODUCED_RELEASE_ARGS[@]}"
 REPRODUCED_RELEASE_ARCHIVE="$WORK/artifacts/reproduced_release_bundle/ttlab-research-advisor-${RELEASE_VERSION}-reproduced-${SOURCE_COMMIT:0:12}.tar.gz"
 run_in_source reproduced-release-verify "$PYTHON" -m app.reproducibility.release verify \
   "$REPRODUCED_RELEASE_ARCHIVE"

@@ -103,7 +103,13 @@ reproduction instead constructs the same clean-source bundle under
 separate from repository-root delivery artifacts. After experiments and
 manuscript builds, it creates a second, explicitly suffixed
 `*-reproduced-*` bundle under `artifacts/reproduced_release_bundle/`; this is a
-sanitized record of regenerated tracked outputs, not a clean-source claim.
+sanitized record of regenerated outputs, not a clean-source claim. In full
+mode, the second bundle may include only the exact 17-file canonical v2 package
+that has just passed strict validation. Its manifest labels those files
+`validated_generated_worktree` and records that they are not yet in the source
+commit. The default release path rejects that state. After promotion and
+commit, a separate clean release must instead attest the package as
+`source_commit_tracked`.
 
 JSON/JSONL fields containing source passages, generated text that may quote a
 publication, absolute local paths, private prompt content, or other restricted

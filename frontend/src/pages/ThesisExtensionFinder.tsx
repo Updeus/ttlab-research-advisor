@@ -68,6 +68,9 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
 
   useEffect(() => () => requestController.current?.abort(), []);
 
+  const publicCorpusEmpty = diagnostics !== null
+    && (diagnostics.searchable_chunks === 0 || diagnostics.searchable_papers === 0);
+
   function updateRequest(update: Partial<ExtensionFinderRequest>) {
     setRequest((current) => ({ ...current, ...update }));
   }
@@ -239,7 +242,13 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
             <label><input type="radio" name="finder-mode" checked={runMode === "advisor"} onChange={() => setRunMode("advisor")} /> Full advisor suggestions</label>
             <label><input type="radio" name="finder-mode" checked={runMode === "evidence_only"} onChange={() => setRunMode("evidence_only")} /> Evidence-only ranked papers/passages</label>
           </fieldset>
-          <GenerateButton busy={loading} busyLabel="Finding..." onClick={() => submit()} disabled={!request.interests.trim()}>
+          <GenerateButton
+            busy={loading}
+            busyLabel="Finding..."
+            onClick={() => submit()}
+            disabled={!request.interests.trim() || publicCorpusEmpty}
+            aria-describedby={publicCorpusEmpty ? "finder-public-corpus-empty" : undefined}
+          >
             {runMode === "advisor" ? "Find Thesis Extensions" : "Retrieve Evidence Only"}
           </GenerateButton>
         </div>
@@ -251,6 +260,14 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
           <span>{diagnostics.searchable_papers} papers with chunks</span>
           <span>{diagnostics.total_recommendation_runs === null ? "Stored recommendation history protected" : `${diagnostics.total_recommendation_runs} stored reviewer/legacy runs`}</span>
           <span>{diagnostics.default_provider.replaceAll("_", " ")}</span>
+        </div>
+      ) : null}
+      {publicCorpusEmpty ? (
+        <div id="finder-public-corpus-empty" data-finder-public-corpus-state="empty">
+          <EmptyState
+            title="No papers are approved for public Finder recommendations yet"
+            body="The public Finder remains disabled until editorial publication, document-rights, extraction, and searchable-access review produce an eligible public corpus. Reviewer-only technical prototype evidence is not substituted into this public route."
+          />
         </div>
       ) : null}
       {diagnosticsError ? (

@@ -134,6 +134,21 @@ describe("evidence and responsible-AI interfaces", () => {
     expect(screen.getByRole("option", { name: "hybrid (experimental; not validated as better)" })).toBeInTheDocument();
   });
 
+  it("fails closed without submitting when the public Finder projection is empty", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith("/extensions/diagnostics")) return json({ searchable_chunks: 0, searchable_papers: 0, total_recommendation_runs: null, total_recommendations_generated: null, grounded_runs: null, partial_runs: null, unsupported_runs: null, default_provider: "offline_deterministic", last_recommendation_timestamp: null });
+      return json({}, { status: 404 });
+    });
+
+    render(<ThesisExtensionFinder papers={[]} onSelectPaper={() => undefined} />);
+
+    expect(await screen.findByText("No papers are approved for public Finder recommendations yet")).toBeInTheDocument();
+    expect(screen.getByText(/Reviewer-only technical prototype evidence is not substituted/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Find Thesis Extensions" })).toBeDisabled();
+    expect(fetchMock.mock.calls.filter(([input]) => new URL(String(input)).pathname === "/api/recommendations/extensions")).toHaveLength(0);
+  });
+
   it("shows distinct index modes, freshness, source passage IDs, and retryable search evidence", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {

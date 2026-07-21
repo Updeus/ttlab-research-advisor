@@ -1,0 +1,276 @@
+{
+  "protocol_id": "peer-review-remediation-v2",
+  "protocol_version": 2,
+  "status": "preregistered_before_execution",
+  "declared_date": "2026-07-20",
+  "reviewer": {
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai",
+    "label_tier": "ai_silver",
+    "human_review": false,
+    "independent_human_raters": 0,
+    "boundary": "The two shuffled passes are repeated applications of one AI-authored deterministic review procedure. They measure repeatability only, not human validation, inter-rater reliability, semantic entailment, practical feasibility, usefulness to students, novelty, or public-corpus validity."
+  },
+  "source_first_construction": {
+    "required": true,
+    "answerable_cases": "Questions and answer points were authored directly from frozen extracted-paper chunks before retrieval execution, without consulting system rankings or answers.",
+    "negative_cases": "Six in-domain near-miss questions were authored before retrieval execution from named papers. Each freezes a context locator and exact phrases absent from every frozen chunk of that paper; this structural absence check is not proof of semantic absence under every paraphrase.",
+    "rankings_used_to_select_cases": false,
+    "post_execution_case_changes_allowed": false
+  },
+  "corpus_and_projection_boundary": {
+    "technical_selection_predicate": "Paper.corpus_eligibility_status == eligible AND Paper.extraction_generation_id IS NOT NULL AND Paper.chunk_generation_id IS NOT NULL AND Paper.chunk_extraction_generation_id == Paper.extraction_generation_id AND Chunk.extraction_generation_id == Paper.extraction_generation_id",
+    "generation_link_reconciliation": {
+      "required_before_index_rebuild": true,
+      "implementation": "backend/app/ingestion/generation_reconciler.py:reconcile_generation_links",
+      "validated_chain": "exact PDF SHA -> extraction manifest generation and JSON-pages/TXT mirror -> chunk manifest/hash -> exact chunk JSON/DB mirror",
+      "legacy_or_mismatched_artifacts": "quarantine_fail_closed",
+      "zero_generation_linked_corpus_permitted": false,
+      "receipt_fields": ["attempted", "reconciled", "already_current", "quarantined", "reasons", "dry_run"]
+    },
+    "technical_scope_is_not_publication_approval": true,
+    "public_projection_evaluated": false,
+    "public_projection_predicate_recorded_not_tested": "review_status approved AND publication_status published AND rights_status cleared AND public_access_level searchable AND corpus_eligibility_status eligible AND extraction_review_status approved AND extraction_generation_id IS NOT NULL AND chunk_generation_id IS NOT NULL AND chunk_extraction_generation_id == extraction_generation_id AND public_index_generation_id == chunk_generation_id AND chunk_count > 0 AND Chunk.extraction_generation_id == Paper.extraction_generation_id",
+    "locator_hash_semantics": "source_hash is SHA-256 of the exact UTF-8 chunk text; execution also records retrieval_source_identity_v2 effective hashes that include retrieval-affecting paper metadata"
+  },
+  "ask": {
+    "dataset": "data/evaluation/qa_selective_response_v2.jsonl",
+    "retrieval_mode": "keyword",
+    "retrieval_scope": "technical",
+    "provider": "offline_extractive",
+    "model_when_invoked": "sentence-overlap-v1",
+    "top_k": 5,
+    "max_words": 180,
+    "provider_environment": {
+      "allowed_llm_providers": ["offline_extractive"],
+      "default_llm_provider": "offline_extractive",
+      "external_provider_invoked": false
+    },
+    "temporary_index_preparation": {
+      "rebuild_keyword_index": true,
+      "source": "the frozen generation-linked technical eligible corpus on a temporary SQLite copy after fail-closed reconciliation",
+      "live_database_mutated": false,
+      "required_completeness_status": "complete|fallback_only"
+    },
+    "fixed_answerability_rule": {
+      "source": "backend/app/intelligence/rag_answerer.py:assess_answerability",
+      "minimum_query_coverage": "0.25 when the filtered query has at least four terms; otherwise 0.34",
+      "tuning_on_v2": false
+    },
+    "negative_evidence_rule": {
+      "case_type": "source_derived_in_domain_absence_probe",
+      "context_locator_required": true,
+      "full_named_paper_exact_phrase_absence_required": true,
+      "semantic_absence_or_entailment_claimed": false
+    },
+    "frozen_dev_ids": [
+      "qa-v2-a01",
+      "qa-v2-a03",
+      "qa-v2-a06",
+      "qa-v2-a08",
+      "qa-v2-n01",
+      "qa-v2-n02"
+    ],
+    "frozen_test_ids": [
+      "qa-v2-a02",
+      "qa-v2-a04",
+      "qa-v2-a05",
+      "qa-v2-a07",
+      "qa-v2-a09",
+      "qa-v2-a10",
+      "qa-v2-a11",
+      "qa-v2-a12",
+      "qa-v2-n03",
+      "qa-v2-n04",
+      "qa-v2-n05",
+      "qa-v2-n06"
+    ],
+    "primary_metrics": [
+      "answerability_precision",
+      "answerability_recall",
+      "false_positive_rate",
+      "abstention_rate",
+      "abstention_accuracy",
+      "exact_gold_locator_citation_precision",
+      "citation_completeness",
+      "returned_citation_utilization",
+      "answer_point_coverage"
+    ]
+  },
+  "finder": {
+    "dataset": "data/evaluation/finder_proxy_profiles_v2.jsonl",
+    "retrieval_mode": "keyword",
+    "retrieval_scope": "technical",
+    "provider": "offline_deterministic",
+    "model": "template-recommender-v1",
+    "top_k": 3,
+    "score_weights": {
+      "retrieval_relevance": 0.3,
+      "interest_topic_match": 0.2,
+      "skill_match": 0.15,
+      "data_feasibility": 0.1,
+      "timeline_feasibility": 0.1,
+      "difficulty_match": 0.1,
+      "evidence_strength": 0.05
+    },
+    "temporary_index_preparation": "reuse the same rebuilt temporary keyword index and one paired retrieval response per profile",
+    "frozen_dev_ids": [
+      "finder-v2-d01",
+      "finder-v2-d02",
+      "finder-v2-d03",
+      "finder-v2-d04"
+    ],
+    "frozen_test_ids": [
+      "finder-v2-t01",
+      "finder-v2-t03",
+      "finder-v2-t04",
+      "finder-v2-t05",
+      "finder-v2-t06"
+    ],
+    "frozen_sensitivity_ids": [
+      "finder-v2-t02"
+    ],
+    "comparison": "paired evidence-only retrieval versus the full finder on the same frozen profile and technical corpus; the second crop constraint variant is reported only as sensitivity evidence and is excluded from the primary held-out estimate",
+    "primary_metrics": [
+      "gold_paper_hit_at_3",
+      "gold_paper_mrr",
+      "paired_hit_delta",
+      "candidate_specific_template_conformance",
+      "source_fact_suggestion_separation",
+      "unknown_feasibility_retention",
+      "full_profile_constraint_contract_fidelity"
+    ],
+    "profile_wording_rule": "Profiles are source-derived need statements and must not copy the gold paper title. They are frozen before execution and do not consult rankings.",
+    "template_conformance_boundary": "Candidate-specific template conformance checks that generated fields name and cite their selected paper; because the template inserts those fields, this is contract evidence rather than independent usefulness or specificity validation.",
+    "proxy_boundary": "Usefulness and feasibility judgments are AI proxy labels only and are not student, supervisor, or field validation. Null or negative deltas must be retained."
+  },
+  "topics": {
+    "dataset": "data/evaluation/topic_source_labels_v2.jsonl",
+    "retrieval_scope": "technical",
+    "execution_surface": "app.intelligence.topic_explorer.topic_candidates_for_paper",
+    "production_projection": "descending score, first 8 labels, no evaluation-only threshold",
+    "frozen_dev_ids": [
+      "topic-v2-d01",
+      "topic-v2-d02",
+      "topic-v2-d03",
+      "topic-v2-d04"
+    ],
+    "frozen_test_ids": [
+      "topic-v2-t01",
+      "topic-v2-t02",
+      "topic-v2-t03",
+      "topic-v2-t04",
+      "topic-v2-t05",
+      "topic-v2-t06",
+      "topic-v2-t07",
+      "topic-v2-t08"
+    ],
+    "primary_metrics": [
+      "known_positive_micro_recall",
+      "known_positive_case_coverage_rate",
+      "unadjudicated_prediction_count",
+      "unadjudicated_prediction_share",
+      "per_label_support",
+      "per_label_misses"
+    ],
+    "label_scope": "positive_only_not_exhaustive_closed_world",
+    "claim_boundary": "This small AI-silver, source-derived technical-corpus set contains known-positive labels only. It supports positive-label recall/coverage, not precision, F1, exact match, or public topic/author behavior; predictions outside the listed positives remain unadjudicated rather than false positives."
+  },
+  "ocr": {
+    "fixture": "data/evaluation/ocr_scanned_fixture_v2.pdf",
+    "ground_truth": "data/evaluation/ocr_scanned_fixture_v2.json",
+    "provider": "tesseract",
+    "language": "eng",
+    "locale": "C.UTF-8",
+    "omp_thread_limit": 1,
+    "execution_path": "backend.app.ingestion.pdf_parser.extract_pdf_text with run_ocr=true and a TesseractOCRProvider",
+    "parser_limits": {
+      "max_pdf_bytes": 5242880,
+      "max_pdf_pages": 1
+    },
+    "config": "--oem 3 --psm 6",
+    "render_dpi": 144,
+    "render_scale": 2.0,
+    "alpha": false,
+    "color_mode": "RGB",
+    "claim_boundary": "The deterministic raster-only fixture exercises the OCR pipeline. It is not a corpus OCR-accuracy estimate and does not validate scanned TTLAB PDFs."
+  },
+  "bootstrap": {
+    "method": "cluster_level_percentile_bootstrap",
+    "replicates": 5000,
+    "seed": 20260720,
+    "confidence_level": 0.95,
+    "cluster_units": {
+      "ask": "named source paper",
+      "finder": "profile family; sensitivity-only variants excluded from the primary estimate",
+      "topics": "paper"
+    },
+    "label_uncertainty_included": false,
+    "corpus_selection_uncertainty_included": false
+  },
+  "runtime_provenance_requirement": {
+    "ask_and_full_finder_outputs_must_include": [
+      "code_identity",
+      "corpus_identity",
+      "source_identity",
+      "retrieval_identity",
+      "generation_identity"
+    ],
+    "technical_corpus_identity_contract": "retrieval_source_identity_v2",
+    "declared_source_ids_must_equal_serialized_retrieval_source_ids": true,
+    "canonical_evaluation_sources_must_be_clean_and_committed": true,
+    "pdf_extraction_and_chunk_artifact_inventory_frozen_before_execution": true,
+    "timestamps_retained_in_raw_provenance": true,
+    "timestamps_excluded_from_metric_artifacts": true
+  },
+  "output_contract": {
+    "canonical_directory": "artifacts/peer_review_remediation/v2",
+    "machine_readable_metrics": [
+      "qa_metrics_v2.json",
+      "finder_metrics_v2.json",
+      "topic_metrics_v2.json",
+      "ocr_fixture_results_v2.json"
+    ],
+    "versionable_output_policy": "Only structural outputs, IDs, hashes, classifications, aggregate metrics, and bounded author-created case text may enter the canonical artifact directory. Extractive answers, source snippets, generated recommendations, and topic evidence text are excluded.",
+    "restricted_raw_output_policy": {
+      "required": true,
+      "location": "ignored operator-controlled directory outside release artifacts",
+      "manifest_records_sha256_and_size": true,
+      "commit_or_release_permitted": false,
+      "lawful_local_corpus_access_required_for_reproduction": true
+    },
+    "manuscript_macros": "manuscript_macros_v2.tex",
+    "validation_attestation": "validation_attestation_v2.json",
+    "validation_execution": "locked_python_environment_before_freeze_and_after_completed_package",
+    "release_filename_policy": "exact_allowlist_only",
+    "structural_reproduction_comparison": "all case-level outputs normalized by excluding timestamp fields only",
+    "macro_source": "deterministic rendering of held-out test metrics after execution",
+    "hand_entered_manuscript_metrics_permitted": false
+  },
+  "historical_v1": {
+    "classification": "historical_post_selection_descriptive",
+    "immutable": true,
+    "qa_metrics_path": "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json",
+    "qa_negative_results": {
+      "citation_precision_correctness": 0.625,
+      "answer_point_coverage": 0.135802,
+      "returned_citation_utilization": 0.592,
+      "unanswerable_abstention_rate": 0.0
+    },
+    "finder_metrics_path": "artifacts/phase4/recommendation_proxy_v1/aggregate_results.json",
+    "finder_negative_results": {
+      "full_minus_evidence_only_relevance_delta": 0.02381,
+      "reported_interval": [-0.024, 0.071],
+      "skills_time_data_feasibility_partial": "84/84"
+    },
+    "topic_metrics_path": "artifacts/phase4/topic_author/topic_metrics.json",
+    "topic_negative_results": {
+      "held_out_cases": 24,
+      "controlled_vocabulary_labels": 40,
+      "lexical_precision": 0.652,
+      "lexical_recall": 0.484,
+      "lexical_f1": 0.556
+    },
+    "statement": "No v1 file is overwritten, upgraded, or relabeled as prospective evidence by this protocol."
+  }
+}

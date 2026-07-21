@@ -11,6 +11,9 @@ RETAIN_DIR=""
 SOURCE_DB="$ROOT/data/papers.db"
 PYTHON="$ROOT/.venv/bin/python"
 RUN_ROOT=""
+WORK_SENTINEL_NAME=".ttlab-reproduction-workspace"
+WORK_SENTINEL_TOKEN=""
+WORK_DEVICE_INODE=""
 
 usage() {
   cat <<'EOF'
@@ -57,15 +60,51 @@ done
 if [[ -n "$RETAIN_DIR" && "$RETAIN_DIR" != /* ]]; then
   RETAIN_DIR="$ROOT/$RETAIN_DIR"
 fi
-mkdir -p "$WORK/logs" "$WORK/artifacts"
-WORK="$(cd "$WORK" && pwd)"
-mkdir -p "$WORK/runtime-tmp"
+WORK="$(realpath -m -- "$WORK")"
+case "$WORK" in
+  /|/tmp|/var|/var/tmp|/home|/root|/mnt|/mnt/c|/mnt/c/Users)
+    die "--work-dir must be a new, narrowly scoped directory, not a broad or sensitive root: $WORK"
+    ;;
+esac
+[[ "$WORK" != "$ROOT" && "$ROOT" != "$WORK"/* ]] || \
+  die "--work-dir cannot be the repository root or one of its ancestors: $WORK"
+if [[ "$WORK" == "$ROOT"/* && "$WORK" != "$ROOT/tmp/reproduce/"* ]]; then
+  die "repository-local --work-dir must be below $ROOT/tmp/reproduce"
+fi
+if [[ "$WORK" != "$ROOT/tmp/reproduce/"* && "$WORK" != /tmp/* && "$WORK" != /var/tmp/* ]]; then
+  die "external --work-dir must be a unique child of /tmp or /var/tmp"
+fi
+[[ ! -e "$WORK" ]] || die "--work-dir must be new and absent: $WORK"
+if [[ -n "$RETAIN_DIR" ]]; then
+  RETAIN_DIR="$(realpath -m -- "$RETAIN_DIR")"
+  [[ "$RETAIN_DIR" != "$WORK" && "$RETAIN_DIR" != "$WORK"/* ]] || \
+    die "--retain-dir must remain outside the disposable reproduction workspace"
+fi
+mkdir -p "$(dirname "$WORK")"
+mkdir "$WORK"
+WORK_SENTINEL_TOKEN="ttlab-reproduction:${BASHPID}:$(date -u '+%Y%m%dT%H%M%SZ')"
+printf '%s\n' "$WORK_SENTINEL_TOKEN" > "$WORK/$WORK_SENTINEL_NAME"
+WORK_DEVICE_INODE="$(stat -Lc '%d:%i' "$WORK")"
+mkdir "$WORK/logs" "$WORK/artifacts" "$WORK/runtime-tmp"
 export TMPDIR="$WORK/runtime-tmp"
 export TEMP="$WORK/runtime-tmp"
 export TMP="$WORK/runtime-tmp"
 SOURCE_DB="$(realpath -m "$SOURCE_DB")"
+[[ "$SOURCE_DB" != "$WORK" && "$SOURCE_DB" != "$WORK"/* ]] || \
+  die "--source-db must remain outside the disposable reproduction workspace"
 RUN_ROOT="$WORK/source"
-[[ ! -e "$RUN_ROOT" ]] || die "reproduction source snapshot already exists: $RUN_ROOT (choose a fresh --work-dir)"
+[[ ! -e "$RUN_ROOT" ]] || die "reproduction source snapshot already exists: $RUN_ROOT"
+
+verify_workspace_ownership() {
+  [[ -d "$WORK" && ! -L "$WORK" ]] || die "reproduction workspace is missing or became a symlink"
+  [[ "$(stat -Lc '%d:%i' "$WORK")" == "$WORK_DEVICE_INODE" ]] || \
+    die "reproduction workspace identity changed; refusing cleanup"
+  [[ -f "$WORK/$WORK_SENTINEL_NAME" && ! -L "$WORK/$WORK_SENTINEL_NAME" ]] || \
+    die "reproduction workspace ownership sentinel is missing"
+  [[ "$(<"$WORK/$WORK_SENTINEL_NAME")" == "$WORK_SENTINEL_TOKEN" ]] || \
+    die "reproduction workspace ownership sentinel changed"
+  [[ "$RUN_ROOT" == "$WORK/source" ]] || die "run-root containment changed"
+}
 
 command -v git >/dev/null || die "git is required"
 command -v python3 >/dev/null || die "python3 is required"
@@ -157,9 +196,16 @@ if [[ "$MODE" == "full" ]]; then
 
   run_in_source seed-import "$PYTHON" -m app.ingestion.manual_import --seed "$RUN_ROOT/data/seed/papers.json"
   run_in_source metadata-repair "$PYTHON" -m app.ingestion.metadata_cleaner repair-authors
-  run_in_source extraction "$PYTHON" -m app.ingestion.pdf_parser extract --overwrite --out-dir "$RUN_ROOT/data/extracted_text"
+  run_in_source extraction env \
+    TTLAB_SERVICE_ROLE=offline_worker \
+    TTLAB_SYNC_EXECUTION_MODE=offline_single_writer \
+    "$PYTHON" -m app.ingestion.pdf_parser extract --overwrite --out-dir "$RUN_ROOT/data/extracted_text"
   run_in_source pdf-identity-audit "$PYTHON" -m app.ingestion.metadata_cleaner audit-pdf-titles
   run_in_source chunking "$PYTHON" -m app.indexing.chunker chunk --overwrite --out-dir "$RUN_ROOT/data/chunks"
+  run_in_source generation-reconciliation "$PYTHON" -m app.ingestion.generation_reconciler reconcile \
+    --extraction-dir "$RUN_ROOT/data/extracted_text" \
+    --chunks-dir "$RUN_ROOT/data/chunks" \
+    --pdf-dir "$RUN_ROOT/data/pdfs"
   run_in_source keyword-index "$PYTHON" -m app.indexing.keyword_search rebuild
   run_in_source hashing-index "$PYTHON" -m app.indexing.embedder index \
     --provider feature_hashing --out "$RUN_ROOT/data/indexes/feature_hashing_embeddings.json"
@@ -221,6 +267,51 @@ if [[ "$MODE" == "full" ]]; then
     --database "$RUN_ROOT/data/papers.db" \
     --output-dir "$RUN_ROOT/artifacts/phase4/generated_output_review" --apply-live
 
+  # Prospective remediation-v2 runs only after every historical v1 gate.  The
+  # suite freezes the rebuilt run-local database and complete backend/evaluation
+  # source inventory,
+  # evaluates the already-fixed selective-response threshold without tuning,
+  # and regenerates the one canonical committed package path consumed by the
+  # dashboard and release builder. The tracked source database remains
+  # untouched because the runner uses a temporary SQLite copy. A committed
+  # prior package is retained outside the source tree for deterministic metric
+  # comparison instead of being destroyed.
+  export TTLAB_V2_ARTIFACT_DIR="$RUN_ROOT/artifacts/peer_review_remediation/v2"
+  export TTLAB_V2_RESTRICTED_DIR="$WORK/restricted/peer_review_remediation/v2"
+  V2_PRIOR_PACKAGE="$WORK/prior-canonical-peer-review-remediation-v2"
+  [[ "$TTLAB_V2_ARTIFACT_DIR" == "$RUN_ROOT/artifacts/peer_review_remediation/v2" ]] || die "v2 versionable output must use the canonical package path"
+  [[ "$TTLAB_V2_RESTRICTED_DIR" != "$RUN_ROOT"/* ]] || die "restricted v2 raw output directory must remain outside the source/release tree"
+  if [[ -e "$TTLAB_V2_ARTIFACT_DIR" ]]; then
+    [[ ! -e "$V2_PRIOR_PACKAGE" ]] || die "prior canonical v2 package backup already exists: $V2_PRIOR_PACKAGE"
+    mv "$TTLAB_V2_ARTIFACT_DIR" "$V2_PRIOR_PACKAGE"
+  fi
+  run_in_source remediation-v2-prepare "$PYTHON" \
+    "$RUN_ROOT/data/evaluation/run_peer_review_remediation_v2.py" prepare
+  run_in_source remediation-v2-evaluate "$PYTHON" \
+    "$RUN_ROOT/data/evaluation/run_peer_review_remediation_v2.py" evaluate
+  run_in_source remediation-v2-validate "$PYTHON" \
+    "$RUN_ROOT/data/evaluation/validate_peer_review_remediation_v2.py"
+  for restricted_name in qa_full_raw_v2.jsonl finder_full_raw_v2.jsonl topic_full_raw_v2.jsonl; do
+    [[ -s "$TTLAB_V2_RESTRICTED_DIR/$restricted_name" ]] || die "missing rights-sensitive local v2 raw output: $restricted_name"
+  done
+  [[ -z "$(find "$TTLAB_V2_ARTIFACT_DIR" -type f -name '*full_raw*' -print -quit)" ]] || \
+    die "rights-sensitive v2 raw output leaked into the canonical versionable package"
+  if [[ -d "$V2_PRIOR_PACKAGE" ]]; then
+    for deterministic_name in \
+      qa_raw_outputs_v2.jsonl qa_review_pass1_v2.jsonl qa_review_pass2_v2.jsonl \
+      qa_disagreements_v2.json qa_metrics_v2.json \
+      finder_raw_outputs_v2.jsonl finder_review_pass1_v2.jsonl finder_review_pass2_v2.jsonl \
+      finder_disagreements_v2.json finder_metrics_v2.json \
+      topic_predictions_v2.jsonl topic_metrics_v2.json \
+      ocr_fixture_results_v2.json manuscript_macros_v2.tex; do
+      [[ -f "$V2_PRIOR_PACKAGE/$deterministic_name" ]] || die "prior canonical v2 package lacks deterministic reference: $deterministic_name"
+      prior_normalized_hash="$("$PYTHON" "$RUN_ROOT/data/evaluation/run_peer_review_remediation_v2.py" normalized-hash "$V2_PRIOR_PACKAGE/$deterministic_name")"
+      reproduced_normalized_hash="$("$PYTHON" "$RUN_ROOT/data/evaluation/run_peer_review_remediation_v2.py" normalized-hash "$TTLAB_V2_ARTIFACT_DIR/$deterministic_name")"
+      [[ "$prior_normalized_hash" == "$reproduced_normalized_hash" ]] || \
+        die "reproduced v2 structural artifact differs after timestamp normalization: $deterministic_name"
+    done
+  fi
+
 else
   export TTLAB_DATABASE_URL="sqlite:///$RUN_ROOT/data/papers.db"
   run_in_source quick-seed-import "$PYTHON" -m app.ingestion.manual_import --seed "$RUN_ROOT/data/seed/papers.json"
@@ -237,15 +328,24 @@ else
     --out "$WORK/artifacts/performance/performance_quick_validation.json"
 fi
 
-run_logged paper-build make -C "$RUN_ROOT" paper PYTHON="$PYTHON"
 if [[ "$MODE" == "full" ]]; then
+  run_logged paper-build make -C "$RUN_ROOT" paper PYTHON="$PYTHON"
   run_logged thesis-build make -C "$RUN_ROOT" thesis PYTHON="$PYTHON"
 else
-  run_logged thesis-frozen-assets make -C "$RUN_ROOT" thesis-assets-frozen PYTHON="$PYTHON"
+  # Quick mode is an explicit layout/build probe and does not execute the
+  # one-time held-out remediation-v2 suite. The generated macros visibly say
+  # "not run" and cannot pass final manuscript validation without this flag.
+  run_logged paper-layout-build make -C "$RUN_ROOT" paper-layout PYTHON="$PYTHON"
+  run_logged thesis-layout-assets make -C "$RUN_ROOT" thesis-assets-layout PYTHON="$PYTHON"
   run_logged thesis-build make -C "$RUN_ROOT" thesis-compile PYTHON="$PYTHON"
 fi
-run_in_source manuscript-preflight "$PYTHON" scripts/validate_manuscripts.py \
-  --json-out "$WORK/artifacts/manuscript_preflight.json"
+if [[ "$MODE" == "full" ]]; then
+  run_in_source manuscript-preflight "$PYTHON" scripts/validate_manuscripts.py \
+    --json-out "$WORK/artifacts/manuscript_preflight.json"
+else
+  run_in_source manuscript-layout-preflight "$PYTHON" scripts/validate_manuscripts.py \
+    --allow-v2-not-run --json-out "$WORK/artifacts/manuscript_preflight.json"
+fi
 for document in ieee-paper thesis; do
   pdf="$RUN_ROOT/build/${document}.pdf"
   [[ -s "$pdf" ]] || die "missing compiled PDF: $pdf"
@@ -289,7 +389,10 @@ fi
 
 log "Reproduction completed: mode=$MODE source_commit=$SOURCE_COMMIT work=$WORK"
 if ((KEEP_WORK == 0)); then
+  verify_workspace_ownership
   git -C "$ROOT" worktree remove --force "$RUN_ROOT"
-  rm -rf "$WORK"
+  [[ ! -e "$RUN_ROOT" ]] || die "detached worktree removal did not complete; refusing workspace cleanup"
+  verify_workspace_ownership
+  rm -rf --one-file-system -- "$WORK"
   log "Removed reproduction workspace."
 fi

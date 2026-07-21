@@ -6,10 +6,20 @@ import json
 import subprocess
 import tarfile
 from pathlib import Path, PurePosixPath
+from types import SimpleNamespace
 
 import pytest
 
-from app.reproducibility.release import build_release, sanitize_json, scan_payload, should_include, verify_release
+from app.reproducibility.release import (
+    CANONICAL_V2_RELEASE_FILES,
+    build_release,
+    sanitize_json,
+    sanitize_json_bytes,
+    scan_payload,
+    should_include,
+    validate_canonical_v2_for_release,
+    verify_release,
+)
 
 
 def test_release_policy_excludes_runtime_corpus_and_all_pdfs() -> None:
@@ -20,6 +30,21 @@ def test_release_policy_excludes_runtime_corpus_and_all_pdfs() -> None:
         False,
         "source_bearing_interface_screenshot",
     )
+    assert should_include(Path("artifacts/peer_review_remediation/v2/manifest_v2.json")) == (
+        True,
+        None,
+    )
+    assert should_include(Path("artifacts/peer_review_remediation/v2/extra.json")) == (
+        False,
+        "unapproved_canonical_v2_artifact",
+    )
+    assert should_include(Path("artifacts/peer_review_remediation/v2/qa_full_raw_v2.jsonl")) == (
+        False,
+        "rights_sensitive_v2_raw_output",
+    )
+    assert should_include(
+        Path("artifacts/reproduction/peer_review_remediation/v2/manifest_v2.json")
+    ) == (False, "noncanonical_v2_artifact_path")
     assert should_include(Path("backend/app/main.py"))[0] is True
 
 
@@ -51,6 +76,51 @@ def test_json_sanitizer_redacts_sensitive_nested_lists_and_objects_as_one_attest
     assert len(events) == 2
 
 
+def test_release_sanitizer_recursively_redacts_real_v2_locator_anchors() -> None:
+    evaluation_dir = Path(__file__).resolve().parents[2] / "data/evaluation"
+    dataset_names = (
+        "qa_selective_response_v2.jsonl",
+        "finder_proxy_profiles_v2.jsonl",
+        "topic_source_labels_v2.jsonl",
+    )
+
+    def anchors(value):
+        if isinstance(value, dict):
+            return [
+                child
+                for key, child in value.items()
+                if key == "anchor"
+            ] + [nested for child in value.values() for nested in anchors(child)]
+        if isinstance(value, list):
+            return [nested for child in value for nested in anchors(child)]
+        return []
+
+    for name in dataset_names:
+        original_rows = [
+            json.loads(line)
+            for line in (evaluation_dir / name).read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        original_anchors = anchors(original_rows)
+        assert original_anchors and all(isinstance(value, str) and value for value in original_anchors)
+
+        released, events = sanitize_json_bytes((evaluation_dir / name).read_bytes(), ".jsonl")
+        released_rows = [json.loads(line) for line in released.decode("utf-8").splitlines()]
+        released_anchors = anchors(released_rows)
+
+        assert len(released_anchors) == len(original_anchors)
+        assert all(
+            value.get("release_redacted") is True
+            and value.get("reason") == "source_or_answer_text_not_redistributed"
+            for value in released_anchors
+        )
+        released_text = released.decode("utf-8")
+        assert all(anchor not in released_text for anchor in original_anchors)
+        assert sum(event["json_path"].endswith(".anchor") for event in events) == len(
+            original_anchors
+        )
+
+
 def test_payload_scanner_detects_secrets_absolute_paths_and_pdf_magic() -> None:
     content = b"/home/person/private\nAuthorization: Bearer " + b"abcdefghijklmnopqrstuvwxyz\n"
     findings = scan_payload(PurePosixPath("notes.txt"), content)
@@ -72,6 +142,112 @@ def test_payload_scanner_detects_secrets_absolute_paths_and_pdf_magic() -> None:
 )
 def test_payload_scanner_rejects_common_local_workspace_roots(content: bytes) -> None:
     assert "absolute_local_path" in scan_payload(PurePosixPath("notes.txt"), content)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        b"file:///home/person/private",
+        b"/workspace/project/private",
+        b"/Volumes/Users/person/private",
+        b"D:/Users/person/private",
+        b"\\\\server\\share\\private",
+    ],
+)
+def test_payload_scanner_rejects_extended_absolute_path_forms(content: bytes) -> None:
+    assert "absolute_local_path" in scan_payload(PurePosixPath("notes.txt"), content)
+
+
+def test_v2_release_topology_rejects_partial_noncanonical_and_full_raw() -> None:
+    canonical_prefix = Path("artifacts/peer_review_remediation/v2")
+    with pytest.raises(RuntimeError, match="incomplete or unapproved"):
+        validate_canonical_v2_for_release([canonical_prefix / "manifest_v2.json"])
+    with pytest.raises(RuntimeError, match="noncanonical"):
+        validate_canonical_v2_for_release(
+            [Path("artifacts/reproduction/peer_review_remediation/v2/manifest_v2.json")]
+        )
+    with pytest.raises(RuntimeError, match="rights-sensitive"):
+        validate_canonical_v2_for_release(
+            [canonical_prefix / "qa_full_raw_v2.jsonl"]
+        )
+    assert len(CANONICAL_V2_RELEASE_FILES) == 17
+
+
+@pytest.mark.parametrize("entry_kind", ["directory", "symlink"])
+def test_v2_release_topology_rejects_non_file_entries(
+    tmp_path: Path,
+    entry_kind: str,
+) -> None:
+    package = tmp_path / "artifacts/peer_review_remediation/v2"
+    package.mkdir(parents=True)
+    for filename in CANONICAL_V2_RELEASE_FILES:
+        (package / filename).write_text("{}\n", encoding="utf-8")
+    unexpected = package / "nested"
+    if entry_kind == "directory":
+        unexpected.mkdir()
+        (unexpected / "payload.json").write_text("{}\n", encoding="utf-8")
+    else:
+        unexpected.symlink_to(package / "manifest_v2.json")
+    tracked = [
+        Path("artifacts/peer_review_remediation/v2") / filename
+        for filename in CANONICAL_V2_RELEASE_FILES
+    ]
+
+    with pytest.raises(RuntimeError, match="flat and contain regular files only"):
+        validate_canonical_v2_for_release(tracked, root=tmp_path)
+
+
+def test_v2_release_topology_rejects_unexpected_regular_file(tmp_path: Path) -> None:
+    package = tmp_path / "artifacts/peer_review_remediation/v2"
+    package.mkdir(parents=True)
+    for filename in CANONICAL_V2_RELEASE_FILES:
+        (package / filename).write_text("{}\n", encoding="utf-8")
+    (package / "unexpected.json").write_text("{}\n", encoding="utf-8")
+    tracked = [
+        Path("artifacts/peer_review_remediation/v2") / filename
+        for filename in CANONICAL_V2_RELEASE_FILES
+    ]
+
+    with pytest.raises(RuntimeError, match="filesystem inventory is incomplete or unapproved"):
+        validate_canonical_v2_for_release(tracked, root=tmp_path)
+
+
+def test_v2_release_claim_requires_successful_versionable_validator(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    validator = tmp_path / "data/evaluation/validate_peer_review_remediation_v2.py"
+    validator.parent.mkdir(parents=True)
+    validator.write_text("# validator fixture\n", encoding="utf-8")
+    package = tmp_path / "artifacts/peer_review_remediation/v2"
+    package.mkdir(parents=True)
+    for filename in CANONICAL_V2_RELEASE_FILES:
+        (package / filename).write_text("{}\n", encoding="utf-8")
+    tracked = [
+        Path("artifacts/peer_review_remediation/v2") / filename
+        for filename in sorted(CANONICAL_V2_RELEASE_FILES)
+    ]
+    monkeypatch.setattr(
+        "app.reproducibility.release.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0,
+            stdout=json.dumps(
+                {
+                    "status": "pass",
+                    "mode": "completed_versionable_package",
+                    "evaluation_source_commit": "a" * 40,
+                    "package_file_count": 17,
+                    "rights_sensitive_raw_text_in_versionable_package": False,
+                }
+            ),
+            stderr="",
+        ),
+    )
+
+    report = validate_canonical_v2_for_release(tracked, root=tmp_path)
+
+    assert report["status"] == "validated"
+    assert report["versionable_no_sensitive_text_claimed"] is True
 
 
 def test_sanitized_value_remains_json_serializable() -> None:
@@ -132,6 +308,56 @@ def test_release_is_deterministic_and_verifies_every_payload_checksum(tmp_path: 
     assert second["generated_at"] == first["generated_at"]
     with pytest.raises(FileExistsError, match="Refusing to overwrite"):
         build_release(root=root, output_root=output_root, version="test")
+
+
+def test_validated_v2_package_is_released_byte_for_byte(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "source"
+    (root / "backend/app").mkdir(parents=True)
+    (root / "backend/app/main.py").write_text("print('safe')\n")
+    (root / "backend/requirements-lock.txt").write_text("safe==1.0\n")
+    (root / "frontend").mkdir(parents=True)
+    (root / "frontend/package-lock.json").write_text("{}\n")
+    (root / "README.md").write_text("safe\n")
+    (root / ".gitignore").write_text("build/\n")
+    package = root / "artifacts/peer_review_remediation/v2"
+    package.mkdir(parents=True)
+    expected: dict[str, bytes] = {}
+    for filename in CANONICAL_V2_RELEASE_FILES:
+        content = (
+            b"% deterministic macro\n"
+            if filename.endswith(".tex")
+            else b'{"claim":"already-attested-structural-value"}\n'
+        )
+        (package / filename).write_bytes(content)
+        expected[filename] = content
+    _git(root, "init")
+    _git(root, "config", "user.email", "test@example.invalid")
+    _git(root, "config", "user.name", "Release Test")
+    _git(root, "add", ".")
+    _git(root, "commit", "-m", "fixture")
+    monkeypatch.setattr(
+        "app.reproducibility.release.validate_canonical_v2_for_release",
+        lambda *_args, **_kwargs: {
+            "status": "validated",
+            "package_file_count": 17,
+            "versionable_no_sensitive_text_claimed": True,
+        },
+    )
+
+    manifest = build_release(root=root, output_root=root / "build/releases", version="v2-bytes")
+    archive_path = root / "build/releases" / manifest["archive"]["path"]
+    with tarfile.open(archive_path, "r:gz") as archive:
+        for filename, content in expected.items():
+            member = next(
+                item
+                for item in archive.getmembers()
+                if item.name.endswith(f"/artifacts/peer_review_remediation/v2/{filename}")
+            )
+            extracted = archive.extractfile(member)
+            assert extracted is not None and extracted.read() == content
 
 
 def test_release_verifier_rejects_tampered_payload_even_when_content_scan_is_clean(tmp_path: Path) -> None:

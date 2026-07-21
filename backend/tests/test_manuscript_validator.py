@@ -43,3 +43,25 @@ def test_thesis_minimum_page_boundary() -> None:
 def test_citation_key_parser_deduplicates_at_policy_boundary() -> None:
     keys = VALIDATOR.citation_keys(r"\\cite{alpha,beta} and \\cite{alpha}")
     assert keys == ["alpha", "beta", "alpha"]
+
+
+def test_v2_numerical_results_must_use_generated_macros() -> None:
+    assert VALIDATOR.HAND_ENTERED_V2_RESULT.search(
+        "The remediation-v2 result was 75.0% on the held-out set."
+    )
+    assert VALIDATOR.HAND_ENTERED_V2_RESULT.search(
+        "The v2 evaluation used 12 cases."
+    )
+    assert not VALIDATOR.HAND_ENTERED_V2_RESULT.search(
+        r"The remediation-v2 result was \VTwoQAAnswerabilityPrecision{} "
+        r"with \VTwoQAAnswerabilityPrecisionCi{}."
+    )
+
+
+def test_positive_only_v2_topics_cannot_report_closed_world_metrics() -> None:
+    assert VALIDATOR.PROHIBITED_V2_TOPIC_RESULT.search(
+        "The v2 topic precision was 0.75."
+    )
+    assert not VALIDATOR.PROHIBITED_V2_TOPIC_RESULT.search(
+        "For v2 topics, precision and F1 were intentionally not estimated."
+    )

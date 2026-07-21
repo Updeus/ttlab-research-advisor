@@ -1,0 +1,36 @@
+{
+  "claim_boundary": "This raster-only synthetic fixture exercises the OCR pipeline; it is not TTLAB corpus OCR-accuracy evidence.",
+  "fixture_id": "ocr-scanned-fixture-v2",
+  "generation": {
+    "alpha": false,
+    "background": "white",
+    "body_font_size": 38,
+    "font_id": "dejavu-sans-system-v1",
+    "font_sha256": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
+    "foreground": "black",
+    "page_points": [
+      612,
+      792
+    ],
+    "pillow_version": "12.3.0",
+    "pymupdf_version": "1.28.0",
+    "raster_color_mode": "RGB",
+    "raster_pixels": [
+      1224,
+      1584
+    ],
+    "title_font_size": 52
+  },
+  "ground_truth_lines": [
+    "TTLAB OCR PIPELINE FIXTURE V2",
+    "Document ID: OCR-2026-0720",
+    "Full-paper evidence must remain traceable.",
+    "Page 1 records rainfall, crop price, and energy demand.",
+    "Values: 23 manuals; 116 schools; alpha = 0.5.",
+    "Symbols: ARIMA, SARIMAX, JSON, XML, and RAG.",
+    "This raster-only page has no embedded text layer."
+  ],
+  "ground_truth_text": "TTLAB OCR PIPELINE FIXTURE V2 Document ID: OCR-2026-0720 Full-paper evidence must remain traceable. Page 1 records rainfall, crop price, and energy demand. Values: 23 manuals; 116 schools; alpha = 0.5. Symbols: ARIMA, SARIMAX, JSON, XML, and RAG. This raster-only page has no embedded text layer.",
+  "page_count": 1,
+  "schema_version": 2
+}

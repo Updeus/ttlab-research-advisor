@@ -4,16 +4,12 @@
   "generator_sha256": "42c61aecf78628ff5fcc24f7537db287d57fe6cd35ec18dbd22317e10b723253",
   "generation_provenance": {
     "committed_base": {
-      "commit": "4eb01d5daddd396648917969fd30a2e99e4e77ff",
-      "tree": "05cebf1d8869859bb17f65a9196b7a9c3560d281"
+      "commit": "10fe54f85785cc64c1f5e29dba1e003db4f95ea2",
+      "tree": "8fe382af35f8417327b724690adbe970201bb60a"
     },
     "working_tree": {
-      "dirty": true,
-      "status_porcelain_before_generation": [
-        "M thesis/generated/evidence_snapshot.json",
-        " M thesis/generated/manuscript_metrics_manifest.json",
-        " M thesis/generated/runtime_probe.json"
-      ]
+      "dirty": false,
+      "status_porcelain_before_generation": []
     },
     "expected_generated_output_boundary": [
       "paper/generated/**",
@@ -195,7 +191,7 @@
   "outputs": {
     "metrics": {
       "path": "paper/generated/metrics.tex",
-      "sha256": "229334f6e3debf5023bac76df80223777508fe99316973517772dc18e3ede458"
+      "sha256": "63886d88c504aaa461a6b4a21431328560b8b85ba6193ab41c79c24a4790ef34"
     },
     "retrieval_rows": {
       "path": "paper/generated/retrieval_rows.tex",

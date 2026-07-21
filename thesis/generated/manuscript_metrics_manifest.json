@@ -3,8 +3,8 @@
   "generator": "thesis/scripts/generate_manuscript_assets.py",
   "generation_provenance": {
     "committed_base": {
-      "commit": "4eb01d5daddd396648917969fd30a2e99e4e77ff",
-      "tree": "05cebf1d8869859bb17f65a9196b7a9c3560d281",
+      "commit": "10fe54f85785cc64c1f5e29dba1e003db4f95ea2",
+      "tree": "8fe382af35f8417327b724690adbe970201bb60a",
       "backend_dirty": false
     },
     "exact_generator": {

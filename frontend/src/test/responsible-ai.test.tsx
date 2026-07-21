@@ -59,7 +59,7 @@ const indexDiagnostics = {
   chunks_indexed_for_keyword_search: 1,
   chunks_indexed_for_feature_hashing: 1,
   chunks_indexed_for_dense_search: 0,
-  chunks_indexed_for_semantic_search: 1,
+  chunks_indexed_for_semantic_search: null,
   embedding_provider: "feature_hashing",
   embedding_dimensions: 384,
   index_path: "redacted",

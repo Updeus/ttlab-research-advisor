@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
+from app.config import Settings, get_settings
 from app.db import get_session
 from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.main import app
@@ -125,6 +126,10 @@ def test_api_papers_returns_imported_records() -> None:
             yield session
 
     app.dependency_overrides[get_session] = override_session
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        default_llm_provider="ollama",
+        allowed_llm_providers=["offline_extractive", "ollama"],
+    )
     try:
         client = TestClient(app)
         response = client.get("/api/papers")
@@ -145,5 +150,6 @@ def test_api_papers_returns_imported_records() -> None:
         stats = client.get("/api/stats")
         assert stats.status_code == 200
         assert stats.json()["total_chunks"] == 1
+        assert stats.json()["default_ask_provider"] == "ollama"
     finally:
         app.dependency_overrides.clear()

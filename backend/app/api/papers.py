@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, func, select
 
+from app.config import Settings, get_settings
 from app.db import get_session
 from app.evaluation.dashboard import evaluation_files_present, latest_evaluation_timestamp
 from app.indexing.embedder import eligible_chunks
@@ -134,7 +135,10 @@ def search_chunks(
 
 
 @router.get("/stats")
-def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
+def get_stats(
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, object]:
     papers = public_papers(session)
     public_ids = {paper.paper_id for paper in papers}
     total = len(papers)
@@ -197,7 +201,7 @@ def get_stats(session: Annotated[Session, Depends(get_session)]) -> dict[str, ob
         "feature_hashing_index_status": index_health["feature_hashing"]["status"],
         "dense_index_status": index_health["dense"]["status"],
         "index_health": index_health,
-        "default_ask_provider": "offline_extractive",
+        "default_ask_provider": settings.default_llm_provider,
         "evaluation_files_present": eval_files,
         "evaluation_last_run_at": latest_evaluation_timestamp(),
         "top_topics": top_topics,

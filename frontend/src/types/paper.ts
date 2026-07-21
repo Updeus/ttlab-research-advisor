@@ -124,7 +124,7 @@ export type PaperChunk = {
   source_hash: string | null;
 };
 
-export type SearchMode = "keyword" | "feature_hashing" | "dense" | "hybrid" | "semantic";
+export type SearchMode = "keyword" | "feature_hashing" | "dense" | "hybrid";
 
 export type IndexDiagnostics = {
   embedding_provider: string;
@@ -183,7 +183,7 @@ export type SearchDiagnostics = {
   searchable_chunks: number;
   searchable_papers: number;
   chunks_indexed_for_keyword_search: number;
-  chunks_indexed_for_semantic_search: number;
+  chunks_indexed_for_semantic_search: null;
   chunks_indexed_for_feature_hashing: number;
   chunks_indexed_for_dense_search: number;
   embedding_provider: string;

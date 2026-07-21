@@ -241,7 +241,7 @@ manifest records `package_source=source_commit_tracked` and
 `tracked_in_source_commit=true`.
 
 The current local standalone outputs are `build/ieee-paper.pdf` at 6 Letter
-pages and `build/thesis.pdf` at 86 A4 pages. These counts are an intermediate
+pages and `build/thesis.pdf` at 88 A4 pages. These counts are an intermediate
 workspace observation, not the final candidate attestation. Source-candidate
 acceptance separately rebuilds, recounts, preflights, and visually inspects both
 PDFs and records the resulting counts plus both commit identities in the

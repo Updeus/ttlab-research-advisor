@@ -14,10 +14,13 @@ This protocol separates four kinds of evidence:
 Only the first three can be produced from the repository. A green test suite or
 a structurally cited answer is never substituted for a quality judgment.
 
-## Historical v1 execution registry
+## Post-remediation v1-form execution registry
 
-The rows below are retained descriptive v1 evidence. They are not upgraded or
-relabeled as prospective evidence after remediation.
+The rows below describe the exact v1-form re-execution used by the current
+manuscripts. It ran at commit
+`73092e48f173b74f726659bd5b98224545ac23bb` against technical snapshot
+`corpus-f4638c633bea82b0`. This is descriptive AI-assisted offline evidence;
+it is not relabeled as prospective or human evidence.
 
 | Evaluation | Status at this snapshot | Cases/units | Primary evidence |
 |---|---|---:|---|
@@ -25,19 +28,19 @@ relabeled as prospective evidence after remediation.
 | Section labeling | Executed, AI silver | 40 chunks | `data/evaluation/section_quality_silver_v1.jsonl` |
 | Retrieval baselines/tuning/ablations | Executed, AI silver | 50 queries (30 dev/20 test) | `artifacts/phase2/retrieval/` |
 | RAG claim/citation review | Executed, AI-assisted formative | 50 QA cases | `artifacts/phase3/qa/` |
-| Recommendation comparison | Executed, AI-assisted proxy | 28 profiles; 84 items/arm | `artifacts/phase4/recommendation_proxy_v1/` |
+| Recommendation comparison | Executed, AI-assisted proxy | 28 profiles; 84 evidence-only items and 67 full-Finder items | `artifacts/phase4/recommendation_proxy_v1/` |
 | Topic classification and author audit | Executed, AI silver | 60 papers; 39 labels | `artifacts/phase4/topic_author/` |
 | Persisted generated-output review | Executed, AI review | 48 outputs | `artifacts/phase4/generated_output_review/` |
 | External format sanity | Executed | 3 CC BY documents/queries | `artifacts/phase6/external_sanity/` |
 | Full performance profile | Executed and independently validated | 17 stages; 102 timed/RSS samples | `artifacts/phase6/performance/` |
 | Human usability/advisory validation | Not conducted | No participants | external/future study only |
-| Peer-review remediation v2 | Prospectively specified; completion is established only by the canonical package manifest and attestation | 18 Ask cases; 10 Finder profiles; 12 topic cases; one deterministic OCR fixture | `data/evaluation/peer_review_remediation_v2_protocol.json`; when run, `artifacts/peer_review_remediation/v2/` |
+| Peer-review remediation v2 | Prospectively frozen, executed, and validated; completion is established only by the canonical package manifest and attestation | 18 Ask cases; 10 Finder profiles; 12 topic cases; one deterministic OCR fixture | `data/evaluation/peer_review_remediation_v2_protocol.json`; `artifacts/peer_review_remediation/v2/` |
 
-## Historical v1 corpus and common controls
+## Current v1-form corpus and common controls
 
 All corpus-dependent quality experiments use snapshot
-`corpus-04a010207327069a`, hash
-`04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5`,
+`corpus-f4638c633bea82b0`, hash
+`f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1`,
 with 96 eligible papers and 719 eligible chunks. Sixteen chunks from two
 metadata/PDF mismatches are excluded, and 36 catalogue-only/no-text records
 remain out of the experimental corpus. The keyword, 256-dimensional feature-
@@ -49,14 +52,23 @@ seeds, raw per-case output, aggregate result, and limitations. A manifest or
 validator failure invalidates the associated aggregate; a missing result is
 `not_run`, not zero.
 
+The independent-audit baseline remains immutable at commit
+`b561fa73c1de50569d7e76261b2aa37195524c21`, snapshot
+`corpus-04a010207327069a`, and snapshot hash
+`04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5`.
+Its values are retained below as explicitly labeled audit-baseline evidence;
+they are not the measurements consumed by the current paper or thesis. The
+audit-baseline and post-remediation v1-form measurements are not a paired
+before/after experiment.
+
 The v2 run does not silently inherit this historical identity. Its `prepare`
 gate recomputes and freezes the current generation-linked technical corpus,
 effective retrieval-source hashes (including retrieval-affecting metadata),
 source PDF/extraction/chunk artifact inventory, exact code/lock identities, and
 the public-selection predicate that is recorded but not exercised.
 
-Historical QA and prospective-v2 QA are offline technical-corpus evaluations,
-not evaluations of the anonymous public projection. Their runners pass
+Current v1-form QA and prospectively frozen v2 QA are offline technical-corpus
+evaluations, not evaluations of the anonymous public projection. Their runners pass
 `retrieval_scope=technical` explicitly and record that scope in requests and
 manifests. The public projection remains independently fail-closed until the
 rights and review ledger permits publication; querying that empty projection
@@ -155,7 +167,18 @@ corrects all available tuned-vs-baseline metric comparisons as one experiment
 family at alpha 0.05. The unit is the query; the procedure does not model silver
 label or corpus-selection uncertainty.
 
-### Held-out results and interpretation
+### Current post-remediation held-out result
+
+The exact v1-form re-execution at
+`73092e48...`/`corpus-f4638c633bea82b0` produced held-out MRR 0.947368 for
+keyword, 0.938596 for learned dense, and 0.912281 for the development-tuned
+hybrid. Keyword remained strongest, so hybrid superiority was not demonstrated.
+These are the retrieval values used by the current manuscripts.
+
+### Audit-baseline held-out table retained
+
+For traceability, the table below is the independent-audit baseline at
+`b561fa73...`/`corpus-04a010207327069a`; it is not current manuscript evidence.
 
 | Mode | Set Recall@3 (95% CI) | Set Recall@10 | MRR (95% CI) | nDCG@10 (95% CI) |
 |---|---:|---:|---:|---:|
@@ -165,8 +188,8 @@ label or corpus-selection uncertainty.
 | Heuristic hybrid | 0.7947 [0.6105, 0.9474] | 0.9167 | 0.8132 [0.6500, 0.9474] | 0.8293 [0.6908, 0.9394] |
 | Tuned hybrid | 0.8561 [0.7070, 0.9737] | 0.9254 | 0.8596 [0.7193, 0.9737] | 0.8713 [0.7443, 0.9674] |
 
-The tuned hybrid did not demonstrate superiority. Its MRR difference versus
-keyword was -0.0877 (paired bootstrap 95% CI -0.2368 to 0.0439) and versus
+At the audit baseline, the tuned hybrid did not demonstrate superiority. Its
+MRR difference versus keyword was -0.0877 (paired bootstrap 95% CI -0.2368 to 0.0439) and versus
 dense was -0.0789 (-0.1754 to 0). It exceeded feature hashing by 0.2719
 (0.0263 to 0.5175), but the paired randomization p-value was 0.0605 and the
 family-adjusted p-value was 1.0. None of 28 family-corrected contrasts rejected
@@ -180,10 +203,11 @@ attribution. All failures remain in the raw artifacts.
 ## RAG claim and citation evaluation
 
 The 50-case QA set includes 46 answerable and four unanswerable cases. The
-offline extractive heuristic-hybrid answerer produced 400 checkable claims and
-81 answer points. The AI review assigns `supported`, `partial`, or
-`unsupported` to each claim; citation links are `correct`, `partial`, or
-`incorrect`; answer points are `covered`, `partial`, or `omitted`.
+post-remediation offline extractive answerer produced 334 checkable claims (331
+supported, three partial, none unsupported) and retained 81 answer points. The
+AI review assigns `supported`, `partial`, or `unsupported` to each claim;
+citation links are `correct`, `partial`, or `incorrect`; answer points are
+`covered`, `partial`, or `omitted`.
 
 Strict metrics give no credit for partial labels. Weighted supplements award
 0.5 to partial labels and are clearly named. Citation completeness asks whether
@@ -193,7 +217,17 @@ decisions, while unanswerable abstention rate isolates the four unanswerable
 cases. Fixed-seed 10,000-repetition confidence intervals resample QA cases as
 clusters.
 
-Headline results are:
+The current manuscript results are citation correctness 0.652695, returned-
+citation utilization 1.000000, strict answer-point coverage 11/81 = 0.135802, and
+unanswerable abstention 1/4. The high utilization value means that returned
+claims used citations; it does not establish that those citations were correct,
+that claims were entailed, or that the answer covered the requested points.
+
+For audit traceability, the table below retains the independent-audit baseline
+at `b561fa73...`/`corpus-04a010207327069a`; it is not current manuscript
+evidence. That run contained 400 checkable claims, recorded citation
+correctness 0.625, returned-citation utilization 0.592, strict answer-point coverage
+0.1358, and abstained on 0/4 unanswerable cases:
 
 | Metric | Estimate | 95% CI |
 |---|---:|---:|
@@ -206,8 +240,8 @@ Headline results are:
 | Abstention accuracy | 0.9200 | [0.8400, 0.9800] |
 | Unanswerable abstention rate | 0.0000 | [0.0000, 0.0000] |
 
-The apparent combination of high claim support and low answer-point coverage is
-not contradictory: extractive sentences can be supported while answering the
+At the audit baseline, the apparent combination of high claim support and low
+answer-point coverage is not contradictory: extractive sentences can be supported while answering the
 wrong or incomplete part of the question. Forty-four cases were incomplete, 42
 had off-topic retrieval, 14 missed within-paper evidence, and all four
 unanswerable cases failed to abstain. Therefore runtime `grounded` must not be
@@ -219,7 +253,8 @@ reported.
 
 ## Recommendation proxy evaluation
 
-Twenty-eight synthetic profiles produce three ranked items per arm (84 each).
+Twenty-eight synthetic profiles yielded 84 ranked evidence-only items and 67
+full-Finder items; 17 evidence-only items had no full-Finder counterpart.
 The evidence-only baseline returns papers and passages. The full Finder adds
 structured fact/gap/suggestion separation, MVP/stretch scope, risk, skills,
 data, and evaluation-plan fields. The evaluator calls the explicitly authorized
@@ -227,14 +262,18 @@ technical scope with `persist=False`, leaving live recommendation rows
 unchanged. This is an offline experiment boundary, not evidence about public
 request behavior or the independently governed public projection.
 
-The evidence-only paper-relevance score was 0.6310 (95% CI 0.5238–0.7262); the
-full Finder score was 0.6548 (0.5595–0.7500). The paired difference was 0.0238
-(-0.0238 to 0.0714), so improvement is not demonstrated. All 84 full-Finder
-items passed source fidelity, fact/future-work/gap/suggestion separation,
-novelty caution, MVP, stretch-goal, risk, and skills checks. All 84 feasibility
-judgments were partial because source evidence cannot establish a student's
-actual capacity or data access. Evaluation plans had 72 passes and 12 partials.
-These are AI-proxy rubric judgments, not student ratings.
+The current zero-filled full-minus-evidence-only relevance difference was
+-0.035714 (95% CI -0.119048 to 0.047619), so improvement was not demonstrated.
+Feasibility and usefulness failed for all 67 returned full-Finder items. These
+are AI-proxy rubric judgments, not student ratings or real-world feasibility
+evidence.
+
+The independent-audit baseline at
+`b561fa73...`/`corpus-04a010207327069a` conditionally compared 84 items per arm
+and recorded evidence-only relevance 0.6310, full-Finder relevance 0.6548, and
+a difference of 0.0238 (95% CI -0.0238 to 0.0714), with all 84 feasibility
+judgments partial. Those conditional-arm values are retained only as
+audit-baseline evidence and are not used by the current manuscripts.
 
 The weights (0.30 retrieval, 0.20 interest, 0.15 skills, 0.10 each data/time/
 difficulty, 0.05 evidence) are hand-authored. Twenty-two configurations (the
@@ -264,14 +303,19 @@ remain unresolved for external identity confirmation.
 
 ## Persisted generated-output review
 
-All 48 stored outputs (27 RAG answers, seven recommendations, 14 paper
-artifacts) received one attributable AI review event. Fourteen artifacts and
-seven recommendations are `ai_reviewed`; 27 historical RAG answers are
-`needs_reprocess` because their original paper scope, audience, or word-limit
-configuration cannot be reproduced safely. The review retained 269 citation
-evidence locators. Event-chain verification covered 48/48 events, and a second
-live pass created zero events and changed zero records. `ai_reviewed` is not
-human approval.
+The re-execution at source commit
+`0d4b9bdcb657034beab5c288ab174983eb0760e3` inspected all 48 stored outputs (27
+RAG answers, seven recommendations, and 14 paper artifacts). Fourteen artifacts
+and seven recommendations have target state `ai_reviewed`; 27 historical RAG
+answers have target state `needs_reprocess` because their original paper scope,
+audience, or word-limit configuration cannot be reproduced safely. The review
+retained 221 citation-evidence locators. On the isolated target copy it created
+21 new versioned events and changed those 21 artifact/recommendation records,
+while reusing 27 existing RAG version events. It verified the resulting
+69-event chain; a second pass created/changed zero and skipped all 48 items.
+The disposable proof records `live_database_mutated=false`, so these are
+revision-bound reproduction results rather than current operational-database
+state. `ai_reviewed` is not human approval.
 
 ## Performance and external-validity protocol
 
@@ -280,8 +324,8 @@ at concurrency one for each of 17 stages. All 102 samples include elapsed time,
 processed units, success/failure, and process maximum RSS; aggregates are median
 and linearly interpolated p95. The artifact records WSL2, AMD Ryzen 7 5800X,
 16 logical CPUs, 3.8 GiB RAM, software/lock versions, corpus counts, unchanged
-database SHA-256, clean source commit `5ccf22e`, and provenance digest
-`61378b9a...`. All 102 samples succeeded. Three repetitions provide a coarse
+database SHA-256 `82b715d3...`, clean source commit `73092e48`, and provenance
+digest `2a71252d...`. All 102 samples succeeded. Three repetitions provide a coarse
 p95 and cannot support a service-level objective, multi-user capacity claim,
 or asymptotic scaling claim.
 
@@ -291,10 +335,11 @@ chunker contract, and produced 3/3 expected fixed lexical top-one matches. It
 did not exercise the main PDF-ingestion path and is not cross-domain retrieval-
 quality evidence.
 
-## Prospective remediation-v2 protocol
+## Prospectively frozen remediation-v2 protocol and accepted execution
 
-The immutable v1 files above remain historical post-selection descriptions.
-The source-first v2 protocol is a new, fixed execution designed to evaluate the
+The post-remediation v1-form files above remain descriptive post-selection
+evidence. They are current manuscript inputs but are not relabeled as v2. The
+source-first v2 protocol is a separate fixed execution designed to evaluate the
 remediated selective-response and Finder contracts without tuning on held-out
 outputs. Its scope is the current generation-linked **technical** corpus; it
 records the independent public predicate but sets

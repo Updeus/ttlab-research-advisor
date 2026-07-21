@@ -69,9 +69,14 @@ projection is empty until an authorized human administrator supplies per-paper
 decisions. The protected Admin Publication Preview is labeled `NOT PUBLIC` and
 is never used as a fallback for public routes.
 
-The immutable historical-v1 experimental corpus is
-`corpus-04a010207327069a`. It is retained for comparison and is not described as
-the current remediation snapshot; the latter is bound only by the completed v2
+The independent-audit baseline at commit
+`b561fa73c1de50569d7e76261b2aa37195524c21` used snapshot
+`corpus-04a010207327069a`. Those values remain immutable audit evidence; they
+are not the evidence used by the current manuscripts. The post-remediation
+v1-form experiments were executed at commit
+`73092e48f173b74f726659bd5b98224545ac23bb` against
+`corpus-f4638c633bea82b0`. The prospective v2 package uses that same technical
+snapshot but different cases and protocols and is bound separately by its
 freeze receipt and manifest:
 
 | Inventory | Count |
@@ -86,25 +91,28 @@ freeze receipt and manifest:
 | Feature-hashing index coverage | 719/719 |
 | Learned-dense index coverage | 719/719 |
 
-The following measurements are retained **historical v1 AI-assisted evidence**;
-they describe the pre-remediation snapshot above and are not current-runtime or
-prospective-v2 results. The Phase 2 held-out retrieval set has 20 cases (19 answerable, one
-unanswerable). Keyword retrieval led MRR at 0.9474; dense MRR was 0.9386;
-tuned-hybrid MRR was 0.8596. No tuned-vs-baseline comparison survived the
-Holm-Bonferroni experiment-family correction. The result is a negative finding
-for hybrid superiority, not a reason to hide the baseline.
+The post-remediation **v1-form AI-assisted evidence** is historical relative to
+v2, not delivery-HEAD measurement. Its Phase 2 held-out retrieval set has 20
+cases (19 answerable, one unanswerable). Keyword, learned-dense, and
+development-tuned-hybrid MRR were 0.947368, 0.938596, and 0.912281. No corrected
+comparison established tuned-hybrid superiority.
 
-The 50-case AI-assisted QA review found strict supported-claim rate 0.995, but
-citation correctness 0.625, strict answer-point coverage 0.1358, and zero
-abstentions on four unanswerable cases. The 28-profile recommendation proxy
-study found a full-minus-evidence-only relevance difference of 0.0238 (95% CI
--0.0238 to 0.0714), which does not demonstrate improvement. These are AI-
-reviewed formative/proxy results, not human ratings.
+The 50-case QA review segmented 334 checkable claims: 331 supported, three
+partially supported, and none unsupported. Citation correctness was 0.652695,
+strict answer-point coverage remained 11/81 (0.135802), returned-citation
+utilization was 1.0, and one of four unanswerable cases abstained. In the
+28-profile Finder proxy, evidence-only ranking filled 84 requested slots and
+the full Finder filled 67, leaving 17 explicit shortfalls. With missing slots
+scored as zero, the full-minus-evidence relevance difference was -0.035714 (95%
+CI -0.119048 to 0.047619); all 67 returned full-Finder items failed the
+source-evidence rubric for feasibility and AI-proxy usefulness. These are
+AI-reviewed formative/proxy results, not human ratings or proof that a project
+is infeasible.
 
 The validated full performance profile completed all 17 required stages with
 102 timed samples, 102 maximum-RSS records, and zero failures. It ran on WSL2
-Linux using an AMD Ryzen 7 5800X, 16 logical CPUs, 4,012,360 KiB visible RAM,
-CPU execution, Python 3.12.3, Node 24.14.1, and npm 11.11.0. This is a bounded,
+Linux using an AMD Ryzen 7 5800X, 16 logical CPUs, 4,012,364 KiB visible RAM,
+CPU execution, Python 3.12.3, Node 20.20.2, and npm 10.8.2. This is a bounded,
 single-process, concurrency-one local baseline; three repetitions give only
 descriptive medians/p95 values and do not establish capacity, saturation,
 multi-user behaviour, or production service levels.
@@ -115,8 +123,8 @@ did not exercise the main PDF acquisition/extraction path and is neither a
 cross-domain retrieval-quality result nor broad external validation.
 
 The current local manuscript build contains a 6-Letter-page IEEEtran paper
-with 21 cited references at `build/ieee-paper.pdf` and an 86-A4-page thesis at
-`build/thesis.pdf`. The exact final-candidate counts belong in the peer-review
+with 21 cited references at `build/ieee-paper.pdf` and an 88-A4-page thesis
+with 38 cited references at `build/thesis.pdf`. The exact final-candidate counts belong in the peer-review
 readiness report and must be remeasured after the clean reproduction. An
 editable Word derivative is available at
 `build/thesis-editable.docx`; it preserves native Word text, tables, equations,

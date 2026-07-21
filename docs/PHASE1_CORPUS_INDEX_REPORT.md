@@ -1,5 +1,11 @@
 # Phase 1 Corpus and Index Integrity Report
 
+> **Archived Phase 1 execution record.** The values in this report are bound to
+> `corpus-04a010207327069a` and are retained as audit-baseline evidence. They
+> must not be read as the current manuscript snapshot. Post-remediation v1-form
+> and v2 evidence use `corpus-f4638c633bea82b0`; current delivery boundaries are
+> summarized in `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`.
+
 ## Scope and evidence boundary
 
 This report records the executed Phase 1 state after metadata repair, PDF/title

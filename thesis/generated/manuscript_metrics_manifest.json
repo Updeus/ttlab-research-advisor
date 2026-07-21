@@ -3,13 +3,13 @@
   "generator": "thesis/scripts/generate_manuscript_assets.py",
   "generation_provenance": {
     "committed_base": {
-      "commit": "335989b5d9dfff93fcd8ee09d6ecd1e0fa522dc4",
-      "tree": "d2698f86dd810db64c7a6aaf812248d28a1de2d7",
+      "commit": "2676314708ef05f95b827823769fbe40681b56cd",
+      "tree": "8d58605d831360ec5df392030ac1b7396235ff1b",
       "backend_dirty": false
     },
     "exact_generator": {
       "path": "thesis/scripts/generate_manuscript_assets.py",
-      "sha256": "cae28d7474da027bdd95a32385244eab9160366ca143d6f1d9dc4f92d08c0bcb"
+      "sha256": "45429f4828b3ebce80b223a5340959412569b7b5493c5806bf0fbb09786c50f7"
     },
     "expected_manuscript_output_dirty_boundary": [
       "thesis/generated/**",
@@ -33,7 +33,7 @@
   "sources": {
     "evidence_snapshot": {
       "path": "thesis/generated/evidence_snapshot.json",
-      "sha256": "6fc481a1eefcb0e33d19eefbbe38864195d96bef730b688adca5a61d144dd648"
+      "sha256": "9f391e953e269c74a463c328e36848d2620ecdedf4cadba14556c1fd0c77ba82"
     },
     "phase1": {
       "path": "artifacts/phase1/phase1_evidence.json",
@@ -184,7 +184,7 @@
   "outputs": {
     "macros": {
       "path": "thesis/generated/evidence_macros.tex",
-      "sha256": "54ccec19de617039f22a82bdbb59f905d3871d2877e7507401c2e8e414f86d97"
+      "sha256": "833397c8915da67d379c6e55fe901b28ff225b06cfd5adf91c90b0806d2eaad3"
     },
     "retrieval_csv": {
       "path": "thesis/generated/retrieval_results.csv",
@@ -219,7 +219,7 @@
     "EligibleUnknownChunkCount": 199,
     "EligibleUnknownChunkPercent": "27.7",
     "ExtractedPageCount": 698,
-    "ExtractedWordCount": "455,601",
+    "ExtractedWordCount": "455,532",
     "SectionSilverAccuracy": "0.900",
     "SectionSilverCaseCount": 40,
     "SectionSilverMacroPrecision": "0.892",
@@ -327,6 +327,12 @@
     "GeneratedAiReviewedCount": 21,
     "GeneratedNeedsReprocessCount": 27,
     "GeneratedReviewEventCount": 21,
+    "GeneratedReviewChangedCount": 21,
+    "GeneratedReviewReusedCount": 27,
+    "GeneratedReviewVerifiedEventCount": 69,
+    "GeneratedReviewSecondPassCreatedCount": 0,
+    "GeneratedReviewSecondPassChangedCount": 0,
+    "GeneratedReviewSecondPassSkippedCount": 48,
     "ExternalSanityDocumentCount": 3,
     "ExternalSanityTopOneCount": 3,
     "ExternalSanityChunkCount": 70,

@@ -396,6 +396,20 @@ def main(argv: list[str] | None = None) -> None:
         "GeneratedAiReviewedCount": review_counts["by_target_status"]["ai_reviewed"],
         "GeneratedNeedsReprocessCount": review_counts["by_target_status"]["needs_reprocess"],
         "GeneratedReviewEventCount": generated_review["apply_result"]["created_events"],
+        "GeneratedReviewChangedCount": generated_review["apply_result"]["changed_records"],
+        "GeneratedReviewReusedCount": generated_review["apply_result"]["skipped_existing"],
+        "GeneratedReviewVerifiedEventCount": generated_review["apply_result"][
+            "review_event_integrity"
+        ]["verified_events"],
+        "GeneratedReviewSecondPassCreatedCount": generated_review["apply_result"][
+            "live_second_pass"
+        ]["created_events"],
+        "GeneratedReviewSecondPassChangedCount": generated_review["apply_result"][
+            "live_second_pass"
+        ]["changed_records"],
+        "GeneratedReviewSecondPassSkippedCount": generated_review["apply_result"][
+            "live_second_pass"
+        ]["skipped_existing"],
         "ExternalSanityDocumentCount": external_sanity["sanity_check"]["case_count"],
         "ExternalSanityTopOneCount": external_sanity["sanity_check"]["top_1_matches"],
         "ExternalSanityChunkCount": sum(document["chunk_count"] for document in external_sanity["documents"]),

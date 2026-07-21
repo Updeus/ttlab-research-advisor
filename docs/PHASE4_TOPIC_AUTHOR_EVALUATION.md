@@ -1,5 +1,13 @@
 # Phase 4.2 Topic and Author Evaluation
 
+> **Archived Phase 4 execution record.** This report remains bound to the
+> original Phase 1 snapshot `corpus-04a010207327069a`. Its labels and metrics
+> are preserved rather than silently relabelled as current. Post-remediation
+> manuscript evidence uses the separately executed v1-form artifacts at commit
+> `73092e48f173b74f726659bd5b98224545ac23bb` and snapshot
+> `corpus-f4638c633bea82b0`; see
+> `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`.
+
 ## Evidence boundary
 
 This report evaluates the controlled topic vocabulary and publication-derived

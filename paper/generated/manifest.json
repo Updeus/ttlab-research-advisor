@@ -4,47 +4,15 @@
   "generator_sha256": "42c61aecf78628ff5fcc24f7537db287d57fe6cd35ec18dbd22317e10b723253",
   "generation_provenance": {
     "committed_base": {
-      "commit": "2676314708ef05f95b827823769fbe40681b56cd",
-      "tree": "8d58605d831360ec5df392030ac1b7396235ff1b"
+      "commit": "4eb01d5daddd396648917969fd30a2e99e4e77ff",
+      "tree": "05cebf1d8869859bb17f65a9196b7a9c3560d281"
     },
     "working_tree": {
       "dirty": true,
       "status_porcelain_before_generation": [
-        "M README.md",
-        " M artifacts/phase6/reproduction/manuscript_preflight.json",
-        " M build/ieee-paper.pdf",
-        " M build/thesis.pdf",
-        " M docs/DECISION_LOG.md",
-        " M docs/EVALUATION_PLAN.md",
-        " M docs/EVALUATION_PROTOCOL.md",
-        " M docs/FEATURE_MATRIX.md",
-        " M docs/FINAL_STATUS.md",
-        " M docs/METHODOLOGY.md",
-        " M docs/PHASE1_CORPUS_INDEX_REPORT.md",
-        " M docs/PHASE4_GENERATED_OUTPUT_REVIEW.md",
-        " M docs/PHASE4_TOPIC_AUTHOR_EVALUATION.md",
-        " M docs/REPRODUCIBILITY.md",
-        " M docs/REVIEW_REMEDIATION_MATRIX.md",
-        " M docs/SUPERVISOR_DEMO_SCRIPT.md",
-        " M docs/peer_review_readiness/CLAIM_EVIDENCE_MATRIX.md",
-        " M docs/peer_review_readiness/CROSS_DOCUMENT_CONSISTENCY.md",
-        " M docs/peer_review_readiness/REMEDIATION_MATRIX.csv",
-        " M paper/generated/manifest.json",
-        " M paper/generated/metrics.tex",
-        " M paper/ieee-paper.tex",
-        " M thesis/PROJECT_EVIDENCE.md",
-        " M thesis/chapters/00_abstract.tex",
-        " M thesis/chapters/08_implementation.tex",
-        " M thesis/chapters/10_results.tex",
-        " M thesis/chapters/11_discussion.tex",
-        " M thesis/chapters/12_limitations_ethics_validity.tex",
-        " M thesis/chapters/13_conclusion_future_work.tex",
-        " M thesis/generated/evidence_macros.tex",
-        " M thesis/generated/evidence_snapshot.json",
+        "M thesis/generated/evidence_snapshot.json",
         " M thesis/generated/manuscript_metrics_manifest.json",
-        " M thesis/generated/runtime_probe.json",
-        " M thesis/scripts/generate_manuscript_assets.py",
-        "?? docs/peer_review_readiness/FINAL_READINESS_REPORT.md"
+        " M thesis/generated/runtime_probe.json"
       ]
     },
     "expected_generated_output_boundary": [
@@ -227,7 +195,7 @@
   "outputs": {
     "metrics": {
       "path": "paper/generated/metrics.tex",
-      "sha256": "1aa6e16eebca4594f7b5c079e95799e2726ee1541de96925818265f634da600c"
+      "sha256": "229334f6e3debf5023bac76df80223777508fe99316973517772dc18e3ede458"
     },
     "retrieval_rows": {
       "path": "paper/generated/retrieval_rows.tex",

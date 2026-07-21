@@ -3,8 +3,8 @@
   "generator": "thesis/scripts/generate_manuscript_assets.py",
   "generation_provenance": {
     "committed_base": {
-      "commit": "2676314708ef05f95b827823769fbe40681b56cd",
-      "tree": "8d58605d831360ec5df392030ac1b7396235ff1b",
+      "commit": "4eb01d5daddd396648917969fd30a2e99e4e77ff",
+      "tree": "05cebf1d8869859bb17f65a9196b7a9c3560d281",
       "backend_dirty": false
     },
     "exact_generator": {
@@ -33,7 +33,7 @@
   "sources": {
     "evidence_snapshot": {
       "path": "thesis/generated/evidence_snapshot.json",
-      "sha256": "9f391e953e269c74a463c328e36848d2620ecdedf4cadba14556c1fd0c77ba82"
+      "sha256": "cd0fba072d26cada24df1593847939bd6b53ffb191c60323795227afa2470016"
     },
     "phase1": {
       "path": "artifacts/phase1/phase1_evidence.json",

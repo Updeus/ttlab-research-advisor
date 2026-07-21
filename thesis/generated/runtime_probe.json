@@ -3,8 +3,8 @@
   "probe_version": "thesis-runtime-probe-v2",
   "generation_provenance": {
     "committed_base": {
-      "commit": "2676314708ef05f95b827823769fbe40681b56cd",
-      "tree": "8d58605d831360ec5df392030ac1b7396235ff1b",
+      "commit": "4eb01d5daddd396648917969fd30a2e99e4e77ff",
+      "tree": "05cebf1d8869859bb17f65a9196b7a9c3560d281",
       "backend_dirty": false
     },
     "exact_probe": {

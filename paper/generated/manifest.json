@@ -4,14 +4,13 @@
   "generator_sha256": "a93def5e59fd818ec3f9a5f64326cac26f69063d115d995361d79669b1020bb9",
   "generation_provenance": {
     "committed_base": {
-      "commit": "0590f3e168e41ad9227afa9d01c0d84b39bc60a1",
-      "tree": "1601a3a051e437fe314cc2543338434f809aa076"
+      "commit": "72ae7e5e0c7acccba808a8caead5d935a9d86ea4",
+      "tree": "2fbadee3b66e22761a24f2b8dbfb9ccd61333678"
     },
     "working_tree": {
       "dirty": true,
       "status_porcelain_before_generation": [
         "M README.md",
-        " M build/ieee-paper.pdf",
         " M build/thesis.pdf",
         " M docs/DATA_AND_ARTIFACT_AVAILABILITY.md",
         " M docs/DEPLOYMENT.md",
@@ -32,8 +31,6 @@
         " M docs/THREAT_MODEL.md",
         " M docs/peer_review_readiness/HUMAN_REQUIRED_ITEMS.md",
         " M docs/screenshots/README.md",
-        " M paper/generated/manifest.json",
-        " M paper/generated/metrics.tex",
         " M paper/ieee-paper.tex",
         " M thesis/chapters/00_abstract.tex",
         " M thesis/chapters/01_introduction.tex",
@@ -149,7 +146,7 @@
   "outputs": {
     "metrics": {
       "path": "paper/generated/metrics.tex",
-      "sha256": "6cab9fa2bd8354f2a26fe3046f02ec6e88c7184f5ee7bc703ca6a50288a605d9"
+      "sha256": "88bd4ef0a47858001cf7554964cd71655b12def50e9bdef9c3d5976763dc8583"
     },
     "retrieval_rows": {
       "path": "paper/generated/retrieval_rows.tex",

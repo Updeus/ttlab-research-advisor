@@ -336,8 +336,19 @@ if [[ "$MODE" == "full" ]]; then
   fi
   run_in_source remediation-v2-prepare "$PYTHON" \
     "$RUN_ROOT/data/evaluation/run_peer_review_remediation_v2.py" prepare
-  run_in_source remediation-v2-evaluate "$PYTHON" \
-    "$RUN_ROOT/data/evaluation/run_peer_review_remediation_v2.py" evaluate
+  if run_in_source remediation-v2-evaluate "$PYTHON" \
+    "$RUN_ROOT/data/evaluation/run_peer_review_remediation_v2.py" evaluate; then
+    :
+  else
+    # The one prospective evaluation must never be repeated. The finalizer is
+    # fail-closed and accepts only the known post-case manifest/provenance
+    # representation mismatch after an exact 15+3 output inventory. It archives
+    # every changed original outside the detached source tree, normalizes no
+    # labels or metrics, builds the manifest, and runs the frozen validator.
+    run_in_source remediation-v2-finalize-existing "$PYTHON" \
+      "$RUN_ROOT/scripts/finalize_peer_review_remediation_v2.py" \
+      --root "$RUN_ROOT" --work-dir "$WORK"
+  fi
   run_in_source remediation-v2-validate "$PYTHON" \
     "$RUN_ROOT/data/evaluation/validate_peer_review_remediation_v2.py"
   for restricted_name in qa_full_raw_v2.jsonl finder_full_raw_v2.jsonl topic_full_raw_v2.jsonl; do

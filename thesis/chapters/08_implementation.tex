@@ -39,6 +39,36 @@ The finder accepts interests, skills, time, project type, data constraints, pref
 
 Each output separates paper-supported baseline work; explicit, inferred, or missing gap evidence; and a system-suggested extension. It includes MVP, stretch goals, skills, risks, data assumptions, evaluation plan, citations, warnings, and review state. An evidence-only mode returns ranked papers and passages without a generated extension, providing both a safer user choice and the experimental baseline shown in \cref{fig:recommendation-workflow}.
 
+\subsection{Finder requirement and failure contract}
+
+The Finder's input contract rejects an empty interest set, bounds list/text lengths, validates enumerated difficulty/project/data values, normalizes weights, and constrains result count. The public \codepath{POST /api/recommendations/extensions} call always uses \texttt{persist=False}; protected history/detail calls require a reviewer actor. The browser echoes the submitted profile and mode so a user can detect stale or misapplied constraints. It retains the last successful result while a refresh is in progress and exposes a retry action after failure.
+
+\Cref{tab:finder-contract} distinguishes a ranked evidence result from the additional claims in a generated recommendation.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Finder output fields, source status, and failure interpretation.}
+\label{tab:finder-contract}
+\begin{tabularx}{\textwidth}{P{37mm}P{48mm}Y}
+\toprule
+Output & Evidence status & Required user interpretation \\
+\midrule
+ranked paper/passages & retrieved paper/chunk/page evidence & relevant candidate evidence, not project approval \\
+baseline work & source-supported summary of what the paper did & paper fact bounded by cited passages \\
+future work/gap & explicit, inferred, or missing state retained & only ``explicit'' may be attributed to the paper \\
+suggested extension & system-generated proposal & brainstorming output requiring novelty and feasibility checks \\
+MVP/stretch/skills/data & structured planning fields with assumptions & scope aid; time, access, and mastery remain unverified \\
+risk/difficulty & heuristic categorization plus rationale & warning, not calibrated probability \\
+evaluation plan & proposed metric/baseline/data procedure & incomplete unless dataset, split, baseline, and threshold are defensible \\
+researcher fit & publication-derived topic/author evidence & no availability, endorsement, or supervision claim \\
+grounding/review state & structural verifier plus persisted review metadata & neither state alone establishes human approval \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Failure states are explicit. No candidates can indicate over-constrained interests, unavailable indexes, or no eligible evidence; it does not trigger advice without papers. A dense-provider failure yields a visible fallback or error according to the selected mode. Missing gap evidence produces a ``no explicit future-work statement found'' state rather than fabricated future work. Partial grounding preserves warnings and citations. Public requests remain transient, while legacy persisted records that lack exact generation scope remain marked for reprocessing.
+
 \begin{figure}[htbp]
 \centering
 \resizebox{0.99\textwidth}{!}{\input{figures/src/recommendation_workflow}}
@@ -48,7 +78,7 @@ Each output separates paper-supported baseline work; explicit, inferred, or miss
 
 \section{Topics, authors, artifacts, and review}
 
-The explorer uses a controlled 39-label lexical taxonomy with synonym rules and source-weighted evidence. A learned-dense prototype compares paper primary-source centroids with label prototypes at a development-selected threshold. Author-topic scores aggregate only eligible publication-topic links under canonical identities. Related-paper ranking combines shared topics/authors, venue/year proximity, lexical overlap, and optional vector similarity.
+The explorer uses a controlled \TopicVocabularyCount{}-label lexical taxonomy, including an other-or-unknown label, with synonym rules and source-weighted evidence. A learned-dense prototype compares paper primary-source centroids with label prototypes at a development-selected threshold. Author-topic scores aggregate only eligible publication-topic links under canonical identities. Related-paper ranking combines shared topics/authors, venue/year proximity, lexical overlap, and optional vector similarity.
 
 The deterministic artifact generator produces public and technical summaries, contributions, methods, limitations, future work, suggested extensions, skills, evaluation plans, and text podcast scripts. Fact, inference, and suggestion types are explicit. The Phase 4 review processed every \GeneratedRagAnswerCount{} historical RAG answers, \GeneratedRecommendationCount{} recommendation runs, and \GeneratedArtifactCount{} artifacts. It regenerated evidence-safe artifacts/recommendations where configuration was sufficient; historical RAG configuration was insufficient, so those \GeneratedNeedsReprocessCount{} records were preserved and marked \texttt{needs\_reprocess}. \GeneratedReviewEventCount{} hash-chained events record the corrections. A second pass changed zero rows, demonstrating idempotence.
 
@@ -56,21 +86,50 @@ The deterministic artifact generator produces public and technical summaries, co
 
 The route-based frontend provides Dashboard, Paper Browser/Detail, Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer, Evaluation, and protected Admin Review. Relevant screens expose paper/chunk/page/section evidence, provider/time, grounding and review status, data/index freshness, generated-content warnings, and empty/error/retry/offline states. Profile inputs are not stored by default. Keyboard focus, semantic landmarks, form labels, reduced-motion behavior, chart alternatives, and 360/768/1024/1440-pixel layouts are covered by automated tests.
 
-\Cref{fig:ui-evidence} illustrates the evidence-rich Ask result, while \cref{fig:ui-evaluation} shows the evaluation surface. These screenshots demonstrate implemented presentation only; they are not user-study evidence.
+Public and protected routes deliberately have different data lifecycles. Ask and Finder send one transient request and do not expose history endpoints. Admin Review is rendered only after a reviewer token is entered; the token is held in module/page memory, attached only to protected requests, and is never written to local or session storage. Reloading clears it. This browser behavior supplements---but does not replace---the backend's bearer validation and role checks.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.98\textwidth,trim=0 780 0 0,clip]{figures/screenshots/ask-answer.png}
-\caption[Ask TTLAB evidence-rich result.]{Ask TTLAB result showing generated-content notice, source locators, evidence snippets, and grounding/review warnings. The screenshot is an implementation record, not a quality rating.}
-\label{fig:ui-evidence}
-\end{figure}
+\section{Frontend, API, failure, and test traceability}
 
-\begin{figure}[htbp]
-\centering
-\projectScreenshot{figures/screenshots/evaluation-current.png}{0.98\textwidth}
-\caption[Current Evaluation Dashboard evidence cards.]{Current Evaluation Dashboard cards presenting retrieval, QA, recommendation, and generated-output review evidence with explicit AI-review boundaries.}
-\label{fig:ui-evaluation}
-\end{figure}
+\Cref{tab:interface-traceability} connects user-facing requirements to the API and automated evidence. It is intentionally path-specific so that a passing generic page-load test cannot stand in for a citation or authorization contract.
+
+\begingroup
+\small
+\begin{longtable}{P{11mm}P{33mm}P{39mm}P{53mm}}
+\caption{Requirement--API--view--test traceability for critical public and protected flows.}\label{tab:interface-traceability}\\
+\toprule
+ID & Requirement/failure state & API and view & Automated evidence \\
+\midrule
+\endfirsthead
+\toprule
+ID & Requirement/failure state & API and view & Automated evidence \\
+\midrule
+\endhead
+UI-01 & Search exposes active mode, snippets, locators, scores, and index warnings; empty/error/retry remain distinct & \codepath{GET /api/search}; Search route & search/index tests; frontend responsible-AI and routing suites \\
+\addlinespace
+UI-02 & Ask identifies generated/transient content, citations, pages, provider, structural grounding, and no-citation state & \codepath{POST /api/ask}; Ask route & \codepath{backend/tests/test\_ask.py}; citation and fallback assertions in frontend tests \\
+\addlinespace
+UI-03 & Finder echoes constraints, offers evidence-only/full modes, separates facts/suggestions, and retries failed requests & \codepath{POST /api/recommendations/extensions}; Finder route & \codepath{test\_extension\_recommender.py}; frontend responsible-AI/E2E scenarios \\
+\addlinespace
+UI-04 & Topic/author relations expose source-derived qualification, aliases, evidence, related papers, and empty states & explorer overview/topic/author/related endpoints & \codepath{test\_topic\_explorer.py}; explorer frontend tests \\
+\addlinespace
+UI-05 & Evaluation reports dataset/reviewer boundary and negative findings; missing artefact is ``not run'' rather than zero & \codepath{GET /api/evaluation/dashboard}; Evaluation route & evaluation API tests; dashboard component assertions \\
+\addlinespace
+UI-06 & Anonymous users cannot access review queues/history/mutations; invalid/expired credentials fail visibly & protected recommendation/history and \codepath{/api/admin/**}; protected route shell & \codepath{test\_security\_privacy.py}; API-client error/auth tests \\
+\addlinespace
+UI-07 & Review supports queue filters, evidence preview, correction, actor-typed transitions, and event history & admin overview/queue/patch/events endpoints; Admin route & \codepath{test\_admin\_evaluation.py}; admin component tests \\
+\addlinespace
+UI-08 & AI actors cannot issue human states; event rows cannot be updated/deleted; correction reopens review & admin review/correction endpoints and persistence layer & role, immutability, correction tests in \codepath{test\_security\_privacy.py} \\
+\addlinespace
+UI-09 & Public question/profile values are request-scoped and not written to history/log output & Ask/Finder transient endpoints; browser memory & non-persistence/redacted-log probes in \codepath{test\_security\_privacy.py} \\
+\addlinespace
+UI-10 & Keyboard/semantic labels, visible focus, reduced motion, table/chart alternatives, and responsive layouts remain testable & shared components and every primary route & component accessibility suite plus browser checks at 360, 768, 1024, and 1440 pixels \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+This mapping clarifies the residual human boundary. Automated checks can detect a missing label, hidden focus, unauthorized status code, persistence regression, or absent warning. They cannot establish whether a student understands the distinction between inferred gap and paper-stated future work, whether a screen reader workflow is efficient, or whether a supervisor considers an extension feasible. Those outcomes belong to a later ethics-approved study and independent accessibility assessment.
+
+The requirement--API--test mapping is the authoritative interface evidence. Screenshot assets remain useful development records, but they are omitted here because a rendered state cannot establish behavior across failures, authorization states, viewports, or assistive technologies. The executable contracts in Appendix~\ref{app:schema-api} make those boundaries inspectable without treating a screenshot as evaluation.
 
 \section{Generated-output governance and deployment boundary}
 

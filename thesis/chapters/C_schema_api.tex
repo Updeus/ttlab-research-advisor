@@ -57,3 +57,86 @@ FastAPI's generated OpenAPI document is available only in local-demo mode. Produ
 \section{Review-state semantics}
 
 \texttt{needs\_review} denotes unreviewed content; \texttt{ai\_reviewed} denotes declared AI formative review; \texttt{needs\_reprocess} denotes preserved content that cannot be safely reproduced under current configuration; \texttt{reviewed}, \texttt{approved}, and \texttt{rejected} require a human actor with an appropriate role. Structural grounding remains separate from every review state.
+
+\section{Representative executable contracts}
+
+The following abridged listings show the implementation points behind the Finder, review, and privacy claims. They preserve operative field names and assertions while omitting imports, defaults not relevant to the claim, and test setup. The repository paths named in each explanation are authoritative; these excerpts are explanatory, not a second implementation.
+
+\begingroup
+\lstset{aboveskip=0.35em,belowskip=0.35em}
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged Finder request schema.}]
+class ExtensionFinderRequest(BaseModel):
+    interests: str = Field(min_length=1, max_length=2_000)
+    skills: list[str] = Field(default_factory=list, max_length=50)
+    available_time: Literal["2 weeks", "1 month", "semester"]
+    project_type: Literal["software prototype", "data analysis",
+                          "ML experiment", "dashboard/visualization", "other"]
+    data_constraints: str = Field(max_length=1_000)
+    preferred_difficulty: Literal["easy", "medium", "hard"]
+    top_k: int = Field(default=5, ge=1, le=10)
+    retrieval_mode: Literal["keyword", "feature_hashing",
+                            "dense", "hybrid"]
+
+    @field_validator("interests")
+    @classmethod
+    def interests_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("interests must not be empty")
+        return value.strip()
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/intelligence/extension\_recommender.py}. \textbf{Rationale:} bound the public profile and make supported choices explicit. \textbf{Input/output:} untrusted profile JSON becomes a normalized typed request. \textbf{Failure:} blank, oversized, or out-of-enum values produce validation errors; declared skills, time, and data access remain unverified. \textbf{Trace:} RQ4 and UI-03.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged recommendation route boundary.}]
+@router.post("/extensions")
+def create_extension_recommendations(request, session):
+    return recommend_extensions(session, request, persist=False)
+
+@router.get("/extensions/history")
+def extension_recommendation_history(
+    session,
+    _actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
+):
+    records = session.exec(select(ThesisRecommendation)).all()
+    return [serialize_recommendation(record) for record in records]
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/api/recommendations.py}; the prefix yields \codepath{POST /api/recommendations/extensions}. \textbf{Rationale:} separate public advice from review history. \textbf{Input/output:} a validated profile returns a transient recommendation; a reviewer-authenticated read returns serialized stored records. \textbf{Failure:} public history access is rejected and public generation cannot request persistence. \textbf{Trace:} RQ4/RQ7 and UI-03, UI-06, UI-09.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged review-event schema.}]
+class ReviewEvent(SQLModel, table=True):
+    review_event_id: str = Field(primary_key=True)
+    item_type: str
+    item_id: str
+    action: str
+    previous_status: str | None
+    new_status: str | None
+    reviewer_id: str
+    reviewer_type: str
+    reviewer_role: str
+    request_id: str
+    diff_json: dict[str, Any]
+    previous_event_hash: str | None
+    event_hash: str | None
+    created_at: datetime
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/models/review.py}. \textbf{Rationale:} retain actor attribution and correction history. \textbf{Input/output:} an item transition plus actor, request, diff, and prior hash becomes a canonical hash-linked event. \textbf{Failure:} database triggers reject updates/deletes; a chain mismatch is detectable, although the hash is neither a signature nor an external timestamp. \textbf{Trace:} RQ5/RQ7 and UI-07--UI-08.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Core assertions from the public non-persistence test.}]
+answer = client.post("/api/ask", json={"question": private_q})
+finder = client.post("/api/recommendations/extensions",
+                     json={"interests": private_interests})
+assert answer.json()["persist"] is False
+assert finder.json()["persist"] is False
+assert answer.headers["cache-control"] == "no-store"
+assert finder.headers["cache-control"] == "no-store"
+assert client.get("/api/ask/history").status_code == 401
+assert client.get("/api/recommendations/extensions/history").status_code == 401
+assert session.exec(select(RAGAnswer)).all() == []
+assert session.exec(select(ThesisRecommendation)).all() == []
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/tests/test\_security\_privacy.py}. \textbf{Rationale:} falsify accidental retention or history disclosure. \textbf{Input/output:} private-looking public Ask/Finder requests return transient, non-cacheable responses. \textbf{Failure:} any persistence, cacheable header, or anonymous history response fails the test; external browser, proxy, operating-system, and network logs remain outside it. \textbf{Trace:} RQ7 and UI-06/UI-09.
+\endgroup

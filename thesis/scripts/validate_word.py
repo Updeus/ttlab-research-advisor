@@ -28,8 +28,8 @@ NS = {
 }
 
 TITLE = (
-    "An AI-Based Platform for Content Summarization and Idea Generation "
-    "using a Research Lab’s Output"
+    "Source-Traceable Research Intelligence: Evidence-Grounded Discovery, "
+    "Question Answering, and Thesis-Extension Support"
 )
 AUTHOR = "Jarod Esareesingh"
 SUBJECT = (

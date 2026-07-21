@@ -2,29 +2,33 @@
 \label{app:traceability}
 
 \begingroup
-\small
-\setlength{\tabcolsep}{3pt}
-\begin{longtable}{P{8mm}P{29mm}P{34mm}P{36mm}P{30mm}}
-\caption{Complete connection from each research question to method, evidence, result, and conclusion.}\label{tab:rq-traceability}\\
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\begin{longtable}{P{7mm}P{28mm}P{33mm}P{35mm}P{34mm}}
+\caption{Complete connection from each research question to method, evidence, result, and bounded conclusion.}\label{tab:rq-traceability}\\
 \toprule
-RQ & Method & Evidence & Result & Conclusion \\
+RQ & Method & Authoritative evidence & Principal result & Bounded conclusion \\
 \midrule
 \endfirsthead
 \toprule
-RQ & Method & Evidence & Result & Conclusion \\
+RQ & Method & Authoritative evidence & Principal result & Bounded conclusion \\
 \midrule
 \endhead
-1 & eligibility and identity audit; native extraction; 40-case section review; authoritative index validation & Phase 1 JSON; database integrity; section silver cases; keyword/hashing/dense manifests & 134 catalog; 98 PDFs; 96 eligible papers; 719/719 chunks indexed in all three representations; two mismatch exclusions; 199 unknown-section; section accuracy 0.900 & the eligible corpus is internally complete and fail-loud; catalog/text and structural-label limitations remain \\
+1 & eligibility/identity audit; native extraction; section review; manifest validation & Phase 1 JSON; database integrity; section cases; three index manifests & \CatalogPaperCount{} catalog records; \EligiblePaperCount{} eligible papers and \EligibleChunkCount{} chunks; all representations complete; mismatch and unknown-section states retained & the eligible corpus is internally complete and fail-loud; unavailable text and structural-label errors remain \\
 \addlinespace
-2 & 30/20 dev/test baseline comparison; development tuning; ablation, bootstrap and paired tests & per-query rankings; retrieval summary/statistics/errors; tuning and sensitivity outputs & keyword MRR 0.947 and set R@3 0.939; dense 0.939 and 0.916; tuned hybrid 0.860 and 0.856; no corrected tuned-hybrid superiority & keyword has the highest point estimates; dense equivalence is not established; the small silver set does not establish broader-corpus behavior \\
+2 & 30/20 development/test comparison; tuning; ablation; bootstrap and paired tests & per-query rankings; summaries, statistics, errors, tuning and sensitivity outputs & keyword has the highest held-out point estimates; learned dense is close; corrected comparisons do not show tuned-hybrid superiority & bounded AI-silver retrieval behavior is measured; neither equivalence nor broader-corpus superiority is established \\
 \addlinespace
-3 & 50-case atomic claim, citation, and answer-point review; answerability checks; bootstrap intervals; Ollama availability probe & 400 claim labels; 81 answer points; source rationales; QA metrics/errors; provider probe & support 0.995; citation correctness 0.625; point coverage 0.136; 0/4 unanswerable abstentions; Ollama unavailable & traceability constrains local claim support but does not establish correct citation choice, answer completeness, abstention, or human-perceived quality \\
+3 & 50-case atomic claim, citation, answer-point, and answerability review & \QaClaimCount{} claim labels; \QaAnswerPointCount{} points; link decisions, rationales, errors, and provider probe & \QaSupportedClaimCount{} supported, \QaPartiallySupportedClaimCount{} partial, and \QaUnsupportedClaimCount{} unsupported claims; citation choice and point coverage are much weaker; 0/\QaUnanswerableCaseCount{} abstentions & local claim support does not establish correct attribution, complete answers, appropriate abstention, or human usefulness \\
 \addlinespace
-4 & paired recommendation comparison over 28 profiles; 60-case topic comparison; author identity/source audit; complete generated-output review & 168 recommendation arm items; topic predictions/metrics; author audit; 48 decisions/events and idempotence manifest & recommendation difference 0.024 [--0.024, 0.071]; all feasibility partial; lexical topic P/R/F1 0.652/0.484/0.556; 13 unresolved identity candidates; 21 AI-reviewed and 27 needs-reprocess & advisory/discovery outputs are inspectable, but improvement, feasibility, novelty, expertise, endorsement, and human approval are not established \\
+4 & paired evidence-only/full Finder comparison over \RecommendationProfileCount{} synthetic profiles; sensitivity and criterion review & \RecommendationCriterionCount{} criterion decisions; profile-level intervals; structured outputs & the relevance-difference interval spans zero; every feasibility decision remains partial; fact/gap/suggestion fields remain separable & inspectable advice is demonstrated, but improvement, novelty, feasibility, supervisor fit, and student benefit are not \\
 \addlinespace
-5 & full repeated benchmark; automated tests/builds; review/interface checks; release scan; external Europe PMC sanity; PDF preflight & Phase 6 performance/raw results; reproduction manifest; review evidence; accessibility/authentication tests; sanitized release hashes; three CC BY acquisition records & concurrency-one cold/warm measurements; attributable review state; protected mutations; automated accessibility checks passed; three of three external lexical top-1 matches; restricted PDFs excluded; documents build and preflight locally & bounded local reproducibility and reviewability are supported without restricted-PDF redistribution; WCAG conformance, assistive-technology usability, production scale, human validation, and venue checks remain external \\
+5 & \TopicCaseCount{}-case topic comparison; per-label errors; author audit; complete stored-output review & topic predictions/metrics; identity audit; \GeneratedReviewTotalCount{} decisions/events and idempotence manifest & lexical assignment trades recall for precision; many labels lack test support; \PossibleAuthorMergeCount{} identities remain unresolved; AI-reviewed and needs-reprocess states cover all stored outputs & discovery and review are governed and inspectable, not comprehensive expertise, endorsement, identity certainty, or human approval \\
+\addlinespace
+6 & repeated benchmark; full/quick reproduction; release scan; external open-corpus check; document preflight & Phase 6 raw results; reproduction/release manifests; \ExternalSanityDocumentCount{} acquisition records; PDF checks & concurrency-one operation is characterized; external XML maps into the chunker and gives \ExternalSanityTopOneCount{}/\ExternalSanityDocumentCount{} fixed lexical top-one matches; restricted PDFs remain excluded & local reproducibility and limited format compatibility are supported, not production capacity, primary-PDF transfer, or broad external validity \\
+\addlinespace
+7 & requirement--API--view--test trace; public privacy probe; role/authentication, failure, responsive, and accessibility tests & route/API contracts; runtime probe; backend security and frontend component/E2E evidence & transient public requests, protected history/mutations, evidence states, failure recovery, and automated accessibility contracts pass their specified checks & implementation conformance is supported; comprehension, satisfaction, WCAG/PDF-UA conformance, assistive-technology usability, and production readiness remain external \\
 \bottomrule
 \end{longtable}
 \endgroup
 
-\Cref{tab:rq-traceability} is the authoritative thesis claim map. Inventory counts support RQ1, not effectiveness. AI-silver experiments support bounded RQ2--RQ4 observations, not human usefulness. Engineering, interface, review, and release evidence support RQ5 local reproducibility and reviewability, not production deployment.
+\Cref{tab:rq-traceability} is the authoritative claim map. Inventory evidence supports RQ1, controlled AI-silver experiments support bounded RQ2--RQ5 observations, reproduction evidence supports RQ6, and interface tests support RQ7. None of these evidence classes substitutes for the human study, institutional decision, or production assessment that it explicitly excludes.

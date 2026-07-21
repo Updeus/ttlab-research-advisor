@@ -31,8 +31,8 @@ DEFAULT_OUTPUT = BUILD / "thesis-editable.docx"
 DEFAULT_WORK = ROOT / "tmp" / "pdfs" / "thesis-word"
 
 TITLE = (
-    "An AI-Based Platform for Content Summarization and Idea Generation "
-    "using a Research Lab’s Output"
+    "Source-Traceable Research Intelligence: Evidence-Grounded Discovery, "
+    "Question Answering, and Thesis-Extension Support"
 )
 SUBTITLE = (
     "Design, Full-Text Retrieval, Offline Evaluation, and Reproducibility "

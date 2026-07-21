@@ -202,11 +202,13 @@ def test_manuscript_capture_isolation_and_v2_identity_contracts_fail_closed() ->
     for required in (
         "TTLAB_SCREENSHOT_RUNTIME_ROOT",
         "TTLAB_SCREENSHOT_SOURCE_DB_SHA256",
+        "TTLAB_SCREENSHOT_SOURCE_DB_FAMILY_SHA256",
         "TTLAB_SCREENSHOT_RUNTIME_DB_PATH",
         "TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE",
         "TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR",
         "sqlite3.Connection.backup",
         "runtime_database_distinct_inode",
+        "source_database_family_sha256_after_capture",
         "observed_source_assets_unchanged_during_script",
         'capabilities.actor?.role === "reviewer"',
         'capabilities.capabilities?.set_publication_and_rights === false',

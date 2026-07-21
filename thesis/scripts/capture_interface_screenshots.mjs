@@ -31,6 +31,7 @@ const captureSet = process.env.TTLAB_SCREENSHOT_CAPTURE_SET?.trim() || "full";
 const runtimeRoot = path.resolve(process.env.TTLAB_SCREENSHOT_RUNTIME_ROOT ?? "");
 const sourceDatabase = path.resolve(process.env.TTLAB_SCREENSHOT_SOURCE_DB_PATH ?? path.join(repository, "data/papers.db"));
 const expectedSourceDatabaseSha256 = process.env.TTLAB_SCREENSHOT_SOURCE_DB_SHA256?.trim().toLowerCase() ?? "";
+const expectedSourceDatabaseFamilySha256 = process.env.TTLAB_SCREENSHOT_SOURCE_DB_FAMILY_SHA256?.trim().toLowerCase() ?? "";
 const runtimeDatabase = path.resolve(process.env.TTLAB_SCREENSHOT_RUNTIME_DB_PATH ?? "");
 const snapshotEvidencePath = path.resolve(process.env.TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE ?? "");
 const sourceIndexDirectory = path.join(repository, "data/indexes");
@@ -55,6 +56,13 @@ const finderProfile = {
   retrieval_mode: "keyword",
 };
 
+if (process.argv[2] === "--source-family-hash") {
+  const candidate = path.resolve(process.argv[3] ?? "");
+  if (!process.argv[3]) throw new Error("--source-family-hash requires a database path.");
+  process.stdout.write(`${canonicalHash(await databaseFamilyInventory(candidate))}\n`);
+  process.exit(0);
+}
+
 if (process.env.TTLAB_CAPTURE_ISOLATED !== "1") {
   throw new Error("Refusing capture: set TTLAB_CAPTURE_ISOLATED=1 only for a disposable database/index runtime.");
 }
@@ -66,6 +74,9 @@ if (!["full", "governance"].includes(captureSet)) {
 }
 if (!/^[0-9a-f]{64}$/.test(expectedSourceDatabaseSha256)) {
   throw new Error("TTLAB_SCREENSHOT_SOURCE_DB_SHA256 must contain the pre-launch source database SHA-256.");
+}
+if (!/^[0-9a-f]{64}$/.test(expectedSourceDatabaseFamilySha256)) {
+  throw new Error("TTLAB_SCREENSHOT_SOURCE_DB_FAMILY_SHA256 must contain the pre-launch DB/WAL/SHM/journal inventory SHA-256.");
 }
 if (baseUrl === apiUrl) {
   throw new Error("The frontend and API must use distinct loopback origins.");
@@ -566,7 +577,9 @@ async function validateIsolatedRuntime() {
   );
   const sourceSha256AtStart = sha256(await fs.readFile(sourceDatabase));
   assert(sourceSha256AtStart === expectedSourceDatabaseSha256, "Source database changed after the pre-launch SHA-256 was recorded.");
-  await assertSourceDatabaseSidecarsAbsent();
+  const sourceDatabaseFamilyAtStart = await databaseFamilyInventory(sourceDatabase);
+  const sourceDatabaseFamilySha256AtStart = canonicalHash(sourceDatabaseFamilyAtStart);
+  assert(sourceDatabaseFamilySha256AtStart === expectedSourceDatabaseFamilySha256, "Source database family changed after its pre-launch inventory hash was recorded.");
 
   let snapshotEvidence;
   try {
@@ -592,7 +605,9 @@ async function validateIsolatedRuntime() {
     runtime_root_is_real_directory: true,
     source_database_sha256_expected: expectedSourceDatabaseSha256,
     source_database_sha256_at_script_start: sourceSha256AtStart,
-    source_database_sidecars_absent_at_script_start: true,
+    source_database_family_sha256_expected: expectedSourceDatabaseFamilySha256,
+    source_database_family_sha256_at_script_start: sourceDatabaseFamilySha256AtStart,
+    source_database_sidecars_at_script_start: sourceDatabaseFamilyAtStart.filter((entry) => entry.path !== path.basename(sourceDatabase) && entry.exists).map((entry) => entry.path),
     snapshot_evidence_sha256: sha256(await fs.readFile(snapshotEvidencePath)),
     snapshot_method: snapshotEvidence.method,
     snapshot_integrity_check: snapshotEvidence?.snapshot?.integrity_check,
@@ -608,26 +623,34 @@ async function verifySourceAssetsUnchanged(before) {
   const sourceDatabaseSha256After = sha256(await fs.readFile(sourceDatabase));
   const sourceIndexInventoryAfter = await regularFileInventory(sourceIndexDirectory);
   const sourceIndexInventorySha256After = canonicalHash(sourceIndexInventoryAfter);
-  await assertSourceDatabaseSidecarsAbsent();
+  const sourceDatabaseFamilyAfter = await databaseFamilyInventory(sourceDatabase);
+  const sourceDatabaseFamilySha256After = canonicalHash(sourceDatabaseFamilyAfter);
   assert(sourceDatabaseSha256After === before.source_database_sha256_at_script_start, "Source database changed during capture.");
+  assert(sourceDatabaseFamilySha256After === before.source_database_family_sha256_at_script_start, "Source database/WAL/SHM/journal family changed during capture.");
   assert(sourceIndexInventorySha256After === before.source_index_inventory_sha256_at_script_start, "Source indexes changed during capture.");
   return {
     source_database_sha256_after_capture: sourceDatabaseSha256After,
     source_index_inventory_sha256_after_capture: sourceIndexInventorySha256After,
-    source_database_sidecars_absent_after_capture: true,
+    source_database_family_sha256_after_capture: sourceDatabaseFamilySha256After,
     observed_source_assets_unchanged_during_script: true,
   };
 }
 
-async function assertSourceDatabaseSidecarsAbsent() {
-  for (const suffix of ["-wal", "-shm", "-journal"]) {
+async function databaseFamilyInventory(database) {
+  const inventory = [];
+  for (const suffix of ["", "-wal", "-shm", "-journal"]) {
+    const candidate = `${database}${suffix}`;
+    const label = path.basename(candidate);
     try {
-      await fs.lstat(`${sourceDatabase}${suffix}`);
-      throw new Error(`Source database sidecar unexpectedly exists: papers.db${suffix}`);
+      const stat = await fs.lstat(candidate);
+      assert(stat.isFile() && !stat.isSymbolicLink(), `Database family entry must be a regular non-symlink file: ${label}`);
+      inventory.push({ path: label, exists: true, bytes: stat.size, sha256: sha256(await fs.readFile(candidate)) });
     } catch (error) {
       if (error?.code !== "ENOENT") throw error;
+      inventory.push({ path: label, exists: false });
     }
   }
+  return inventory;
 }
 
 async function assertRegularFile(candidate, label) {

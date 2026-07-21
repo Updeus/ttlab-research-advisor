@@ -36,6 +36,8 @@ copies indexes without symlinks. Run from a clean repository root:
 repo_root="$(pwd)"
 capture_root="$(mktemp -d /tmp/ttlab-screenshot-capture.XXXXXX)"
 source_db_sha256="$(sha256sum data/papers.db | cut -d ' ' -f 1)"
+source_db_family_sha256="$(node thesis/scripts/capture_interface_screenshots.mjs \
+  --source-family-hash data/papers.db)"
 PYTHONPATH=backend .venv/bin/python -m app.reproducibility.database_snapshot \
   --source data/papers.db \
   --target "$capture_root/papers.db" \
@@ -65,6 +67,7 @@ TTLAB_SCREENSHOT_EXPECTED_ACTOR_ID=capture-service \
 TTLAB_SCREENSHOT_RUNTIME_ROOT="$capture_root" \
 TTLAB_SCREENSHOT_SOURCE_DB_PATH="$repo_root/data/papers.db" \
 TTLAB_SCREENSHOT_SOURCE_DB_SHA256="$source_db_sha256" \
+TTLAB_SCREENSHOT_SOURCE_DB_FAMILY_SHA256="$source_db_family_sha256" \
 TTLAB_SCREENSHOT_RUNTIME_DB_PATH="$capture_root/papers.db" \
 TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE="$capture_root/database-snapshot.json" \
 TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR="$capture_root/indexes" \
@@ -74,7 +77,7 @@ node thesis/scripts/capture_interface_screenshots.mjs
 
 The script rejects an existing output path, symlinked runtime assets, a hard-
 linked database, snapshot/source-hash disagreement, a non-exact index copy, or
-new source-database WAL/journal sidecars. It records hashes and safe labels, not
+any change to the pre-recorded source DB/WAL/SHM/journal family. It records hashes and safe labels, not
 runtime paths or the token. Its application-state comparison is accurately an
 observed aggregate summary; source DB/index hashes are the filesystem mutation
 guard.

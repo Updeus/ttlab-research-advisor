@@ -11,6 +11,11 @@ Baseline audited: branch `main`, commit
 Prospective remediation-v2 evaluation source: commit
 `0d4b9bdcb657034beab5c288ab174983eb0760e3`.
 
+Verified sanitized release candidate: commit
+`1411985038c1152a0fe4e7063d93f080acffdbf7`, archive
+`ttlab-research-advisor-0.1.0-remediation-1411985038c1.tar.gz`, SHA-256
+`5ac3a3a19900c1ffcd5e6b33540754d2a59ced2451f0983d25331ab6628e801c`.
+
 The result is suitable for **close supervisor review**. It is not a declaration
 of formal-submission readiness, public-deployment readiness, human validation,
 research-ethics approval, or third-party PDF redistribution permission.
@@ -56,7 +61,7 @@ available to supervise it.
 | Frontend production build | passed | passed | Vite production build |
 | Frontend dependency audit | 0 reported vulnerabilities | 0 reported vulnerabilities | `npm audit --audit-level=high`; not a penetration test |
 | Documentation validation | passed | passed: 45 Markdown files and 22 local links | Zero validation errors |
-| Exact release/reproduction gate | failed before final manifest | `RELEASE_REPRODUCTION_RESULT_PENDING` | Final bounded result must replace this token |
+| Exact release/reproduction gate | failed before final manifest | passed from clean candidate `1411985038c1`; two byte-identical builds | Archive verification covered 450 members and 448 checksummed entries |
 
 The audit-baseline technical corpus contained 134 catalogue records, 98 local
 PDFs, 735 raw chunks, 96 technically eligible papers, and 719 technically
@@ -423,6 +428,18 @@ attestation. It explicitly reports that its current mode cannot independently
 repeat the restricted-raw check. The original strict attestation is the record
 that binds the evaluated candidate to the three restricted full-raw hashes.
 
+The sanitized release gate was run separately from clean release-candidate
+commit `1411985038c1152a0fe4e7063d93f080acffdbf7`. Two isolated builds completed
+in approximately 16 seconds each and produced byte-identical archives,
+manifests, and adjacent checksum files. Each archive verified 450 members and
+448 internal checksum entries. The release manifest records the 17-file v2
+package as `source_commit_tracked`, with source-path presence, tracked status,
+and byte equality all true. This report records that result after the release
+build; therefore the subsequent report-only closure commit is intentionally not
+represented as the archive's source commit. The archive proves the named clean
+candidate, avoiding a self-referential claim that an archive contains its own
+later report hash.
+
 Consequently:
 
 - manuscript numbers are tied to the named v1 or v2 artifacts, not recomputed
@@ -450,8 +467,8 @@ Consequently:
 | PDF structural checks | PASS for both PDFs |
 | Rendered visual inspection | PASS with the limitations in Section 7 |
 | Documentation validation | PASS; 45 Markdown files, 22 local links, zero errors |
-| Exact final release/reproduction | `RELEASE_REPRODUCTION_RESULT_PENDING` |
-| `git diff --check` | PASS before the release-candidate commit |
+| Exact final release/reproduction | PASS; two byte-identical builds from clean candidate `1411985038c1`, SHA-256 `5ac3a3a19900c1ffcd5e6b33540754d2a59ced2451f0983d25331ab6628e801c` |
+| `git diff --check` | PASS at the release candidate and before the report-only closure commit |
 
 ## 11. Bounded reproduction and verification commands
 

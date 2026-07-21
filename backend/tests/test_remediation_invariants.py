@@ -817,6 +817,7 @@ def test_v1_commit_is_not_misrepresented_as_a_code_identity(monkeypatch, tmp_pat
     monkeypatch.setattr(dashboard_module, "ROOT", tmp_path)
     monkeypatch.setattr(dashboard_module, "CURRENT_RESULT_FILES", files)
     monkeypatch.setattr(dashboard_module, "current_code_commit", lambda: "new-commit")
+    monkeypatch.setattr(dashboard_module, "v2_package_freshness", lambda: {"status": "not_run"})
     session, _engine = memory_session()
     try:
         freshness = dashboard_module.evaluation_freshness(session)

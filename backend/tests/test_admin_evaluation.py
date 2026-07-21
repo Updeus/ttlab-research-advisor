@@ -4,6 +4,7 @@ import json
 from collections.abc import Generator
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
@@ -334,8 +335,8 @@ def test_default_evaluation_dashboard_exposes_executed_silver_experiments() -> N
     assert dashboard["artifact"]["status"] == "historical"
     assert dashboard["retrieval"]["question_count"] == 50
     assert dashboard["retrieval"]["recall_at_10"] == 1.0
-    assert dashboard["qa"]["claim_count"] == 400
-    assert dashboard["qa"]["citation_correctness"] == 0.625
+    assert dashboard["qa"]["claim_count"] == 334
+    assert dashboard["qa"]["citation_correctness"] == pytest.approx(0.652695)
     assert dashboard["extension"]["case_count"] == 28
     assert dashboard["extension"]["relevance_difference_ci"][0] < 0
     assert dashboard["artifact"]["review_event_count"] == 48

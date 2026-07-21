@@ -1000,7 +1000,6 @@ def test_v2_validator_report_digest_is_bound_to_versionable_package(
 
 def _strict_recomputation_fixture(validator):
     runner = validator.runner
-    runner.BOOTSTRAP_REPLICATES = 20
     chunk_hashes = {
         "chunk-1": {
             "chunk_text_sha256": "a" * 64,
@@ -1305,6 +1304,7 @@ def test_v2_strict_validator_recomputes_reviews_disagreements_and_bootstraps(
         "validate_peer_review_remediation_v2.py",
         "peer_review_strict_recomputation_v2",
     )
+    monkeypatch.setattr(validator.runner, "BOOTSTRAP_REPLICATES", 20)
     decoded, restricted, qa_cases, finder_cases, topic_cases = (
         _strict_recomputation_fixture(validator)
     )
@@ -1425,7 +1425,7 @@ def test_completed_v2_bundle_has_shuffled_passes_and_no_overclaim() -> None:
     if not manifest.exists():
         pytest.skip("completed remediation-v2 bundle is not present yet")
     validator = load_module("validate_peer_review_remediation_v2.py", "peer_review_validator_completed_v2")
-    report = validator.validate_completed(require_restricted=False)
+    report = validator.validate_versionable_package()
 
     assert report["status"] == "pass"
     assert report["qa_passes"]["orders_differ"] is True

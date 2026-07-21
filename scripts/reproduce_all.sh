@@ -292,10 +292,10 @@ if [[ "$MODE" == "full" ]]; then
 
   run_in_source qa-build-cases "$PYTHON" "$RUN_ROOT/data/evaluation/run_qa_faithfulness_v1.py" build-cases
   run_in_source qa-feature-hashing-answers "$PYTHON" "$RUN_ROOT/data/evaluation/run_qa_faithfulness_v1.py" \
-    run-answers --mode feature_hashing --provider offline_extractive --top-k 5 \
+    run-answers --mode feature_hashing --provider offline_extractive --top-k 5 --retrieval-scope technical \
     --output-stem offline_extractive_feature_hashing
   run_in_source qa-hybrid-answers "$PYTHON" "$RUN_ROOT/data/evaluation/run_qa_faithfulness_v1.py" \
-    run-answers --mode hybrid --provider offline_extractive --top-k 5 \
+    run-answers --mode hybrid --provider offline_extractive --top-k 5 --retrieval-scope technical \
     --output-stem offline_extractive_hybrid_heuristic
   run_in_source qa-ollama-availability "$PYTHON" "$RUN_ROOT/data/evaluation/run_qa_faithfulness_v1.py" check-ollama
   run_in_source qa-ai-review "$PYTHON" "$RUN_ROOT/data/evaluation/review_qa_faithfulness_v1.py"

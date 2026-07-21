@@ -55,6 +55,13 @@ effective retrieval-source hashes (including retrieval-affecting metadata),
 source PDF/extraction/chunk artifact inventory, exact code/lock identities, and
 the public-selection predicate that is recorded but not exercised.
 
+Historical QA and prospective-v2 QA are offline technical-corpus evaluations,
+not evaluations of the anonymous public projection. Their runners pass
+`retrieval_scope=technical` explicitly and record that scope in requests and
+manifests. The public projection remains independently fail-closed until the
+rights and review ledger permits publication; querying that empty projection
+would measure governance state rather than retrieval or answer quality.
+
 ## AI-reviewed silver procedure
 
 Silver labels are prepared from source paper metadata and page/chunk evidence,

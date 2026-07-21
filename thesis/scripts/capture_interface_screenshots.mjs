@@ -3,11 +3,12 @@
  * Stage manuscript UI evidence from an explicitly isolated live runtime.
  *
  * This script deliberately never writes to thesis/figures/screenshots. A run is
- * accepted only when the backend is local, bearer-protected, index-ready, and
- * serving an identity-valid current remediation-v2 package. The generated
- * screenshots and capture-manifest.json remain in an ignored staging directory
- * for manual privacy/rights and print-scale inspection before any separate,
- * explicit promotion step.
+ * accepted only when the backend is local, bearer-protected, and index-ready.
+ * The full set additionally requires an identity-valid current remediation-v2
+ * package; the governance set deliberately does not simulate that evidence.
+ * Generated screenshots and capture-manifest.json remain in an ignored staging
+ * directory for privacy, rights-boundary, and print-scale inspection before a
+ * separate, explicit promotion step.
  */
 
 import { execFileSync } from "node:child_process";
@@ -26,12 +27,18 @@ const baseUrl = localOrigin(process.env.TTLAB_SCREENSHOT_URL ?? "http://127.0.0.
 const apiUrl = localOrigin(process.env.TTLAB_API_URL ?? "http://127.0.0.1:8000", "TTLAB_API_URL");
 const reviewerToken = process.env.TTLAB_SCREENSHOT_REVIEWER_TOKEN?.trim() ?? "";
 const expectedActorId = process.env.TTLAB_SCREENSHOT_EXPECTED_ACTOR_ID?.trim() || "capture-service";
+const captureSet = process.env.TTLAB_SCREENSHOT_CAPTURE_SET?.trim() || "full";
+const runtimeRoot = path.resolve(process.env.TTLAB_SCREENSHOT_RUNTIME_ROOT ?? "");
+const sourceDatabase = path.resolve(process.env.TTLAB_SCREENSHOT_SOURCE_DB_PATH ?? path.join(repository, "data/papers.db"));
+const expectedSourceDatabaseSha256 = process.env.TTLAB_SCREENSHOT_SOURCE_DB_SHA256?.trim().toLowerCase() ?? "";
+const runtimeDatabase = path.resolve(process.env.TTLAB_SCREENSHOT_RUNTIME_DB_PATH ?? "");
+const snapshotEvidencePath = path.resolve(process.env.TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE ?? "");
+const sourceIndexDirectory = path.join(repository, "data/indexes");
+const runtimeIndexDirectory = path.resolve(process.env.TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR ?? "");
 const outputDirectory = path.resolve(
   process.env.TTLAB_SCREENSHOT_OUTPUT_DIR
     ?? path.join(repository, "tmp/manuscript-interface-captures/staged"),
 );
-const trackedScreenshotDirectory = path.join(repository, "thesis/figures/screenshots");
-const repositoryTempDirectory = path.join(repository, "tmp");
 const manifestPath = path.join(outputDirectory, "capture-manifest.json");
 const generatedAt = new Date().toISOString();
 const finderProfile = {
@@ -54,10 +61,17 @@ if (process.env.TTLAB_CAPTURE_ISOLATED !== "1") {
 if (reviewerToken.length < 32) {
   throw new Error("TTLAB_SCREENSHOT_REVIEWER_TOKEN must contain the ephemeral capture-service bearer token (at least 32 characters).");
 }
+if (!["full", "governance"].includes(captureSet)) {
+  throw new Error("TTLAB_SCREENSHOT_CAPTURE_SET must be full or governance.");
+}
+if (!/^[0-9a-f]{64}$/.test(expectedSourceDatabaseSha256)) {
+  throw new Error("TTLAB_SCREENSHOT_SOURCE_DB_SHA256 must contain the pre-launch source database SHA-256.");
+}
 if (baseUrl === apiUrl) {
   throw new Error("The frontend and API must use distinct loopback origins.");
 }
-assertSafeOutputDirectory(outputDirectory);
+const isolationEvidence = await validateIsolatedRuntime();
+await assertSafeOutputDirectory(outputDirectory);
 
 const headCommit = git("rev-parse", "HEAD");
 const headTree = git("rev-parse", "HEAD^{tree}");
@@ -71,21 +85,26 @@ await prepareEmptyOutputDirectory(outputDirectory);
 const report = {
   schema_version: 3,
   status: "running",
+  promotable: false,
   generated_at: generatedAt,
   claim_boundary: "Live implementation evidence only; not a usability study, human review, semantic-entailment result, ethics approval, or permission to redistribute source documents.",
   capture_scope: {
-    evaluation: "identity-valid remediation-v2 panel only; historical-v1 state is verified but excluded from the image for print readability",
+    evaluation: captureSet === "full"
+      ? "identity-valid remediation-v2 panel only; historical-v1 state is verified but excluded from the image for print readability"
+      : "omitted from the governance-only capture set; no prospective evaluation package is simulated or executed for screenshots",
     finder: "empty public projection pending human editorial and rights approval; technical prototype evidence is excluded",
-    admin: "read-only service-actor governance queues without approval authority",
+    admin: "write-blocked service-reviewer session showing aggregate governance state without approval authority",
   },
   source: {
     git_commit: headCommit,
     git_tree: headTree,
     worktree_clean: true,
+    capture_set: captureSet,
     frontend_origin: baseUrl,
     api_origin: apiUrl,
-    isolated_runtime_operator_attestation: true,
+    operator_declared_isolated: true,
   },
+  isolation: isolationEvidence,
   privacy_and_safety: {
     bearer_token_recorded: false,
     browser_storage_required: false,
@@ -94,7 +113,11 @@ const report = {
     mutation_methods_blocked: ["PATCH", "PUT", "DELETE"],
     post_requests_permitted: false,
     only_allowed_post_path: null,
-    manual_privacy_rights_and_print_review_required_before_promotion: true,
+    promotion_review: {
+      required: true,
+      reviewer_type_for_empty_or_aggregate_governance_capture: "ai_assisted_review_permitted",
+      human_authorization_required_if_source_bearing_content_is_present: true,
+    },
   },
   preflight: [],
   governance_queue_accessibility: {},
@@ -119,7 +142,7 @@ const report = {
     console_errors: [],
     page_errors: [],
   },
-  database_state: {},
+  observed_state_summary: {},
   errors: [],
 };
 
@@ -142,15 +165,19 @@ try {
   const dense = readiness.checks?.dense_index;
   assert(dense?.status === "missing" || dense?.ready === true, "A present dense index is stale, partial, or invalid.");
 
-  const evaluation = await apiJson("evaluation_dashboard", "/api/evaluation/dashboard");
-  assertCurrentV2Evaluation(evaluation);
+  if (captureSet === "full") {
+    const evaluation = await apiJson("evaluation_dashboard", "/api/evaluation/dashboard");
+    assertCurrentV2Evaluation(evaluation);
+  }
 
   const capabilities = await apiJson("admin_capabilities", "/api/admin/capabilities", true);
   assert(capabilities.actor?.actor_id === expectedActorId, "Authenticated actor ID does not match the capture-service identity.");
   assert(capabilities.actor?.reviewer_type === "service", "Governance screenshots must use an honest service actor, not a fabricated human reviewer.");
-  assert(capabilities.actor?.role === "admin", "Capture-service actor must have the admin role needed to inspect governance queues.");
+  assert(capabilities.actor?.role === "reviewer", "Capture-service actor must use the least-privileged reviewer role.");
   assert(capabilities.actor?.local_demo_bypass === false, "Governance capture may not use the insecure local-demo bypass.");
   assert(capabilities.capabilities?.approve_or_reject === false, "The service actor must not be able to issue human approval/rejection states.");
+  assert(capabilities.capabilities?.set_publication_and_rights === false, "The service actor must not set publication or rights decisions.");
+  assert(capabilities.capabilities?.trigger_ingestion === false, "The service actor must not trigger ingestion.");
 
   const authorQueue = await apiJson(
     "author_review_queue",
@@ -180,8 +207,8 @@ try {
 
   const overviewBefore = await apiJson("admin_overview_before", "/api/admin/overview", true);
   const stateBefore = persistentStateSummary(overviewBefore, authorQueue, authorTopicQueue);
-  report.database_state.before_sha256 = canonicalHash(stateBefore);
-  report.database_state.before = stateBefore;
+  report.observed_state_summary.before_sha256 = canonicalHash(stateBefore);
+  report.observed_state_summary.before = stateBefore;
 
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -244,18 +271,20 @@ try {
     }
   });
 
-  await gotoRoute(page, "/evaluation");
-  const v2Region = page.getByRole("region", { name: "Peer-review remediation v2 evidence" });
-  await v2Region.waitFor({ state: "visible", timeout: 120_000 });
-  await page.locator('[data-evaluation-v2-status="current"]').waitFor({ state: "visible", timeout: 120_000 });
-  await v2Region.getByText("Identity-validated current AI-reviewed silver package.").waitFor();
-  const history = page.locator(".evaluation-history");
-  await history.getByRole("heading", { name: "Historical v1 evidence" }).waitFor();
-  assert(await history.getByText("historical", { exact: true }).count() === 4, "All four retained v1 cards must remain visibly historical.");
-  await assertNoHorizontalOverflow(page, "evaluation");
-  const v2Bounds = await v2Region.boundingBox();
-  assert(v2Bounds && v2Bounds.height <= v2Bounds.width * 0.9, "Remediation-v2 capture is too tall for readable thesis-width placement.");
-  await stageLocatorScreenshot(page, "evaluation-current.png", v2Region);
+  if (captureSet === "full") {
+    await gotoRoute(page, "/evaluation");
+    const v2Region = page.getByRole("region", { name: "Peer-review remediation v2 evidence" });
+    await v2Region.waitFor({ state: "visible", timeout: 120_000 });
+    await page.locator('[data-evaluation-v2-status="current"]').waitFor({ state: "visible", timeout: 120_000 });
+    await v2Region.getByText("Identity-validated current AI-reviewed silver package.").waitFor();
+    const history = page.locator(".evaluation-history");
+    await history.getByRole("heading", { name: "Historical v1 evidence" }).waitFor();
+    assert(await history.getByText("historical", { exact: true }).count() === 4, "All four retained v1 cards must remain visibly historical.");
+    await assertNoHorizontalOverflow(page, "evaluation");
+    const v2Bounds = await v2Region.boundingBox();
+    assert(v2Bounds && v2Bounds.height <= v2Bounds.width * 0.9, "Remediation-v2 capture is too tall for readable thesis-width placement.");
+    await stageLocatorScreenshot(page, "evaluation-current.png", v2Region);
+  }
 
   await gotoRoute(page, "/extensions");
   await page.getByRole("heading", { name: "Thesis Extension Finder" }).waitFor();
@@ -293,10 +322,10 @@ try {
   const adminTabs = page.getByRole("tablist", { name: "Admin review sections" });
   await adminTabs.waitFor({ state: "visible", timeout: 120_000 });
   assert(await page.getByRole("tab", { name: "Overview" }).getAttribute("aria-selected") === "true", "Governance shell capture must remain on the aggregate Overview tab.");
-  const adminMetrics = page.locator(".admin-metrics");
-  await adminMetrics.waitFor({ state: "visible", timeout: 120_000 });
+  const governanceSummary = page.locator('[data-admin-governance-capture="aggregate-summary"]');
+  await governanceSummary.waitFor({ state: "visible", timeout: 120_000 });
   await assertNoHorizontalOverflow(page, "admin-governance-shell");
-  await stageRangeScreenshot(page, "admin-governance-shell-current.png", [protectedNotice, actorNotice, adminTabs, adminMetrics]);
+  await stageLocatorScreenshot(page, "admin-governance-shell-current.png", governanceSummary);
 
   const storageState = await page.evaluate(() => ({
     local_storage_keys: Object.keys(window.localStorage),
@@ -318,11 +347,13 @@ try {
     true,
   );
   const stateAfter = persistentStateSummary(overviewAfter, authorQueueAfter, authorTopicQueueAfter);
-  report.database_state.after_sha256 = canonicalHash(stateAfter);
-  report.database_state.after = stateAfter;
-  report.database_state.unchanged = report.database_state.before_sha256 === report.database_state.after_sha256;
+  report.observed_state_summary.after_sha256 = canonicalHash(stateAfter);
+  report.observed_state_summary.after = stateAfter;
+  report.observed_state_summary.observed_summary_unchanged = (
+    report.observed_state_summary.before_sha256 === report.observed_state_summary.after_sha256
+  );
 
-  assert(report.database_state.unchanged, "Persistent review/recommendation state changed during capture.");
+  assert(report.observed_state_summary.observed_summary_unchanged, "Observed aggregate review/recommendation state changed during capture.");
   assert(finderPostCount === 0, `Expected no Finder POST while the public projection is empty, observed ${finderPostCount}.`);
   assert(report.browser.blocked_requests.length === 0, "A disallowed origin or mutation request was attempted.");
   assert(report.browser.request_failures.length === 0, "A browser request failed during capture.");
@@ -333,9 +364,28 @@ try {
     "A browser API response was not successful.",
   );
 
+  const expectedCaptures = captureSet === "full"
+    ? ["admin-governance-shell-current.png", "evaluation-current.png", "finder-public-projection-empty.png"]
+    : ["admin-governance-shell-current.png", "finder-public-projection-empty.png"];
+  assert(
+    JSON.stringify(report.captures.map((capture) => capture.filename).sort()) === JSON.stringify(expectedCaptures),
+    "Capture filename inventory does not match the selected capture set.",
+  );
+  if (captureSet === "governance") {
+    assert(
+      !report.preflight.some((entry) => entry.path === "/api/evaluation/dashboard")
+      && !report.browser.api_responses.some((entry) => entry.path === "/api/evaluation/dashboard"),
+      "Governance capture unexpectedly requested remediation-v2 evaluation data.",
+    );
+  }
+  const postCaptureIsolation = await verifySourceAssetsUnchanged(isolationEvidence);
+  report.isolation = { ...report.isolation, ...postCaptureIsolation };
+
   report.status = "pass";
+  report.promotable = true;
 } catch (error) {
   report.status = "failed";
+  report.promotable = false;
   report.errors.push(redact(error instanceof Error ? error.message : String(error)));
   process.exitCode = 1;
 } finally {
@@ -374,7 +424,8 @@ function assertCurrentV2Evaluation(dashboard) {
   const freshness = dashboard.freshness?.peer_review_remediation_v2;
   assert(dashboard.evaluation_status === "current", "Evaluation dashboard is not current.");
   assert(dashboard.freshness?.status === "current", "Overall evaluation freshness is not current.");
-  assert(evidence?.status === "completed", "Remediation-v2 evidence package is not completed.");
+  assert(evidence?.status === "current", "Remediation-v2 evidence package is not identity-current.");
+  assert(evidence?.package_status === "completed", "Remediation-v2 package status is not completed.");
   assert(freshness?.status === "current", "Remediation-v2 frozen identities are not current.");
   assert(evidence?.evaluation_id === "peer-review-remediation-v2", "Unexpected remediation-v2 evaluation identity.");
   assert(evidence?.evidence_tier === "ai_silver", "Remediation-v2 evidence is not declared AI-silver.");
@@ -392,7 +443,7 @@ function assertCurrentV2Evaluation(dashboard) {
   assert(Number.isFinite(topics.unadjudicated_predictions?.share), "V2 unadjudicated topic-prediction share is missing.");
   assert(topics.unadjudicated_predictions?.false_positive_interpretation_permitted === false, "V2 topic output permits an invalid false-positive interpretation.");
   assert(topics.micro === undefined && topics.exact_match_rate === undefined, "Capture API still exposes the superseded closed-world topic metric schema.");
-  assert(freshness?.freshness_contract === "frozen_inputs_and_outputs_v2", "Unexpected remediation-v2 freshness contract.");
+  assert(freshness?.freshness_contract === "strict_completed_attested_package_v2", "Unexpected remediation-v2 freshness contract.");
   assert(
     ["code", "corpus", "configuration", "release", "manifest"]
       .every((key) => freshness?.checks?.[key] === "match"),
@@ -487,10 +538,135 @@ function localOrigin(raw, label) {
   return url.origin;
 }
 
-function assertSafeOutputDirectory(candidate) {
-  const repositoryPathIsSafe = !isWithin(candidate, repository) || isWithin(candidate, repositoryTempDirectory);
-  if (!repositoryPathIsSafe || candidate === repository || isWithin(candidate, trackedScreenshotDirectory)) {
-    throw new Error("Refusing capture output outside the ignored repository tmp directory (or an external temporary directory).");
+async function validateIsolatedRuntime() {
+  const expectedSource = path.join(repository, "data/papers.db");
+  assert(sourceDatabase === expectedSource, "Capture source database must be the repository data/papers.db file.");
+  const runtimeReal = await fs.realpath(runtimeRoot);
+  const allowedParent = path.dirname(runtimeReal);
+  assert(
+    ["/tmp", "/var/tmp"].includes(allowedParent),
+    "TTLAB_SCREENSHOT_RUNTIME_ROOT must be a newly created direct child of /tmp or /var/tmp.",
+  );
+  const runtimeRootStat = await fs.lstat(runtimeRoot);
+  assert(runtimeRootStat.isDirectory() && !runtimeRootStat.isSymbolicLink(), "Capture runtime root must be a real directory, not a symlink.");
+  for (const candidate of [runtimeDatabase, snapshotEvidencePath, runtimeIndexDirectory]) {
+    assert(candidate !== runtimeRoot && isWithin(candidate, runtimeRoot), "Every runtime database/index/evidence path must stay inside the isolated runtime root.");
+  }
+  await assertRegularFile(sourceDatabase, "source database");
+  await assertRegularFile(runtimeDatabase, "runtime database");
+  await assertRegularFile(snapshotEvidencePath, "database snapshot evidence");
+  await assertRealDirectory(sourceIndexDirectory, "source index directory");
+  await assertRealDirectory(runtimeIndexDirectory, "runtime index directory");
+
+  const sourceStat = await fs.stat(sourceDatabase);
+  const runtimeStat = await fs.stat(runtimeDatabase);
+  assert(
+    sourceStat.dev !== runtimeStat.dev || sourceStat.ino !== runtimeStat.ino,
+    "Runtime database must be a physical snapshot, not the source file or a hard link.",
+  );
+  const sourceSha256AtStart = sha256(await fs.readFile(sourceDatabase));
+  assert(sourceSha256AtStart === expectedSourceDatabaseSha256, "Source database changed after the pre-launch SHA-256 was recorded.");
+  await assertSourceDatabaseSidecarsAbsent();
+
+  let snapshotEvidence;
+  try {
+    snapshotEvidence = JSON.parse(await fs.readFile(snapshotEvidencePath, "utf8"));
+  } catch {
+    throw new Error("Database snapshot evidence is not valid JSON.");
+  }
+  assert(snapshotEvidence?.status === "valid", "Database snapshot evidence is not valid.");
+  assert(snapshotEvidence?.method === "sqlite3.Connection.backup", "Database snapshot did not use the required SQLite backup method.");
+  assert(snapshotEvidence?.source?.sha256_before === expectedSourceDatabaseSha256, "Snapshot evidence source hash does not match the pre-launch source hash.");
+  assert(snapshotEvidence?.source?.sha256_after === expectedSourceDatabaseSha256, "Snapshot evidence reports source drift.");
+  assert(snapshotEvidence?.snapshot?.label === path.basename(runtimeDatabase), "Snapshot evidence target label does not match the runtime database.");
+
+  const sourceIndexInventory = await regularFileInventory(sourceIndexDirectory);
+  const runtimeIndexInventory = await regularFileInventory(runtimeIndexDirectory);
+  assert(
+    canonicalHash(sourceIndexInventory) === canonicalHash(runtimeIndexInventory),
+    "Runtime index copy does not exactly match the source index inventory.",
+  );
+  return {
+    enforcement: "snapshot_evidence_plus_distinct_inode_plus_exact_index_copy_plus_source_hash_guards",
+    runtime_root_parent: allowedParent,
+    runtime_root_is_real_directory: true,
+    source_database_sha256_expected: expectedSourceDatabaseSha256,
+    source_database_sha256_at_script_start: sourceSha256AtStart,
+    source_database_sidecars_absent_at_script_start: true,
+    snapshot_evidence_sha256: sha256(await fs.readFile(snapshotEvidencePath)),
+    snapshot_method: snapshotEvidence.method,
+    snapshot_integrity_check: snapshotEvidence?.snapshot?.integrity_check,
+    runtime_database_distinct_inode: true,
+    runtime_database_sha256_at_script_start: sha256(await fs.readFile(runtimeDatabase)),
+    source_index_inventory_sha256_at_script_start: canonicalHash(sourceIndexInventory),
+    runtime_index_inventory_sha256_at_script_start: canonicalHash(runtimeIndexInventory),
+    index_file_count: sourceIndexInventory.length,
+  };
+}
+
+async function verifySourceAssetsUnchanged(before) {
+  const sourceDatabaseSha256After = sha256(await fs.readFile(sourceDatabase));
+  const sourceIndexInventoryAfter = await regularFileInventory(sourceIndexDirectory);
+  const sourceIndexInventorySha256After = canonicalHash(sourceIndexInventoryAfter);
+  await assertSourceDatabaseSidecarsAbsent();
+  assert(sourceDatabaseSha256After === before.source_database_sha256_at_script_start, "Source database changed during capture.");
+  assert(sourceIndexInventorySha256After === before.source_index_inventory_sha256_at_script_start, "Source indexes changed during capture.");
+  return {
+    source_database_sha256_after_capture: sourceDatabaseSha256After,
+    source_index_inventory_sha256_after_capture: sourceIndexInventorySha256After,
+    source_database_sidecars_absent_after_capture: true,
+    observed_source_assets_unchanged_during_script: true,
+  };
+}
+
+async function assertSourceDatabaseSidecarsAbsent() {
+  for (const suffix of ["-wal", "-shm", "-journal"]) {
+    try {
+      await fs.lstat(`${sourceDatabase}${suffix}`);
+      throw new Error(`Source database sidecar unexpectedly exists: papers.db${suffix}`);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+  }
+}
+
+async function assertRegularFile(candidate, label) {
+  const stat = await fs.lstat(candidate);
+  assert(stat.isFile() && !stat.isSymbolicLink(), `${label} must be a regular non-symlink file.`);
+}
+
+async function assertRealDirectory(candidate, label) {
+  const stat = await fs.lstat(candidate);
+  assert(stat.isDirectory() && !stat.isSymbolicLink(), `${label} must be a real directory, not a symlink.`);
+}
+
+async function regularFileInventory(root) {
+  const inventory = [];
+  async function visit(directory, prefix = "") {
+    const entries = await fs.readdir(directory, { withFileTypes: true });
+    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+      const absolute = path.join(directory, entry.name);
+      const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+      const stat = await fs.lstat(absolute);
+      assert(!stat.isSymbolicLink(), `Index inventory may not contain symlinks: ${relative}`);
+      if (stat.isDirectory()) await visit(absolute, relative);
+      else {
+        assert(stat.isFile(), `Index inventory contains a non-regular entry: ${relative}`);
+        inventory.push({ path: relative, bytes: stat.size, sha256: sha256(await fs.readFile(absolute)) });
+      }
+    }
+  }
+  await visit(root);
+  return inventory;
+}
+
+async function assertSafeOutputDirectory(candidate) {
+  assert(isWithin(candidate, runtimeRoot) && path.dirname(candidate) === runtimeRoot, "Capture output must be a new direct child of the isolated runtime root.");
+  try {
+    await fs.lstat(candidate);
+    throw new Error("Capture output directory must be absent before the run.");
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
   }
 }
 
@@ -500,11 +676,7 @@ function isWithin(candidate, parent) {
 }
 
 async function prepareEmptyOutputDirectory(directory) {
-  await fs.mkdir(directory, { recursive: true });
-  const entries = await fs.readdir(directory);
-  if (entries.length) {
-    throw new Error(`Refusing to overwrite non-empty capture staging directory: ${directory}`);
-  }
+  await fs.mkdir(directory, { recursive: false, mode: 0o700 });
 }
 
 async function refuseExistingFile(target) {

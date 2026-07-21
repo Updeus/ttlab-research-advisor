@@ -195,6 +195,33 @@ def test_v2_canonical_package_path_is_consistent_across_integration_layers() -> 
     ) == (False, "noncanonical_v2_artifact_path")
 
 
+def test_manuscript_capture_isolation_and_v2_identity_contracts_fail_closed() -> None:
+    capture = (ROOT / "thesis/scripts/capture_interface_screenshots.mjs").read_text(encoding="utf-8")
+    admin_page = (ROOT / "frontend/src/pages/AdminReviewPage.tsx").read_text(encoding="utf-8")
+
+    for required in (
+        "TTLAB_SCREENSHOT_RUNTIME_ROOT",
+        "TTLAB_SCREENSHOT_SOURCE_DB_SHA256",
+        "TTLAB_SCREENSHOT_RUNTIME_DB_PATH",
+        "TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE",
+        "TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR",
+        "sqlite3.Connection.backup",
+        "runtime_database_distinct_inode",
+        "observed_source_assets_unchanged_during_script",
+        'capabilities.actor?.role === "reviewer"',
+        'capabilities.capabilities?.set_publication_and_rights === false',
+        'capabilities.capabilities?.trigger_ingestion === false',
+        'freshness?.freshness_contract === "strict_completed_attested_package_v2"',
+        'evidence?.status === "current"',
+        'evidence?.package_status === "completed"',
+        "report.promotable = true",
+    ):
+        assert required in capture
+    assert 'capabilities.actor?.role === "admin"' not in capture
+    assert 'data-admin-governance-capture="aggregate-summary"' in admin_page
+    assert capture.index("verifySourceAssetsUnchanged") < capture.index('report.status = "pass"')
+
+
 def test_v2_dashboard_reads_metrics_from_the_canonical_package(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -1,7 +1,7 @@
 \chapter{Reproducibility Guide}
 \label{app:reproducibility}
 
-Run commands from the repository root on Linux/WSL. The exact code revision, working-tree state at execution, environment, input hashes, and output hashes are embedded in phase and reproduction manifests. The corpus snapshot is \texttt{\CorpusSnapshotId}.
+Run commands from the repository root on Linux/WSL. The exact code revision, working-tree state at execution, environment, input hashes, and output hashes are embedded in phase and reproduction manifests. The retained historical-v1 snapshot is \texttt{\CorpusSnapshotId}; the prospective run binds its rebuilt technical snapshot separately as \texttt{\VTwoCorpusSnapshotId}.
 
 \section{One-command paths}
 
@@ -20,11 +20,23 @@ PYTHONPATH=backend .venv/bin/python thesis/scripts/collect_evidence.py
 PYTHONPATH=backend .venv/bin/python thesis/scripts/runtime_probe.py
 PYTHONPATH=backend .venv/bin/python thesis/scripts/generate_manuscript_assets.py
 # With the backend on :8000 and frontend on :4173:
+PYTHONPATH=backend .venv/bin/python \
+  -m app.reproducibility.database_snapshot \
+  --source data/papers.db \
+  --target /tmp/ttlab-capture-XXXX/papers.db \
+  --evidence /tmp/ttlab-capture-XXXX/database-snapshot.json
+TTLAB_CAPTURE_ISOLATED=1 \
+TTLAB_SCREENSHOT_CAPTURE_SET=governance \
+TTLAB_SCREENSHOT_RUNTIME_ROOT=/tmp/ttlab-capture-XXXX \
+TTLAB_SCREENSHOT_SOURCE_DB_SHA256=<pre-launch-sha256> \
+TTLAB_SCREENSHOT_RUNTIME_DB_PATH=/tmp/ttlab-capture-XXXX/papers.db \
+TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE=/tmp/ttlab-capture-XXXX/database-snapshot.json \
+TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR=/tmp/ttlab-capture-XXXX/indexes \
 node thesis/scripts/capture_interface_screenshots.mjs
 make thesis
 \end{lstlisting}
 
-The runtime probe copies the SQLite database to a temporary directory, uses transient generation, verifies public routes, and confirms that anonymous admin access is denied. It never adds evidence rows to the source database. The screenshot command executes one transient offline Ask request and captures the current Ask and Evaluation components; it requires a running local backend/frontend and Playwright's browser dependency. The manuscript generator fails when a required frozen artefact is missing.
+The runtime probe copies the SQLite database to a temporary directory, uses transient generation, verifies public routes, and confirms that anonymous admin access is denied. It never adds evidence rows to the source database. The screenshot command requires a clean committed source, pre-launch source hash, validated SQLite backup evidence, distinct runtime database inode, and exact copied index inventory. Its governance set stages the fail-closed public Finder and a protected aggregate Admin shell through a write-blocked service-reviewer session; the full set additionally requires an identity-current remediation-v2 dashboard panel. Both write only to a new external temporary staging directory, record capture/output/source-integrity assertions, and require separate privacy/rights-boundary and print-scale inspection before explicit promotion. The manuscript generator fails when a required frozen artefact is missing.
 
 \section{Evaluation commands}
 

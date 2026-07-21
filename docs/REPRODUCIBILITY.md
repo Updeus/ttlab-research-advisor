@@ -101,7 +101,9 @@ The full path performs these operations in order:
 2. builds and verifies the sanitized release from that still-clean snapshot;
 3. runs the external format sanity check, stages a disposable database plus
    PDF/extraction/chunk/index inventory inside the detached tree for static
-   source-locator tests, and runs the engineering test/build/E2E gates;
+   source-locator tests, and runs the engineering test/build/E2E gates; the
+   Vitest wrapper fixes file concurrency to one worker so the documented 4 GiB
+   WSL2 baseline does not depend on incidental host memory headroom;
 4. archives that test-only database, clears its copied derived state, takes a
    fresh no-overwrite source-database snapshot, upserts permitted metadata,
    repairs known author artifacts, and audits PDF/title identity; both database

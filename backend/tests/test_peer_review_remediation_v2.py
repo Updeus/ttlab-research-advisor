@@ -210,6 +210,9 @@ def test_full_reproduction_stages_static_inputs_then_resets_before_evaluation() 
     assert "full_test_runtime_after_tests" in reproduce_script
     assert "find \"$generated_path\" -mindepth 1 ! -name '.gitkeep' -delete" in reproduce_script
 
+    frontend_runner = (ROOT / "frontend" / "scripts" / "run-vitest.mjs").read_text(encoding="utf-8")
+    assert '"--maxWorkers", "1", "--no-file-parallelism"' in frontend_runner
+
 
 def test_manuscript_capture_isolation_and_v2_identity_contracts_fail_closed() -> None:
     capture = (ROOT / "thesis/scripts/capture_interface_screenshots.mjs").read_text(encoding="utf-8")

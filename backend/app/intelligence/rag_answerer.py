@@ -8,6 +8,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
+from app.config import Settings, get_settings
 from app.db import create_db_and_tables, engine
 from app.indexing.retriever import RetrievalScope, retrieve
 from app.intelligence.citation_verifier import verify_citations
@@ -33,6 +34,7 @@ def ask_question(
     paper_id: str | None = None,
     persist: bool = False,
     retrieval_scope: RetrievalScope = "public",
+    provider_settings: Settings | None = None,
 ) -> dict[str, Any]:
     retrieval = retrieve(
         session,
@@ -57,6 +59,7 @@ def ask_question(
             paper_id=paper_id,
             retrieved_chunks=retrieved_chunks,
             answerability=answerability,
+            provider_settings=provider_settings,
         )
         answer["runtime_provenance"] = build_runtime_provenance(
             session,
@@ -90,7 +93,7 @@ def ask_question(
     relevant_ids = set(answerability["relevant_chunk_ids"])
     relevant_results = [result for result in retrieval["results"] if result["chunk_id"] in relevant_ids]
     retrieved_chunks = [format_retrieved_chunk(result) for result in relevant_results]
-    provider = get_provider(provider_name, model_name=model_name)
+    provider = get_provider(provider_name, model_name=model_name, settings=provider_settings)
     draft = provider.generate_answer(question, retrieved_chunks, audience=audience, max_words=max_words)
     candidate_citations = build_citations(relevant_results[: min(len(relevant_results), top_k)])
     verification = verify_citations(draft.answer_text, retrieved_chunks, candidate_citations)
@@ -166,6 +169,7 @@ def build_unsupported_answer(
     paper_id: str | None = None,
     retrieved_chunks: list[dict[str, Any]] | None = None,
     answerability: dict[str, Any] | None = None,
+    provider_settings: Settings | None = None,
 ) -> dict[str, Any]:
     created_at = utc_now()
     resolved_answerability = answerability or {"answerable": False, "reason": "no_retrieved_chunks"}
@@ -183,7 +187,7 @@ def build_unsupported_answer(
         reason_warning = f"Answer generation abstained because the answerability gate returned: {reason}."
         unsupported_claim = "The pre-generation answerability gate did not establish source support."
     response_warnings = list(dict.fromkeys([*warnings, reason_warning]))
-    provider = get_provider(provider_name, model_name=model_name)
+    provider = get_provider(provider_name, model_name=model_name, settings=provider_settings)
     resolution = provider.resolution_metadata() if hasattr(provider, "resolution_metadata") else {}
     resolution = {
         **resolution,
@@ -442,8 +446,11 @@ def serialize_answer(answer: RAGAnswer) -> dict[str, Any]:
     }
 
 
-def ask_diagnostics(session: Session) -> dict[str, Any]:
+def ask_diagnostics(session: Session, settings: Settings | None = None) -> dict[str, Any]:
     # The anonymous diagnostics surface must not reveal reviewer/history data.
+    configured = settings or get_settings()
+    allowed = [provider.strip().lower() for provider in configured.allowed_llm_providers]
+    pinned_models = sorted(configured.ollama_allowed_model_digests)
     return {
         "total_stored_answers": None,
         "grounded_answers": None,
@@ -451,8 +458,24 @@ def ask_diagnostics(session: Session) -> dict[str, Any]:
         "unsupported_answers": None,
         "history_counts_visibility": "protected_reviewer_only",
         "history_counts_observed": False,
-        "default_provider": "offline_extractive",
-        "external_provider_available": external_provider_available(),
+        "default_provider": configured.default_llm_provider,
+        "allowed_providers": allowed,
+        "provider_matrix": {
+            "offline_extractive": {
+                "enabled": "offline_extractive" in allowed,
+                "effective_model": "sentence-overlap-v1",
+                "identity_scope": "versioned_deterministic_algorithm",
+            },
+            "ollama": {
+                "enabled": "ollama" in allowed,
+                "configured_model": configured.ollama_default_model,
+                "configured_model_pinned": configured.ollama_default_model in pinned_models,
+                "pinned_model_count": len(pinned_models),
+                "identity_scope": "configured_digest_with_per_generation_attestation_state",
+            },
+        },
+        "external_provider_available": external_provider_available(configured),
+        "external_provider_availability_scope": "configured_pinned_model_not_runtime_reachability",
         "last_answer_timestamp": None,
         "scope": "public",
     }

@@ -48,6 +48,7 @@ def ask(
             paper_id=request.paper_id,
             persist=False,
             retrieval_scope="public",
+            provider_settings=settings,
         )
         return serialize_public_ask_response(internal_response)
     except ValueError as exc:
@@ -97,8 +98,11 @@ def ask_history(
 
 
 @router.get("/ask/diagnostics")
-def diagnostics(session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
-    base = ask_diagnostics(session)
+def diagnostics(
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, object]:
+    base = ask_diagnostics(session, settings)
     searchable_chunks = len(eligible_chunks(session, public_only=True))
     index_health = public_index_projection_health(
         session,

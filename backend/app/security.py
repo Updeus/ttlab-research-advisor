@@ -198,6 +198,14 @@ def operational_boundary_diagnostics(settings: Settings) -> dict[str, object]:
             "distributed_limiter_implemented": False,
             "external_distributed_limiter_required_for_multiple_workers": True,
         },
+        "generation_capacity": {
+            "implementation": "process_local_bounded_queue",
+            "max_active_requests": settings.public_generation_max_concurrency,
+            "max_waiting_requests": settings.public_generation_max_queue,
+            "queue_timeout_seconds": settings.public_generation_queue_timeout_seconds,
+            "covered_paths": ["POST /api/ask", "POST /api/recommendations/extensions"],
+            "distributed_admission_control_implemented": False,
+        },
     }
 
 

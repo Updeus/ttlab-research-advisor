@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     public_base_url: str | None = None
     max_request_bytes: int = 1_048_576
     public_generation_requests_per_minute: int = 20
+    public_generation_max_concurrency: int = Field(default=2, ge=1, le=32)
+    public_generation_max_queue: int = Field(default=4, ge=0, le=128)
+    public_generation_queue_timeout_seconds: float = Field(default=2.0, gt=0, le=60)
     api_worker_count: int = Field(default=1, ge=1, le=128)
     allowed_llm_providers: list[str] = ["offline_extractive", "ollama"]
     default_llm_provider: Literal["offline_extractive", "ollama"] = "offline_extractive"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 from collections.abc import Generator
@@ -22,7 +23,7 @@ from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.ingestion.pdf_downloader import DownloadRecord, download_pdfs, validate_remote_pdf_url
 from app.ingestion.pdf_parser import extract_pdf_text, safe_output_path
 from app.main import app, readiness_index_checks
-from app.middleware import PublicRateLimitMiddleware
+from app.middleware import PublicGenerationConcurrencyMiddleware, PublicRateLimitMiddleware
 from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
 from app.security import parse_actor_records, validate_security_configuration
 
@@ -767,6 +768,62 @@ def test_public_generation_rate_limiter_is_bounded_per_path() -> None:
     limited = client.post("/api/ask")
     assert limited.status_code == 429
     assert limited.headers["Retry-After"] == "60"
+
+
+def test_public_generation_concurrency_rejects_when_bounded_queue_is_full() -> None:
+    async def scenario() -> None:
+        entered = asyncio.Event()
+        release = asyncio.Event()
+
+        async def slow_app(scope, receive, send) -> None:
+            entered.set()
+            await release.wait()
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            await send({"type": "http.response.body", "body": b"ok"})
+
+        middleware = PublicGenerationConcurrencyMiddleware(
+            slow_app,
+            max_concurrency=1,
+            max_queue=0,
+            queue_timeout_seconds=0.1,
+        )
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/api/ask",
+            "raw_path": b"/api/ask",
+            "query_string": b"",
+            "headers": [],
+            "client": ("127.0.0.1", 12345),
+            "server": ("testserver", 80),
+        }
+
+        async def receive() -> dict[str, object]:
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        async def request() -> list[dict[str, object]]:
+            messages: list[dict[str, object]] = []
+
+            async def send(message) -> None:
+                messages.append(message)
+
+            await middleware(scope, receive, send)
+            return messages
+
+        first = asyncio.create_task(request())
+        await entered.wait()
+        rejected = await request()
+        assert rejected[0]["status"] == 503
+        assert (b"retry-after", b"1") in rejected[0]["headers"]
+
+        release.set()
+        completed = await first
+        assert completed[0]["status"] == 200
+
+    asyncio.run(scenario())
 
 
 def test_ssrf_validation_blocks_private_resolution_and_redirect_before_following(tmp_path: Path) -> None:

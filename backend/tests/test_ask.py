@@ -12,7 +12,7 @@ from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.intelligence.citation_verifier import verify_citations
 from app.intelligence.llm_provider import LLMAnswerDraft, OfflineExtractiveProvider, OllamaProvider, build_extractive_answer
 from app.intelligence import rag_answerer as rag_answerer_module
-from app.intelligence.rag_answerer import ask_question
+from app.intelligence.rag_answerer import ask_diagnostics, ask_question
 from app.main import app
 from app.models import Chunk, Paper, RAGAnswer
 
@@ -365,6 +365,29 @@ def test_ask_api_endpoints_work() -> None:
     assert diagnostics.status_code == 200
     assert diagnostics.json()["total_stored_answers"] is None
     assert diagnostics.json()["history_counts_visibility"] == "protected_reviewer_only"
+
+
+def test_ask_diagnostics_follow_configured_provider_matrix() -> None:
+    session, _engine = build_ask_session()
+    settings = Settings(
+        default_llm_provider="ollama",
+        allowed_llm_providers=["offline_extractive", "ollama"],
+        ollama_default_model="pinned:test",
+        ollama_allowed_model_digests={"pinned:test": "a" * 64},
+    )
+    try:
+        diagnostics = ask_diagnostics(session, settings)
+    finally:
+        session.close()
+
+    assert diagnostics["default_provider"] == "ollama"
+    assert diagnostics["allowed_providers"] == ["offline_extractive", "ollama"]
+    assert diagnostics["provider_matrix"]["offline_extractive"]["enabled"] is True
+    assert diagnostics["provider_matrix"]["ollama"]["configured_model_pinned"] is True
+    assert diagnostics["provider_matrix"]["ollama"]["pinned_model_count"] == 1
+    assert diagnostics["external_provider_availability_scope"] == (
+        "configured_pinned_model_not_runtime_reachability"
+    )
 
 
 def test_public_ask_provenance_does_not_disclose_hidden_technical_corpus() -> None:

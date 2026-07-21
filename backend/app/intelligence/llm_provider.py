@@ -8,7 +8,7 @@ from typing import Any, Protocol
 
 import httpx
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 
 PROMPT_TEMPLATE_VERSION = "ask-ttlab-grounded-v2"
 
@@ -133,8 +133,9 @@ class OllamaProvider:
         *,
         requested_provider: str = "ollama",
         configured_provider: str = "ollama",
+        settings: Settings | None = None,
     ) -> None:
-        settings = get_settings()
+        settings = settings or get_settings()
         self.base_url = settings.ollama_base_url.rstrip("/")
         self.model = model_name or settings.ollama_default_model
         self.timeout = settings.ollama_timeout_seconds
@@ -329,10 +330,15 @@ class OllamaProvider:
             return fallback
 
 
-def get_provider(provider_name: str = "auto", model_name: str | None = None) -> LLMProvider:
+def get_provider(
+    provider_name: str = "auto",
+    model_name: str | None = None,
+    *,
+    settings: Settings | None = None,
+) -> LLMProvider:
     requested = (provider_name or "auto").strip().lower()
     normalized = requested
-    settings = get_settings()
+    settings = settings or get_settings()
     allowed = {provider.strip().lower() for provider in settings.allowed_llm_providers}
     if normalized == "extractive_mock":
         normalized = "offline_extractive"
@@ -353,12 +359,13 @@ def get_provider(provider_name: str = "auto", model_name: str | None = None) -> 
             model_name=model_name,
             requested_provider=requested,
             configured_provider=normalized,
+            settings=settings,
         )
     raise ValueError(f"Unknown LLM provider: {provider_name}")
 
 
-def external_provider_available() -> bool:
-    settings = get_settings()
+def external_provider_available(settings: Settings | None = None) -> bool:
+    settings = settings or get_settings()
     return bool(
         "ollama" in {provider.strip().lower() for provider in settings.allowed_llm_providers}
         and settings.ollama_allowed_model_digests

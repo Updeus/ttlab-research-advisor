@@ -27,7 +27,12 @@ from app.indexing.embedder import (
     validate_present_authoritative_indexes,
 )
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
-from app.middleware import PublicRateLimitMiddleware, RequestBodyLimitMiddleware, SecurityHeadersMiddleware
+from app.middleware import (
+    PublicGenerationConcurrencyMiddleware,
+    PublicRateLimitMiddleware,
+    RequestBodyLimitMiddleware,
+    SecurityHeadersMiddleware,
+)
 from app.security import operational_boundary_diagnostics, validate_security_configuration
 
 settings = get_settings()
@@ -61,6 +66,12 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_hosts)
 app.add_middleware(
     RequestBodyLimitMiddleware,
     max_bytes=settings.max_request_bytes,
+)
+app.add_middleware(
+    PublicGenerationConcurrencyMiddleware,
+    max_concurrency=settings.public_generation_max_concurrency,
+    max_queue=settings.public_generation_max_queue,
+    queue_timeout_seconds=settings.public_generation_queue_timeout_seconds,
 )
 app.add_middleware(
     PublicRateLimitMiddleware,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import time
 import uuid
 from collections import defaultdict, deque
@@ -11,6 +12,11 @@ from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger("ttlab.api")
+
+PUBLIC_GENERATION_PATHS = {
+    ("POST", "/api/ask"),
+    ("POST", "/api/recommendations/extensions"),
+}
 
 
 class RequestTooLargeError(Exception):
@@ -68,10 +74,7 @@ class RequestBodyLimitMiddleware:
 class PublicRateLimitMiddleware:
     """Small single-process limiter for anonymous generation endpoints."""
 
-    LIMITED_PATHS = {
-        ("POST", "/api/ask"),
-        ("POST", "/api/recommendations/extensions"),
-    }
+    LIMITED_PATHS = PUBLIC_GENERATION_PATHS
 
     def __init__(self, app: ASGIApp, requests_per_minute: int) -> None:
         self.app = app
@@ -101,6 +104,83 @@ class PublicRateLimitMiddleware:
                 return
             bucket.append(now)
         await self.app(scope, receive, send)
+
+
+class PublicGenerationConcurrencyMiddleware:
+    """Bound concurrent public generation work and its in-process wait queue.
+
+    This is a single-worker resource backstop, not a distributed admission
+    controller. Production configuration therefore continues to reject more
+    than one API worker unless an external limiter is implemented.
+    """
+
+    LIMITED_PATHS = PUBLIC_GENERATION_PATHS
+
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        max_concurrency: int,
+        max_queue: int,
+        queue_timeout_seconds: float,
+    ) -> None:
+        self.app = app
+        self.max_concurrency = max_concurrency
+        self.max_queue = max_queue
+        self.queue_timeout_seconds = queue_timeout_seconds
+        self._capacity = asyncio.BoundedSemaphore(max_concurrency)
+        self._state_lock = asyncio.Lock()
+        self._active = 0
+        self._waiting = 0
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or (scope.get("method", ""), scope.get("path", "")) not in self.LIMITED_PATHS:
+            await self.app(scope, receive, send)
+            return
+
+        async with self._state_lock:
+            if self._active >= self.max_concurrency and self._waiting >= self.max_queue:
+                await self._reject(scope, receive, send, "Public generation queue is full")
+                return
+            self._waiting += 1
+
+        acquired = False
+        admitted = False
+        try:
+            try:
+                await asyncio.wait_for(
+                    self._capacity.acquire(),
+                    timeout=self.queue_timeout_seconds,
+                )
+                acquired = True
+            except TimeoutError:
+                async with self._state_lock:
+                    self._waiting -= 1
+                await self._reject(scope, receive, send, "Public generation queue wait timed out")
+                return
+
+            async with self._state_lock:
+                self._waiting -= 1
+                self._active += 1
+                admitted = True
+            await self.app(scope, receive, send)
+        finally:
+            if acquired and not admitted:
+                async with self._state_lock:
+                    self._waiting -= 1
+                self._capacity.release()
+            elif admitted:
+                async with self._state_lock:
+                    self._active -= 1
+                self._capacity.release()
+
+    async def _reject(self, scope: Scope, receive: Receive, send: Send, detail: str) -> None:
+        response = JSONResponse(
+            {"detail": detail},
+            status_code=503,
+            headers={"Retry-After": str(max(1, math.ceil(self.queue_timeout_seconds)))},
+        )
+        await response(scope, receive, send)
 
 
 class SecurityHeadersMiddleware:

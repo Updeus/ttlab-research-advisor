@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import threading
 from collections.abc import Generator
 from pathlib import Path
 
@@ -17,7 +18,7 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import Settings, get_settings
-from app.api.admin import admin_review_lock, admin_review_lock_path
+from app.api.admin import admin_review_lock, admin_review_lock_path, serialize_admin_review_requests
 from app.db import get_session
 from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.ingestion.pdf_downloader import DownloadRecord, download_pdfs, validate_remote_pdf_url
@@ -644,6 +645,34 @@ def test_admin_review_lock_is_database_scoped_and_refuses_symlink(tmp_path: Path
             pass
     assert getattr(exc_info.value, "status_code", None) == 503
     assert symlink_target.read_text(encoding="utf-8") == "do not follow"
+
+
+def test_admin_review_dependency_can_exit_on_a_different_worker_thread(tmp_path: Path) -> None:
+    settings = Settings(
+        database_url="sqlite:///thread-handoff.db",
+        admin_review_lock_dir=tmp_path / "review-locks",
+    )
+    dependency = serialize_admin_review_requests(settings)
+    errors: list[BaseException] = []
+
+    def advance_dependency() -> None:
+        try:
+            next(dependency)
+        except StopIteration:
+            pass
+        except BaseException as exc:  # pragma: no cover - asserted below
+            errors.append(exc)
+
+    enter_thread = threading.Thread(target=advance_dependency)
+    enter_thread.start()
+    enter_thread.join(timeout=5)
+    assert not enter_thread.is_alive()
+
+    exit_thread = threading.Thread(target=advance_dependency)
+    exit_thread.start()
+    exit_thread.join(timeout=5)
+    assert not exit_thread.is_alive()
+    assert errors == []
 
 
 def test_public_llm_status_omits_internal_endpoint_and_raw_error(monkeypatch) -> None:

@@ -60,7 +60,10 @@ try:
 except ImportError:  # pragma: no cover - unsupported deployment is rejected at runtime
     fcntl = None  # type: ignore[assignment]
 
-_ADMIN_REVIEW_THREAD_LOCK = threading.RLock()
+# FastAPI may enter and exit a synchronous generator dependency on different
+# worker threads. A primitive Lock is intentionally not thread-owned, whereas
+# RLock would raise when cleanup runs on a different worker.
+_ADMIN_REVIEW_THREAD_LOCK = threading.Lock()
 
 
 def admin_review_lock_path(settings: Settings) -> Path:

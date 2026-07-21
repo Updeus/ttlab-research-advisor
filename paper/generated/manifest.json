@@ -1,7 +1,88 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generator": "paper/scripts/generate_paper_assets.py",
-  "generator_sha256": "fecc9182d5abebbc2e2e2120edc68eb6313a4838b9cae038a00e1cbf3a91e808",
+  "generator_sha256": "03fa09a8f57188375ae162e57db782d8e5b243e492ff09fb93875e33dca08fda",
+  "generation_provenance": {
+    "committed_base": {
+      "commit": "0633c9128ea579e783eadb992e4b27c1a0b499f2",
+      "tree": "722644c84d2f6c8012e01e88678709e4086de6ff"
+    },
+    "working_tree": {
+      "dirty": true,
+      "status_porcelain_before_generation": [
+        "M backend/app/api/admin.py",
+        " M backend/app/api/artifacts.py",
+        " M backend/app/api/ask.py",
+        " M backend/app/api/papers.py",
+        " M backend/app/api/search.py",
+        " M backend/app/config.py",
+        " M backend/app/db.py",
+        " M backend/app/indexing/embedder.py",
+        " M backend/app/indexing/retriever.py",
+        " M backend/app/intelligence/citation_verifier.py",
+        " M backend/app/intelligence/llm_provider.py",
+        " M backend/app/intelligence/paper_artifact_generator.py",
+        " M backend/app/intelligence/rag_answerer.py",
+        " M backend/app/intelligence/topic_explorer.py",
+        " M backend/app/models/paper.py",
+        " M backend/app/models/rag.py",
+        " M backend/app/security.py",
+        " M build/ieee-paper.pdf",
+        " M build/thesis.pdf",
+        " M frontend/e2e/platform.spec.ts",
+        " M frontend/package.json",
+        " M frontend/src/App.tsx",
+        " M frontend/src/api/client.ts",
+        " M frontend/src/components/UiPrimitives.tsx",
+        " M frontend/src/pages/AdminReviewPage.tsx",
+        " M frontend/src/pages/AskPage.tsx",
+        " M frontend/src/pages/PaperBrowser.tsx",
+        " M frontend/src/pages/SearchPage.tsx",
+        " M frontend/src/pages/ThesisExtensionFinder.tsx",
+        " M frontend/src/pages/TopicAuthorExplorer.tsx",
+        " M frontend/src/styles/app.css",
+        " M frontend/src/test/accessibility.test.tsx",
+        " M frontend/src/test/admin-ingestion-sync.test.tsx",
+        " M frontend/src/test/app-routing.test.tsx",
+        " M frontend/src/test/fixtures.ts",
+        " M frontend/src/test/paper-browser.test.tsx",
+        " M frontend/src/test/responsible-ai.test.tsx",
+        " M paper/figures/architecture.tex",
+        " M paper/generated/manifest.json",
+        " M paper/generated/metrics.tex",
+        " M paper/generated/performance_summary.tex",
+        " M paper/ieee-paper.tex",
+        " M paper/scripts/generate_paper_assets.py",
+        " M thesis/generated/manuscript_metrics_manifest.json",
+        " M thesis/references.bib",
+        "?? backend/app/io_utils.py",
+        "?? backend/app/publication.py",
+        "?? frontend/scripts/run-vitest.mjs",
+        "?? frontend/src/test/api-client.test.ts",
+        "?? paper/generated/topic_error_rows.tex"
+      ]
+    },
+    "expected_generated_output_boundary": [
+      "paper/generated/**",
+      "build/ieee-paper.pdf"
+    ],
+    "semantics": "The commit and tree identify the committed repository base. Frozen evidence and the exact generator are bound separately by SHA-256. A dirty working tree means the PDF is a candidate built from that base plus local changes; it is not represented as a clean committed release. The status list is captured before this generator rewrites its own outputs."
+  },
+  "corpus_boundary": {
+    "snapshot_id": "corpus-04a010207327069a",
+    "eligible_papers": 96,
+    "eligible_chunks": 719,
+    "ordered_chunk_hash": null
+  },
+  "evidence_boundary": {
+    "kind": "frozen committed experiment artefacts plus independently hashed generator outputs",
+    "ai_label_status": "Retrieval, QA, recommendation, section, topic, and generated-output judgments are AI-reviewed silver evidence, not recruited-human ground truth. Reported intervals do not model AI-label uncertainty.",
+    "qa_claim_labels": {
+      "supported": 398,
+      "partial": 2,
+      "unsupported": 0
+    }
+  },
   "sources": {
     "phase1": {
       "path": "artifacts/phase1/phase1_evidence.json",
@@ -39,6 +120,10 @@
       "path": "artifacts/phase2/retrieval/error_taxonomy.json",
       "sha256": "57f02a4d3b989e6a31f1cbe93af38b9d58199140c948a736cc5d2a5e4bfc43ff"
     },
+    "external_sanity": {
+      "path": "artifacts/phase6/external_sanity/external_sanity_manifest.json",
+      "sha256": "fbe9b460244769faf4a3a21284f6ee3ab3507343eeb8d6e7e1d5057edae461be"
+    },
     "section_cases": {
       "path": "data/evaluation/section_quality_silver_v1.jsonl",
       "sha256": "98bc6ebfb63be918db48f5edb0c596895af6b8f349ee97e857e3fbd87836801e"
@@ -51,15 +136,19 @@
   "outputs": {
     "metrics": {
       "path": "paper/generated/metrics.tex",
-      "sha256": "cfdff2086d4aef0ca02e74dc284afde69f2d8733c0d984a27ef36a72a5d2467b"
+      "sha256": "efbac5da05528ec5e6f01fb89c261da9b2af87b2ed34c6626d8be09733266da6"
     },
     "retrieval_rows": {
       "path": "paper/generated/retrieval_rows.tex",
       "sha256": "fdbbd380bcff2f80e2d6994eafb8c47ce1aefa3936ecb7547acaadcbfb6a3621"
     },
+    "topic_error_rows": {
+      "path": "paper/generated/topic_error_rows.tex",
+      "sha256": "4a196ebdf27ed34a24e07021aff06e2c735a0e342d2ac39af8430528b2a72795"
+    },
     "performance_summary": {
       "path": "paper/generated/performance_summary.tex",
-      "sha256": "3de0a0fff2bc7a903088e28757734624b19e356e9503b84702f3f30ac46379a9"
+      "sha256": "a73aa4538c959eefacbe742c019157e9ca8938142e12035ae0756ee6187231f4"
     }
   },
   "performance_included": true

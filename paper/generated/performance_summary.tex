@@ -1,26 +1,18 @@
-The full profile measured \PaperPerformanceStageCount{} stages with \PaperPerformanceRepetitions{} process-cold and warm repetitions at concurrency one on \PaperCpuModel{} (\PaperLogicalCpuCount{} logical CPUs, \PaperMemoryGiB{}~GiB RAM). The artifact is bound to source commit \texttt{\PaperPerformanceSourceCommit{}} and provenance digest \texttt{\PaperPerformanceProvenance{}}. Cold means a fresh Python process; operating-system caches were not flushed. Across the reported samples, \PaperPerformanceFailedSamples{} executions failed. Table~\ref{tab:performance} reports elapsed wall time and process peak RSS; it is a single-user characterization, not a saturation or capacity test.
-
-\begin{table*}[t]
-\caption{Full-corpus performance on documented local hardware. Times are seconds; RSS is MiB.}
+\begin{table}[t]
+\caption{Selected local stage medians (s) and peak RSS (MiB).}
 \label{tab:performance}
 \centering
 \scriptsize
-\begin{tabular}{@{}lrrrrrrr@{}}
+\begin{tabular}{@{}lrrr@{}}
 \toprule
-Stage & Units & Cold med. & Cold p95 & Warm med. & Warm p95 & Peak RSS & Fail. \\
+Stage & Cold & Warm & RSS \\
 \midrule
-Discovery (network) & 59 & 3.240 & 3.917 & 0.970 & 2.833 & 65.2 & 0 \\
-PDF extraction & 96 & 15.466 & 15.917 & 12.874 & 14.993 & 112.6 & 0 \\
-Chunking & 96 & 10.404 & 10.773 & 8.280 & 9.853 & 62.5 & 0 \\
-Dense indexing & 719 & 145.005 & 145.020 & 66.169 & 134.066 & 751.5 & 0 \\
-Keyword retrieval & 6 & 9.809 & 10.126 & 8.091 & 9.526 & 111.8 & 0 \\
-Dense retrieval & 6 & 84.487 & 86.265 & 12.215 & 78.342 & 563.5 & 0 \\
-Hybrid retrieval & 6 & 93.355 & 93.616 & 20.326 & 86.385 & 568.9 & 0 \\
-Extractive answer & 3 & 83.355 & 83.736 & 9.842 & 75.800 & 571.9 & 0 \\
-Recommendation & 3 & 83.604 & 85.675 & 10.482 & 76.668 & 562.6 & 0 \\
-ASGI endpoints & 7 & 79.606 & 81.178 & 3.948 & 72.397 & 641.2 & 0 \\
-Frontend build & 1 & 31.145 & 33.201 & 30.763 & 31.270 & 461.2 & 0 \\
-Rendered routes & 8 & 12.496 & 12.807 & 12.463 & 12.631 & 458.2 & 0 \\
+Discovery & 3.240 & 0.970 & 65.2 \\
+PDF extraction & 15.466 & 12.874 & 112.6 \\
+Dense index & 145.005 & 66.169 & 751.5 \\
+Hybrid retrieval & 93.355 & 20.326 & 568.9 \\
+Offline answer & 83.355 & 9.842 & 571.9 \\
+Rendered routes & 12.496 & 12.463 & 458.2 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}

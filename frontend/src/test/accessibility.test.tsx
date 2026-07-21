@@ -8,12 +8,19 @@ import { installBaseFetchMock } from "./fixtures";
 describe("automated accessibility smoke", () => {
   beforeEach(() => installBaseFetchMock());
 
-  it.each(["/", "/papers", "/admin"])("has no detectable axe violations on %s", async (route) => {
+  it.each([
+    ["/", "Research intelligence dashboard"],
+    ["/papers", "Paper Browser"],
+    ["/papers/paper-1", "Grounded Research Discovery"],
+    ["/search", "Search Source Chunks"],
+    ["/ask", "Ask TTLAB"],
+    ["/extensions", "Thesis Extension Finder"],
+    ["/explorer", "Topic and author explorer"],
+    ["/evaluation", "Evaluation dashboard"],
+    ["/admin", "Reviewer authentication required"],
+  ])("has no detectable axe violations on %s", async (route, heading) => {
     const { container } = render(<MemoryRouter initialEntries={[route]}><App /></MemoryRouter>);
-    await screen.findByRole("main");
-    if (route === "/papers") await screen.findByRole("heading", { name: "Paper Browser" });
-    if (route === "/admin") await screen.findByRole("heading", { name: "Reviewer authentication required" });
-    if (route === "/") await screen.findByRole("heading", { name: "Research intelligence dashboard" });
+    await screen.findByRole("heading", { name: heading });
     expect(await axe(container)).toHaveNoViolations();
   });
 });

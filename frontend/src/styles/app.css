@@ -651,6 +651,31 @@ textarea:focus {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.paper-filters {
+  border: 0;
+  margin-bottom: 12px;
+  padding: 0;
+  width: 100%;
+}
+
+.paper-filters label {
+  display: grid;
+  gap: 6px;
+}
+
+.paper-filters label span {
+  color: #52656d;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.paper-filters select {
+  border: 1px solid var(--color-line-strong);
+  border-radius: 8px;
+  background: var(--color-panel);
+  padding: 10px 12px;
+}
+
 .finder-panel button {
   justify-self: start;
 }
@@ -1043,6 +1068,27 @@ textarea:focus {
   font-weight: 800;
 }
 
+.pagination-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.pagination-controls p {
+  margin: 0;
+  color: #42545c;
+  font-weight: 800;
+}
+
+.pagination-controls > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .admin-filter-row,
 .admin-form-grid {
   display: grid;
@@ -1082,6 +1128,37 @@ textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.graph-record-picker {
+  margin-bottom: 16px;
+}
+
+.governance-correction-fields {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.review-card__mutation-controls {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.governance-correction-fields legend {
+  padding: 0 6px;
+  color: #42545c;
+  font-weight: 900;
+}
+
+.governance-correction-fields .field-help {
+  grid-column: 1 / -1;
 }
 
 .action-button--secondary {
@@ -1536,7 +1613,14 @@ textarea:focus {
   }
 
   .search-toolbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .search-toolbar input,
+  .search-toolbar select,
+  .search-toolbar button {
+    width: 100%;
+    min-width: 0;
   }
 
   .ask-controls,

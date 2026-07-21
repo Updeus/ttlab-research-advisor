@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 
-import { askTtlab, fetchAskDiagnostics, fetchLocalLlms } from "../api/client";
+import { askTtlab, fetchAskDiagnostics, fetchLocalLlms, isAbortError } from "../api/client";
 import { BusyButton, EmptyState, InlineProgress, ListSkeleton } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
-import type { AskDiagnostics, AskResponse, LocalLlmModel, LocalLlmStatus, Paper, SearchMode } from "../types/paper";
+import type { AskDiagnostics, AskRequest, AskResponse, LocalLlmModel, LocalLlmStatus, Paper, SearchMode } from "../types/paper";
+import { isSearchablePublicPaper } from "../utils/publication";
 
 type AskPageProps = {
   papers: Paper[];
@@ -13,20 +14,29 @@ type AskPageProps = {
   initialPaperId?: string | null;
 };
 
+type AskResult = {
+  request: AskRequest;
+  response: AskResponse;
+};
+
 export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null }: AskPageProps) {
+  const searchablePapers = papers.filter(isSearchablePublicPaper);
   const [question, setQuestion] = useState("Which TTLAB papers discuss RAG?");
   const [audience, setAudience] = useState("general");
-  const [mode, setMode] = useState<SearchMode>("hybrid");
+  const [mode, setMode] = useState<SearchMode>("keyword");
   const [topK, setTopK] = useState(5);
-  const [provider, setProvider] = useState("ollama");
+  const [provider, setProvider] = useState("offline_extractive");
   const [selectedModel, setSelectedModel] = useState("qwen3:4b-instruct-2507-q4_K_M");
   const [selectedPaperId, setSelectedPaperId] = useState(initialPaperId ?? "");
-  const [response, setResponse] = useState<AskResponse | null>(null);
+  const [result, setResult] = useState<AskResult | null>(null);
+  const [failedRequest, setFailedRequest] = useState<AskRequest | null>(null);
   const [diagnostics, setDiagnostics] = useState<AskDiagnostics | null>(null);
   const [llmStatus, setLlmStatus] = useState<LocalLlmStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const requestSequence = useRef(0);
+  const requestController = useRef<AbortController | null>(null);
 
   function loadStatus() {
     setStatusError(null);
@@ -37,13 +47,13 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
         if (llmResult.status === "fulfilled") {
           const llmRows = llmResult.value;
           setLlmStatus(llmRows);
-        const preferred = llmRows.models.find((model) => model.installed && model.name === llmRows.default_model)
-          ?? llmRows.models.find((model) => model.installed)
+        const preferred = llmRows.models.find((model) => model.installed && (model.usable ?? true) && model.name === llmRows.default_model)
+          ?? llmRows.models.find((model) => model.installed && (model.usable ?? true))
           ?? llmRows.models[0];
         if (preferred) {
           setSelectedModel(preferred.name);
         }
-          if (!llmRows.available || !llmRows.models.some((model) => model.installed)) {
+          if (!(llmRows.generation_available ?? llmRows.available) || !llmRows.models.some((model) => model.installed && (model.usable ?? true))) {
             setProvider("offline_extractive");
           }
         } else {
@@ -60,48 +70,66 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
     loadStatus();
   }, []);
 
+  useEffect(() => () => requestController.current?.abort(), []);
+
   useEffect(() => {
     if (initialPaperId) {
-      setSelectedPaperId(initialPaperId);
       const paper = papers.find((item) => item.paper_id === initialPaperId);
-      if (paper) {
+      if (paper && isSearchablePublicPaper(paper)) {
+        setSelectedPaperId(initialPaperId);
         setQuestion(`What does "${paper.title}" say, and what are the strongest cited points?`);
+      } else {
+        setSelectedPaperId("");
       }
     }
   }, [initialPaperId, papers]);
 
-  const installedModels = llmStatus?.models.filter((model) => model.installed) ?? [];
+  const llmGenerationAvailable = llmStatus ? (llmStatus.generation_available ?? llmStatus.available) : false;
+  const installedModels = llmStatus?.models.filter((model) => model.installed && (model.usable ?? true)) ?? [];
   const modelOptions = installedModels.length ? installedModels : (llmStatus?.models.length ? llmStatus.models : [fallbackModel(selectedModel)]);
   const selectedModelInfo = modelOptions.find((model) => model.name === selectedModel) ?? modelOptions[0];
 
-  function submitQuestion() {
-    const trimmed = question.trim();
-    if (!trimmed) {
+  function submitQuestion(requestOverride?: AskRequest) {
+    const submittedRequest: AskRequest = requestOverride ?? {
+      question: question.trim(),
+      mode,
+      top_k: topK,
+      audience,
+      max_words: 250,
+      provider,
+      model: provider === "ollama" ? selectedModel : null,
+      paper_id: selectedPaperId || null,
+    };
+    if (!submittedRequest.question) {
       return;
     }
+
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
+    const sequence = ++requestSequence.current;
     setLoading(true);
     setError(null);
-    askTtlab({
-      question: trimmed,
-        mode,
-        top_k: topK,
-        audience,
-        max_words: 250,
-        provider,
-        model: provider === "ollama" ? selectedModel : null,
-        paper_id: selectedPaperId || null,
-      })
-      .then((result) => {
-        setResponse(result);
-        onNotify?.(`Ask TTLAB answered with ${result.citations.length} citations.`, result.grounding_status === "unsupported" ? "warning" : "success");
+    setFailedRequest(null);
+    askTtlab(submittedRequest, controller.signal)
+      .then((response) => {
+        if (sequence !== requestSequence.current) return;
+        setResult({ request: submittedRequest, response });
+        onNotify?.(`Ask TTLAB answered with ${response.citations.length} citations.`, response.grounding_status === "unsupported" ? "warning" : "success");
       })
       .catch((err: unknown) => {
+        if (sequence !== requestSequence.current || isAbortError(err)) return;
         const message = err instanceof Error ? err.message : "Ask TTLAB failed.";
         setError(message);
+        setFailedRequest(submittedRequest);
         onNotify?.(message, "error");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (sequence === requestSequence.current) setLoading(false);
+      });
   }
+
+  const response = result?.response ?? null;
 
   return (
     <section className="page-section">
@@ -110,6 +138,9 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
       </div>
       <p className="notice">
         Privacy: your question and paper scope are sent for this request only. The public endpoint does not save them to Ask history. Do not enter confidential or personal data.
+      </p>
+      <p className="notice">
+        Ask searches only approved, rights-cleared papers with <strong>searchable</strong> public access and an eligible extracted-text corpus. Metadata-only catalogue records are not available as Ask scopes.
       </p>
 
       <div className="ask-panel" aria-busy={loading}>
@@ -130,7 +161,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
             <option value="keyword">Keyword</option>
             <option value="feature_hashing">Feature-hashing baseline</option>
             <option value="dense">Dense semantic (learned model)</option>
-            <option value="hybrid">Hybrid</option>
+            <option value="hybrid">Hybrid (experimental; not validated as better)</option>
           </select>
           <select aria-label="Top K" value={topK} onChange={(event) => setTopK(Number(event.target.value))}>
             <option value={3}>Top 3</option>
@@ -138,15 +169,15 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
             <option value={8}>Top 8</option>
           </select>
           <select aria-label="Paper scope" value={selectedPaperId} onChange={(event) => setSelectedPaperId(event.target.value)}>
-            <option value="">All indexed papers</option>
-            {papers.map((paper) => (
+            <option value="">All searchable public papers</option>
+            {searchablePapers.map((paper) => (
               <option key={paper.paper_id} value={paper.paper_id}>
                 {paper.title}
               </option>
             ))}
           </select>
           <select aria-label="Answer provider" value={provider} onChange={(event) => setProvider(event.target.value)}>
-            <option value="ollama" disabled={llmStatus !== null && !llmStatus.available}>Local Ollama{llmStatus !== null && !llmStatus.available ? " (unavailable)" : ""}</option>
+            <option value="ollama" disabled={llmStatus !== null && !llmGenerationAvailable}>Local Ollama{llmStatus !== null && !llmGenerationAvailable ? " (no digest-verified model)" : ""}</option>
             <option value="offline_extractive">Offline extractive</option>
             <option value="auto">Auto fallback</option>
           </select>
@@ -162,7 +193,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
               </option>
             ))}
           </select>
-          <BusyButton busy={loading} busyLabel="Asking..." icon={<Send size={16} aria-hidden="true" />} onClick={submitQuestion} disabled={!question.trim()}>
+          <BusyButton busy={loading} busyLabel="Asking..." icon={<Send size={16} aria-hidden="true" />} onClick={() => submitQuestion()} disabled={!question.trim()}>
             Ask
           </BusyButton>
         </div>
@@ -171,11 +202,11 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
       {diagnostics ? (
         <div className="search-diagnostics">
           <span>{diagnostics.searchable_chunks} searchable chunks</span>
-          <span>{diagnostics.total_stored_answers} stored answers</span>
+          <span>{diagnostics.total_stored_answers === null ? "Stored answer history protected" : `${diagnostics.total_stored_answers} stored answers`}</span>
           <span>{diagnostics.default_provider.replaceAll("_", " ")}</span>
           {diagnostics.feature_hashing_index ? <span>Feature hashing: {diagnostics.feature_hashing_index.status} · {formatTimestamp(diagnostics.feature_hashing_index.last_indexed_at)}</span> : null}
           {diagnostics.dense_index ? <span>Dense semantic: {diagnostics.dense_index.status}</span> : null}
-          {llmStatus ? <span>{llmStatus.available ? `${llmStatus.model_count} local Ollama models` : "Ollama unavailable"}</span> : null}
+          {llmStatus ? <span>{llmGenerationAvailable ? `${installedModels.length} digest-verified local Ollama models` : "Ollama generation unavailable"}</span> : null}
         </div>
       ) : null}
 
@@ -205,7 +236,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
       {error ? (
         <div className="notice notice--error" role="alert">
           <p>{error}</p>
-          <button className="action-button" onClick={submitQuestion}>Retry question</button>
+          <button className="action-button" onClick={() => submitQuestion(failedRequest ?? undefined)}>Retry question</button>
         </div>
       ) : null}
       {loading && !response ? <ListSkeleton count={3} lines={4} /> : null}
@@ -213,6 +244,9 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
       {response ? (
         <div className="answer-layout">
           <article className="answer-card">
+            <p className="paper-card__status" aria-live="polite">
+              Answer to “{result?.request.question}” · {result?.request.audience} audience · {result?.request.mode.replaceAll("_", " ")}
+            </p>
             <div className="paper-card__meta">
               <span className={`grounding grounding--${response.grounding_status}`}>{response.grounding_status}</span>
               <span>{response.provider.replaceAll("_", " ")}</span>

@@ -12,6 +12,11 @@ export const paper = {
   topics: ["retrieval"],
   ingestion_status: "imported",
   pdf_text_status: "extracted",
+  corpus_eligibility_status: "eligible",
+  corpus_exclusion_reason: null,
+  publication_status: "published",
+  rights_status: "cleared",
+  public_access_level: "searchable",
   page_count: 4,
   chunk_count: 1,
   review_status: "needs_review",
@@ -129,6 +134,80 @@ export function installBaseFetchMock() {
     }]);
     if (url.pathname === "/api/papers/paper-1/artifacts") return json([]);
     if (url.pathname === "/api/papers/paper-1/related") return json([]);
+    if (url.pathname === "/api/search/diagnostics") return json({
+      searchable_chunks: 1,
+      searchable_papers: 1,
+      chunks_indexed_for_keyword_search: 1,
+      chunks_indexed_for_feature_hashing: 1,
+      chunks_indexed_for_dense_search: 0,
+      chunks_indexed_for_semantic_search: 1,
+      embedding_provider: "feature_hashing",
+      embedding_dimensions: 384,
+      index_path: "redacted",
+      index_status: "ready",
+      last_indexed_timestamp: "2026-01-01T00:00:00Z",
+      keyword: { status: "ready", keyword_indexed_chunks: 1 },
+      feature_hashing: { embedding_provider: "feature_hashing", embedding_dimensions: 384, indexed_chunks: 1, index_path: "redacted", status: "ready", index_status: "ready", last_indexed_at: "2026-01-01T00:00:00Z" },
+      dense: { embedding_provider: "dense", embedding_dimensions: 384, indexed_chunks: 0, index_path: "redacted", status: "missing", index_status: "missing", last_indexed_at: null },
+    });
+    if (url.pathname === "/api/ask/diagnostics") return json({
+      total_stored_answers: 0,
+      grounded_answers: 0,
+      partial_answers: 0,
+      unsupported_answers: 0,
+      default_provider: "offline_extractive",
+      external_provider_available: false,
+      searchable_chunks: 1,
+      semantic_indexed_chunks: 1,
+      last_answer_timestamp: null,
+    });
+    if (url.pathname === "/api/llms/local") return json({
+      available: false,
+      base_url: "",
+      default_model: "none",
+      model_count: 0,
+      models: [],
+      recommended_pulls: [],
+      benchmark: null,
+      warnings: ["Ollama unavailable"],
+    });
+    if (url.pathname === "/api/recommendations/extensions/diagnostics") return json({
+      searchable_chunks: 1,
+      searchable_papers: 1,
+      total_recommendation_runs: 0,
+      total_recommendations_generated: 0,
+      grounded_runs: 0,
+      partial_runs: 0,
+      unsupported_runs: 0,
+      default_provider: "offline_deterministic",
+      last_recommendation_timestamp: null,
+    });
+    if (url.pathname === "/api/explorer/overview") return json({
+      topic_count: 0,
+      author_count: 0,
+      paper_count: 1,
+      linked_paper_topics: 0,
+      linked_author_topics: 0,
+      top_topics: [],
+      top_authors: [],
+      recent_papers: [paper],
+      explorer_index_status: "empty",
+    });
+    if (url.pathname === "/api/topics" || url.pathname === "/api/authors") return json({ total: 0, limit: 50, offset: 0, items: [] });
+    if (url.pathname === "/api/evaluation/dashboard") return json(emptyEvaluationDashboard());
     return json({ detail: `Unhandled test endpoint ${url.pathname}` }, { status: 404 });
   });
+}
+
+function emptyEvaluationDashboard() {
+  const status = { status: "not_run", result_file_exists: false, path: "redacted", last_run_timestamp: null };
+  return {
+    retrieval: { ...status, question_count: 0, recall_at_3: null, recall_at_5: null, mrr: null },
+    qa: { ...status, question_count: 0, answer_count: 0, cited_gold_paper_count: 0, citation_count: 0, grounding_counts: {} },
+    extension: { ...status, case_count: 0, recommendation_count: 0, citation_coverage: null, grounding_counts: {}, warnings_count: 0 },
+    artifact: { ...status, case_count: 0, artifact_count: 0, citation_coverage: null, grounding_counts: {}, warnings_count: 0, sections_with_explicit_support: 0, sections_inferred: 0, sections_not_found: 0 },
+    human_review_templates: {},
+    overall_quality: {},
+    result_files: {},
+  };
 }

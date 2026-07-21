@@ -51,7 +51,7 @@ export function CardSkeleton({ lines = 3, compact = false }: { lines?: number; c
 
 export function ListSkeleton({ count = 3, lines = 3 }: { count?: number; lines?: number }) {
   return (
-    <div className="paper-list" aria-label="Loading content" aria-busy="true">
+    <div className="paper-list" role="status" aria-label="Loading content" aria-busy="true">
       {Array.from({ length: count }).map((_, index) => (
         <CardSkeleton key={index} lines={lines} />
       ))}
@@ -61,7 +61,7 @@ export function ListSkeleton({ count = 3, lines = 3 }: { count?: number; lines?:
 
 export function DetailSkeleton() {
   return (
-    <div className="detail-skeleton" aria-label="Loading paper detail" aria-busy="true">
+    <div className="detail-skeleton" role="status" aria-label="Loading paper detail" aria-busy="true">
       <CardSkeleton lines={2} />
       <MetricSkeletonGrid count={4} compact />
       <ListSkeleton count={2} lines={4} />

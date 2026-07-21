@@ -20,6 +20,9 @@ export type Paper = {
   ocr_review_required?: boolean;
   corpus_eligibility_status?: string;
   corpus_exclusion_reason?: string | null;
+  publication_status?: string;
+  rights_status?: string;
+  public_access_level?: string;
   pdf_title_match_status?: string;
   extracted_json_path?: string | null;
   extracted_text_path?: string | null;
@@ -33,7 +36,7 @@ export type Paper = {
   review_status: ReviewStatus | string;
   reviewer_notes?: string | null;
   reviewed_at: string | null;
-  reviewed_by: string | null;
+  reviewed_by?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -50,37 +53,37 @@ export type Stats = {
   topic_count: number;
   author_count: number;
   paper_topic_links: number;
-  author_topic_links: number;
+  author_topic_links: number | null;
   papers_with_topics: number;
-  authors_with_topics: number;
+  authors_with_topics: number | null;
   searchable_papers: number;
   searchable_chunks: number;
   keyword_indexed_chunks: number;
-  semantic_indexed_chunks: number;
+  semantic_indexed_chunks: number | null;
   feature_hashing_indexed_chunks: number;
   dense_indexed_chunks: number;
   feature_hashing_index_status: string;
   dense_index_status: string;
-  total_ask_answers: number;
-  grounded_answers: number;
-  partial_answers: number;
-  unsupported_answers: number;
+  total_ask_answers?: number;
+  grounded_answers?: number;
+  partial_answers?: number;
+  unsupported_answers?: number;
   default_ask_provider: string;
-  total_extension_recommendation_runs: number;
-  total_extension_ideas: number;
-  grounded_extension_runs: number;
-  partial_extension_runs: number;
-  unsupported_extension_runs: number;
-  total_paper_artifacts: number;
-  papers_with_artifacts: number;
-  podcast_scripts_generated: number;
-  artifacts_needing_review: number;
-  admin_review_queue_count: number;
-  papers_needing_review: number;
-  answers_needing_review: number;
-  recommendations_needing_review: number;
-  total_review_events: number;
-  latest_review_event_at: string | null;
+  total_extension_recommendation_runs?: number;
+  total_extension_ideas?: number;
+  grounded_extension_runs?: number;
+  partial_extension_runs?: number;
+  unsupported_extension_runs?: number;
+  total_paper_artifacts?: number;
+  papers_with_artifacts?: number;
+  podcast_scripts_generated?: number;
+  artifacts_needing_review?: number;
+  admin_review_queue_count?: number;
+  papers_needing_review?: number;
+  answers_needing_review?: number;
+  recommendations_needing_review?: number;
+  total_review_events?: number;
+  latest_review_event_at?: string | null;
   evaluation_files_present: Record<string, boolean>;
   evaluation_last_run_at: string | null;
   top_topics: [string, number][];
@@ -132,6 +135,9 @@ export type IndexDiagnostics = {
   index_path: string;
   manifest_path?: string;
   status: string;
+  projection_status?: string;
+  underlying_index_status?: string;
+  underlying_representation_valid?: boolean;
   index_status: string;
   completeness_status?: string | null;
   last_indexed_at: string | null;
@@ -271,10 +277,10 @@ export type AskResponse = {
 };
 
 export type AskDiagnostics = {
-  total_stored_answers: number;
-  grounded_answers: number;
-  partial_answers: number;
-  unsupported_answers: number;
+  total_stored_answers: number | null;
+  grounded_answers: number | null;
+  partial_answers: number | null;
+  unsupported_answers: number | null;
   default_provider: string;
   external_provider_available: boolean;
   searchable_chunks: number;
@@ -295,6 +301,8 @@ export type LocalLlmBenchmarkSummary = {
 export type LocalLlmModel = {
   name: string;
   installed: boolean;
+  usable?: boolean;
+  digest_allowed?: boolean;
   source: string;
   size?: number | null;
   digest?: string | null;
@@ -309,6 +317,7 @@ export type LocalLlmModel = {
 
 export type LocalLlmStatus = {
   available: boolean;
+  generation_available?: boolean;
   base_url: string;
   default_model: string;
   model_count: number;
@@ -393,7 +402,7 @@ export type ExtensionRecommendation = {
   data_required: string;
   data_availability: "public" | "needs_supervisor" | "private" | "synthetic" | "unknown";
   evaluation_plan: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: "easy" | "medium" | "hard" | "unknown";
   risk_level: "low" | "medium" | "high";
   implementation_time: "2 weeks" | "1 month" | "semester" | "unknown";
   related_papers: {
@@ -428,11 +437,11 @@ export type ExtensionFinderResponse = {
 };
 
 export type ExtensionDiagnostics = {
-  total_recommendation_runs: number;
-  total_recommendations_generated: number;
-  grounded_runs: number;
-  partial_runs: number;
-  unsupported_runs: number;
+  total_recommendation_runs: number | null;
+  total_recommendations_generated: number | null;
+  grounded_runs: number | null;
+  partial_runs: number | null;
+  unsupported_runs: number | null;
   searchable_chunks: number;
   searchable_papers: number;
   default_provider: string;
@@ -508,23 +517,32 @@ export type PaperArtifact = {
   artifact_id: string;
   paper_id: string;
   artifact_type: string;
-  generated_json: PaperIntelligenceBundle | PodcastScriptArtifact | ArtifactSection | Record<string, unknown>;
-  generated_text: string;
+  generated_json?: PaperIntelligenceBundle | PodcastScriptArtifact | ArtifactSection | Record<string, unknown>;
+  generated_text?: string;
+  effective_json?: PaperIntelligenceBundle | PodcastScriptArtifact | ArtifactSection | Record<string, unknown>;
+  effective_text?: string;
   source_chunk_ids: string[];
   citations: ArtifactCitation[];
-  provider: string;
-  model: string;
+  provider?: string;
+  model?: string;
   generation_status: "generated" | "failed" | "insufficient_sources";
   grounding_status: "grounded" | "partial" | "unsupported";
   review_status: ReviewStatus;
-  reviewer_notes: string | null;
+  reviewer_notes?: string | null;
   reviewed_at: string | null;
-  reviewed_by: string | null;
-  corrected_text: string | null;
-  corrected_json: Record<string, unknown>;
+  reviewed_by?: string | null;
+  corrected_text?: string | null;
+  corrected_json?: Record<string, unknown> | null;
+  provenance?: {
+    provider: string;
+    model: string;
+    generated_at: string;
+    approved_version: "generated" | "corrected" | string;
+    correction_fields: string[];
+  };
   warnings: string[];
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type GenerateArtifactsResponse = {
@@ -574,6 +592,63 @@ export type AdminOverview = {
   recent_review_events: ReviewEvent[];
 };
 
+export type AdminPublicationPreviewPaper = {
+  paper_id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  venue: string | null;
+  topics: string[];
+  pdf_text_status: string;
+  corpus_eligibility_status: string;
+  corpus_exclusion_reason: string | null;
+  publication_status: "pending_review" | "published" | "hidden" | string;
+  rights_status: "unknown" | "cleared" | "restricted" | string;
+  public_access_level: "hidden" | "metadata_only" | "searchable" | string;
+  review_status: ReviewStatus | string;
+  pdf_unavailability_reason?: string | null;
+  pdf_unavailability_detail?: string | null;
+  possible_scanned_pdf?: boolean;
+  extraction_content_type?: string;
+  ocr_status?: string;
+  ocr_provider?: string;
+  ocr_provider_version?: string;
+  ocr_pages_count?: number;
+  ocr_review_required?: boolean;
+  extraction_review_status?: ReviewStatus | string;
+  extraction_reviewer_notes?: string | null;
+  extraction_reviewed_by?: string | null;
+  extraction_reviewer_type?: "human" | "ai" | "service" | string | null;
+  extraction_reviewed_at?: string | null;
+  pdf_title_match_status?: string;
+  pdf_title_match_score?: number;
+  reviewer_notes?: string | null;
+};
+
+export type AdminPublicationPreview = {
+  surface: "local_review_preview";
+  public: false;
+  notice: string;
+  items: AdminPublicationPreviewPaper[];
+};
+
+export type ActorCapabilities = {
+  actor: {
+    actor_id: string;
+    role: "reviewer" | "admin";
+    reviewer_type: "human" | "ai" | "service";
+    local_demo_bypass: boolean;
+  };
+  capabilities: {
+    review: boolean;
+    save_corrections: boolean;
+    approve_or_reject: boolean;
+    set_publication_and_rights: boolean;
+    trigger_ingestion: boolean;
+  };
+  allowed_review_transitions: Record<string, ReviewStatus[]>;
+};
+
 export type IngestionRun = {
   run_id: string;
   source: string;
@@ -615,13 +690,23 @@ export type IngestionSyncStatus = {
 };
 
 export type ReviewQueueItem = {
-  item_type: "paper" | "rag_answer" | "thesis_recommendation" | "paper_artifact";
+  item_type:
+    | "paper"
+    | "rag_answer"
+    | "thesis_recommendation"
+    | "paper_artifact"
+    | "author"
+    | "author_alias"
+    | "topic"
+    | "paper_topic"
+    | "author_topic";
   item_id: string;
   title: string;
   label: string;
   status: ReviewStatus | string;
   grounding_status: "grounded" | "partial" | "unsupported" | null;
   warnings: string[];
+  approval_blockers?: string[];
   created_at: string | null;
   updated_at: string | null;
   frontend_link: string;
@@ -635,11 +720,19 @@ export type ReviewQueueResponse = {
   items: ReviewQueueItem[];
 };
 
+export type ReviewEventsResponse = {
+  total: number;
+  limit: number;
+  offset: number;
+  items: ReviewEvent[];
+};
+
 export type EvaluationSectionStatus = {
-  status: "not_run" | "available" | "invalid";
+  status: "not_run" | "available" | "invalid" | "historical";
   result_file_exists: boolean;
   path: string;
   last_run_timestamp: string | null;
+  freshness_status?: "current" | "historical" | "missing" | "invalid";
   [key: string]: unknown;
 };
 
@@ -647,6 +740,22 @@ export type EvaluationDashboard = {
   evaluation_label?: string;
   reviewer_type?: string;
   human_validation?: boolean;
+  evaluation_status?: "current" | "historical" | "not_run" | "invalid" | string;
+  freshness?: {
+    status: "current" | "historical" | string;
+    notice: string;
+    current_commit?: string;
+    current_corpus_snapshot_hash?: string;
+    current_configuration_hash?: string;
+    artifacts?: Record<string, {
+      status: string;
+      checks?: Record<string, string>;
+      recorded_commit?: string | null;
+      recorded_corpus_snapshot_hash?: string | null;
+      recorded_configuration_hash?: string | null;
+      path?: string;
+    }>;
+  };
   retrieval: EvaluationSectionStatus & {
     question_count: number;
     recall_at_3: number | null;

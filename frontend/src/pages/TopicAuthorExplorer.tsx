@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 
-import { fetchAuthorDetail, fetchAuthors, fetchExplorerOverview, fetchTopicDetail, fetchTopics } from "../api/client";
+import { fetchAuthorDetail, fetchAuthors, fetchExplorerOverview, fetchTopicDetail, fetchTopics, isAbortError } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { EmptyState, InlineProgress, ListSkeleton, MetricSkeletonGrid, SearchActionButton } from "../components/UiPrimitives";
 import type { AuthorDetail, AuthorSummary, ExplorerOverview, PaperSummary, TopicDetail, TopicSummary } from "../types/paper";
 
 type ExplorerTab = "overview" | "topics" | "authors";
+const TOPIC_PAGE_SIZE = 50;
+const AUTHOR_PAGE_SIZE = 50;
 
 type TopicAuthorExplorerProps = {
   onSelectPaper: (paperId: string) => void;
@@ -17,10 +19,13 @@ type TopicAuthorExplorerProps = {
 
 export function TopicAuthorExplorer({ onSelectPaper, initialTab = "overview", initialTopicId, initialAuthorId }: TopicAuthorExplorerProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<ExplorerTab>(initialTab);
   const [overview, setOverview] = useState<ExplorerOverview | null>(null);
   const [topics, setTopics] = useState<TopicSummary[]>([]);
+  const [topicTotal, setTopicTotal] = useState(0);
+  const [topicOffset, setTopicOffset] = useState(0);
   const [authors, setAuthors] = useState<AuthorSummary[]>([]);
+  const [authorTotal, setAuthorTotal] = useState(0);
+  const [authorOffset, setAuthorOffset] = useState(0);
   const [selectedTopic, setSelectedTopic] = useState<TopicDetail | null>(null);
   const [selectedAuthor, setSelectedAuthor] = useState<AuthorDetail | null>(null);
   const [topicQuery, setTopicQuery] = useState("");
@@ -30,90 +35,156 @@ export function TopicAuthorExplorer({ onSelectPaper, initialTab = "overview", in
   const [loading, setLoading] = useState(true);
   const [listLoading, setListLoading] = useState<"topics" | "authors" | null>(null);
   const [detailLoading, setDetailLoading] = useState<"topic" | "author" | null>(null);
+  const overviewController = useRef<AbortController | null>(null);
+  const topicListController = useRef<AbortController | null>(null);
+  const authorListController = useRef<AbortController | null>(null);
+  const topicListSequence = useRef(0);
+  const authorListSequence = useRef(0);
+  const activeTab = initialTab;
 
   function loadOverview() {
+    overviewController.current?.abort();
+    const controller = new AbortController();
+    overviewController.current = controller;
+    const topicSequence = topicListSequence.current;
+    const authorSequence = authorListSequence.current;
     setLoading(true);
     setError(null);
-    Promise.all([fetchExplorerOverview(), fetchTopics({ limit: 50 }), fetchAuthors({ limit: 50 })])
+    Promise.all([
+      fetchExplorerOverview(controller.signal),
+      fetchTopics({ limit: TOPIC_PAGE_SIZE, offset: 0 }, controller.signal),
+      fetchAuthors({ limit: AUTHOR_PAGE_SIZE, offset: 0 }, controller.signal),
+    ])
       .then(([overviewData, topicRows, authorRows]) => {
         setOverview(overviewData);
-        setTopics(topicRows.items);
-        setAuthors(authorRows.items);
+        if (topicSequence === topicListSequence.current) {
+          setTopics(topicRows.items);
+          setTopicTotal(topicRows.total);
+          setTopicOffset(topicRows.offset);
+        }
+        if (authorSequence === authorListSequence.current) {
+          setAuthors(authorRows.items);
+          setAuthorTotal(authorRows.total);
+          setAuthorOffset(authorRows.offset);
+        }
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load explorer data."))
-      .finally(() => setLoading(false));
+      .catch((err: unknown) => {
+        if (!isAbortError(err)) setError(err instanceof Error ? err.message : "Unable to load explorer data.");
+      })
+      .finally(() => {
+        if (overviewController.current === controller) setLoading(false);
+      });
   }
 
   useEffect(() => {
     loadOverview();
+    return () => {
+      overviewController.current?.abort();
+      topicListController.current?.abort();
+      authorListController.current?.abort();
+    };
   }, []);
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
-
-  useEffect(() => {
-    if (initialTopicId) {
-      loadTopic(initialTopicId);
+    if (!initialTopicId) {
+      setSelectedTopic(null);
+      return;
     }
+    let active = true;
+    setSelectedTopic(null);
+    setDetailLoading("topic");
+    setError(null);
+    fetchTopicDetail(initialTopicId)
+      .then((detail) => {
+        if (active) setSelectedTopic(detail);
+      })
+      .catch((err: unknown) => {
+        if (active && !isAbortError(err)) setError(err instanceof Error ? err.message : "Unable to load topic detail.");
+      })
+      .finally(() => {
+        if (active) setDetailLoading(null);
+      });
+    return () => {
+      active = false;
+    };
   }, [initialTopicId]);
 
   useEffect(() => {
-    if (initialAuthorId) {
-      loadAuthor(initialAuthorId);
+    if (!initialAuthorId) {
+      setSelectedAuthor(null);
+      return;
     }
+    let active = true;
+    setSelectedAuthor(null);
+    setDetailLoading("author");
+    setError(null);
+    fetchAuthorDetail(initialAuthorId)
+      .then((detail) => {
+        if (active) setSelectedAuthor(detail);
+      })
+      .catch((err: unknown) => {
+        if (active && !isAbortError(err)) setError(err instanceof Error ? err.message : "Unable to load author detail.");
+      })
+      .finally(() => {
+        if (active) setDetailLoading(null);
+      });
+    return () => {
+      active = false;
+    };
   }, [initialAuthorId]);
 
-  function searchTopics() {
+  function searchTopics(offset = 0) {
+    topicListController.current?.abort();
+    const controller = new AbortController();
+    topicListController.current = controller;
+    const sequence = ++topicListSequence.current;
     setListLoading("topics");
     setError(null);
-    fetchTopics({ q: topicQuery, limit: 50 })
-      .then((rows) => setTopics(rows.items))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to search topics."))
-      .finally(() => setListLoading(null));
+    fetchTopics({ q: topicQuery, limit: TOPIC_PAGE_SIZE, offset }, controller.signal)
+      .then((rows) => {
+        if (sequence === topicListSequence.current) {
+          setTopics(rows.items);
+          setTopicTotal(rows.total);
+          setTopicOffset(rows.offset);
+        }
+      })
+      .catch((err: unknown) => {
+        if (sequence === topicListSequence.current && !isAbortError(err)) setError(err instanceof Error ? err.message : "Unable to search topics.");
+      })
+      .finally(() => {
+        if (sequence === topicListSequence.current) setListLoading(null);
+      });
   }
 
-  function searchAuthors() {
+  function searchAuthors(offset = 0) {
+    authorListController.current?.abort();
+    const controller = new AbortController();
+    authorListController.current = controller;
+    const sequence = ++authorListSequence.current;
     setListLoading("authors");
     setError(null);
-    fetchAuthors({ q: authorQuery, topic: authorTopicFilter, limit: 50 })
-      .then((rows) => setAuthors(rows.items))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to search authors."))
-      .finally(() => setListLoading(null));
-  }
-
-  function loadTopic(topicId: string) {
-    setDetailLoading("topic");
-    setError(null);
-    fetchTopicDetail(topicId)
-      .then((detail) => {
-        setSelectedTopic(detail);
-        setActiveTab("topics");
+    fetchAuthors({ q: authorQuery, topic: authorTopicFilter, limit: AUTHOR_PAGE_SIZE, offset }, controller.signal)
+      .then((rows) => {
+        if (sequence === authorListSequence.current) {
+          setAuthors(rows.items);
+          setAuthorTotal(rows.total);
+          setAuthorOffset(rows.offset);
+        }
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load topic detail."))
-      .finally(() => setDetailLoading(null));
+      .catch((err: unknown) => {
+        if (sequence === authorListSequence.current && !isAbortError(err)) setError(err instanceof Error ? err.message : "Unable to search authors.");
+      })
+      .finally(() => {
+        if (sequence === authorListSequence.current) setListLoading(null);
+      });
   }
 
   function openTopic(topicId: string) {
     navigate(`/explorer/topics/${encodeURIComponent(topicId)}`);
-    loadTopic(topicId);
-  }
-
-  function loadAuthor(authorId: number) {
-    setDetailLoading("author");
-    setError(null);
-    fetchAuthorDetail(authorId)
-      .then((detail) => {
-        setSelectedAuthor(detail);
-        setActiveTab("authors");
-      })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load author detail."))
-      .finally(() => setDetailLoading(null));
   }
 
   function openAuthor(authorId: number) {
     navigate(`/explorer/authors/${authorId}`);
-    loadAuthor(authorId);
   }
 
   return (
@@ -131,15 +202,15 @@ export function TopicAuthorExplorer({ onSelectPaper, initialTab = "overview", in
       {loading && !overview ? <InlineProgress label="Loading explorer overview, topics, and authors..." /> : null}
 
       <nav className="artifact-tabs explorer-tabs" aria-label="Explorer sections">
-        <Link className={activeTab === "overview" ? "active" : ""} to="/explorer">
+        <NavLink end className={({ isActive }) => isActive ? "active" : ""} to="/explorer">
           Overview
-        </Link>
-        <Link className={activeTab === "topics" ? "active" : ""} to="/explorer/topics">
+        </NavLink>
+        <NavLink className={({ isActive }) => isActive ? "active" : ""} to="/explorer/topics">
           Topics
-        </Link>
-        <Link className={activeTab === "authors" ? "active" : ""} to="/explorer/authors">
+        </NavLink>
+        <NavLink className={({ isActive }) => isActive ? "active" : ""} to="/explorer/authors">
           Authors
-        </Link>
+        </NavLink>
       </nav>
 
       {activeTab === "overview" && loading && !overview ? <ExplorerOverviewSkeleton /> : null}
@@ -153,8 +224,12 @@ export function TopicAuthorExplorer({ onSelectPaper, initialTab = "overview", in
           selectedTopic={selectedTopic}
           loading={loading || listLoading === "topics"}
           detailLoading={detailLoading === "topic"}
+          total={topicTotal}
+          offset={topicOffset}
+          pageSize={TOPIC_PAGE_SIZE}
           onQueryChange={setTopicQuery}
           onSearch={searchTopics}
+          onPageChange={searchTopics}
           onOpenTopic={openTopic}
           onSelectPaper={onSelectPaper}
         />
@@ -167,9 +242,13 @@ export function TopicAuthorExplorer({ onSelectPaper, initialTab = "overview", in
           selectedAuthor={selectedAuthor}
           loading={loading || listLoading === "authors"}
           detailLoading={detailLoading === "author"}
+          total={authorTotal}
+          offset={authorOffset}
+          pageSize={AUTHOR_PAGE_SIZE}
           onQueryChange={setAuthorQuery}
           onTopicFilterChange={setAuthorTopicFilter}
           onSearch={searchAuthors}
+          onPageChange={searchAuthors}
           onOpenAuthor={openAuthor}
           onSelectPaper={onSelectPaper}
         />
@@ -216,8 +295,8 @@ function ExplorerOverviewPanel({
       </div>
       {overview.explorer_index_status !== "ready" ? (
         <EmptyState
-          title="No topics have been built yet"
-          body="Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild"
+          title="No topics are approved for public exploration yet"
+          body="Topics appear here only when their source papers pass publication, rights, and public-access review."
         />
       ) : null}
       <div className="explorer-columns">
@@ -248,8 +327,12 @@ function TopicBrowser({
   selectedTopic,
   loading,
   detailLoading,
+  total,
+  offset,
+  pageSize,
   onQueryChange,
   onSearch,
+  onPageChange,
   onOpenTopic,
   onSelectPaper,
 }: {
@@ -258,15 +341,19 @@ function TopicBrowser({
   selectedTopic: TopicDetail | null;
   loading: boolean;
   detailLoading: boolean;
+  total: number;
+  offset: number;
+  pageSize: number;
   onQueryChange: (value: string) => void;
-  onSearch: () => void;
+  onSearch: (offset?: number) => void;
+  onPageChange: (offset: number) => void;
   onOpenTopic: (topicId: string) => void;
   onSelectPaper: (paperId: string) => void;
 }) {
   return (
     <div className="explorer-layout">
       <section>
-        <form className="search-toolbar explorer-toolbar" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
+        <form className="search-toolbar explorer-toolbar" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); onSearch(0); }}>
           <label className="field-label" htmlFor="topic-search">Search topics</label>
           <input id="topic-search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="For example: networks" />
           <SearchActionButton type="submit" busy={loading} />
@@ -278,11 +365,20 @@ function TopicBrowser({
           ))}
           {!loading && !topics.length ? (
             <EmptyState
-              title="No topics found"
-              body="Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild"
+              title="No approved public topics found"
+              body="Try a broader topic search. Hidden or rights-restricted review records are never used as a public fallback."
             />
           ) : null}
         </div>
+        {!loading && total > 0 ? (
+          <nav className="pagination-controls" aria-label="Topic results pagination">
+            <p>Showing {offset + 1}–{Math.min(offset + pageSize, total)} of {total} topics</p>
+            <div>
+              <button className="action-button action-button--secondary" disabled={offset === 0} onClick={() => onPageChange(Math.max(0, offset - pageSize))}>Previous</button>
+              <button className="action-button action-button--secondary" disabled={offset + pageSize >= total} onClick={() => onPageChange(offset + pageSize)}>Next</button>
+            </div>
+          </nav>
+        ) : null}
       </section>
       <section>
         {detailLoading ? <ListSkeleton count={1} lines={5} /> : selectedTopic ? (
@@ -302,9 +398,13 @@ function AuthorBrowser({
   selectedAuthor,
   loading,
   detailLoading,
+  total,
+  offset,
+  pageSize,
   onQueryChange,
   onTopicFilterChange,
   onSearch,
+  onPageChange,
   onOpenAuthor,
   onSelectPaper,
 }: {
@@ -314,16 +414,20 @@ function AuthorBrowser({
   selectedAuthor: AuthorDetail | null;
   loading: boolean;
   detailLoading: boolean;
+  total: number;
+  offset: number;
+  pageSize: number;
   onQueryChange: (value: string) => void;
   onTopicFilterChange: (value: string) => void;
-  onSearch: () => void;
+  onSearch: (offset?: number) => void;
+  onPageChange: (offset: number) => void;
   onOpenAuthor: (authorId: number) => void;
   onSelectPaper: (paperId: string) => void;
 }) {
   return (
     <div className="explorer-layout">
       <section>
-        <form className="search-toolbar explorer-toolbar explorer-toolbar--authors" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
+        <form className="search-toolbar explorer-toolbar explorer-toolbar--authors" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); onSearch(0); }}>
           <label className="field-label" htmlFor="author-search">Search authors</label>
           <input id="author-search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="For example: Hosein" />
           <label className="field-label" htmlFor="author-topic-filter">Filter authors by topic</label>
@@ -337,6 +441,15 @@ function AuthorBrowser({
           ))}
           {!loading && !authors.length ? <EmptyState title="No authors found" body="Try clearing the topic filter or searching a broader name fragment." /> : null}
         </div>
+        {!loading && total > 0 ? (
+          <nav className="pagination-controls" aria-label="Author results pagination">
+            <p>Showing {offset + 1}–{Math.min(offset + pageSize, total)} of {total} authors</p>
+            <div>
+              <button className="action-button action-button--secondary" disabled={offset === 0} onClick={() => onPageChange(Math.max(0, offset - pageSize))}>Previous</button>
+              <button className="action-button action-button--secondary" disabled={offset + pageSize >= total} onClick={() => onPageChange(offset + pageSize)}>Next</button>
+            </div>
+          </nav>
+        ) : null}
       </section>
       <section>
         {detailLoading ? <ListSkeleton count={1} lines={5} /> : selectedAuthor ? (

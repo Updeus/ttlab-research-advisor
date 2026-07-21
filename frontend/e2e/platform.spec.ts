@@ -15,11 +15,30 @@ const paper = {
   topics: ["retrieval"],
   ingestion_status: "imported",
   pdf_text_status: "extracted",
+  corpus_eligibility_status: "eligible",
+  corpus_exclusion_reason: null,
+  publication_status: "published",
+  rights_status: "cleared",
+  public_access_level: "searchable",
   page_count: 4,
   chunk_count: 1,
   review_status: "needs_review",
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
+};
+
+const secondPaper = {
+  ...paper,
+  paper_id: "paper-2",
+  title: "Climate Network Planning",
+  authors: ["B. Analyst"],
+  year: 2024,
+  publication_date_raw: "2024",
+  venue: "Climate Systems",
+  topics: ["climate", "networks"],
+  source_url: "https://lab.tt/paper-2",
+  post_url: "https://lab.tt/paper-2",
+  pdf_url: "https://lab.tt/paper-2.pdf",
 };
 
 const stats = {
@@ -70,7 +89,7 @@ test("all primary surfaces have reproducible routes and titles", async ({ page }
 
 test("paper details deep-link, reload, and browser history work", async ({ page }) => {
   await page.goto("/papers");
-  await page.getByRole("link", { name: "Details" }).click();
+  await page.getByRole("link", { name: "Details" }).first().click();
   await expect(page).toHaveURL(/\/papers\/paper-1$/);
   await expect(page.getByRole("heading", { name: paper.title })).toBeVisible();
   await page.reload();
@@ -83,9 +102,64 @@ test("search presents page/chunk citation evidence and distinct retrieval modes"
   await page.goto("/search");
   await expect(page.getByRole("option", { name: "Feature-hashing baseline" })).toBeAttached();
   await expect(page.getByRole("option", { name: "Dense semantic (learned model)" })).toBeAttached();
-  await page.getByRole("button", { name: "Search" }).click();
+  let searchRequests = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/search") searchRequests += 1;
+  });
+  const searchInput = page.getByRole("textbox", { name: "Search source chunks" });
+  await searchInput.fill("precision retrieval");
+  await searchInput.press("Enter");
   await expect(page.getByText("Chunk paper-1-0001")).toBeVisible();
   await expect(page.getByText("Pages 2-2")).toBeVisible();
+  await expect(page.getByText(sourceResult.snippet)).toBeVisible();
+  expect(searchRequests).toBe(1);
+  await searchInput.fill("edited draft");
+  await expect(page.getByText(/Results for “precision retrieval”/)).toBeVisible();
+});
+
+test("paper facets persist through reload and browser history", async ({ page }) => {
+  await page.goto("/papers?topic=retrieval");
+  await expect(page.getByRole("heading", { name: paper.title })).toBeVisible();
+  await expect(page.getByRole("heading", { name: secondPaper.title })).toHaveCount(0);
+
+  await page.getByLabel("Filter by topic").selectOption("climate");
+  await expect(page).toHaveURL(/topic=climate/);
+  await expect(page.getByRole("heading", { name: secondPaper.title })).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Filter by topic")).toHaveValue("climate");
+  await expect(page.getByRole("heading", { name: secondPaper.title })).toBeVisible();
+
+  await page.goBack();
+  await expect(page.getByLabel("Filter by topic")).toHaveValue("retrieval");
+  await expect(page.getByRole("heading", { name: paper.title })).toBeVisible();
+});
+
+test("explorer subnavigation is keyboard-operable and loads each routed detail once", async ({ page }) => {
+  let detailRequests = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/topics/retrieval") detailRequests += 1;
+  });
+  await page.goto("/explorer");
+  const topicsLink = page.getByRole("link", { name: "Topics" });
+  await topicsLink.focus();
+  await topicsLink.press("Enter");
+  await expect(topicsLink).toHaveAttribute("aria-current", "page");
+  await page.getByRole("button", { name: "Open Topic" }).click();
+  await expect(page).toHaveURL(/\/explorer\/topics\/retrieval$/);
+  await expect.poll(() => detailRequests).toBe(1);
+  await expect(page.getByRole("heading", { name: "Retrieval", exact: true }).last()).toBeVisible();
+});
+
+test("search remains usable when the publication catalogue is unavailable", async ({ page }) => {
+  await page.route("http://127.0.0.1:8000/api/papers", (route) => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ detail: "Catalogue unavailable" }),
+  }));
+  await page.goto("/search");
+  await expect(page.getByRole("heading", { name: "Publication catalogue unavailable" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Search Source Chunks" })).toBeVisible();
+  await page.getByRole("button", { name: "Search" }).click();
   await expect(page.getByText(sourceResult.snippet)).toBeVisible();
 });
 
@@ -142,7 +216,7 @@ async function mockApi(page: Page) {
     const url = new URL(request.url());
     let body: unknown;
     if (url.pathname === "/") body = { service: "TTLAB", status: "ok", security_mode: "production", admin_authentication: "bearer_token_required", frontend: "", api_docs: "disabled", health: "/health", readiness: "/ready" };
-    else if (url.pathname === "/api/papers") body = [paper];
+    else if (url.pathname === "/api/papers") body = [paper, secondPaper];
     else if (url.pathname === "/api/stats") body = stats;
     else if (url.pathname === "/api/search/diagnostics") body = {
       searchable_chunks: 1, searchable_papers: 1, chunks_indexed_for_keyword_search: 1,
@@ -152,12 +226,14 @@ async function mockApi(page: Page) {
       feature_hashing: { embedding_provider: "feature_hashing", embedding_dimensions: 384, indexed_chunks: 1, index_path: "redacted", status: "ready", index_status: "ready", last_indexed_at: "2026-01-01T00:00:00Z" },
       dense: { embedding_provider: "dense", embedding_dimensions: 384, indexed_chunks: 0, index_path: "redacted", status: "missing", index_status: "missing", last_indexed_at: null },
     };
-    else if (url.pathname === "/api/search") body = { query: "RAG", mode: "hybrid", result_count: 1, results: [sourceResult], warnings: [] };
+    else if (url.pathname === "/api/search") body = { query: url.searchParams.get("q") ?? "", mode: url.searchParams.get("mode") ?? "keyword", result_count: 1, results: [sourceResult], warnings: [] };
     else if (url.pathname === "/api/ask/diagnostics") body = { total_stored_answers: 0, grounded_answers: 0, partial_answers: 0, unsupported_answers: 0, default_provider: "offline_extractive", external_provider_available: false, searchable_chunks: 1, semantic_indexed_chunks: 1, last_answer_timestamp: null };
     else if (url.pathname === "/api/llms/local") body = { available: false, base_url: "", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: ["Ollama unavailable"] };
     else if (url.pathname === "/api/recommendations/extensions/diagnostics") body = { searchable_chunks: 1, searchable_papers: 1, total_recommendation_runs: 0, total_recommendations_generated: 0, grounded_runs: 0, partial_runs: 0, unsupported_runs: 0, default_provider: "offline_deterministic", last_recommendation_timestamp: null };
-    else if (url.pathname === "/api/explorer/overview") body = { topic_count: 0, author_count: 0, paper_count: 1, linked_paper_topics: 0, linked_author_topics: 0, top_topics: [], top_authors: [], recent_papers: [paper], explorer_index_status: "empty" };
-    else if (url.pathname === "/api/topics" || url.pathname === "/api/authors") body = { total: 0, limit: 50, offset: 0, items: [] };
+    else if (url.pathname === "/api/explorer/overview") body = { topic_count: 1, author_count: 0, paper_count: 2, linked_paper_topics: 1, linked_author_topics: 0, top_topics: [topicSummary()], top_authors: [], recent_papers: [paper, secondPaper], explorer_index_status: "ready" };
+    else if (url.pathname === "/api/topics") body = { total: 1, limit: 50, offset: 0, items: [topicSummary()] };
+    else if (url.pathname === "/api/topics/retrieval") body = { ...topicSummary(), papers: [], authors: [], related_topics: [] };
+    else if (url.pathname === "/api/authors") body = { total: 0, limit: 50, offset: 0, items: [] };
     else if (url.pathname === "/api/evaluation/dashboard") body = evaluationDashboard();
     else if (url.pathname === "/api/papers/paper-1/extraction") body = { paper_id: "paper-1", pdf_url: paper.pdf_url, pdf_text_status: "extracted", page_count: 4, total_char_count: 800, total_word_count: 120, pages_with_text: 4, pages_without_text: 0, possible_scanned_pdf: false, warnings: [], chunk_count: 1 };
     else if (url.pathname === "/api/papers/paper-1/chunks") body = [{ chunk_id: "paper-1-0001", paper_id: "paper-1", chunk_index: 0, page_start: 2, page_end: 2, section: "Methodology", snippet: "A source-grounded passage.", text: "A source-grounded passage.", char_count: 26, word_count: 4, token_count_estimate: 6, source_hash: "fixture" }];
@@ -165,6 +241,20 @@ async function mockApi(page: Page) {
     else return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ detail: `Unhandled ${url.pathname}` }) });
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
   });
+}
+
+function topicSummary() {
+  return {
+    topic_id: "retrieval",
+    name: "Retrieval",
+    normalized_name: "retrieval",
+    description: "Source-derived retrieval topic.",
+    paper_count: 1,
+    author_count: 1,
+    top_authors: [],
+    sample_papers: [],
+    review_status: "needs_review",
+  };
 }
 
 function evaluationDashboard() {

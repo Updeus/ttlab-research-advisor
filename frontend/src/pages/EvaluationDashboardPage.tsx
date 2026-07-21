@@ -55,6 +55,13 @@ export function EvaluationDashboardPage() {
       <p className="notice notice--warning">
         {dashboard.evaluation_label ?? "Evaluation results are only as valid as their reviewed cases. Missing result files are shown as not run."}
       </p>
+      {dashboard.evaluation_status === "historical" || dashboard.freshness?.status === "historical" ? (
+        <div className="notice notice--warning" role="status">
+          <strong>Historical evaluation snapshot.</strong>{" "}
+          {dashboard.freshness?.notice ?? "The retained results do not match the current code, corpus, or configuration identity."}
+          <p>Negative and null findings remain visible below, but these values must not be described as a current runtime measurement.</p>
+        </div>
+      ) : null}
 
       <div className="evaluation-grid">
         <EvaluationCard title="Retrieval Evaluation" section={dashboard.retrieval}>
@@ -176,6 +183,7 @@ function EvaluationCard({
   section: EvaluationSectionStatus;
   children: ReactNode;
 }) {
+  const metricsAvailable = section.status === "available" || section.status === "historical";
   return (
     <article className="admin-card">
       <div className="paper-card__meta">
@@ -185,8 +193,13 @@ function EvaluationCard({
         <span>{section.last_run_timestamp ? `Last run ${new Date(section.last_run_timestamp).toLocaleString()}` : "No run timestamp"}</span>
       </div>
       <h2>{title}</h2>
-      {section.status === "available" ? (
-        <div className="status-table">{children}</div>
+      {metricsAvailable ? (
+        <>
+          {section.status === "historical" ? (
+            <p className="notice notice--warning">Retained evidence only: the recorded provenance does not match the current runtime identity.</p>
+          ) : null}
+          <div className="status-table">{children}</div>
+        </>
       ) : section.status === "invalid" ? (
         <EmptyState
           title="Evaluation result is invalid"

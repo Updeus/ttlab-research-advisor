@@ -796,7 +796,12 @@ def mean_rank_displacement(default: Sequence[str], candidate: Sequence[str]) -> 
     return fmean(abs(default_rank.get(paper_id, cutoff + 1) - candidate_rank.get(paper_id, cutoff + 1)) for paper_id in union)
 
 
-def aggregate_reviews(reviews: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+def aggregate_reviews(
+    reviews: Sequence[Mapping[str, Any]],
+    *,
+    profile_ids: Sequence[str] | None = None,
+    top_k: int = TOP_K,
+) -> dict[str, Any]:
     pass_one = [review for review in reviews if review["review_pass"] == 1]
     metrics: dict[str, Any] = {}
     for arm in ("evidence_only", "full_finder"):
@@ -833,9 +838,20 @@ def aggregate_reviews(reviews: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
                     retain_replicates=False,
                 ),
             }
-        metrics[arm] = {"reviewed_items": len(arm_reviews), "criteria": criteria_metrics}
+        metrics[arm] = {
+            "reviewed_items": len(arm_reviews),
+            "criteria_scope": (
+                "conditional_on_returned_ranked_items; missing requested ranking slots are excluded "
+                "from criterion-specific rates"
+            ),
+            "criteria": criteria_metrics,
+        }
 
-    metrics["arm_comparison"] = compare_relevance_by_profile(pass_one)
+    metrics["arm_comparison"] = compare_relevance_by_profile(
+        pass_one,
+        profile_ids=profile_ids,
+        top_k=top_k,
+    )
     metrics["repeatability"] = review_repeatability(reviews)
     metrics["error_taxonomy"] = dict(
         sorted(Counter(label for review in pass_one for label in review["error_taxonomy"]).items())
@@ -843,10 +859,17 @@ def aggregate_reviews(reviews: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     return metrics
 
 
-def compare_relevance_by_profile(pass_one: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    by_arm: dict[str, dict[str, list[float]]] = {
-        "evidence_only": defaultdict(list),
-        "full_finder": defaultdict(list),
+def compare_relevance_by_profile(
+    pass_one: Sequence[Mapping[str, Any]],
+    *,
+    profile_ids: Sequence[str] | None = None,
+    top_k: int = TOP_K,
+) -> dict[str, Any]:
+    if top_k < 1:
+        raise ValueError("top_k must be positive")
+    by_arm: dict[str, dict[str, dict[int, float]]] = {
+        "evidence_only": defaultdict(dict),
+        "full_finder": defaultdict(dict),
     }
     paper_sets: dict[str, dict[str, set[str]]] = {
         "evidence_only": defaultdict(set),
@@ -858,18 +881,43 @@ def compare_relevance_by_profile(pass_one: Sequence[Mapping[str, Any]]) -> dict[
         status = str(review["judgments"]["paper_relevance"]["judgment"])
         value = JUDGMENT_VALUES[status]
         if value is not None:
-            by_arm[arm][profile_id].append(value)
+            rank = int(review["rank"])
+            if rank in by_arm[arm][profile_id]:
+                raise ValueError(f"duplicate {arm} relevance review for {profile_id} rank {rank}")
+            by_arm[arm][profile_id][rank] = value
         paper_sets[arm][profile_id].add(str(review["paper_id"]))
-    profile_ids = sorted(set(by_arm["evidence_only"]) & set(by_arm["full_finder"]))
-    baseline = [fmean(by_arm["evidence_only"][profile_id]) for profile_id in profile_ids]
-    full = [fmean(by_arm["full_finder"][profile_id]) for profile_id in profile_ids]
+    if profile_ids is None:
+        evaluated_profile_ids = sorted(set(by_arm["evidence_only"]) | set(by_arm["full_finder"]))
+    else:
+        evaluated_profile_ids = [str(profile_id) for profile_id in profile_ids]
+    if len(evaluated_profile_ids) != len(set(evaluated_profile_ids)):
+        raise ValueError("profile_ids must be unique")
+    baseline = [
+        sum(by_arm["evidence_only"].get(profile_id, {}).values()) / top_k
+        for profile_id in evaluated_profile_ids
+    ]
+    full = [
+        sum(by_arm["full_finder"].get(profile_id, {}).values()) / top_k
+        for profile_id in evaluated_profile_ids
+    ]
     overlaps = [
         jaccard(paper_sets["evidence_only"][profile_id], paper_sets["full_finder"][profile_id])
-        for profile_id in profile_ids
+        for profile_id in evaluated_profile_ids
     ]
     return {
         "unit": "profile",
-        "profile_count": len(profile_ids),
+        "profile_count": len(evaluated_profile_ids),
+        "requested_cutoff": top_k,
+        "score_definition": (
+            "sum of pass=1, partial=0.5, fail=0 relevance values divided by requested top-k; "
+            "unreturned ranking slots score 0"
+        ),
+        "missing_ranked_slots_scored_as_zero": True,
+        "expected_ranked_slots_per_arm": len(evaluated_profile_ids) * top_k,
+        "returned_ranked_items": {
+            arm: sum(len(ranks) for ranks in by_arm[arm].values())
+            for arm in ("evidence_only", "full_finder")
+        },
         "baseline_mean_relevance_score": fmean(baseline),
         "full_finder_mean_relevance_score": fmean(full),
         "full_minus_baseline_relevance": paired_bootstrap_mean_difference(
@@ -886,6 +934,82 @@ def compare_relevance_by_profile(pass_one: Sequence[Mapping[str, Any]]) -> dict[
             seed=BOOTSTRAP_SEED + 2,
             retain_replicates=False,
         ),
+    }
+
+
+def summarize_ranking_coverage(
+    profiles: Sequence[Mapping[str, Any]],
+    outputs: Sequence[Mapping[str, Any]],
+    *,
+    top_k: int = TOP_K,
+) -> dict[str, Any]:
+    """Describe returned rankings without manufacturing items for empty cutoff slots."""
+
+    if top_k < 1:
+        raise ValueError("top_k must be positive")
+    profile_ids = [str(profile["profile_id"]) for profile in profiles]
+    outputs_by_profile = {str(output["profile_id"]): output for output in outputs}
+    if len(outputs_by_profile) != len(outputs):
+        raise ValueError("recommendation outputs contain duplicate profile_id values")
+    if set(outputs_by_profile) != set(profile_ids):
+        raise ValueError("recommendation outputs do not exactly cover the frozen profiles")
+
+    arm_paths = {
+        "evidence_only": ("baseline", "papers"),
+        "full_finder": ("full_finder", "recommendations"),
+    }
+    expected_slots = len(profile_ids) * top_k
+    arms: dict[str, Any] = {}
+    for arm, (container_key, items_key) in arm_paths.items():
+        returned_items = 0
+        profiles_at_cutoff = 0
+        short_profiles: list[dict[str, Any]] = []
+        shortfall_slots: list[dict[str, Any]] = []
+        for profile_id in profile_ids:
+            items = list(outputs_by_profile[profile_id].get(container_key, {}).get(items_key, []))
+            ranks = [int(item["rank"]) for item in items]
+            if len(items) > top_k:
+                raise ValueError(f"{profile_id} {arm} returned more than top_k items")
+            if ranks != list(range(1, len(items) + 1)):
+                raise ValueError(f"{profile_id} {arm} ranks are not contiguous from one")
+            returned_items += len(items)
+            if len(items) == top_k:
+                profiles_at_cutoff += 1
+                continue
+            missing_ranks = list(range(len(items) + 1, top_k + 1))
+            short_profiles.append(
+                {
+                    "profile_id": profile_id,
+                    "returned_items": len(items),
+                    "missing_ranks": missing_ranks,
+                }
+            )
+            shortfall_slots.extend(
+                {
+                    "slot_id": f"{profile_id}:{arm}:{rank}",
+                    "profile_id": profile_id,
+                    "arm": arm,
+                    "rank": rank,
+                    "reason": "no defensible ranked item was emitted for this requested cutoff slot",
+                }
+                for rank in missing_ranks
+            )
+        arms[arm] = {
+            "returned_items": returned_items,
+            "expected_slots": expected_slots,
+            "missing_slots": expected_slots - returned_items,
+            "return_coverage": returned_items / expected_slots if expected_slots else None,
+            "profiles_at_cutoff": profiles_at_cutoff,
+            "short_profiles": short_profiles,
+            "shortfall_slots": shortfall_slots,
+        }
+    return {
+        "unit": "requested ranking slot",
+        "requested_cutoff": top_k,
+        "profile_count": len(profile_ids),
+        "short_rankings_preserved": True,
+        "missing_slots_are_not_imputed": True,
+        "arms": arms,
     }
 
 
@@ -969,7 +1093,12 @@ def run_evaluation(
         code_sha256=sha256_file(module_path),
     )
     sensitivity = execute_sensitivity(session, profiles, outputs)
-    aggregate = aggregate_reviews(reviews)
+    aggregate = aggregate_reviews(
+        reviews,
+        profile_ids=[str(profile["profile_id"]) for profile in profiles],
+        top_k=TOP_K,
+    )
+    aggregate["ranking_coverage"] = summarize_ranking_coverage(profiles, outputs, top_k=TOP_K)
     completed_at = utc_now_iso()
 
     raw_outputs_path = output_dir / "raw_outputs.jsonl"
@@ -1037,6 +1166,7 @@ def run_evaluation(
             "Judgments are a deterministic, source-inspecting AI-assisted proxy audit by one Codex procedure, not human ratings.",
             "The two shuffled passes measure procedure repeatability, not independent inter-rater reliability.",
             "Pre-registered relevance terms simplify semantic relevance and can miss valid paraphrases or over-credit keyword matches.",
+            "Answerability filtering may return fewer than the requested top-k items; arm relevance uses the full cutoff denominator and scores unreturned slots as zero, while other criterion rates remain conditional on returned items.",
             "Confidence intervals resample the 28 synthetic profiles and do not model corpus, relevance-label, or reviewer uncertainty.",
             "Novelty, practical feasibility, data access, ethics approval, and supervisor suitability require external human/institutional confirmation.",
             "Results are bounded to 96 eligible papers and 719 eligible chunks in the recorded frozen corpus snapshot.",

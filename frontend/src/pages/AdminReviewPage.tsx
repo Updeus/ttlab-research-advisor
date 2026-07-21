@@ -598,16 +598,38 @@ function AdminOverviewPanel({
         <p className="field-help">The API records this request; the separately deployed ingestion worker performs the network and indexing work.</p>
       </article>
 
-      <div className="metrics-grid admin-metrics">
-        <Metric label="Papers needing review" value={overview.papers_needing_metadata_review} />
-        <Metric label="Missing PDFs" value={overview.papers_missing_pdfs} />
-        <Metric label="Extraction failures" value={overview.papers_with_extraction_failures + overview.possible_scanned_pdfs} />
-        <Metric label="Artifacts needing review" value={overview.artifacts_needing_review} />
-        <Metric label="Ask answers needing review" value={overview.rag_answers.needs_review ?? 0} />
-        <Metric label="Recommendations needing review" value={overview.thesis_recommendations.needs_review ?? 0} />
-        <Metric label="Review events" value={overview.total_review_events} />
-        <Metric label="Chunks" value={overview.total_chunks} />
-      </div>
+      <section
+        className="admin-card admin-governance-summary"
+        aria-labelledby="admin-governance-summary-title"
+        data-admin-governance-capture="aggregate-summary"
+      >
+        <div className="section-heading section-heading--compact">
+          <div>
+            <p className="eyebrow">Aggregate governance workload</p>
+            <h2 id="admin-governance-summary-title">Review queues at a glance</h2>
+          </div>
+          <StatusBadge label="protected" tone="neutral" />
+        </div>
+        {capabilities ? (
+          <dl className="detail-list detail-list--compact">
+            <div><dt>Actor ID</dt><dd>{capabilities.actor.actor_id}</dd></div>
+            <div><dt>Reviewer type</dt><dd>{capabilities.actor.reviewer_type}</dd></div>
+            <div><dt>Role</dt><dd>{capabilities.actor.role}</dd></div>
+            <div><dt>Human approval</dt><dd>{capabilities.capabilities.approve_or_reject ? "permitted" : "not permitted"}</dd></div>
+          </dl>
+        ) : <p className="field-help">Actor permissions are still loading.</p>}
+        <p className="field-help">These aggregate counts expose no record text. Rights decisions and ingestion remain unavailable unless the server explicitly grants those capabilities.</p>
+        <div className="metrics-grid admin-metrics">
+          <Metric label="Papers needing review" value={overview.papers_needing_metadata_review} />
+          <Metric label="Missing PDFs" value={overview.papers_missing_pdfs} />
+          <Metric label="Extraction failures" value={overview.papers_with_extraction_failures + overview.possible_scanned_pdfs} />
+          <Metric label="Artifacts needing review" value={overview.artifacts_needing_review} />
+          <Metric label="Ask answers needing review" value={overview.rag_answers.needs_review ?? 0} />
+          <Metric label="Recommendations needing review" value={overview.thesis_recommendations.needs_review ?? 0} />
+          <Metric label="Review events" value={overview.total_review_events} />
+          <Metric label="Chunks" value={overview.total_chunks} />
+        </div>
+      </section>
 
       <div className="admin-grid">
         <StatusBreakdown title="RAG answers" values={overview.rag_answers_by_grounding} />

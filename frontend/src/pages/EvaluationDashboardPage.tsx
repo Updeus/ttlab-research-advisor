@@ -218,7 +218,7 @@ function V2EvidencePackage({
   );
   const identityChecksValid = ["code", "corpus", "configuration", "release", "manifest"]
     .every((key) => freshness?.checks?.[key] === "match");
-  const identityContractValid = freshness?.freshness_contract === "frozen_inputs_and_outputs_v2";
+  const identityContractValid = freshness?.freshness_contract === "strict_completed_attested_package_v2";
   const topicSummaryValid = Boolean(
     evidence?.topics_test?.label_scope === "positive_only_not_exhaustive_closed_world"
     && typeof evidence.topics_test.known_positive_micro?.recall === "number"
@@ -227,7 +227,7 @@ function V2EvidencePackage({
     && typeof evidence.topics_test.unadjudicated_predictions?.share === "number"
     && evidence.topics_test.unadjudicated_predictions?.false_positive_interpretation_permitted === false,
   );
-  const completed = evidence?.status === "completed";
+  const completed = evidence?.status === "current" && evidence?.package_status === "completed";
   const identityCurrent = completed
     && freshness?.status === "current"
     && identityChecksValid

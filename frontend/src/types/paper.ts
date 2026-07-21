@@ -282,7 +282,17 @@ export type AskDiagnostics = {
   partial_answers: number | null;
   unsupported_answers: number | null;
   default_provider: string;
+  allowed_providers?: string[];
+  provider_matrix?: Record<string, {
+    enabled: boolean;
+    effective_model?: string;
+    configured_model?: string;
+    configured_model_pinned?: boolean;
+    pinned_model_count?: number;
+    identity_scope: string;
+  }>;
   external_provider_available: boolean;
+  external_provider_availability_scope?: string;
   searchable_chunks: number;
   semantic_indexed_chunks: number;
   last_answer_timestamp: string | null;
@@ -804,6 +814,7 @@ export type EvaluationV2OcrSummary = {
 
 export type EvaluationV2Package = {
   status: string;
+  package_status?: string;
   evaluation_id?: string | null;
   evidence_tier: string;
   reviewer_type?: string | null;

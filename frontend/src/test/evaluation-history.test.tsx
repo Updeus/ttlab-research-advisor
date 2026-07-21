@@ -69,11 +69,12 @@ describe("evaluation provenance state", () => {
         peer_review_remediation_v2: {
           status: "current",
           checks: { code: "match", corpus: "match", configuration: "match", release: "match", manifest: "match" },
-          freshness_contract: "frozen_inputs_and_outputs_v2",
+          freshness_contract: "strict_completed_attested_package_v2",
         },
       },
       peer_review_remediation_v2: {
-        status: "completed",
+        status: "current",
+        package_status: "completed",
         evaluation_id: "peer-review-remediation-v2",
         evidence_tier: "ai_silver",
         reviewer_type: "ai",
@@ -173,11 +174,12 @@ describe("evaluation provenance state", () => {
         peer_review_remediation_v2: {
           status: "current",
           checks: { code: "match", corpus: "match", configuration: "match", release: "mismatch", manifest: "match" },
-          freshness_contract: "frozen_inputs_and_outputs_v2",
+          freshness_contract: "strict_completed_attested_package_v2",
         },
       },
       peer_review_remediation_v2: {
-        status: "completed",
+        status: "current",
+        package_status: "completed",
         evaluation_id: "peer-review-remediation-v2",
         evidence_tier: "ai_silver",
         reviewer_type: "ai",

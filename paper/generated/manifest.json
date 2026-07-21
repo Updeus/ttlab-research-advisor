@@ -1,63 +1,110 @@
 {
   "schema_version": 2,
   "generator": "paper/scripts/generate_paper_assets.py",
-  "generator_sha256": "a93def5e59fd818ec3f9a5f64326cac26f69063d115d995361d79669b1020bb9",
+  "generator_sha256": "42c61aecf78628ff5fcc24f7537db287d57fe6cd35ec18dbd22317e10b723253",
   "generation_provenance": {
     "committed_base": {
-      "commit": "72ae7e5e0c7acccba808a8caead5d935a9d86ea4",
-      "tree": "2fbadee3b66e22761a24f2b8dbfb9ccd61333678"
+      "commit": "335989b5d9dfff93fcd8ee09d6ecd1e0fa522dc4",
+      "tree": "d2698f86dd810db64c7a6aaf812248d28a1de2d7"
     },
     "working_tree": {
       "dirty": true,
       "status_porcelain_before_generation": [
-        "M README.md",
+        "M artifacts/phase1/phase1_evidence.json",
+        " M artifacts/phase1/section_quality_metrics.json",
+        " M artifacts/phase2/retrieval/error_taxonomy.json",
+        " M artifacts/phase2/retrieval/manifest.json",
+        " M artifacts/phase2/retrieval/paired_statistics.json",
+        " M artifacts/phase2/retrieval/runs/ablation_cumulative_01_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_cumulative_02_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_cumulative_03_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_cumulative_04_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_cumulative_05_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_cumulative_06_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_individual_without_diversity_penalty_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_individual_without_evidence_adjustment_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_individual_without_metadata_boost_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_individual_without_query_expansion_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_individual_without_section_boost_test.json",
+        " M artifacts/phase2/retrieval/runs/ablation_individual_without_topic_adjustment_test.json",
+        " M artifacts/phase2/retrieval/runs/dense_dev.json",
+        " M artifacts/phase2/retrieval/runs/dense_test.json",
+        " M artifacts/phase2/retrieval/runs/feature_hashing_dev.json",
+        " M artifacts/phase2/retrieval/runs/feature_hashing_test.json",
+        " M artifacts/phase2/retrieval/runs/heuristic_hybrid_dev.json",
+        " M artifacts/phase2/retrieval/runs/heuristic_hybrid_test.json",
+        " M artifacts/phase2/retrieval/runs/keyword_dev.json",
+        " M artifacts/phase2/retrieval/runs/keyword_test.json",
+        " M artifacts/phase2/retrieval/runs/sensitivity_kw-0.05_dense-0.85_dev.json",
+        " M artifacts/phase2/retrieval/runs/sensitivity_kw-0.15_dense-0.75_dev.json",
+        " M artifacts/phase2/retrieval/runs/sensitivity_kw-0.20_dense-0.70_dev.json",
+        " M artifacts/phase2/retrieval/runs/sensitivity_kw-0.30_dense-0.60_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuned_hybrid_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuned_hybrid_test.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.10_dense-0.80_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.20_dense-0.70_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.30_dense-0.60_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.40_dense-0.50_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.42_dense-0.48_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.50_dense-0.40_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.60_dense-0.30_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.70_dense-0.20_dev.json",
+        " M artifacts/phase2/retrieval/runs/tuning_kw-0.80_dense-0.10_dev.json",
+        " M artifacts/phase2/retrieval/summary.json",
+        " M artifacts/phase2/retrieval/tuning.json",
+        " M artifacts/phase3/qa/offline_extractive_feature_hashing_answers_v1.jsonl",
+        " M artifacts/phase3/qa/offline_extractive_feature_hashing_run_manifest_v1.json",
+        " M artifacts/phase3/qa/offline_extractive_hybrid_heuristic_answers_v1.jsonl",
+        " M artifacts/phase3/qa/offline_extractive_hybrid_heuristic_run_manifest_v1.json",
+        " M artifacts/phase3/qa/ollama_availability_v1.json",
+        " M artifacts/phase3/qa/qa_faithfulness_manifest_v1.json",
+        " M artifacts/phase3/qa/qa_faithfulness_metrics_v1.json",
+        " M artifacts/phase4/generated_output_review/generated_output_review_manifest.json",
+        " M artifacts/phase4/generated_output_review/generated_output_review_summary.json",
+        " M artifacts/phase4/generated_output_review/generated_output_reviews.jsonl",
+        " M artifacts/phase4/generated_output_review/idempotence_evidence.json",
+        " M artifacts/phase4/recommendation_proxy_v1/aggregate_results.json",
+        " M artifacts/phase4/recommendation_proxy_v1/manifest.json",
+        " M artifacts/phase4/recommendation_proxy_v1/raw_outputs.jsonl",
+        " M artifacts/phase4/recommendation_proxy_v1/review_pass_1.jsonl",
+        " M artifacts/phase4/recommendation_proxy_v1/review_pass_2.jsonl",
+        " M artifacts/phase4/recommendation_proxy_v1/weight_sensitivity.json",
+        " M artifacts/phase4/topic_author/author_identity_audit.json",
+        " M artifacts/phase4/topic_author/topic_author_evaluation_manifest.json",
+        " M artifacts/phase4/topic_author/topic_metrics.json",
+        " M artifacts/phase4/topic_author/topic_predictions.jsonl",
+        " M artifacts/phase6/performance/performance_full_results.json",
+        " M artifacts/phase6/performance/performance_validation.json",
+        " M build/ieee-paper.pdf",
         " M build/thesis.pdf",
-        " M docs/DATA_AND_ARTIFACT_AVAILABILITY.md",
-        " M docs/DEPLOYMENT.md",
-        " M docs/ETHICS_AND_GOVERNANCE.md",
-        " M docs/EVALUATION_PLAN.md",
-        " M docs/EVALUATION_PROTOCOL.md",
-        " M docs/FEATURE_MATRIX.md",
-        " M docs/FINAL_STATUS.md",
-        " M docs/LOCAL_LLM_RAG_README.md",
-        " M docs/METHODOLOGY.md",
-        " M docs/PRIVACY.md",
-        " M docs/PROJECT_SCOPE.md",
-        " M docs/PROJECT_STATUS.md",
-        " M docs/REPRODUCIBILITY.md",
-        " M docs/REPRODUCIBILITY_CHECKLIST.md",
-        " M docs/SECURITY.md",
-        " M docs/SYSTEM_DESIGN.md",
-        " M docs/THREAT_MODEL.md",
-        " M docs/peer_review_readiness/HUMAN_REQUIRED_ITEMS.md",
-        " M docs/screenshots/README.md",
-        " M paper/ieee-paper.tex",
-        " M thesis/chapters/00_abstract.tex",
-        " M thesis/chapters/01_introduction.tex",
-        " M thesis/chapters/02_problem_statement.tex",
-        " M thesis/chapters/03_research_questions_objectives.tex",
-        " M thesis/chapters/05_methodology.tex",
-        " M thesis/chapters/06_architecture_design.tex",
-        " M thesis/chapters/07_data_collection_processing.tex",
-        " M thesis/chapters/08_implementation.tex",
-        " M thesis/chapters/09_experimental_design.tex",
+        " M data/evaluation/qa_faithfulness_cases_v1.jsonl",
+        " M data/evaluation/qa_faithfulness_results_v1.jsonl",
+        " M data/evaluation/qa_faithfulness_review_create_v1.jsonl",
+        " M data/evaluation/qa_faithfulness_review_verify_v1.jsonl",
+        " M paper/generated/manifest.json",
+        " M paper/generated/metrics.tex",
         " M thesis/chapters/10_results.tex",
-        " M thesis/chapters/11_discussion.tex",
-        " M thesis/chapters/12_limitations_ethics_validity.tex",
-        " M thesis/chapters/13_conclusion_future_work.tex",
-        " M thesis/chapters/A_traceability.tex",
-        " M thesis/chapters/B_reproducibility.tex",
-        " M thesis/chapters/C_schema_api.tex",
-        " M thesis/chapters/D_review_instruments.tex",
-        " M thesis/figures/src/architecture.tex",
-        " M thesis/figures/src/entity_model.tex",
-        " M thesis/figures/src/evaluation_workflow.tex",
-        " M thesis/figures/src/ingestion_pipeline.tex",
-        " M thesis/figures/src/recommendation_workflow.tex",
-        " M thesis/figures/src/search_rag_workflow.tex",
         " M thesis/generated/evidence_macros.tex",
         " M thesis/generated/manuscript_metrics_manifest.json",
-        " M thesis/scripts/capture_interface_screenshots.mjs"
+        "?? artifacts/peer_review_remediation/v2/finder_disagreements_v2.json",
+        "?? artifacts/peer_review_remediation/v2/finder_metrics_v2.json",
+        "?? artifacts/peer_review_remediation/v2/finder_raw_outputs_v2.jsonl",
+        "?? artifacts/peer_review_remediation/v2/finder_review_pass1_v2.jsonl",
+        "?? artifacts/peer_review_remediation/v2/finder_review_pass2_v2.jsonl",
+        "?? artifacts/peer_review_remediation/v2/freeze_receipt_v2.json",
+        "?? artifacts/peer_review_remediation/v2/manifest_v2.json",
+        "?? artifacts/peer_review_remediation/v2/manuscript_macros_v2.tex",
+        "?? artifacts/peer_review_remediation/v2/ocr_fixture_results_v2.json",
+        "?? artifacts/peer_review_remediation/v2/qa_disagreements_v2.json",
+        "?? artifacts/peer_review_remediation/v2/qa_metrics_v2.json",
+        "?? artifacts/peer_review_remediation/v2/qa_raw_outputs_v2.jsonl",
+        "?? artifacts/peer_review_remediation/v2/qa_review_pass1_v2.jsonl",
+        "?? artifacts/peer_review_remediation/v2/qa_review_pass2_v2.jsonl",
+        "?? artifacts/peer_review_remediation/v2/topic_metrics_v2.json",
+        "?? artifacts/peer_review_remediation/v2/topic_predictions_v2.jsonl",
+        "?? artifacts/peer_review_remediation/v2/validation_attestation_v2.json",
+        "?? artifacts/phase4/topic_author/topic_silver_current_binding.json",
+        "?? artifacts/phase6/reproduction/candidate-0d4b9bdcb657034beab5c288ab174983eb0760e3/manifest_recovery_receipt.json"
       ]
     },
     "expected_generated_output_boundary": [
@@ -67,7 +114,7 @@
     "semantics": "The commit and tree identify the committed repository base. Frozen evidence and the exact generator are bound separately by SHA-256. A dirty working tree means the PDF is a candidate built from that base plus local changes; it is not represented as a clean committed release. The status list is captured before this generator rewrites its own outputs."
   },
   "corpus_boundary": {
-    "snapshot_id": "corpus-04a010207327069a",
+    "snapshot_id": "corpus-f4638c633bea82b0",
     "eligible_papers": 96,
     "eligible_chunks": 719,
     "ordered_chunk_hash": null
@@ -76,55 +123,60 @@
     "kind": "frozen committed experiment artefacts plus independently hashed generator outputs",
     "ai_label_status": "Retrieval, QA, recommendation, section, topic, and generated-output judgments are AI-reviewed silver evidence, not recruited-human ground truth. Reported intervals do not model AI-label uncertainty.",
     "qa_claim_labels": {
-      "supported": 398,
-      "partial": 2,
+      "supported": 331,
+      "partial": 3,
       "unsupported": 0
+    },
+    "recommendation_coverage": {
+      "source": "metrics.ranking_coverage",
+      "layout_fallback_used": false,
+      "final_evidence_eligible": true
     }
   },
   "remediation_v2": {
-    "status": "not_run",
-    "completed": false,
-    "layout_only": true,
-    "manifest_sha256": null,
-    "validation_attestation_sha256": null,
+    "status": "completed_package_validated",
+    "completed": true,
+    "layout_only": false,
+    "manifest_sha256": "bdc8e8b289d36834479f7bcc1c2efc9857b9812171dd3d4df7f2bff6680e18d9",
+    "validation_attestation_sha256": "f6d320bc246666bd19e7c6642c49e40b53d3acb3b52a789599e1eb3a290f34b7",
     "macro_attestation_cycle_avoided": "Canonical v2 macros exclude manifest/attestation hashes; this downstream manifest binds both after completed-package validation."
   },
   "sources": {
     "phase1": {
       "path": "artifacts/phase1/phase1_evidence.json",
-      "sha256": "bef831edcd4ec81df3ea4a94fbae2e9042de07a5bba525a450f59df1173aa50c"
+      "sha256": "b34a79a9b733462a04fde168ee6578c22ffc63f48da8188fa282b05c19a303d9"
     },
     "section_metrics": {
       "path": "artifacts/phase1/section_quality_metrics.json",
-      "sha256": "2e56ec94e9cf22610606d9f86be48d01efde7c211aa32f6feb0a9cfdf8f75169"
+      "sha256": "aa8a905b2d583b7034a6bf7903b17a285e52a6822d68dbb316d4984444ab56ed"
     },
     "retrieval": {
       "path": "artifacts/phase2/retrieval/summary.json",
-      "sha256": "791130cf879b29f9b85dcfbbb3b88ebb1d5e9eb1539bf24bf79aa52a19ee3617"
+      "sha256": "972242ae34f717cb22645eca06ef909fab2a2822760fbbb6a111e6616fd5bf32"
     },
     "qa": {
       "path": "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json",
-      "sha256": "a62d0ecfc5a2e0a71bb412e8b6fb1e1a300709a21a0f6b3f0bed0782641f5f51"
+      "sha256": "e0bd8cc758f0e12a34632e3655c11496360a9196f1b1e4e261e1d1b289d67bdc"
     },
     "recommendation": {
       "path": "artifacts/phase4/recommendation_proxy_v1/aggregate_results.json",
-      "sha256": "b9bc05cf9f0a6cefbfa93fb672fb2ccc3438faef906b8bb0a6c1f43eeef524e1"
+      "sha256": "e4a58170a988aec69b41e9596e635279f186919ddc2710f8986ced1ff7da1917"
     },
     "topics": {
       "path": "artifacts/phase4/topic_author/topic_metrics.json",
-      "sha256": "00b06f7c22c05b5b4d12c68657f636cf41c747c4f93dbbecec7b13904f8b1fa3"
+      "sha256": "320fc86fb6497158bb58f51c71fa322dcd5ac0bb8fdea83856a8a46bdea44a4d"
     },
     "author_audit": {
       "path": "artifacts/phase4/topic_author/author_identity_audit.json",
-      "sha256": "c67cbc2b8a326912aee18021aff17a6cf7581c80f54e04a8ef421f0af918880d"
+      "sha256": "c15419c51ee0ac3b4b761394d08075055b7431186ba241044eb29f6400770706"
     },
     "review": {
       "path": "artifacts/phase4/generated_output_review/generated_output_review_summary.json",
-      "sha256": "f6102bbec33c8b7793a8c1d48482ec9d4883ed399c85dfd68f4690aef256eb46"
+      "sha256": "b49005213907ba30b4423bae25937ee31c7c461bbece68f63382155577c1efb3"
     },
     "retrieval_error": {
       "path": "artifacts/phase2/retrieval/error_taxonomy.json",
-      "sha256": "57f02a4d3b989e6a31f1cbe93af38b9d58199140c948a736cc5d2a5e4bfc43ff"
+      "sha256": "2a8ecf17fd8154c57cf4af59e666ba7361ed5cde43981d52c701329e83198121"
     },
     "external_sanity": {
       "path": "artifacts/phase6/external_sanity/external_sanity_manifest.json",
@@ -134,23 +186,112 @@
       "path": "scripts/manuscript_v2_package.py",
       "sha256": "1e040690bf79ecaa38abc405d7d2953da83c67364ff52c039b4b752e0f96926a"
     },
+    "recommendation_manuscript_metrics_helper": {
+      "path": "scripts/recommendation_manuscript_metrics.py",
+      "sha256": "010016c2e722d8b844f6a85d3819ace04577d5f20504daf0901fe3056af4f0d5"
+    },
+    "v2_finder_disagreements_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_disagreements_v2.json",
+      "sha256": "da1b86992e1d5d2f396164aa42a104219e25540d9bf126143e5688ad718f234d",
+      "bytes": 580
+    },
+    "v2_finder_metrics_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_metrics_v2.json",
+      "sha256": "57088dd34c6c089249c6472e7e775e0eeea704666aa6a2212aa61e032d400bd7",
+      "bytes": 9625
+    },
+    "v2_finder_raw_outputs_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_raw_outputs_v2.jsonl",
+      "sha256": "c7d73bde28470a17c3a438e3916a53b91eb7e380916252e7f397a87b2d8be1b8",
+      "bytes": 308226
+    },
+    "v2_finder_review_pass1_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_review_pass1_v2.jsonl",
+      "sha256": "05945868daac3c63eeb3be466c8aa9e93db999b3d16bcde04f247ef8d19f6e69",
+      "bytes": 23265
+    },
+    "v2_finder_review_pass2_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_review_pass2_v2.jsonl",
+      "sha256": "551a26e4a87797b1bd1983b382569dcc116731dea21de5bd4536182f6b3541b8",
+      "bytes": 23265
+    },
+    "v2_freeze_receipt_v2": {
+      "path": "artifacts/peer_review_remediation/v2/freeze_receipt_v2.json",
+      "sha256": "00c7d2541a9a88e3092cece6f3bb4fb239700c79c2fcb307f9e43b23d709d9f3",
+      "bytes": 129109
+    },
+    "v2_manifest_v2": {
+      "path": "artifacts/peer_review_remediation/v2/manifest_v2.json",
+      "sha256": "bdc8e8b289d36834479f7bcc1c2efc9857b9812171dd3d4df7f2bff6680e18d9",
+      "bytes": 13859
+    },
+    "v2_manuscript_macros_v2": {
+      "path": "artifacts/peer_review_remediation/v2/manuscript_macros_v2.tex",
+      "sha256": "30c34d9f78c1c4f545dd21afc6ba1be092d572024e5eba21ddef756087370d1f",
+      "bytes": 3617
+    },
+    "v2_ocr_fixture_results_v2": {
+      "path": "artifacts/peer_review_remediation/v2/ocr_fixture_results_v2.json",
+      "sha256": "2c4bf158ecc552b4de3b2297eb898f2fe68163e32a269c5d54908057f274a3ad",
+      "bytes": 14069
+    },
+    "v2_qa_disagreements_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_disagreements_v2.json",
+      "sha256": "da1b86992e1d5d2f396164aa42a104219e25540d9bf126143e5688ad718f234d",
+      "bytes": 580
+    },
+    "v2_qa_metrics_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_metrics_v2.json",
+      "sha256": "3c22146ece06ff1369b9ce10dce8c8c87e56814e11e76d632f095312dcf6c5c6",
+      "bytes": 6797
+    },
+    "v2_qa_raw_outputs_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_raw_outputs_v2.jsonl",
+      "sha256": "519981929b4f554fa50f85c7184401d9246a1d643303534036f6d4b671ded6dd",
+      "bytes": 182376
+    },
+    "v2_qa_review_pass1_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_review_pass1_v2.jsonl",
+      "sha256": "2fc6f48a074a6d5135fc5b15ef5ee8150839d1d86eee5ad53698931848ea0ed2",
+      "bytes": 23175
+    },
+    "v2_qa_review_pass2_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_review_pass2_v2.jsonl",
+      "sha256": "7d9cb470ca1ebec8bdf378f17b76c97290eb28654750eed4f3af1ad51d4ef8dc",
+      "bytes": 23175
+    },
+    "v2_topic_metrics_v2": {
+      "path": "artifacts/peer_review_remediation/v2/topic_metrics_v2.json",
+      "sha256": "5f178b7e3316412ea4bb138efe22555364dbed30f32e7d851ce410a103abc42c",
+      "bytes": 61855
+    },
+    "v2_topic_predictions_v2": {
+      "path": "artifacts/peer_review_remediation/v2/topic_predictions_v2.jsonl",
+      "sha256": "8a3a60e792764d80aa9c0c0d85d12e22619959651cd437c2cfdb30eb9728797a",
+      "bytes": 44492
+    },
+    "v2_validation_attestation_v2": {
+      "path": "artifacts/peer_review_remediation/v2/validation_attestation_v2.json",
+      "sha256": "f6d320bc246666bd19e7c6642c49e40b53d3acb3b52a789599e1eb3a290f34b7",
+      "bytes": 1651
+    },
     "section_cases": {
       "path": "data/evaluation/section_quality_silver_v1.jsonl",
       "sha256": "98bc6ebfb63be918db48f5edb0c596895af6b8f349ee97e857e3fbd87836801e"
     },
     "performance": {
       "path": "artifacts/phase6/performance/performance_full_results.json",
-      "sha256": "8642812aa50891c533d238a6ca5f3b6d7870d96ff8c1cf303d8ef9075cbed01e"
+      "sha256": "153115c0330f5c2a0d32f36a357c03edbd111a786f610e76093a432f0f112c4e"
     }
   },
   "outputs": {
     "metrics": {
       "path": "paper/generated/metrics.tex",
-      "sha256": "88bd4ef0a47858001cf7554964cd71655b12def50e9bdef9c3d5976763dc8583"
+      "sha256": "1258b958947d25318aa27988f5a32f1ac0915013984e28c0367083ee9ccb06b4"
     },
     "retrieval_rows": {
       "path": "paper/generated/retrieval_rows.tex",
-      "sha256": "fdbbd380bcff2f80e2d6994eafb8c47ce1aefa3936ecb7547acaadcbfb6a3621"
+      "sha256": "17540da7fe8a1986dffe2dc84c137314bd0d945249c2733ef0666ce2226a3878"
     },
     "topic_error_rows": {
       "path": "paper/generated/topic_error_rows.tex",
@@ -158,7 +299,7 @@
     },
     "performance_summary": {
       "path": "paper/generated/performance_summary.tex",
-      "sha256": "a73aa4538c959eefacbe742c019157e9ca8938142e12035ae0756ee6187231f4"
+      "sha256": "342b5a95e06d3a236a71fe8ff8849f4ad1653d57053a838b7db0977ccd5b0368"
     }
   },
   "performance_included": true

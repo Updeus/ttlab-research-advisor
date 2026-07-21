@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "source": {
+    "source_files": 39,
+    "paper_source_files": 8,
+    "thesis_source_files": 31,
+    "float_labels": 36,
+    "citation_occurrences": 75,
+    "bibliography_entries": 38,
+    "paper_cited_references": 21,
+    "remediation_v2": {
+      "status": "completed_package_validated",
+      "completed": true,
+      "layout_only": false,
+      "manifest_sha256": "bdc8e8b289d36834479f7bcc1c2efc9857b9812171dd3d4df7f2bff6680e18d9",
+      "validation_attestation_sha256": "f6d320bc246666bd19e7c6642c49e40b53d3acb3b52a789599e1eb3a290f34b7"
+    }
+  },
+  "pdf": {
+    "paper": {
+      "Title": "Source-Traceable Research Intelligence: Evidence-Grounded Discovery, Question Answering, and Thesis-Extension Support",
+      "Subject": "Design and controlled offline evaluation of a source-traceable scholarly research-intelligence platform",
+      "Keywords": "research intelligence, information retrieval, retrieval-augmented generation, scholarly recommendation, reproducibility",
+      "Author": "Jarod Esareesingh",
+      "Creator": "tectonic",
+      "Producer": "xdvipdfmx (0.1)",
+      "CreationDate": "Tue Jul 21 17:27:39 2026 -04",
+      "Custom Metadata": "no",
+      "Metadata Stream": "no",
+      "Tagged": "no",
+      "UserProperties": "no",
+      "Suspects": "no",
+      "Form": "none",
+      "JavaScript": "no",
+      "Pages": "6",
+      "Encrypted": "no",
+      "Page size": "612 x 792 pts (letter)",
+      "Page rot": "0",
+      "File size": "67961 bytes",
+      "Optimized": "no",
+      "PDF version": "1.5"
+    },
+    "thesis": {
+      "Title": "Source-Traceable Research Intelligence: Evidence-Grounded Discovery, Question Answering, and Thesis-Extension Support",
+      "Subject": "MSc Data Science project, Department of Computing & Information Technology, The University of the West Indies",
+      "Keywords": "research intelligence, information retrieval, retrieval-augmented generation, scholarly recommendation, responsible AI, reproducibility",
+      "Author": "Jarod Esareesingh",
+      "Creator": "LaTeX with hyperref",
+      "Producer": "xdvipdfmx (0.1)",
+      "CreationDate": "Tue Jul 21 17:33:36 2026 -04",
+      "Custom Metadata": "no",
+      "Metadata Stream": "no",
+      "Tagged": "no",
+      "UserProperties": "no",
+      "Suspects": "no",
+      "Form": "none",
+      "JavaScript": "no",
+      "Pages": "88",
+      "Encrypted": "no",
+      "Page size": "595.28 x 841.89 pts (A4)",
+      "Page rot": "0",
+      "File size": "490334 bytes",
+      "Optimized": "no",
+      "PDF version": "1.5"
+    }
+  },
+  "errors": []
+}

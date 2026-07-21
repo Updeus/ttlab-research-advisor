@@ -115,7 +115,7 @@ did not exercise the main PDF acquisition/extraction path and is neither a
 cross-domain retrieval-quality result nor broad external validation.
 
 The current local manuscript build contains a 6-Letter-page IEEEtran paper
-with 21 cited references at `build/ieee-paper.pdf` and an 84-A4-page thesis at
+with 21 cited references at `build/ieee-paper.pdf` and an 86-A4-page thesis at
 `build/thesis.pdf`. The exact final-candidate counts belong in the peer-review
 readiness report and must be remeasured after the clean reproduction. An
 editable Word derivative is available at
@@ -444,7 +444,7 @@ counts and acceptance-gate PDF preflight results are recorded in
 `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`. That report identifies
 both the reproduced source-candidate commit/tree and the later evidence commit;
 the latter is not relabeled as the exact reproduced source.
-The current 6-Letter-page paper and 84-A4-page thesis satisfy the local page
+The current 6-Letter-page paper and 86-A4-page thesis satisfy the local page
 gates but remain subject to clean source-candidate reproduction and external
 venue/institution checks.
 

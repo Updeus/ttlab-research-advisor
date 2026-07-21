@@ -1,7 +1,6 @@
 \documentclass[conference,letterpaper]{IEEEtran}
 
 \usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
@@ -59,7 +58,7 @@
 \maketitle
 
 \begin{abstract}
-Publication lists expose outputs but do not answer full-text questions or help students formulate bounded, evidence-linked projects. We report an artefact-oriented engineering case study and controlled offline evaluation of a source-traceable research-intelligence platform. From \PaperCatalogCount{} catalogue records and \PaperPdfCount{} local PDFs, deterministic eligibility rules admitted \PaperEligiblePaperCount{} papers and \PaperEligibleChunkCount{} page-aware chunks. On a \PaperRetrievalCaseCount{}-case AI-reviewed silver set, held-out keyword retrieval achieved Recall@10 \PaperKeywordRecallTen{} and MRR \PaperKeywordMrr{}; a development-tuned hybrid achieved \PaperTunedHybridRecallTen{} and \PaperTunedHybridMrr{}, with no Holm-corrected evidence of superiority. Review of \PaperQaCaseCount{} extractive answers labelled \PaperQaSupportedClaimCount{}/\PaperQaClaimCount{} claims supported, \PaperQaPartialClaimCount{} partial, and \PaperQaUnsupportedClaimCount{} unsupported, yet citation correctness was \PaperQaCitationCorrectness{}, answer-point coverage \PaperQaAnswerCoverage{}, and all four unanswerable cases were answered. A \PaperRecommendationProfileCount{}-profile AI-proxy comparison estimated a finder relevance change of \PaperRecDelta{} (95\% CI \PaperRecDeltaCi). Thus traceability made weak citation targeting, completeness, abstention, and recommendation evidence visible; it did not establish human advisory benefit. The contribution is a reproducible platform and evaluation protocol that separates source facts, generated suggestions, empirical quality, and review state.
+Publication lists expose outputs but do not answer full-text questions or help students formulate bounded, evidence-linked projects. We present an engineering case study of the TTLAB Research Intelligence Platform, whose central Thesis Extension Finder separates source facts, paper-stated future work, inferred gaps, and generated suggestions. The platform exposes corpus identity, provider metadata, evidence locators, uncertainty, and append-only review events. Historical v1 evaluation found strong lexical retrieval but weak citation targeting, answer completeness, abstention, and recommendation-feasibility evidence. A preregistered remediation-v2 package is \VTwoPackageStatus{} and binds code, a frozen technical corpus, configurations, raw outputs, and a deterministic validator. Its \VTwoEvidenceTier{} held-out results report answerability precision \VTwoQAAnswerabilityPrecision{} (CI \VTwoQAAnswerabilityPrecisionCi), exact-locator citation precision \VTwoQACitationLocatorPrecision{} (\VTwoQACitationLocatorPrecisionCi), and a Finder Hit@3 change of \VTwoFinderHitAtThreeDelta{} (\VTwoFinderHitAtThreeDeltaCi). Known-positive topic recall is \VTwoTopicKnownPositiveRecall{} (\VTwoTopicKnownPositiveRecallCi); OCR character error on a deterministic fixture is \VTwoOCRCharacterErrorRate{}. These metrics concern a \VTwoEvaluationScope{} corpus; the public projection was exercised: \VTwoPublicProjectionExercised{}, and it may legitimately be empty until rights and review gates are satisfied. Source traceability means inspectable locators and provenance, not entailment or factual correctness. No recruited participants or independent human validation establish advisory usefulness, novelty, feasibility, or supervisor fit.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -69,9 +68,11 @@ research intelligence, scholarly search, retrieval-augmented generation, recomme
 \section{Introduction}
 Large scholarly indexes connect papers and people \cite{giles1998citeseer,tang2008arnetminer,priem2022openalex}, while recommender and expert-finding research supports content/profile matching \cite{beel2016researchpaper,balog2006formal}. A laboratory archive has a narrower but less forgiving problem: missing PDFs, uncertain identities, generated advice, and incomplete review must remain visible instead of being hidden behind a polished search box.
 
-The TTLAB precursor collected and displayed publications, generated lay summaries and notifications, and supported manual podcast preparation; evaluated full-text RAG was future work \cite{narine2025automating}. We extend it with full-paper ingestion, page-aware retrieval, citation-returning question answering, thesis-extension suggestions, topic/author exploration, and correction records. Here \emph{source-traceable} means that outputs retain paper, chunk, page/section, provider, timestamp, warning, and review-state locators. It does not mean that a claim is entailed, complete, novel, feasible, or endorsed.
+The TTLAB precursor collected and displayed publications, generated lay summaries and notifications, and supported manual podcast preparation; evaluated full-text RAG was future work \cite{narine2025automating}. We extend it with full-paper ingestion, page-aware retrieval, citation-returning question answering, thesis-extension suggestions, topic/author exploration, and correction records. The Thesis Extension Finder is the central product contribution. It ranks evidence-bearing papers before adding an explicitly generated project proposal; it cannot establish novelty, data access, workload, or researcher availability.
 
-Three questions organize the study: \textbf{RQ1}, can a heterogeneous archive become an internally consistent corpus and how do five retrieval modes compare; \textbf{RQ2}, how strong are evidence-linked answers, extension suggestions, topics, and author links under their stated evaluation constructs; and \textbf{RQ3}, how reproducible, reviewable, and responsibly bounded is the resulting artefact? Contributions are a hash-bound corpus/index contract; a modular evidence-first platform; executed retrieval, QA, recommendation, topic, section, performance, and review evaluations; and a sanitized reproduction boundary. No recruited participants were used, so usefulness and supervisor suitability remain untested.
+Here \emph{source-traceable} means that an output retains paper, chunk, page/section, provider/model, time, warning, and review-state locators. Traceability is not entailment, completeness, factual correctness, feasibility, or endorsement. This distinction governs both the application and the claims below.
+
+Three questions organize the study: \textbf{RQ1}, can a heterogeneous archive become an internally consistent corpus and how do retrieval modes compare; \textbf{RQ2}, how strong are evidence-linked answers, extension suggestions, topics, and author links under their stated constructs; and \textbf{RQ3}, how reproducible, reviewable, and responsibly bounded is the artefact? Contributions are a hash-bound corpus/index contract; a modular, evidence-first platform; a prospective source-derived protocol plus preserved negative historical evidence; and a sanitized reproduction boundary. No recruited participants were used, so usefulness and supervisor suitability remain untested.
 
 \section{Related Work}
 Scholarly discovery systems progressed from autonomous citation indexing to literature/author graphs and open entity catalogues \cite{giles1998citeseer,tang2008arnetminer,priem2022openalex}. Their scale is useful for discovery, but a small institutional system must also expose why a paper was included, which file supplied a passage, whether an identity is confirmed, and whether generated material has been reviewed. Research-paper recommendation surveys likewise show that methods, user models, and evaluation protocols vary widely \cite{beel2016researchpaper}; an evidence match is not the same as a feasible supervisory recommendation. Expert-finding models infer expertise from documents \cite{balog2006formal}, so our author links are deliberately phrased as publication-derived associations rather than availability or endorsement.
@@ -86,10 +87,10 @@ The study combines design-science-oriented artefact construction with controlled
 
 Design decisions were mapped to observable failures. Deterministic import and hash-checked indexes address silent corpus drift; page locators and typed evidence address unverifiable generation; evidence-only Finder output addresses users who do not want generated advice; append-only review events address untraceable correction; and explicit unavailable states address missing providers or PDFs. Each mechanism is evaluated at the narrowest valid unit instead of treating a passing user-interface test as retrieval evidence or a citation count as faithfulness.
 
-The frozen snapshot named in the manifest starts with \PaperCatalogCount{} records and \PaperPdfCount{} available PDFs. A paper enters experiments only when metadata, a permitted PDF, extracted text, and title/content checks agree. Table~\ref{tab:corpus} shows the resulting boundary: \PaperEligiblePaperCount{} papers and \PaperEligibleChunkCount{} of \PaperRawChunkCount{} chunks are eligible; \PaperNoTextCount{} records need text/review, \PaperMismatchCount{} PDFs are mismatches, and \PaperUnknownChunkCount{} eligible chunks retain an Unknown section instead of a forced label. A \PaperSectionCaseCount{}-case AI-silver check measured \PaperSectionAccuracy{} section accuracy.
+The historical v1 snapshot starts with \PaperCatalogCount{} records and \PaperPdfCount{} available PDFs. A paper enters technical experiments only when metadata, a permitted PDF, extracted text, and title/content checks agree. Table~\ref{tab:corpus} shows that boundary: \PaperEligiblePaperCount{} papers and \PaperEligibleChunkCount{} of \PaperRawChunkCount{} chunks were eligible; \PaperNoTextCount{} records needed text/review, \PaperMismatchCount{} PDFs were mismatches, and \PaperUnknownChunkCount{} eligible chunks retained an Unknown section instead of a forced label. A \PaperSectionCaseCount{}-case AI-silver check measured \PaperSectionAccuracy{} section accuracy.
 
 \begin{table}[t]
-\caption{Frozen corpus and index boundary.}
+\caption{Historical v1 corpus and index boundary.}
 \label{tab:corpus}
 \centering
 \scriptsize
@@ -103,14 +104,16 @@ PDF mismatches & \PaperMismatchCount & Unknown sections & \PaperUnknownChunkCoun
 \end{tabular}
 \end{table}
 
-Keyword FTS, \PaperHashingDimension{}-dimensional signed feature hashing, and the pinned \PaperDenseDimension{}-dimensional \texttt{all-MiniLM-L6-v2} encoder share the same ordered eligible-chunk boundary. Manifests bind corpus/configuration hashes, model revision, dimensions, code, ordered chunk hashes, and completeness; startup and experiments reject stale or partial indexes. The candidate was generated against commit \texttt{\PaperSourceCommit{}} and tree \texttt{\PaperSourceTree{}} with working-tree dirty state \texttt{\PaperWorkingTreeDirty{}}. Its manifest separately hashes every frozen evidence input, exact generator, and output; the earlier performance artefact retains its own execution commit and provenance digest. This local candidate is therefore not misrepresented as either the older experiment revision or a clean committed release.
+Keyword FTS, \PaperHashingDimension{}-dimensional signed feature hashing, and the pinned \PaperDenseDimension{}-dimensional \texttt{all-MiniLM-L6-v2} encoder share an ordered eligible-chunk boundary. Feature hashing is not labelled learned semantic retrieval. Manifests bind corpus/configuration hashes, model revision, dimensions, code, ordered source hashes, and completeness; startup and experiments reject stale or partial indexes. Historical artefacts retain their own execution identities instead of being relabelled as current.
+
+Remediation-v2 is separately identity-bound to source commit \texttt{\VTwoEvaluationSourceCommitPrefix{}} and snapshot \texttt{\VTwoCorpusSnapshotId{}}. Its technical boundary contains \VTwoTechnicalEligiblePapers{} papers and \VTwoTechnicalEligibleChunks{} chunks. The package status is \VTwoPackageStatus{}. These generated values prevent a manuscript build from silently combining a new corpus with old results.
 
 \subsection{Evaluation Protocol}
-The retrieval dataset has \PaperRetrievalCaseCount{} source-derived cases across factual, methods, results, limitations, bibliographic, topic, comparison, synthesis, hard-negative, and unanswerable strata. One AI process created evidence-linked labels; a later shuffled, source-first pass re-inspected them without rankings. The fixed \PaperRetrievalDevCount{}/\PaperRetrievalTestCount{} split precedes tuning. On answerable queries, set recall is $|G_q\cap P_{q,k}|/|G_q|$; MRR and nDCG@10 complement it. \PaperRetrievalBootstrapRepetitions{} query-bootstrap samples form percentile intervals, and paired randomization tests compare the tuned hybrid with baselines under Holm correction.
+Historical v1 used \PaperRetrievalCaseCount{} source-derived retrieval cases, one AI process for source-linked labels, a later shuffled source-first reinspection without rankings, and a fixed \PaperRetrievalDevCount{}/\PaperRetrievalTestCount{} development/test split. On answerable queries, set recall is $|G_q\cap P_{q,k}|/|G_q|$; MRR and nDCG@10 complement it. Query-bootstrap intervals and Holm-corrected paired tests were reported, but correlated AI-label error was not modelled.
 
-The QA run reuses 50 cases but intentionally evaluates the current untuned heuristic hybrid plus deterministic extractive answerer, not the best retrieval mode. Atomic claims and returned citations were checked for support, citation choice/completeness, answer-point coverage, and abstention. The finder comparison uses \PaperRecommendationProfileCount{} synthetic profiles spanning skills, interests, time, project type, data, and difficulty constraints. It returns \PaperRecommendationItemsPerArm{} items per arm. The evidence-only arm returns papers and passages; the full arm adds a separately labelled system suggestion. Topic evaluation uses \PaperTopicCaseCount{} AI-silver papers (\PaperTopicDevCount{} development and \PaperTopicTestCount{} test) and a \PaperTopicVocabularyCount{}-label vocabulary including an other-or-unknown label. Confidence intervals quantify case/profile sampling only; they do not model correlated AI-label error or constitute inter-rater reliability.
+The prospective remediation protocol freezes its corpus, source-derived cases, locators, splits, configuration, environment lock, and output schema before execution. Cases were constructed from sources without consulting rankings; held-out outputs are immutable after the run. Ask uses fixed keyword retrieval, a deterministic extractive answerer, and a preregistered answerability rule over \VTwoQATestCases{} test cases. Claims are decomposed and scored for exact evidence locators, citation completeness, answer-point coverage, and abstention. Finder compares evidence-only ranking with full, separately labelled suggestions on the same retrieval response for \VTwoFinderTestProfiles{} held-out synthetic profiles. Profiles are proxies, not students.
 
-Candidate-specific protocols prevent favorable post hoc substitutions. Retrieval weights are selected only on development MRR from a recorded search space, then frozen for test. The QA answerer and retriever are named even though they are not the best-scoring combination. Recommendation contrasts resample complete profiles because three suggestions from one profile are correlated. Topic threshold selection uses development micro-F1, while held-out per-label support is retained so labels with no gold examples cannot inflate a macro narrative. Performance uses isolated paths and failures remain in denominators.
+Topics use \VTwoTopicTestCases{} source-derived, known-positive test cases. Because labels are not exhaustive, the protocol reports positive-label recall, coverage, and unadjudicated predictions---not precision, F1, or exact match. A deterministic raster fixture exercises the OCR path but is not a corpus OCR estimate. Cluster-level bootstrap intervals quantify sampling of cases, profiles, or papers only. A shuffled second AI pass records disagreements; repeated AI inspection is not independent human validation, inter-rater reliability, or entailment assessment.
 
 \begin{figure*}[t]
 \centering
@@ -128,16 +131,43 @@ Candidate-specific protocols prevent favorable post hoc substitutions. Retrieval
 \label{fig:workflow}
 \end{figure*}
 
-Figures~\ref{fig:architecture} and \ref{fig:workflow} summarize the implementation. The React interface provides papers, search, Ask, Finder, topic/author, evaluation, and protected review routes. It renders freshness, provider, warnings, review state, citations, and evidence-only alternatives, including explicit empty, unavailable, and retry states. FastAPI keeps public reads/transient generation separate from authenticated mutations; request limits, exact origin/host checks, safe file/URL handling, redacted logs, and append-only attributed review events are enforced. Profile inputs are transient in evaluated calls.
+Figures~\ref{fig:architecture} and \ref{fig:workflow} summarize the implementation. The React interface provides papers, search, Ask, Finder, topic/author, evaluation, and protected review routes. It renders freshness, provider, warning, review state, citations, and evidence-only alternatives, including explicit empty, unavailable, and retry states. FastAPI separates public reads and transient generation from authenticated mutations; exact origins/hosts, bounded requests, safe file/URL handling, redacted logs, and append-only attributed review events are enforced. Profile inputs are non-persistent by default.
 
-Page-aware extraction distinguishes blank, scanned, and mixed pages. No corpus OCR was required, so OCR quality is supported only by engineering fixtures. Search returns the mode, score components, query expansion, pages, sections, and freshness. Runtime grounding values check locator presence and weak lexical overlap, not entailment. The answerer extracts bounded sentences. The finder first constructs source-backed baseline work, future work, and gap fields; only then does it add a labelled suggestion with MVP, stretch scope, skills, data, risk, and evaluation. Optional Ollama was unreachable during evaluation, so no model tag, digest, response, or latency comparison was invented.
+Page-aware extraction distinguishes blank, scanned, and mixed pages. Search returns mode, score components, pages, sections, freshness, and the active corpus identity. Runtime grounding checks locator presence and weak lexical overlap, not entailment. The answerer extracts bounded sentences. Finder first constructs source-backed baseline work, paper-stated future work, and an explicitly inferred gap; only then may it add a labelled suggestion with assumptions, MVP, stretch scope, skills, data, risk, and evaluation.
 
-\section{Results}
-\subsection{RQ1: Corpus Integrity and Retrieval}
-All three authoritative indexes covered \PaperEligibleChunkCount{}/\PaperEligibleChunkCount{} eligible chunks; excluded/raw chunks could not enter evaluation. Author cleanup removed navigation artefacts and repaired punctuation aliases, while \PaperPossibleAuthorPairCount{} possible same-person pairs remain unmerged pending external confirmation. Missing metadata stays empty.
+Technical eligibility is not publication approval. Public routes use a stricter projection requiring rights clearance, review, publication state, and an aligned public index generation; they never substitute the technical corpus. Consequently the public projection at the audited/remediated snapshot may be empty. The remediation evaluation uses only the technical boundary and is not evidence of public behavior. The optional Ollama provider did not contribute historical v1 results, so no response, digest, or latency comparison was invented.
+
+\subsection{Evidence Contracts and Failure Semantics}
+Derived state is generation-addressed. Extraction records bind exact PDF bytes; chunk records bind the extraction generation and exact UTF-8 text; each authoritative index manifest binds the ordered eligible source identities and active configuration. Reconciliation validates that chain before rebuilding. Index files are written as immutable generations, and the active pointer changes only after database status is committed. A bounded demo build cannot target the authoritative index. Startup and requests fail closed on a missing, partial, stale, or differently scoped manifest rather than silently falling back to another corpus.
+
+Ask decomposes an answer into checkable claims, retains only citations used by those claims, and exposes an unsupported or abstained state when fixed answerability evidence is insufficient. A citation establishes a locator, not that the cited passage entails the prose. Finder ranks evidence-bearing papers before constructing suggestions; candidate facts are recomputed from the selected paper, while unresolved time, data, novelty, and feasibility remain unknown or assumptions. The public API omits technical hashes and local paths but retains safe paper/page/chunk navigation.
+
+Review state is likewise typed. Corrections, review decisions, and the effective display projection remain separate; events are attributed and hash chained. An AI actor can record an AI-review outcome but cannot create a human approval. Provider-offline, stale-index, and empty-public-corpus states are first-class responses with retry or evidence-only paths. Table~\ref{tab:evidence-contracts} summarizes the permitted inference boundary.
 
 \begin{table}[t]
-\caption{Held-out retrieval estimates (\PaperRetrievalAnswerableTestCount{} answerable queries).}
+\caption{Evidence contracts and prohibited inferences.}
+\label{tab:evidence-contracts}
+\centering
+\scriptsize
+\begin{tabularx}{\columnwidth}{@{}lYY@{}}
+\toprule
+Surface & Evidence retained & Does not establish \\
+\midrule
+Search & corpus, chunk, rank, mode & relevance truth \\
+Ask & claim, locator, warning & entailment/correctness \\
+Finder & fact, gap type, suggestion & novelty/feasibility \\
+Topics/authors & source links, review state & expertise/availability \\
+Review & actor type, event chain & human approval by AI \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Results}
+\subsection{RQ1: Historical v1 Corpus and Retrieval}
+All three historical v1 indexes covered \PaperEligibleChunkCount{}/\PaperEligibleChunkCount{} eligible chunks; excluded/raw chunks could not enter that evaluation. Author cleanup removed navigation artefacts and repaired punctuation aliases, while \PaperPossibleAuthorPairCount{} possible same-person pairs remain unmerged pending external confirmation. Missing metadata stays empty.
+
+\begin{table}[t]
+\caption{Historical v1 held-out retrieval (\PaperRetrievalAnswerableTestCount{} answerable queries).}
 \label{tab:retrieval}
 \centering
 \scriptsize
@@ -154,105 +184,81 @@ Dev-tuned hybrid & \PaperTunedHybridRecallThree & \PaperTunedHybridRecallTen & \
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:retrieval} shows that keyword had the highest point estimates: Recall@10 \PaperKeywordRecallTen{} (95\% CI \PaperKeywordRecallTenCi), MRR \PaperKeywordMrr{} (\PaperKeywordMrrCi). Dense MRR was \PaperDenseMrr{} (\PaperDenseMrrCi); tuned-hybrid MRR was \PaperTunedHybridMrr{} (\PaperTunedHybridMrrCi). No corrected paired comparison established tuned-hybrid superiority, and equivalence was not tested. Removing the topic adjustment raised tuned Recall@10 to \PaperNoTopicRecallTen{}; removing all \PaperHeuristicTermCount{} heuristics recovered Recall@10 \PaperNoHeuristicsRecallTen{} and MRR \PaperNoHeuristicsMrr{}. Error coding found \PaperIntentMismatchCount{} intent/ranking, \PaperExtractionSignalCount{} extraction, and \PaperCorpusAbsenceCount{} corpus-absence signals. Every mode returned a result for the single held-out unanswerable query; the resulting 1.0 false-positive estimate is unstable but directionally consistent with QA abstention failure.
+Table~\ref{tab:retrieval} shows that keyword had the highest historical point estimates: Recall@10 \PaperKeywordRecallTen{} (CI \PaperKeywordRecallTenCi) and MRR \PaperKeywordMrr{} (\PaperKeywordMrrCi). Dense MRR was \PaperDenseMrr{} (\PaperDenseMrrCi); tuned-hybrid MRR was \PaperTunedHybridMrr{} (\PaperTunedHybridMrrCi). No corrected comparison established hybrid superiority, and equivalence was not tested. Removing all \PaperHeuristicTermCount{} heuristics recovered Recall@10 \PaperNoHeuristicsRecallTen{} and MRR \PaperNoHeuristicsMrr{}. Every mode answered the single held-out unanswerable query, an unstable but adverse signal.
 
-\subsection{RQ2: Answers, Advice, Topics, and Review}
+\subsection{RQ2: Historical Diagnosis and Prospective Evidence}
 \begin{table}[t]
-\caption{QA outcomes over \PaperQaCaseCount{} cases and \PaperQaClaimCount{} claims.}
-\label{tab:qa}
+\caption{Historical v1 negative and null evidence.}
+\label{tab:historical-diagnostics}
 \centering
 \scriptsize
 \begin{tabularx}{\columnwidth}{@{}Yrr@{}}
 \toprule
-Outcome & Estimate/count & 95\% CI \\
+Outcome & Estimate/count & CI or denominator \\
 \midrule
-Supported / partial / unsupported & \PaperQaSupportedClaimCount/\PaperQaPartialClaimCount/\PaperQaUnsupportedClaimCount & -- \\
-Strict supported-claim rate & \PaperQaSupport & \PaperQaSupportCi \\
 Citation correctness & \PaperQaCitationCorrectness & \PaperQaCitationCorrectnessCi \\
-Citation presence & \PaperQaCitationCompleteness & \PaperQaCitationCompletenessCi \\
 Answer-point coverage & \PaperQaAnswerCoverage & \PaperQaAnswerCoverageCi \\
 Unanswerable abstention & \PaperQaUnanswerableAbstention & \PaperQaUnanswerableAbstentionCi \\
+Finder relevance change & \PaperRecDelta & \PaperRecDeltaCi \\
+Finder feasibility partial & \PaperRecommendationFeasibilityPartialCount & /\PaperRecommendationItemsPerArm \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Table~\ref{tab:qa} prevents a high ``grounding'' value from hiding distinct failures. All \PaperQaClaimCount{} checkable claims carried citations; AI review labelled \PaperQaSupportedClaimCount{} supported, \PaperQaPartialClaimCount{} partial, and \PaperQaUnsupportedClaimCount{} unsupported. However, only \PaperQaCitationCorrectness{} of claim--citation links were fully correct, expected answer-point coverage was \PaperQaAnswerCoverage{}, and none of \PaperQaUnanswerableCount{} unanswerable cases abstained. Errors were usually supported but off-target extracts, evidence-selection misses, or omissions---not invented text. These labels are AI-reviewed silver judgments with no independent human adjudicator; two-pass consistency does not quantify their uncertainty.
+Historical v1 labelled \PaperQaSupportedClaimCount{}/\PaperQaClaimCount{} extractive claims supported, but Table~\ref{tab:historical-diagnostics} shows why source presence was insufficient: citation targeting and answer-point coverage were weak, and none of \PaperQaUnanswerableCount{} unanswerable cases abstained. The Finder change interval spanned zero; every feasibility rating was partial because data access, workload, prerequisite mastery, and supervisor expectations were not externally confirmed. Topic support was sparse across the controlled vocabulary. These AI-reviewed silver findings remain visible rather than being replaced by newer numbers.
 
-Finder evidence-only relevance averaged \PaperRecBaseline{} versus \PaperRecFull{} for the full finder; the paired change \PaperRecDelta{} had CI \PaperRecDeltaCi{}, spanning zero. Source fidelity and fact/future-work/gap/suggestion separation passed all \PaperRecommendationItemsPerArm{} full-arm items, yet all \PaperRecommendationFeasibilityPartialCount{} feasibility ratings and \PaperRecommendationPlanPartialCount{} evaluation plans were partial. Thus schema compliance is not advisory utility. Sensitivity across \PaperRecommendationConfigurationCount{} configurations found interest weight most disruptive.
-
-On \PaperTopicTestCount{} topic test papers, controlled lexical precision was \PaperTopicLexicalPrecision{}, recall \PaperTopicLexicalRecall{}, and F1 \PaperTopicLexicalFone{}; coverage was \PaperTopicLexicalCoverage{}. Dense precision was \PaperTopicDensePrecision{}, recall \PaperTopicDenseRecall{}, F1 \PaperTopicDenseFone{}, and coverage \PaperTopicDenseCoverage{}. Only \PaperTopicSupportedTestLabelCount{} labels had held-out gold support and \PaperTopicZeroGoldTestLabelCount{} had none, so vocabulary-wide claims would be misleading. The inspectable lexical method was retained for precision and governance, not universal superiority. Author links mean indexed-publication evidence only. Review appended \PaperReviewEventCount{} hash-chained AI events. Current recommendations and artifacts were regenerated, but \PaperReviewAnswerCount{} historical answers lacked sufficient stored scope and remain marked for reprocessing, not approved.
-
-\subsection{Cross-Component Failure Analysis}
 \begin{table}[t]
-\caption{Failure-oriented denominators retained for interpretation.}
-\label{tab:failures}
+\caption{Prospective held-out technical outcomes (generated macros).}
+\label{tab:prospective-results}
 \centering
 \scriptsize
-\begin{tabularx}{\columnwidth}{@{}YYr@{}}
+\begin{tabularx}{\columnwidth}{@{}Yrr@{}}
 \toprule
-Component & Outcome & Count \\
+Outcome & Estimate & Cluster CI \\
 \midrule
-QA citations & correct / partial / incorrect & \PaperQaCorrectCitationLinkCount/\PaperQaPartialCitationLinkCount/\PaperQaIncorrectCitationLinkCount \\
-QA answer points & full / partial / missing & \PaperQaCoveredAnswerPointCount/\PaperQaPartialAnswerPointCount/\PaperQaMissingAnswerPointCount \\
-QA returned citations & used in reviewed claims & \PaperQaUsedReturnedCitationCount/\PaperQaReturnedCitationCount \\
-Finder & feasibility rated partial & \PaperRecommendationFeasibilityPartialCount/\PaperRecommendationItemsPerArm \\
-Finder & evaluation plan rated partial & \PaperRecommendationPlanPartialCount/\PaperRecommendationItemsPerArm \\
-Topics & labels with / without test support & \PaperTopicSupportedTestLabelCount/\PaperTopicZeroGoldTestLabelCount \\
-Review & answers needing reprocessing & \PaperNeedsReprocessCount \\
+QA cases & \VTwoQATestCases & -- \\
+Answerability precision & \VTwoQAAnswerabilityPrecision & \VTwoQAAnswerabilityPrecisionCi \\
+Exact-locator citation precision & \VTwoQACitationLocatorPrecision & \VTwoQACitationLocatorPrecisionCi \\
+Finder profiles & \VTwoFinderTestProfiles & -- \\
+Finder Hit@3 change & \VTwoFinderHitAtThreeDelta & \VTwoFinderHitAtThreeDeltaCi \\
+Topic cases & \VTwoTopicTestCases & -- \\
+Known-positive topic recall & \VTwoTopicKnownPositiveRecall & \VTwoTopicKnownPositiveRecallCi \\
+OCR fixture character error & \VTwoOCRCharacterErrorRate & -- \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Table~\ref{tab:failures} localizes what aggregate rates conceal. The 398/2/0 support distribution reflects an extractive answerer whose sentences usually came from some returned source, but citation review divided 400 links into \PaperQaCorrectCitationLinkCount{} correct, \PaperQaPartialCitationLinkCount{} partial, and \PaperQaIncorrectCitationLinkCount{} incorrect links. Only \PaperQaUsedReturnedCitationCount{} of \PaperQaReturnedCitationCount{} distinct returned citations supported a reviewed claim. Of \PaperQaAnswerPointCount{} expected points, \PaperQaCoveredAnswerPointCount{} were fully covered, \PaperQaPartialAnswerPointCount{} partially covered, and \PaperQaMissingAnswerPointCount{} absent. The error pattern therefore points to intent-aware retrieval and within-document evidence selection, not merely more fluent generation.
-
-Recommendation failures occur at a different boundary. Every item supplied the required source/suggestion fields, but feasibility remained partial because profile constraints were matched lexically or heuristically rather than confirmed against data access, supervisor expectations, prerequisite mastery, or a calendar. Evaluation-plan partials clustered where an output named a metric without a defensible baseline, dataset split, or success threshold. A responsible next design should treat these fields as questions to resolve with a supervisor, not confidence-bearing facts.
-
-Topic errors also resist one scalar summary. Held-out support covered only \PaperTopicSupportedTestLabelCount{} of \PaperTopicVocabularyCount{} labels; \PaperTopicZeroGoldTestLabelCount{} labels had no positive test example. The lexical method missed broad implicit concepts but produced fewer speculative labels, while the dense prototype increased recall at the cost of precision. Per-label evidence and an \texttt{other/unknown} path are therefore part of the interface contract. Similarly, unresolved author pairs remain separate because merging identity records is a governance decision with consequences for attribution.
-
-\begin{table}[t]
-\caption{Representative held-out lexical topic errors.}
-\label{tab:topic-errors}
-\centering
-\scriptsize
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Label & TP & FP & FN & Precision & Recall \\
-\midrule
-\PaperTopicErrorRows
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table~\ref{tab:topic-errors} illustrates heterogeneous behavior behind micro-F1. Explicit terms supported perfect recall for the two \texttt{rag} positives, whereas the broader \texttt{ai} label missed all four positives and \texttt{networks} produced both misses and false positives. \texttt{Agriculture} and \texttt{clustering} were more recoverable; \texttt{energy} was precise when fired but missed two of three positives. The counts are too small for stable label rankings, but they identify which synonyms/rules require source inspection and which concepts may need a hierarchy rather than a flat vocabulary.
+Table~\ref{tab:prospective-results} is populated only from the validated package. Ask metrics test the fixed answerability gate and exact frozen locators; they do not establish factual correctness or entailment. The paired Finder delta is reported without a superiority claim, while template checks establish a data-contract property rather than project usefulness. Topic recall applies only to listed known positives; other predictions remain unadjudicated. OCR character error applies only to the deterministic fixture. All are \VTwoEvidenceTier{} technical-corpus judgments without human validation. Author links remain publication-derived associations, unresolved identities remain separate, and AI review events cannot confer human approval.
 
 \subsection{RQ3: Reproduction and Operational Boundary}
-The full local profile measured \PaperPerformanceStageCount{} stages with three process-cold and three warm repetitions at concurrency one: \PaperPerformanceStageCount{}$\times$6=102 samples, with \PaperPerformanceFailedSamples{} failures on an AMD Ryzen 7 5800X/16-logical-CPU WSL2 host. ``Cold'' means a fresh process; OS caches were not flushed, and this is neither load nor capacity evidence. The external harness reacquired \PaperExternalDocumentCount{} pinned CC BY JATS/XML papers and obtained \PaperExternalTopOneCount{}/\PaperExternalDocumentCount{} fixed lexical top-one matches; that establishes format compatibility and trivial discrimination only, not cross-domain quality or PDF ingestion.
+The historical v1 local profile measured \PaperPerformanceStageCount{} stages with process-cold and warm repetitions at concurrency one and \PaperPerformanceFailedSamples{} recorded failures. ``Cold'' means a fresh process; OS caches were not flushed, and this is neither load nor capacity evidence. An external harness reacquired \PaperExternalDocumentCount{} pinned CC BY JATS/XML papers and obtained \PaperExternalTopOneCount{}/\PaperExternalDocumentCount{} fixed lexical top-one matches; that establishes format compatibility and trivial discrimination only, not cross-domain quality or PDF ingestion.
 
 \input{generated/performance_summary}
 
-Table~\ref{tab:performance} selects representative stages from the full artifact; omitted stages and all repetitions remain in the hashed raw record. Network discovery dominates variability, dense indexing dominates local compute/memory, and warm/cold differences are workload-specific. No concurrency sweep, cache flush, or saturation test was conducted. The reproduction command rebuilds allowed derived state, runs evaluation/tests, compiles manuscripts, preflights PDFs, creates a restricted-content-free bundle, and emits checksums. Exact full-corpus reruns still require lawful access to the local PDFs and pinned dense model.
+Table~\ref{tab:performance} selects representative stages; omitted repetitions remain in the hashed raw record. Network discovery dominates variability, dense indexing dominates local compute/memory, and warm/cold differences are workload-specific. No concurrency sweep, cache flush, or saturation test was conducted. The prospective package records source commit \texttt{\VTwoEvaluationSourceCommitPrefix{}}, corpus snapshot \texttt{\VTwoCorpusSnapshotId{}}, raw outputs, configuration, environment lock, and post-run validation attestation. Reproduction rebuilds allowed derived state, runs tests/evaluations, compiles manuscripts, preflights PDFs, creates a restricted-content-free bundle, and emits checksums. Exact full-corpus reruns still require lawful access to local PDFs and the pinned dense model.
 
 \section{Discussion, Threats, and Ethics}
-The principal result is an evidence boundary, not a new ranking algorithm. Complete eligible indexing does not repair \PaperNoTextCount{} unavailable/review records. Keyword outperformed hybrid point estimates, and ablations implicated intuitive topical heuristics; larger human judgments are required before method selection. High extractive support coexisted with poor citation targeting, completeness, and abstention, showing why locators and entailment cannot share one badge. Finder outputs cleanly separated source facts from suggestions, but their relevance difference was uncertain and every feasibility rating remained partial. These negative results narrow the next experiment: calibrate answerability, improve within-paper evidence selection, require claim-to-citation verification, and evaluate candidate projects with students and supervisors rather than adding another generator. Human studies must test usefulness, novelty, workload, and trust.
+The principal result is an evidence boundary, not a new ranking algorithm. Historical v1 showed that complete indexing and extractive support could coexist with weak citation choice, answer completeness, abstention, and Finder feasibility. The prospective measures narrow those constructs to a fixed answerability gate, exact source locators, paired recommendation ranks, known-positive topics, and a pipeline fixture. They do not erase the historical failures or convert contract conformance into benefit. Human studies must test usefulness, novelty, workload, and trust.
 
 \subsection{Evidence-Driven Design Decisions}
-The retrieval evidence changes product defaults. Keyword search is the defensible default for this snapshot because it has the strongest held-out point estimates and simple failure semantics. Dense search remains valuable as an explicit alternative for paraphrase, but not as an automatic claim of semantic quality. The development-tuned hybrid remains experimental: its weights are reproducible and its score components visible, yet neither the paired analysis nor its ablations justify promoting it as superior. The interface therefore returns the active mode and diagnostic components and permits a user to switch modes. A future query router must earn its complexity on a new locked test set rather than on the cases that motivated it.
+The historical retrieval evidence makes keyword the defensible default for that snapshot: it had the strongest held-out point estimates and simple failure semantics. Dense search remains an explicit paraphrase-oriented alternative, not a claim of semantic quality. The tuned hybrid remains experimental because neither paired analysis nor ablations justified superiority. A future router must earn its complexity on a new locked test set.
 
-The QA evidence requires a multi-dimensional result state. A response can be source-derived but answer the wrong intent; cite every claim but choose only partially correct passages; cover one expected point while omitting others; or answer confidently when the corpus has no evidence. Consequently the public surface should show answerability, claim support, citation correctness/coverage, and answer completeness as separate review concepts. For a live answer these metrics may be unavailable, so the UI reports provenance and structural checks without projecting aggregate experiment scores onto an individual response. An abstention gate should first test corpus/query fit, then retrieval sufficiency, and finally claim support. If any stage fails, returning ranked evidence or an explicit unsupported state is safer than composing text.
+QA therefore needs a multi-dimensional result state. A response can be source-derived but answer the wrong intent, cite an off-target passage, omit expected points, or answer when evidence is insufficient. The interface separates answerability, claim support, citation use, and completeness, and does not project aggregate scores onto a live answer. If the fixed gate fails, ranked evidence or an explicit unsupported state is safer than composed text.
 
-The Finder needs an analogous decision boundary. Ranking a paper can be justified by passages, declared interests, and constraints; proposing a thesis adds claims about novelty, data access, workload, skills, and evaluation that the corpus cannot settle alone. The implemented record therefore distinguishes baseline work, paper-stated future work, inferred gap, and system suggestion. It gives the user an evidence-only mode, and the full mode returns assumptions and risks rather than a hidden suitability score. The observed all-partial feasibility result is useful: it says the next component should be a structured supervisor checklist and constraint-resolution workflow, not more assertive prose. No recommendation is labelled supervisor-approved until an authorized human records that state.
+Finder needs the analogous boundary. Ranking a paper can be justified by passages, interests, and stated constraints; proposing a thesis adds novelty, access, workload, skills, and evaluation assumptions the corpus cannot settle. The record distinguishes baseline work, paper-stated future work, inferred gap, and system suggestion. Evidence-only mode bypasses suggestions; full mode exposes assumptions and risks rather than a hidden suitability score. The all-partial historical feasibility result motivates a supervisor checklist, not more assertive prose. No recommendation is supervisor-approved until an authorized human records that state.
 
-Administrative review is part of the evidence model rather than a content overwrite. Events identify actor type, prior and new states, rationale, time, target hash, and chain hash. AI actors can mark AI-reviewed or needs-reprocess states but cannot impersonate human approval. Historical answers that cannot be exactly regenerated stay visible with their limitation. Likewise, ambiguous author identities remain candidates instead of automatic merges. These choices sacrifice apparent completeness to preserve attribution and make later correction auditable.
+Administrative review is an append-only evidence event rather than a silent overwrite. Events bind actor type, prior/new states, rationale, time, target hash, and chain hash. AI actors can mark AI-reviewed or needs-reprocess states but cannot impersonate human approval. Historical answers that cannot be exactly regenerated retain that limitation, and ambiguous identities remain unmerged.
 
 The external smoke test and performance profile answer deployment questions only narrowly. The former shows that three licensed XML documents can enter the chunk contract and be separated by obvious lexical queries; it does not validate another discipline, language, or PDF path. The latter identifies expensive stages for a single local operator but offers no arrival-rate, tail-latency-under-load, or capacity evidence. Production planning must add representative traffic, concurrent users, failure injection, monitoring, and recovery tests without reusing these single-user medians as service-level objectives.
 
-Construct validity is limited by AI-silver relevance/claim labels and synthetic-profile proxy ratings. The same AI process created and re-inspected labels, so correlated error remains; intervals exclude label uncertainty. Internal validity is limited by small held-out sets, a single retrieval unanswerable, post-selection descriptive ablations, and a deterministic answerer unlike all RAG systems. External validity is limited to one laboratory snapshot, English extraction, local hardware, and a three-document format smoke test. Reproducibility is bounded by lawful PDF/model access, network discovery, OS caches, and the explicitly dirty candidate state.
+Construct validity is limited by AI-silver labels, source-derived positive-only topics, synthetic-profile proxies, and a fixture rather than corpus OCR. One AI procedure performs both shuffled passes, so correlated error remains and intervals exclude label uncertainty. Historical internal validity is limited by small test sets, one retrieval unanswerable, descriptive ablations, and a deterministic answerer; prospective cases remain small and source-derived. External validity is limited to one English-language laboratory snapshot and local hardware. Reproducibility remains bounded by lawful PDF/model access, network discovery, and OS caches.
 
 TTLAB authorized project and corpus use. No participants were recruited and no ethics approval or exemption is claimed. Authorization does not transfer redistribution rights: PDFs, live database, derived text, secrets, model caches, and private prompts are excluded from the sanitized release. Public deployment additionally requires authenticated review, controlled origins, rate limits, monitoring, correction paths, backups, and accessibility validation. Datasheet, model-card, and risk-management practices inform disclosure \cite{gebru2021datasheets,mitchell2019modelcards,tabassi2023airmf}. Codex/LLM assistance covered code, silver-label preparation, analysis, and editing; it was not a human assessor. The current Tectonic PDF is intentionally not claimed as tagged PDF or PDF/UA; figure descriptions remain in source for a capable venue toolchain.
 
 \section{Availability and Conclusion}
-The sanitized bundle contains code, permitted metadata, sanitized experimental records, configurations, figure sources, manifests, hashes, and reproduction instructions. It excludes restricted content and does not claim to be the final publisher package. For this snapshot, full-paper search and advice are inspectable: dense MRR \PaperDenseMrr{} and strict claim support \PaperQaSupport{} coexist with a negative hybrid result, citation correctness \PaperQaCitationCorrectness{}, coverage \PaperQaAnswerCoverage{}, failed abstention, and uncertain recommendation benefit. The artefact is therefore an evaluated research-intelligence prototype, not a validated academic advisor. Human utility, identity decisions, rights, and venue compliance remain external validations.
+The sanitized bundle contains code, permitted metadata, sanitized experimental records, configurations, figure sources, manifests, hashes, and reproduction instructions. It excludes restricted content and is not the publisher package. Historical v1 negative and null findings remain alongside the \VTwoPackageStatus{} prospective evidence rather than being overwritten. The newer results apply to a \VTwoEvaluationScope{} corpus, with public projection exercised: \VTwoPublicProjectionExercised{}. Technical evaluation is therefore not public behavior. The artefact is a source-traceable research-intelligence prototype, not a validated academic advisor: human utility, identity decisions, PDF rights, deployment controls, and venue compliance remain external validations.
 
 \bibliographystyle{IEEEtran}
+\IEEEtriggeratref{16}
 \bibliography{../thesis/references}
 \end{document}

@@ -1,65 +1,66 @@
 {
   "schema_version": 2,
   "generator": "paper/scripts/generate_paper_assets.py",
-  "generator_sha256": "03fa09a8f57188375ae162e57db782d8e5b243e492ff09fb93875e33dca08fda",
+  "generator_sha256": "a93def5e59fd818ec3f9a5f64326cac26f69063d115d995361d79669b1020bb9",
   "generation_provenance": {
     "committed_base": {
-      "commit": "0633c9128ea579e783eadb992e4b27c1a0b499f2",
-      "tree": "722644c84d2f6c8012e01e88678709e4086de6ff"
+      "commit": "0590f3e168e41ad9227afa9d01c0d84b39bc60a1",
+      "tree": "1601a3a051e437fe314cc2543338434f809aa076"
     },
     "working_tree": {
       "dirty": true,
       "status_porcelain_before_generation": [
-        "M backend/app/api/admin.py",
-        " M backend/app/api/artifacts.py",
-        " M backend/app/api/ask.py",
-        " M backend/app/api/papers.py",
-        " M backend/app/api/search.py",
-        " M backend/app/config.py",
-        " M backend/app/db.py",
-        " M backend/app/indexing/embedder.py",
-        " M backend/app/indexing/retriever.py",
-        " M backend/app/intelligence/citation_verifier.py",
-        " M backend/app/intelligence/llm_provider.py",
-        " M backend/app/intelligence/paper_artifact_generator.py",
-        " M backend/app/intelligence/rag_answerer.py",
-        " M backend/app/intelligence/topic_explorer.py",
-        " M backend/app/models/paper.py",
-        " M backend/app/models/rag.py",
-        " M backend/app/security.py",
+        "M README.md",
         " M build/ieee-paper.pdf",
         " M build/thesis.pdf",
-        " M frontend/e2e/platform.spec.ts",
-        " M frontend/package.json",
-        " M frontend/src/App.tsx",
-        " M frontend/src/api/client.ts",
-        " M frontend/src/components/UiPrimitives.tsx",
-        " M frontend/src/pages/AdminReviewPage.tsx",
-        " M frontend/src/pages/AskPage.tsx",
-        " M frontend/src/pages/PaperBrowser.tsx",
-        " M frontend/src/pages/SearchPage.tsx",
-        " M frontend/src/pages/ThesisExtensionFinder.tsx",
-        " M frontend/src/pages/TopicAuthorExplorer.tsx",
-        " M frontend/src/styles/app.css",
-        " M frontend/src/test/accessibility.test.tsx",
-        " M frontend/src/test/admin-ingestion-sync.test.tsx",
-        " M frontend/src/test/app-routing.test.tsx",
-        " M frontend/src/test/fixtures.ts",
-        " M frontend/src/test/paper-browser.test.tsx",
-        " M frontend/src/test/responsible-ai.test.tsx",
-        " M paper/figures/architecture.tex",
+        " M docs/DATA_AND_ARTIFACT_AVAILABILITY.md",
+        " M docs/DEPLOYMENT.md",
+        " M docs/ETHICS_AND_GOVERNANCE.md",
+        " M docs/EVALUATION_PLAN.md",
+        " M docs/EVALUATION_PROTOCOL.md",
+        " M docs/FEATURE_MATRIX.md",
+        " M docs/FINAL_STATUS.md",
+        " M docs/LOCAL_LLM_RAG_README.md",
+        " M docs/METHODOLOGY.md",
+        " M docs/PRIVACY.md",
+        " M docs/PROJECT_SCOPE.md",
+        " M docs/PROJECT_STATUS.md",
+        " M docs/REPRODUCIBILITY.md",
+        " M docs/REPRODUCIBILITY_CHECKLIST.md",
+        " M docs/SECURITY.md",
+        " M docs/SYSTEM_DESIGN.md",
+        " M docs/THREAT_MODEL.md",
+        " M docs/peer_review_readiness/HUMAN_REQUIRED_ITEMS.md",
+        " M docs/screenshots/README.md",
         " M paper/generated/manifest.json",
         " M paper/generated/metrics.tex",
-        " M paper/generated/performance_summary.tex",
         " M paper/ieee-paper.tex",
-        " M paper/scripts/generate_paper_assets.py",
+        " M thesis/chapters/00_abstract.tex",
+        " M thesis/chapters/01_introduction.tex",
+        " M thesis/chapters/02_problem_statement.tex",
+        " M thesis/chapters/03_research_questions_objectives.tex",
+        " M thesis/chapters/05_methodology.tex",
+        " M thesis/chapters/06_architecture_design.tex",
+        " M thesis/chapters/07_data_collection_processing.tex",
+        " M thesis/chapters/08_implementation.tex",
+        " M thesis/chapters/09_experimental_design.tex",
+        " M thesis/chapters/10_results.tex",
+        " M thesis/chapters/11_discussion.tex",
+        " M thesis/chapters/12_limitations_ethics_validity.tex",
+        " M thesis/chapters/13_conclusion_future_work.tex",
+        " M thesis/chapters/A_traceability.tex",
+        " M thesis/chapters/B_reproducibility.tex",
+        " M thesis/chapters/C_schema_api.tex",
+        " M thesis/chapters/D_review_instruments.tex",
+        " M thesis/figures/src/architecture.tex",
+        " M thesis/figures/src/entity_model.tex",
+        " M thesis/figures/src/evaluation_workflow.tex",
+        " M thesis/figures/src/ingestion_pipeline.tex",
+        " M thesis/figures/src/recommendation_workflow.tex",
+        " M thesis/figures/src/search_rag_workflow.tex",
+        " M thesis/generated/evidence_macros.tex",
         " M thesis/generated/manuscript_metrics_manifest.json",
-        " M thesis/references.bib",
-        "?? backend/app/io_utils.py",
-        "?? backend/app/publication.py",
-        "?? frontend/scripts/run-vitest.mjs",
-        "?? frontend/src/test/api-client.test.ts",
-        "?? paper/generated/topic_error_rows.tex"
+        " M thesis/scripts/capture_interface_screenshots.mjs"
       ]
     },
     "expected_generated_output_boundary": [
@@ -82,6 +83,14 @@
       "partial": 2,
       "unsupported": 0
     }
+  },
+  "remediation_v2": {
+    "status": "not_run",
+    "completed": false,
+    "layout_only": true,
+    "manifest_sha256": null,
+    "validation_attestation_sha256": null,
+    "macro_attestation_cycle_avoided": "Canonical v2 macros exclude manifest/attestation hashes; this downstream manifest binds both after completed-package validation."
   },
   "sources": {
     "phase1": {
@@ -124,6 +133,10 @@
       "path": "artifacts/phase6/external_sanity/external_sanity_manifest.json",
       "sha256": "fbe9b460244769faf4a3a21284f6ee3ab3507343eeb8d6e7e1d5057edae461be"
     },
+    "v2_manuscript_package_helper": {
+      "path": "scripts/manuscript_v2_package.py",
+      "sha256": "1e040690bf79ecaa38abc405d7d2953da83c67364ff52c039b4b752e0f96926a"
+    },
     "section_cases": {
       "path": "data/evaluation/section_quality_silver_v1.jsonl",
       "sha256": "98bc6ebfb63be918db48f5edb0c596895af6b8f349ee97e857e3fbd87836801e"
@@ -136,7 +149,7 @@
   "outputs": {
     "metrics": {
       "path": "paper/generated/metrics.tex",
-      "sha256": "efbac5da05528ec5e6f01fb89c261da9b2af87b2ed34c6626d8be09733266da6"
+      "sha256": "6cab9fa2bd8354f2a26fe3046f02ec6e88c7184f5ee7bc703ca6a50288a605d9"
     },
     "retrieval_rows": {
       "path": "paper/generated/retrieval_rows.tex",

@@ -1,0 +1,335 @@
+{
+  "claim_boundary": "This package is AI-silver technical-corpus evaluation evidence. It does not establish public eligibility, human usefulness, semantic entailment, novelty, practical feasibility, or corpus OCR accuracy.",
+  "completed_at": "2026-07-21T21:02:45.177553+00:00",
+  "entailment_claimed": false,
+  "evaluation_id": "peer-review-remediation-v2",
+  "evaluation_source_commit": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+  "freeze_receipt": "artifacts/peer_review_remediation/v2/freeze_receipt_v2.json",
+  "freeze_receipt_sha256": "00c7d2541a9a88e3092cece6f3bb4fb239700c79c2fcb307f9e43b23d709d9f3",
+  "frozen_at": "2026-07-21T20:55:45.081801+00:00",
+  "frozen_dataset_identity": {
+    "ask": {
+      "case_count": 18,
+      "dataset_path": "data/evaluation/qa_selective_response_v2.jsonl",
+      "dataset_sha256": "4abd2dc648be53ece2779371cf78a8a6f22397a6ebd844044894cbf88a1ed15a",
+      "id_field": "case_id",
+      "splits": {
+        "dev": [
+          "qa-v2-a01",
+          "qa-v2-a03",
+          "qa-v2-a06",
+          "qa-v2-a08",
+          "qa-v2-n01",
+          "qa-v2-n02"
+        ],
+        "test": [
+          "qa-v2-a02",
+          "qa-v2-a04",
+          "qa-v2-a05",
+          "qa-v2-a07",
+          "qa-v2-a09",
+          "qa-v2-a10",
+          "qa-v2-a11",
+          "qa-v2-a12",
+          "qa-v2-n03",
+          "qa-v2-n04",
+          "qa-v2-n05",
+          "qa-v2-n06"
+        ]
+      }
+    },
+    "finder": {
+      "case_count": 10,
+      "dataset_path": "data/evaluation/finder_proxy_profiles_v2.jsonl",
+      "dataset_sha256": "c157904d3762f109bf2ac60614f500f25914b688dde91a5e7b30f5187f4fd7a3",
+      "id_field": "profile_id",
+      "splits": {
+        "dev": [
+          "finder-v2-d01",
+          "finder-v2-d02",
+          "finder-v2-d03",
+          "finder-v2-d04"
+        ],
+        "sensitivity": [
+          "finder-v2-t02"
+        ],
+        "test": [
+          "finder-v2-t01",
+          "finder-v2-t03",
+          "finder-v2-t04",
+          "finder-v2-t05",
+          "finder-v2-t06"
+        ]
+      }
+    },
+    "topics": {
+      "case_count": 12,
+      "dataset_path": "data/evaluation/topic_source_labels_v2.jsonl",
+      "dataset_sha256": "8934a5a95baaca11f5399b0786904a1f66dd8595163414f383f31dfda979ab3e",
+      "id_field": "case_id",
+      "splits": {
+        "dev": [
+          "topic-v2-d01",
+          "topic-v2-d02",
+          "topic-v2-d03",
+          "topic-v2-d04"
+        ],
+        "test": [
+          "topic-v2-t01",
+          "topic-v2-t02",
+          "topic-v2-t03",
+          "topic-v2-t04",
+          "topic-v2-t05",
+          "topic-v2-t06",
+          "topic-v2-t07",
+          "topic-v2-t08"
+        ]
+      }
+    }
+  },
+  "human_validation_claimed": false,
+  "locked_validator_identity": {
+    "lock_path": "backend/requirements-lock.txt",
+    "lock_sha256": "93e43a941f8ca2bd25124c83360b54ff6f2109e575f3abefb211a7383b8058eb",
+    "locked_package_count": 95,
+    "python_version": "3.12.3",
+    "runner_path": "data/evaluation/run_peer_review_remediation_v2.py",
+    "runner_sha256": "ce4466564ed7fa19c95b9b8f348bf4fb43c522836de3008f10a70ab8ffc90b44",
+    "status": "locked_environment_valid",
+    "validator_path": "data/evaluation/validate_peer_review_remediation_v2.py",
+    "validator_sha256": "1de537ad8a0a2b052f485e52f7fd681680311bfe398990ef818e1860cfc210ca"
+  },
+  "outputs": {
+    "artifacts/peer_review_remediation/v2/finder_disagreements_v2.json": {
+      "bytes": 580,
+      "sha256": "da1b86992e1d5d2f396164aa42a104219e25540d9bf126143e5688ad718f234d"
+    },
+    "artifacts/peer_review_remediation/v2/finder_metrics_v2.json": {
+      "bytes": 9625,
+      "sha256": "57088dd34c6c089249c6472e7e775e0eeea704666aa6a2212aa61e032d400bd7"
+    },
+    "artifacts/peer_review_remediation/v2/finder_raw_outputs_v2.jsonl": {
+      "bytes": 308226,
+      "sha256": "c7d73bde28470a17c3a438e3916a53b91eb7e380916252e7f397a87b2d8be1b8"
+    },
+    "artifacts/peer_review_remediation/v2/finder_review_pass1_v2.jsonl": {
+      "bytes": 23265,
+      "sha256": "05945868daac3c63eeb3be466c8aa9e93db999b3d16bcde04f247ef8d19f6e69"
+    },
+    "artifacts/peer_review_remediation/v2/finder_review_pass2_v2.jsonl": {
+      "bytes": 23265,
+      "sha256": "551a26e4a87797b1bd1983b382569dcc116731dea21de5bd4536182f6b3541b8"
+    },
+    "artifacts/peer_review_remediation/v2/manuscript_macros_v2.tex": {
+      "bytes": 3617,
+      "sha256": "30c34d9f78c1c4f545dd21afc6ba1be092d572024e5eba21ddef756087370d1f"
+    },
+    "artifacts/peer_review_remediation/v2/ocr_fixture_results_v2.json": {
+      "bytes": 14069,
+      "sha256": "2c4bf158ecc552b4de3b2297eb898f2fe68163e32a269c5d54908057f274a3ad"
+    },
+    "artifacts/peer_review_remediation/v2/qa_disagreements_v2.json": {
+      "bytes": 580,
+      "sha256": "da1b86992e1d5d2f396164aa42a104219e25540d9bf126143e5688ad718f234d"
+    },
+    "artifacts/peer_review_remediation/v2/qa_metrics_v2.json": {
+      "bytes": 6797,
+      "sha256": "3c22146ece06ff1369b9ce10dce8c8c87e56814e11e76d632f095312dcf6c5c6"
+    },
+    "artifacts/peer_review_remediation/v2/qa_raw_outputs_v2.jsonl": {
+      "bytes": 182376,
+      "sha256": "519981929b4f554fa50f85c7184401d9246a1d643303534036f6d4b671ded6dd"
+    },
+    "artifacts/peer_review_remediation/v2/qa_review_pass1_v2.jsonl": {
+      "bytes": 23175,
+      "sha256": "2fc6f48a074a6d5135fc5b15ef5ee8150839d1d86eee5ad53698931848ea0ed2"
+    },
+    "artifacts/peer_review_remediation/v2/qa_review_pass2_v2.jsonl": {
+      "bytes": 23175,
+      "sha256": "7d9cb470ca1ebec8bdf378f17b76c97290eb28654750eed4f3af1ad51d4ef8dc"
+    },
+    "artifacts/peer_review_remediation/v2/topic_metrics_v2.json": {
+      "bytes": 61855,
+      "sha256": "5f178b7e3316412ea4bb138efe22555364dbed30f32e7d851ce410a103abc42c"
+    },
+    "artifacts/peer_review_remediation/v2/topic_predictions_v2.jsonl": {
+      "bytes": 44492,
+      "sha256": "8a3a60e792764d80aa9c0c0d85d12e22619959651cd437c2cfdb30eb9728797a"
+    }
+  },
+  "post_evaluation_finalization": {
+    "case_outputs_rescored": false,
+    "evaluation_reexecuted": false,
+    "files": [
+      {
+        "normalized_sha256": "519981929b4f554fa50f85c7184401d9246a1d643303534036f6d4b671ded6dd",
+        "original_sha256": "a1247dff6cf6710855dfae83088ac94a6b53309b341e1724b273c36269e4c017",
+        "path": "qa_raw_outputs_v2.jsonl",
+        "records_normalized": 18,
+        "rows": 18,
+        "source_identity_records_corrected": 0
+      },
+      {
+        "normalized_sha256": "104b63727bf259225eb97c6498d28febf7f470d7e0c860f962d3affb74b35c93",
+        "original_sha256": "746d0fb0a7cd3289c0842085a7f0e118dbef3ed01e65742f10e233dbe6b3a238",
+        "path": "qa_full_raw_v2.jsonl",
+        "records_normalized": 18,
+        "rows": 18,
+        "source_identity_records_corrected": 0
+      },
+      {
+        "normalized_sha256": "c7d73bde28470a17c3a438e3916a53b91eb7e380916252e7f397a87b2d8be1b8",
+        "original_sha256": "4b356ddd1653412e0441e3240814751c8ef0344aa58eab3ef671fb3ee21b0fb0",
+        "path": "finder_raw_outputs_v2.jsonl",
+        "records_normalized": 10,
+        "rows": 10,
+        "source_identity_records_corrected": 10
+      },
+      {
+        "normalized_sha256": "f23e3d6eb13a45b766df10e8b8359b0a41c37ea32ea4261e1b65eb51d1ef07b8",
+        "original_sha256": "25de0cdeacc89c134f84b370d5563ab22dc1d1aa1bb971919b9914be4cd79287",
+        "path": "finder_full_raw_v2.jsonl",
+        "records_normalized": 10,
+        "rows": 10,
+        "source_identity_records_corrected": 10
+      }
+    ],
+    "finalized_at": "2026-07-21T21:02:45.247060+00:00",
+    "labels_or_metrics_changed": false,
+    "normalization": "removed redundant corpus_identity.scope=technical and corrected Finder source_identity to the complete serialized paired-retrieval locator set",
+    "reason": "Manifest assembly rejected a redundant corpus_identity.scope field and the Finder backend serialized only cited chunks in source_identity while the frozen checker requires the complete paired-retrieval locator set.",
+    "status": "completed_without_case_reexecution"
+  },
+  "post_execution_frozen_inputs_unchanged": true,
+  "provider_environment_overrides": {
+    "TTLAB_ALLOWED_LLM_PROVIDERS": "[\"offline_extractive\"]",
+    "TTLAB_DEFAULT_LLM_PROVIDER": "offline_extractive"
+  },
+  "public_projection_exercised": false,
+  "public_selection_predicate_recorded_not_tested": "review_status approved AND publication_status published AND rights_status cleared AND public_access_level searchable AND corpus_eligibility_status eligible AND extraction_review_status approved AND extraction_generation_id IS NOT NULL AND chunk_generation_id IS NOT NULL AND chunk_extraction_generation_id == extraction_generation_id AND public_index_generation_id == chunk_generation_id AND chunk_count > 0 AND Chunk.extraction_generation_id == Paper.extraction_generation_id",
+  "public_validation_claimed": false,
+  "release_contains_rights_sensitive_raw_text": false,
+  "restricted_raw_outputs": {
+    "committed": false,
+    "files": {
+      "finder_full_raw": {
+        "bytes": 491507,
+        "filename": "finder_full_raw_v2.jsonl",
+        "sha256": "f23e3d6eb13a45b766df10e8b8359b0a41c37ea32ea4261e1b65eb51d1ef07b8"
+      },
+      "qa_full_raw": {
+        "bytes": 701006,
+        "filename": "qa_full_raw_v2.jsonl",
+        "sha256": "104b63727bf259225eb97c6498d28febf7f470d7e0c860f962d3affb74b35c93"
+      },
+      "topic_full_raw": {
+        "bytes": 52037,
+        "filename": "topic_full_raw_v2.jsonl",
+        "sha256": "7d1377c5f8c8b3bd478cd7ff58043d898451321bfa6bf322f810f2137c3bfdb4"
+      }
+    },
+    "lawful_local_corpus_access_required_for_exact_reproduction": true,
+    "release_included": false,
+    "required": true,
+    "retained_locally": true
+  },
+  "reviewer": {
+    "entailment_verified": false,
+    "human_review": false,
+    "independent_human_raters": 0,
+    "label_tier": "ai_silver",
+    "pass_interpretation": "same_ai_procedure_repeatability_not_inter_rater_reliability",
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai"
+  },
+  "runtime_provenance_validation": {
+    "ask_record_count": 18,
+    "code_identity": {
+      "git_commit": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+      "git_head_commit": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+      "git_head_tree": "04b065c78f8699919df3588a2167f4f1c3ad1fb7",
+      "git_tree": "04b065c78f8699919df3588a2167f4f1c3ad1fb7",
+      "scope": "backend/app",
+      "status": "clean_commit",
+      "working_tree_dirty": false,
+      "working_tree_fingerprint_sha256": null
+    },
+    "corpus_identity": {
+      "eligible_chunk_count": 719,
+      "eligible_paper_count": 96,
+      "snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
+      "snapshot_id": "corpus-f4638c633bea82b0"
+    },
+    "finder_record_count": 10,
+    "public_projection_exercised": false,
+    "record_count": 28,
+    "required_fields": [
+      "code_identity",
+      "corpus_identity",
+      "generation_identity",
+      "retrieval_identity",
+      "source_identity"
+    ],
+    "retrieval_scope": "technical",
+    "source_descriptors_verified": true,
+    "status": "verified"
+  },
+  "status": "completed",
+  "technical_corpus_identity": {
+    "eligible_chunk_count": 719,
+    "eligible_paper_count": 96,
+    "identity_contract": "retrieval_source_identity_v2",
+    "snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
+    "snapshot_id": "corpus-f4638c633bea82b0",
+    "technical_selection_predicate": "Paper.corpus_eligibility_status == eligible AND Paper.extraction_generation_id IS NOT NULL AND Paper.chunk_generation_id IS NOT NULL AND Paper.chunk_extraction_generation_id == Paper.extraction_generation_id AND Chunk.extraction_generation_id == Paper.extraction_generation_id"
+  },
+  "technical_scope_only": true,
+  "technical_selection_predicate": "Paper.corpus_eligibility_status == eligible AND Paper.extraction_generation_id IS NOT NULL AND Paper.chunk_generation_id IS NOT NULL AND Paper.chunk_extraction_generation_id == Paper.extraction_generation_id AND Chunk.extraction_generation_id == Paper.extraction_generation_id",
+  "temporary_database": {
+    "path_retained": false,
+    "source_expected_sha256": "5ea480590fe588b2539d06a5c438d195b80dff4abdb81923b6c900f6450ac291",
+    "source_sha256": "5ea480590fe588b2539d06a5c438d195b80dff4abdb81923b6c900f6450ac291",
+    "source_unchanged_during_execution": true,
+    "temporary_integrity_check": "ok"
+  },
+  "temporary_keyword_index": {
+    "configuration_sha256": "3f0e652e4b6bb5fa5c515f3d0a1fa73498e3bf55bd621de3345e49de0ba8477f",
+    "database_scope": "temporary_copy_only",
+    "generation_reconciliation": {
+      "already_current": 98,
+      "attempted": 134,
+      "dry_run": false,
+      "quarantined": 36,
+      "reasons": {
+        "missing_extraction_manifest_path": 36
+      },
+      "reconciled": 0
+    },
+    "health": {
+      "completeness_status": "complete",
+      "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
+      "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+      "coverage_ratio": 1.0,
+      "eligible_chunks": 719,
+      "eligible_papers": 96,
+      "errors": [],
+      "fts_available": true,
+      "keyword_indexed_chunks": 719,
+      "provider": "sqlite_fts5_bm25",
+      "status": "ready",
+      "stored_corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1"
+    },
+    "rebuild_result": {
+      "completeness_status": "complete",
+      "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
+      "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+      "eligible_chunks": 719,
+      "eligible_papers": 96,
+      "fts_available": true,
+      "indexed_chunks": 719
+    },
+    "source": "frozen_technical_eligible_corpus"
+  },
+  "tracked_database_mutated": false,
+  "v1_artifacts_overwritten": false
+}

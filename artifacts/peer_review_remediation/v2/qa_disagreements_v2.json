@@ -1,0 +1,18 @@
+{
+  "disagreement_count": 0,
+  "disagreements": [],
+  "interpretation": "Repeated same-AI procedure under shuffled presentation; not independent or human inter-rater reliability.",
+  "orders_differ": true,
+  "pass_1_seed": 1429,
+  "pass_2_seed": 2718,
+  "reviewer": {
+    "entailment_verified": false,
+    "human_review": false,
+    "independent_human_raters": 0,
+    "label_tier": "ai_silver",
+    "pass_interpretation": "same_ai_procedure_repeatability_not_inter_rater_reliability",
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai"
+  },
+  "same_case_set": true
+}

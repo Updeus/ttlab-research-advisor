@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-13T00:08:38.172771+00:00",
+  "generated_at": "2026-07-21T20:22:40.735122+00:00",
   "reviewer_type": "ai",
   "human_validation": false,
   "labels": [
@@ -4503,13 +4503,33 @@
       }
     }
   },
+  "evidence_binding": {
+    "frozen_annotation_corpus": {
+      "eligible_chunk_count": 719,
+      "eligible_paper_count": 96,
+      "snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "snapshot_id": "corpus-04a010207327069a"
+    },
+    "current_execution_corpus": {
+      "eligible_chunk_count": 719,
+      "eligible_paper_count": 96,
+      "snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
+      "snapshot_id": "corpus-f4638c633bea82b0"
+    },
+    "resolution_counts": {
+      "exact_chunk_id": 119,
+      "stable_paper_chunk_page_section_locator": 1
+    },
+    "source_snapshot_drift_count": 1,
+    "interpretation": "The labels remain the frozen AI-reviewed silver judgments. Current evaluation uses exact content-derived chunk IDs where available. A missing ID may bind only to one row at the same paper, encoded chunk index, page interval, and section when the persisted bounded excerpt is byte-for-byte unchanged and the row belongs to the active dense corpus. The frozen and current corpus identities remain distinct; this is current-snapshot scoring, not exact reproduction or relabeling of the historical snapshot."
+  },
   "dense_configuration": {
     "method": "pinned_dense_primary-source-centroid_to_label-prototype_cosine",
     "model_name": "sentence-transformers/all-MiniLM-L6-v2",
     "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
     "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c",
-    "dense_index_sha256": "ac0d1242787760638f294d8268166a99782d652fef66af70c5ba3739e1b15673",
-    "dense_manifest_sha256": "203b6b28ff62d2fa3abad47e243890e66bf25aa14904a3f6bf764d5878a45886",
+    "dense_index_sha256": "b735552faad8382676188ec8f9e359d582189afbc23d76a1c5b3cdfcb4452ca9",
+    "dense_manifest_sha256": "10bffa0fac70cdfd0a0cca5ed884546906b0c8047c0ad682f1fc86bbb986bc70",
     "threshold_selection": "max dev micro-F1; ties macro-F1 then higher threshold",
     "selected_threshold": 0.2,
     "max_labels": 6,
@@ -4761,7 +4781,20 @@
         "coverage": 0.027777777777777776
       }
     ],
-    "test_labels_not_used_for_selection": true
+    "test_labels_not_used_for_selection": true,
+    "frozen_annotation_corpus": {
+      "eligible_chunk_count": 719,
+      "eligible_paper_count": 96,
+      "snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "snapshot_id": "corpus-04a010207327069a"
+    },
+    "current_execution_corpus": {
+      "eligible_chunk_count": 719,
+      "eligible_paper_count": 96,
+      "snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
+      "snapshot_id": "corpus-f4638c633bea82b0"
+    },
+    "source_binding": "validated exact IDs plus unique locator fallback with exact persisted-excerpt match"
   },
   "error_taxonomy": [
     "ambiguous_lexeme_or_incidental_primary_section",

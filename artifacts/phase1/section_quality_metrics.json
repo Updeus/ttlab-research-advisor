@@ -1,5 +1,22 @@
 {
   "case_count": 40,
+  "current_case_binding": {
+    "interpretation": "Current-database scoring uses exact content-derived chunk IDs where available. A missing exact ID may resolve only through one unique paper/chunk-index/page-interval row, with current source-page heading evidence rechecked and hash drift reported. This is not exact-text reproduction of the historical silver snapshot.",
+    "resolution_counts": {
+      "exact_chunk_id": 39,
+      "stable_paper_chunk_page_locator": 1
+    },
+    "source_snapshot_drift_count": 1,
+    "source_snapshot_drifts": [
+      {
+        "case_id": "section-silver-004",
+        "current_chunk_id": "using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c-chunk-0000-6bb5b91cfbd7",
+        "current_source_hash": "dec744be37d3dd69e6b89916f243bbe1e6d40c9f6225007959d1bfb569f41daf",
+        "frozen_chunk_id": "using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c-chunk-0000-754cfbebe787",
+        "frozen_source_hash": "c7c89272a9cc8879ff2db8c0b4a615aa0c8d5753dd1eea1747232ba0218a1930"
+      }
+    ]
+  },
   "database": "data/papers.db",
   "dataset": "data/evaluation/section_quality_silver_v1.jsonl",
   "dataset_sha256": "98bc6ebfb63be918db48f5edb0c596895af6b8f349ee97e857e3fbd87836801e",
@@ -73,6 +90,6 @@
     }
   },
   "prediction_source": "current_database",
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "valid"
 }

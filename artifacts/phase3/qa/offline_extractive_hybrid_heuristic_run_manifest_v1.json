@@ -1,8 +1,8 @@
 {
   "experiment_id": "ttlab-qa-faithfulness-offline_extractive_hybrid_heuristic-v1",
   "status": "executed",
-  "started_at": "2026-07-12T23:45:46.864264+00:00",
-  "completed_at": "2026-07-12T23:50:35.120573+00:00",
+  "started_at": "2026-07-21T20:12:00.212687+00:00",
+  "completed_at": "2026-07-21T20:16:04.682644+00:00",
   "case_count": 50,
   "category_counts": {
     "broad_intent": 4,
@@ -26,6 +26,7 @@
     "top_k": 5,
     "provider": "offline_extractive",
     "model": null,
+    "retrieval_scope": "technical",
     "audience": "general",
     "max_words": 250,
     "persist": false,
@@ -49,34 +50,36 @@
     }
   },
   "observed_providers": {
-    "offline_extractive": 50
+    "not_invoked": 1,
+    "offline_extractive": 49
   },
   "observed_models": {
-    "sentence-overlap-v1": 50
+    "not_invoked": 1,
+    "sentence-overlap-v1": 49
   },
   "fallback_case_ids": [],
   "latency": {
     "case_count": 50,
-    "cold_or_first_seconds": 82.023092,
-    "warm_mean_seconds_excluding_first": 3.941182,
-    "median_seconds": 3.885285,
-    "p95_seconds": 4.302611,
-    "minimum_seconds": 3.532045,
-    "maximum_seconds": 82.023092,
+    "cold_or_first_seconds": 82.831117,
+    "warm_mean_seconds_excluding_first": 2.90297,
+    "median_seconds": 2.901304,
+    "p95_seconds": 3.126884,
+    "minimum_seconds": 2.752243,
+    "maximum_seconds": 82.831117,
     "scope": "End-to-end retrieval plus deterministic answer composition wall time on this machine."
   },
   "input": {
     "qa_cases_path": "data/evaluation/qa_faithfulness_cases_v1.jsonl",
-    "qa_cases_sha256": "fe0f5221b033e22d2ad00e96fc759040e17929f33bb90fd8c466b01f6697419b",
+    "qa_cases_sha256": "abd9fc1cf9e83b183c90387d794b4c176781aee384d18433d3bd2488b26b0df1",
     "retrieval_set_path": "data/evaluation/retrieval_silver_v1.jsonl",
     "retrieval_set_sha256": "ccd16f6428c9f37da3eb507b02c3fe97867877cc7fbaa99977f3043949a3cbe1",
     "retrieval_manifest_sha256": "7f0bce60d9ebbe2128a4eb34b928a9c920286124afeb43955384fdd972558f05"
   },
   "output": {
     "public_answers_path": "artifacts/phase3/qa/offline_extractive_hybrid_heuristic_answers_v1.jsonl",
-    "public_answers_sha256": "633dd1ffebea5982c4bbb6a700dacfe00a33e9323deb4e5027d0e14864e879ec",
+    "public_answers_sha256": "e7269ef0430792976dcfc2b11a3c612fb8d053bfa7c0036a41b7d152ceb07c71",
     "private_raw_path": "artifacts/phase3/private/qa/offline_extractive_hybrid_heuristic_raw_inputs_outputs_v1.jsonl",
-    "private_raw_sha256": "8e69744f55dfd2d74d6eebb164542cd2e0048f3f9aa70953c2827fa64cb7ea90",
+    "private_raw_sha256": "cf50732d8c3b43ba57284970911fcbfa250bc1fb3280023e0caee28d2a96dd18",
     "private_raw_policy": "Untracked local evidence contains full extracted page/chunk text; the public artifact retains identifiers, hashes, bounded snippets, answers, judgments, and prompts/configuration without redistributing full PDFs."
   },
   "index_health": {
@@ -86,9 +89,9 @@
       "eligible_chunks": 719,
       "eligible_papers": 96,
       "coverage_ratio": 1.0,
-      "corpus_snapshot_id": "corpus-04a010207327069a",
-      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "stored_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+      "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
+      "stored_corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
       "completeness_status": "complete",
       "provider": "sqlite_fts5_bm25",
       "errors": [],
@@ -99,8 +102,11 @@
       "valid": true,
       "status": "ready",
       "errors": [],
-      "index_path": "data/indexes/feature_hashing_embeddings.json",
-      "manifest_path": "data/indexes/feature_hashing_embeddings.manifest.json",
+      "index_path": "/tmp/ttlab-remediation-final-73092e4-r1/source/data/indexes/feature_hashing_embeddings.json.generations/11b6ab8685ce0b9f8bf23d12/index.json",
+      "requested_index_path": "data/indexes/feature_hashing_embeddings.json",
+      "manifest_path": "/tmp/ttlab-remediation-final-73092e4-r1/source/data/indexes/feature_hashing_embeddings.json.generations/11b6ab8685ce0b9f8bf23d12/manifest.json",
+      "current_pointer_path": "data/indexes/feature_hashing_embeddings.json.current.json",
+      "generation_source": "current_pointer",
       "provider": "feature_hashing",
       "model_name": "sha256-signed-token-hashing-v1",
       "model_revision": "1",
@@ -111,20 +117,23 @@
       "eligible_chunks": 719,
       "eligible_papers": 96,
       "completeness_status": "complete",
-      "corpus_snapshot_id": "corpus-04a010207327069a",
-      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+      "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
       "configuration_hash": "0e1747930d46faf752a9a7acda3e0aaa79147a6bbd1fa1b672866620e7513707",
-      "index_sha256": "f23353187252bb88188f8f5561c90de282481c1e87130405ccf556a14f319fa5",
-      "created_at": "2026-07-12T23:14:04.312681+00:00",
-      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
-      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5"
+      "index_sha256": "6d6a429e50f68fea70023f92790e86db894158527a0bab8372eae36124ea1405",
+      "created_at": "2026-07-21T18:30:27.395484+00:00",
+      "code_commit": "73092e48f173b74f726659bd5b98224545ac23bb",
+      "current_corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1"
     },
     "dense": {
       "valid": true,
       "status": "ready",
       "errors": [],
-      "index_path": "data/indexes/dense_embeddings.json",
-      "manifest_path": "data/indexes/dense_embeddings.manifest.json",
+      "index_path": "/tmp/ttlab-remediation-final-73092e4-r1/source/data/indexes/dense_embeddings.json.generations/cfd4eece39ca27f7c0c074b0/index.json",
+      "requested_index_path": "data/indexes/dense_embeddings.json",
+      "manifest_path": "/tmp/ttlab-remediation-final-73092e4-r1/source/data/indexes/dense_embeddings.json.generations/cfd4eece39ca27f7c0c074b0/manifest.json",
+      "current_pointer_path": "data/indexes/dense_embeddings.json.current.json",
+      "generation_source": "current_pointer",
       "provider": "dense",
       "model_name": "sentence-transformers/all-MiniLM-L6-v2",
       "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
@@ -135,27 +144,27 @@
       "eligible_chunks": 719,
       "eligible_papers": 96,
       "completeness_status": "complete",
-      "corpus_snapshot_id": "corpus-04a010207327069a",
-      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+      "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+      "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
       "configuration_hash": "82bd4770afaf734b2fab006a9f9ff253bc5f1fe8e3b02ba4cd248d1fe6cb61d9",
-      "index_sha256": "ac0d1242787760638f294d8268166a99782d652fef66af70c5ba3739e1b15673",
-      "created_at": "2026-07-12T23:17:06.509772+00:00",
-      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
-      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5"
+      "index_sha256": "b735552faad8382676188ec8f9e359d582189afbc23d76a1c5b3cdfcb4452ca9",
+      "created_at": "2026-07-21T18:33:06.417003+00:00",
+      "code_commit": "73092e48f173b74f726659bd5b98224545ac23bb",
+      "current_corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1"
     }
   },
   "code": {
-    "git_commit": "7cd80c076629e50ab2b724034e03b1f1ae7e9752",
+    "git_commit": "73092e48f173b74f726659bd5b98224545ac23bb",
     "working_tree_dirty": true,
     "file_sha256": {
-      "backend/app/evaluation/qa_faithfulness_eval.py": "895b90fb301a31076afdcc73540655b1957170e3e3527bd6fdfb952953c80921",
-      "backend/app/indexing/retriever.py": "cf308799449fb5794e3ad1e95362ee8a5b970cd7a3174a1bfc203b9f033598f6",
-      "backend/app/indexing/keyword_search.py": "c2b84b3b3b567a658b15e42b422cad66d68d4f52ae8b70777f7a27c33cb424b2",
-      "backend/app/indexing/vector_store.py": "5efce57ea149f19f3c5b71522e73e24da3600178f8a799858b6f71c0c63147cc",
-      "backend/app/intelligence/rag_answerer.py": "99a16478efd6c47ea50013e04c8c4dd3632df55467f6b60c6fcf1a35e093973a",
-      "backend/app/intelligence/llm_provider.py": "015a011a42ce8d7051565d9ce412b2ba4b9650060f88b41394206c5c6d4f25b3",
-      "backend/app/intelligence/citation_verifier.py": "ef13d5df7c30389a29bbc445dbe2b45c1c6f75e9dc5b8783f42be2a7f40cea12",
-      "data/evaluation/run_qa_faithfulness_v1.py": "b6c0f07e0c729f414b9eae45e5b302e3b53a8e60740b117864a5ea657d7cd679"
+      "backend/app/evaluation/qa_faithfulness_eval.py": "079eafa1e538494b86305005bfc4bfd2ef39436dc2644426bfa38691dd80fdb7",
+      "backend/app/indexing/retriever.py": "9b1369e38d19c6b69dd9c7aba93852a701ddbf10ff63d186ce753258756d0bd6",
+      "backend/app/indexing/keyword_search.py": "3fc4e563805786803c5f9d1044b3a97495109719283d37afbbfe856e435b73a3",
+      "backend/app/indexing/vector_store.py": "651dbf764adc85c477d4fb1fcae08bffb36b741bde8b2926ca88d31a1efce891",
+      "backend/app/intelligence/rag_answerer.py": "772524a2b6c264ecd7324bf38ead5262b88d62167a493e47f6a10608293b2b41",
+      "backend/app/intelligence/llm_provider.py": "42ab3f6e1ee5252c2e612a7d2a109d1cbba35eed01a11617817d9fe0ff39b56a",
+      "backend/app/intelligence/citation_verifier.py": "f3e4cde6a373c16174466181ada0be8ece6ef1bdd2af3879ebccbb441dc3d3a2",
+      "data/evaluation/run_qa_faithfulness_v1.py": "5c513d727c03e94959be6f32bf903e4b5f2f67ce94f5be092a6c00f58729c7ae"
     }
   },
   "environment": {
@@ -163,7 +172,7 @@
     "python": "3.12.3",
     "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
     "logical_cpu_count": 16,
-    "memory_total_kib": 4012360,
+    "memory_total_kib": 4012364,
     "gpu_probe": {
       "command": [
         "nvidia-smi",

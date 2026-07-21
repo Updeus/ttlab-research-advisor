@@ -1,17 +1,25 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-13T00:55:25.951543+00:00",
+  "generated_at": "2026-07-21T20:55:07.322826+00:00",
   "review_version": "phase4-generated-output-review-v1",
-  "code_commit": "47e9dfc89fda0d18adf4d0f228ddc88019401b37",
-  "review_code_sha256": "ac40d161276855d4614583e2e9478ce0d23b31949f8669177b906f535c268fc6",
-  "database_sha256_before": "9c496d600ba46bc83edd3e37b5b5a55ac1b54827d1c38573f3e17f5c541699d5",
-  "database_sha256_after": "eabea922b6e9585312e598877979d5cef8f04ea73a2c312e557e18391ea46a91",
+  "code_commit": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+  "review_code_sha256": "e4fdc23ac2f7857d3926ce4b45ca427768477b182c912223bded4ccf85d6a650",
+  "database_sha256_before": "27e164441bdebd960aa17ba2805ca2c0ae536b953e715df6aadcb7cf14017796",
+  "database_sha256_after": "5ea480590fe588b2539d06a5c438d195b80dff4abdb81923b6c900f6450ac291",
+  "database_checkpoint": {
+    "status": "PASS",
+    "journal_mode": "wal",
+    "busy": 0,
+    "log_frames_remaining": 0,
+    "checkpointed_frames": 0,
+    "wal_exists_after_close": true
+  },
   "database_bytes_redistributed": false,
   "reviewer_type": "ai",
   "human_validation": false,
   "outputs": {
-    "generated_output_reviews.jsonl": "121526c19b2c32233a8a93a9a9adc72b861f8a853d7b2c104bc27781866539d4",
-    "generated_output_review_summary.json": "f6102bbec33c8b7793a8c1d48482ec9d4883ed399c85dfd68f4690aef256eb46",
-    "idempotence_evidence.json": "126053ac04b830f62e7188e512d6c1c5776ce0241c2979aa98281d7955fcf1aa"
+    "generated_output_reviews.jsonl": "df2a49262c822e6d353d517081a542010127d22bd969b4a7226a42ae38cfc1b3",
+    "generated_output_review_summary.json": "b49005213907ba30b4423bae25937ee31c7c461bbece68f63382155577c1efb3",
+    "idempotence_evidence.json": "bf9c928e37922e02860a88c0709a6ba37ec64e09e60782b801ac147ab4332449"
   }
 }

@@ -1,6 +1,6 @@
 {
   "check_id": "ttlab-qa-ollama-availability-v1",
-  "checked_at": "2026-07-12T23:40:42.332694+00:00",
+  "checked_at": "2026-07-21T20:16:26.480047+00:00",
   "base_url": "http://localhost:11434",
   "configured_default_model": "qwen3:4b-instruct-2507-q4_K_M",
   "configured_num_ctx": 4096,
@@ -58,7 +58,7 @@
     "python": "3.12.3",
     "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
     "logical_cpu_count": 16,
-    "memory_total_kib": 4012360,
+    "memory_total_kib": 4012364,
     "gpu_probe": {
       "command": [
         "nvidia-smi",

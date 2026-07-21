@@ -1,0 +1,406 @@
+{
+  "claim_boundary": "Synthetic raster-only pipeline exercise; not TTLAB corpus OCR accuracy, not a scanned-corpus prevalence estimate, and not human-reviewed OCR quality.",
+  "evaluation_id": "ocr-scanned-fixture-v2",
+  "first_pass": {
+    "artifact_contract": "json_authoritative_text_mirror_v1",
+    "artifact_generation_id": "f1e48bb5f654fd920bc301f6cd57d42a78314ebd94a88d5dc92ba4a22840a03e",
+    "diagnostics": {
+      "content_type": "scanned",
+      "extraction_error": null,
+      "ocr_configuration": {
+        "config": "--oem 3 --psm 6",
+        "environment": {
+          "LANG": "C.UTF-8",
+          "LC_ALL": "C.UTF-8",
+          "OMP_THREAD_LIMIT": "1"
+        },
+        "language": "eng",
+        "language_data": {
+          "language": "eng",
+          "reason": null,
+          "resolved_path_recorded": false,
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "status": "available"
+        },
+        "render_dpi": 144,
+        "render_scale": 2.0
+      },
+      "ocr_pages_count": 1,
+      "ocr_provider": "tesseract",
+      "ocr_provider_version": "tesseract 5.3.4",
+      "ocr_requested": true,
+      "ocr_review_required": true,
+      "ocr_status": "completed",
+      "page_content_counts": {
+        "blank": 0,
+        "mixed": 0,
+        "scanned": 1,
+        "textual": 0,
+        "unknown": 0
+      },
+      "page_count": 1,
+      "pages_with_text": 1,
+      "pages_without_text": 0,
+      "pdf_title_match": {
+        "best_candidate_page": 1,
+        "expected_title": "TTLAB OCR PIPELINE FIXTURE V2",
+        "match_basis": "first_page_exact_phrase",
+        "matched_page": 1,
+        "matched_tokens": [
+          "fixture",
+          "ocr",
+          "pipeline",
+          "ttlab",
+          "v2"
+        ],
+        "missing_tokens": [],
+        "reason": "Publication title was found by the conservative bounded-page identity check.",
+        "scope": {
+          "max_pages": 8,
+          "pages_examined": [
+            1
+          ]
+        },
+        "status": "matched",
+        "token_coverage": 1.0
+      },
+      "possible_scanned_pdf": true,
+      "total_char_count": 296,
+      "total_word_count": 45
+    },
+    "extraction_config": {
+      "expected_title": "TTLAB OCR PIPELINE FIXTURE V2",
+      "max_pdf_bytes": 5242880,
+      "max_pdf_pages": 1,
+      "ocr_configuration": {
+        "config": "--oem 3 --psm 6",
+        "environment": {
+          "LANG": "C.UTF-8",
+          "LC_ALL": "C.UTF-8",
+          "OMP_THREAD_LIMIT": "1"
+        },
+        "language": "eng",
+        "language_data": {
+          "language": "eng",
+          "reason": null,
+          "resolved_path_recorded": false,
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "status": "available"
+        },
+        "render_dpi": 144,
+        "render_scale": 2.0
+      },
+      "ocr_provider": "tesseract",
+      "ocr_provider_version": "tesseract 5.3.4",
+      "run_ocr": true
+    },
+    "extraction_status": "extracted",
+    "input_fixture": "data/evaluation/ocr_scanned_fixture_v2.pdf",
+    "input_pdf_sha256": "e0d2805d619f194b4ed5a552ee07f9df2c74dc3609cd25fdf83285d3372cd380",
+    "page_count": 1,
+    "pages": [
+      {
+        "char_count": 296,
+        "content_class": "scanned",
+        "drawing_count": 0,
+        "extraction_method": "ocr",
+        "image_count": 1,
+        "native_char_count": 0,
+        "native_word_count": 0,
+        "ocr_confidence": 0.9502,
+        "ocr_configuration": {
+          "config": "--oem 3 --psm 6",
+          "environment": {
+            "LANG": "C.UTF-8",
+            "LC_ALL": "C.UTF-8",
+            "OMP_THREAD_LIMIT": "1"
+          },
+          "language": "eng",
+          "language_data": {
+            "language": "eng",
+            "reason": null,
+            "resolved_path_recorded": false,
+            "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+            "status": "available"
+          },
+          "render_dpi": 144,
+          "render_scale": 2.0
+        },
+        "ocr_error": null,
+        "ocr_provider": "tesseract",
+        "ocr_provider_version": "tesseract 5.3.4",
+        "ocr_status": "completed",
+        "page_number": 1,
+        "provenance": {
+          "input_fixture": "data/evaluation/ocr_scanned_fixture_v2.pdf",
+          "native_extractor": "PyMuPDF 1.28.0",
+          "ocr_configuration": {
+            "config": "--oem 3 --psm 6",
+            "environment": {
+              "LANG": "C.UTF-8",
+              "LC_ALL": "C.UTF-8",
+              "OMP_THREAD_LIMIT": "1"
+            },
+            "language": "eng",
+            "language_data": {
+              "language": "eng",
+              "reason": null,
+              "resolved_path_recorded": false,
+              "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+              "status": "available"
+            },
+            "render_dpi": 144,
+            "render_scale": 2.0
+          },
+          "ocr_provider": "tesseract",
+          "ocr_provider_version": "tesseract 5.3.4",
+          "page_number": 1
+        },
+        "review_required": true,
+        "text": "TTLAB OCR PIPELINE FIXTURE V2 Document ID: OCR-2026-0720 Full-paper evidence must remain traceable. Page 1 records rainfall, crop price, and energy demand. Values: 23 manuals; 116 schools; alpha = 0.5. Symbols: ARIMA, SARIMAX, JSON, XML, and RAG. This raster-only page has no embedded text layer.",
+        "word_count": 45
+      }
+    ],
+    "paper_id": "ocr-scanned-fixture-v2",
+    "persisted_artifacts": {
+      "manifest_readback_matches_returned_result": true,
+      "manifest_sanitized_sha256": "aab142c281898b0357cda3bf430b0afa30227d1ed4f0c1657231e20984bdd6ec",
+      "text_bytes": 312,
+      "text_sha256": "454f381a35bb78d3856612a143bc509f081e73c1fde3f92ae1501ff3c08a59fb"
+    },
+    "sanitization": "temporary output paths removed; input path replaced by repository-relative fixture locator",
+    "text_artifact_sha256": "454f381a35bb78d3856612a143bc509f081e73c1fde3f92ae1501ff3c08a59fb",
+    "text_hash": "b2e5eafc94bd7e526ac87a611206d1a2c955d2c807933214f7adb1d4fce736f0",
+    "warnings": [
+      "PDF may be scanned or image-heavy; little extractable text was found."
+    ]
+  },
+  "fixture": "data/evaluation/ocr_scanned_fixture_v2.pdf",
+  "fixture_sha256": "e0d2805d619f194b4ed5a552ee07f9df2c74dc3609cd25fdf83285d3372cd380",
+  "ground_truth_sha256": "00a9d709114e8bf585e593d80fa7a3ac6baefe3e774ec116cf11b85a64e3d809",
+  "metrics": {
+    "character_error_rate": 0.0,
+    "content_type": "scanned",
+    "normalized_exact_match": true,
+    "ocr_review_required": true,
+    "ocr_status": "completed",
+    "page_content_class": "scanned",
+    "page_extraction_method": "ocr",
+    "pdf_title_match_status": "matched",
+    "possible_scanned_pdf": true,
+    "repeat_run_configuration_identical": true,
+    "repeat_run_sanitized_pipeline_result_identical": true,
+    "repeat_run_text_artifact_identical": true,
+    "repeat_run_text_identical": true,
+    "word_error_rate": 0.0
+  },
+  "parser_limits": {
+    "max_pdf_bytes": 5242880,
+    "max_pdf_pages": 1
+  },
+  "pipeline": "app.ingestion.pdf_parser.extract_pdf_text",
+  "provider": {
+    "deterministic_configuration": {
+      "config": "--oem 3 --psm 6",
+      "environment": {
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "OMP_THREAD_LIMIT": "1"
+      },
+      "language": "eng",
+      "language_data": {
+        "language": "eng",
+        "reason": null,
+        "resolved_path_recorded": false,
+        "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+        "status": "available"
+      },
+      "render_dpi": 144,
+      "render_scale": 2.0
+    },
+    "name": "tesseract",
+    "pillow": "12.3.0",
+    "pymupdf": "1.28.0",
+    "pytesseract": "0.3.13",
+    "version": "tesseract 5.3.4"
+  },
+  "raster_only_assertion": {
+    "embedded_text_character_count": 0,
+    "passed": true
+  },
+  "second_pass": {
+    "artifact_contract": "json_authoritative_text_mirror_v1",
+    "artifact_generation_id": "f1e48bb5f654fd920bc301f6cd57d42a78314ebd94a88d5dc92ba4a22840a03e",
+    "diagnostics": {
+      "content_type": "scanned",
+      "extraction_error": null,
+      "ocr_configuration": {
+        "config": "--oem 3 --psm 6",
+        "environment": {
+          "LANG": "C.UTF-8",
+          "LC_ALL": "C.UTF-8",
+          "OMP_THREAD_LIMIT": "1"
+        },
+        "language": "eng",
+        "language_data": {
+          "language": "eng",
+          "reason": null,
+          "resolved_path_recorded": false,
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "status": "available"
+        },
+        "render_dpi": 144,
+        "render_scale": 2.0
+      },
+      "ocr_pages_count": 1,
+      "ocr_provider": "tesseract",
+      "ocr_provider_version": "tesseract 5.3.4",
+      "ocr_requested": true,
+      "ocr_review_required": true,
+      "ocr_status": "completed",
+      "page_content_counts": {
+        "blank": 0,
+        "mixed": 0,
+        "scanned": 1,
+        "textual": 0,
+        "unknown": 0
+      },
+      "page_count": 1,
+      "pages_with_text": 1,
+      "pages_without_text": 0,
+      "pdf_title_match": {
+        "best_candidate_page": 1,
+        "expected_title": "TTLAB OCR PIPELINE FIXTURE V2",
+        "match_basis": "first_page_exact_phrase",
+        "matched_page": 1,
+        "matched_tokens": [
+          "fixture",
+          "ocr",
+          "pipeline",
+          "ttlab",
+          "v2"
+        ],
+        "missing_tokens": [],
+        "reason": "Publication title was found by the conservative bounded-page identity check.",
+        "scope": {
+          "max_pages": 8,
+          "pages_examined": [
+            1
+          ]
+        },
+        "status": "matched",
+        "token_coverage": 1.0
+      },
+      "possible_scanned_pdf": true,
+      "total_char_count": 296,
+      "total_word_count": 45
+    },
+    "extraction_config": {
+      "expected_title": "TTLAB OCR PIPELINE FIXTURE V2",
+      "max_pdf_bytes": 5242880,
+      "max_pdf_pages": 1,
+      "ocr_configuration": {
+        "config": "--oem 3 --psm 6",
+        "environment": {
+          "LANG": "C.UTF-8",
+          "LC_ALL": "C.UTF-8",
+          "OMP_THREAD_LIMIT": "1"
+        },
+        "language": "eng",
+        "language_data": {
+          "language": "eng",
+          "reason": null,
+          "resolved_path_recorded": false,
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "status": "available"
+        },
+        "render_dpi": 144,
+        "render_scale": 2.0
+      },
+      "ocr_provider": "tesseract",
+      "ocr_provider_version": "tesseract 5.3.4",
+      "run_ocr": true
+    },
+    "extraction_status": "extracted",
+    "input_fixture": "data/evaluation/ocr_scanned_fixture_v2.pdf",
+    "input_pdf_sha256": "e0d2805d619f194b4ed5a552ee07f9df2c74dc3609cd25fdf83285d3372cd380",
+    "page_count": 1,
+    "pages": [
+      {
+        "char_count": 296,
+        "content_class": "scanned",
+        "drawing_count": 0,
+        "extraction_method": "ocr",
+        "image_count": 1,
+        "native_char_count": 0,
+        "native_word_count": 0,
+        "ocr_confidence": 0.9502,
+        "ocr_configuration": {
+          "config": "--oem 3 --psm 6",
+          "environment": {
+            "LANG": "C.UTF-8",
+            "LC_ALL": "C.UTF-8",
+            "OMP_THREAD_LIMIT": "1"
+          },
+          "language": "eng",
+          "language_data": {
+            "language": "eng",
+            "reason": null,
+            "resolved_path_recorded": false,
+            "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+            "status": "available"
+          },
+          "render_dpi": 144,
+          "render_scale": 2.0
+        },
+        "ocr_error": null,
+        "ocr_provider": "tesseract",
+        "ocr_provider_version": "tesseract 5.3.4",
+        "ocr_status": "completed",
+        "page_number": 1,
+        "provenance": {
+          "input_fixture": "data/evaluation/ocr_scanned_fixture_v2.pdf",
+          "native_extractor": "PyMuPDF 1.28.0",
+          "ocr_configuration": {
+            "config": "--oem 3 --psm 6",
+            "environment": {
+              "LANG": "C.UTF-8",
+              "LC_ALL": "C.UTF-8",
+              "OMP_THREAD_LIMIT": "1"
+            },
+            "language": "eng",
+            "language_data": {
+              "language": "eng",
+              "reason": null,
+              "resolved_path_recorded": false,
+              "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+              "status": "available"
+            },
+            "render_dpi": 144,
+            "render_scale": 2.0
+          },
+          "ocr_provider": "tesseract",
+          "ocr_provider_version": "tesseract 5.3.4",
+          "page_number": 1
+        },
+        "review_required": true,
+        "text": "TTLAB OCR PIPELINE FIXTURE V2 Document ID: OCR-2026-0720 Full-paper evidence must remain traceable. Page 1 records rainfall, crop price, and energy demand. Values: 23 manuals; 116 schools; alpha = 0.5. Symbols: ARIMA, SARIMAX, JSON, XML, and RAG. This raster-only page has no embedded text layer.",
+        "word_count": 45
+      }
+    ],
+    "paper_id": "ocr-scanned-fixture-v2",
+    "persisted_artifacts": {
+      "manifest_readback_matches_returned_result": true,
+      "manifest_sanitized_sha256": "aab142c281898b0357cda3bf430b0afa30227d1ed4f0c1657231e20984bdd6ec",
+      "text_bytes": 312,
+      "text_sha256": "454f381a35bb78d3856612a143bc509f081e73c1fde3f92ae1501ff3c08a59fb"
+    },
+    "sanitization": "temporary output paths removed; input path replaced by repository-relative fixture locator",
+    "text_artifact_sha256": "454f381a35bb78d3856612a143bc509f081e73c1fde3f92ae1501ff3c08a59fb",
+    "text_hash": "b2e5eafc94bd7e526ac87a611206d1a2c955d2c807933214f7adb1d4fce736f0",
+    "warnings": [
+      "PDF may be scanned or image-heavy; little extractable text was found."
+    ]
+  },
+  "status": "completed"
+}

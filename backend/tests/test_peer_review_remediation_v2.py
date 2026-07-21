@@ -195,6 +195,22 @@ def test_v2_canonical_package_path_is_consistent_across_integration_layers() -> 
     ) == (False, "noncanonical_v2_artifact_path")
 
 
+def test_full_reproduction_stages_static_inputs_then_resets_before_evaluation() -> None:
+    reproduce_script = (ROOT / "scripts" / "reproduce_all.sh").read_text(encoding="utf-8")
+
+    stage_call = reproduce_script.index("  stage_full_test_fixture\n")
+    backend_tests = reproduce_script.index('run_in_source backend-tests "$PYTHON" -m pytest')
+    reset_call = reproduce_script.index("  reset_full_runtime_fixture\n")
+    fresh_snapshot = reproduce_script.index("  run_in_source database-snapshot", reset_call)
+    v2_prepare = reproduce_script.index("  run_in_source remediation-v2-prepare", fresh_snapshot)
+
+    assert stage_call < backend_tests < reset_call < fresh_snapshot < v2_prepare
+    assert "for fixture_directory in pdfs extracted_text chunks indexes" in reproduce_script
+    assert "full_test_database_snapshot.json" in reproduce_script
+    assert "full_test_runtime_after_tests" in reproduce_script
+    assert "find \"$generated_path\" -mindepth 1 ! -name '.gitkeep' -delete" in reproduce_script
+
+
 def test_manuscript_capture_isolation_and_v2_identity_contracts_fail_closed() -> None:
     capture = (ROOT / "thesis/scripts/capture_interface_screenshots.mjs").read_text(encoding="utf-8")
     admin_page = (ROOT / "frontend/src/pages/AdminReviewPage.tsx").read_text(encoding="utf-8")

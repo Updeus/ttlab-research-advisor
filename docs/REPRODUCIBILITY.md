@@ -99,10 +99,14 @@ The full path performs these operations in order:
 1. creates a clean detached source snapshot and validates resolved dependency
    locks, package integrity, and security audits;
 2. builds and verifies the sanitized release from that still-clean snapshot;
-3. runs the external format sanity check and engineering test/build/E2E gates;
-4. copies the source database, upserts permitted metadata, repairs known author
-   artifacts, and audits PDF/title identity; the database copy uses SQLite's
-   online backup API, rejects source drift, and records integrity/table counts;
+3. runs the external format sanity check, stages a disposable database plus
+   PDF/extraction/chunk/index inventory inside the detached tree for static
+   source-locator tests, and runs the engineering test/build/E2E gates;
+4. archives that test-only database, clears its copied derived state, takes a
+   fresh no-overwrite source-database snapshot, upserts permitted metadata,
+   repairs known author artifacts, and audits PDF/title identity; both database
+   copies use SQLite's online backup API, reject source drift, and record
+   integrity/table counts, while only the fresh second copy enters evaluation;
 5. re-extracts PDFs and deterministically re-chunks text;
 6. rebuilds keyword, 256-dimensional feature-hashing, and pinned 384-dimensional
    dense indexes into the isolated workspace;

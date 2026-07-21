@@ -125,6 +125,46 @@ SOURCE_TREE="$(git -C "$ROOT" rev-parse "${SOURCE_COMMIT}^{tree}")"
 git -C "$ROOT" worktree add --detach "$RUN_ROOT" "$SOURCE_COMMIT" >/dev/null
 [[ -z "$(git -C "$RUN_ROOT" status --porcelain --untracked-files=all)" ]] || die "detached source worktree is not clean at creation"
 export PYTHONPATH="$RUN_ROOT/backend"
+stage_full_test_fixture() {
+  local fixture_directory
+  local pdf_count
+  [[ -s "$SOURCE_DB" ]] || die "full mode requires an authorized source database: $SOURCE_DB"
+  pdf_count="$(find "$ROOT/data/pdfs" -maxdepth 1 -type f -name '*.pdf' | wc -l)"
+  ((pdf_count > 0)) || die "full mode requires separately authorized local PDFs under data/pdfs"
+  run_in_source full-test-database-snapshot "$PYTHON" -m app.reproducibility.database_snapshot \
+    --source "$SOURCE_DB" --target "$RUN_ROOT/data/papers.db" \
+    --evidence "$WORK/artifacts/full_test_database_snapshot.json"
+  for fixture_directory in pdfs extracted_text chunks indexes; do
+    [[ -d "$ROOT/data/$fixture_directory" ]] || die "missing full-test fixture directory: data/$fixture_directory"
+    [[ -z "$(find "$ROOT/data/$fixture_directory" -type l -print -quit)" ]] || \
+      die "full-test fixture directory contains a symlink: data/$fixture_directory"
+    mkdir -p "$RUN_ROOT/data/$fixture_directory"
+    cp -a "$ROOT/data/$fixture_directory/." "$RUN_ROOT/data/$fixture_directory/"
+  done
+  export TTLAB_DATABASE_URL="sqlite:///$RUN_ROOT/data/papers.db"
+}
+
+reset_full_runtime_fixture() {
+  local archived_database_dir="$WORK/artifacts/full_test_runtime_after_tests"
+  local database_name
+  local generated_directory
+  local generated_path
+  mkdir -p "$archived_database_dir"
+  for database_name in papers.db papers.db-wal papers.db-shm papers.db-journal; do
+    if [[ -e "$RUN_ROOT/data/$database_name" ]]; then
+      mv "$RUN_ROOT/data/$database_name" "$archived_database_dir/$database_name"
+    fi
+  done
+  for generated_directory in extracted_text chunks indexes; do
+    generated_path="$RUN_ROOT/data/$generated_directory"
+    [[ "$generated_path" == "$RUN_ROOT/data/"* && -d "$generated_path" && ! -L "$generated_path" ]] || \
+      die "unsafe generated fixture reset path: $generated_path"
+    [[ -z "$(find "$generated_path" -type l -print -quit)" ]] || \
+      die "generated fixture reset path contains a symlink: $generated_path"
+    find "$generated_path" -mindepth 1 ! -name '.gitkeep' -delete
+  done
+}
+
 if ((INSTALL)); then
   python3 -m venv "$WORK/.venv"
   PYTHON="$WORK/.venv/bin/python"
@@ -183,19 +223,23 @@ run_in_source external-sanity "$PYTHON" -m app.evaluation.external_sanity \
   --out-dir "$WORK/artifacts/external_sanity"
 run_in_source documentation-validation "$PYTHON" scripts/validate_documentation.py
 
+if [[ "$MODE" == "full" ]]; then
+  # Static v2 protocol tests resolve the corpus and generation inventories
+  # relative to the detached source tree. Stage read-only authorized inputs
+  # before tests, then discard that test state and take a fresh snapshot before
+  # the actual reproduction pipeline.
+  stage_full_test_fixture
+fi
 run_in_source backend-tests "$PYTHON" -m pytest
 run_logged frontend-unit npm --prefix "$RUN_ROOT/frontend" test
 run_logged frontend-build npm --prefix "$RUN_ROOT/frontend" run build
 run_logged frontend-e2e npm --prefix "$RUN_ROOT/frontend" run test:e2e
 
 if [[ "$MODE" == "full" ]]; then
-  [[ -s "$SOURCE_DB" ]] || die "full mode requires an authorized source database: $SOURCE_DB"
-  PDF_COUNT="$(find "$ROOT/data/pdfs" -maxdepth 1 -type f -name '*.pdf' | wc -l)"
-  ((PDF_COUNT > 0)) || die "full mode requires separately authorized local PDFs under data/pdfs"
+  reset_full_runtime_fixture
   run_in_source database-snapshot "$PYTHON" -m app.reproducibility.database_snapshot \
     --source "$SOURCE_DB" --target "$RUN_ROOT/data/papers.db" \
     --evidence "$WORK/artifacts/database_snapshot.json"
-  cp -a "$ROOT/data/pdfs/." "$RUN_ROOT/data/pdfs/"
   export TTLAB_DATABASE_URL="sqlite:///$RUN_ROOT/data/papers.db"
 
   run_in_source seed-import "$PYTHON" -m app.ingestion.manual_import --seed "$RUN_ROOT/data/seed/papers.json"

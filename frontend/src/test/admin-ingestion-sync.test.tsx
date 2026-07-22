@@ -101,7 +101,7 @@ describe("admin ingestion synchronization", () => {
       if (path === "/api/admin/ingestion-sync/request" && init?.method === "POST") {
         return json({
           accepted: true,
-          message: "Synchronization request queued for the ingestion worker.",
+          message: "TTLAB discovery check queued for the isolated ingestion worker.",
           sync: { ...syncStatus, manual_request_pending: true, manual_requested_at: "2026-07-20T12:00:00Z" },
         }, { status: 202 });
       }
@@ -110,7 +110,7 @@ describe("admin ingestion synchronization", () => {
 
     render(<AdminReviewPage papers={[]} onSelectPaper={vi.fn()} onNotify={notify} />);
 
-    expect(await screen.findByRole("heading", { name: "TTLAB publication synchronization" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Check TTLAB for new publications" })).toBeInTheDocument();
     expect(screen.getByText("Daily schedule: 0 2 * * * (America/La_Paz).")).toBeInTheDocument();
     expect(screen.getByText(/7\/21\/2026/)).toBeInTheDocument();
 
@@ -130,10 +130,10 @@ describe("admin ingestion synchronization", () => {
     expect(screen.getByText(/never used as a fallback for public Papers/)).toBeInTheDocument();
     await user.click(overviewTab);
 
-    await user.click(screen.getByRole("button", { name: "Request synchronization now" }));
+    await user.click(screen.getByRole("button", { name: "Check for new publications now" }));
 
     await waitFor(() => expect(screen.getByRole("button", { name: "Synchronization queued" })).toBeDisabled());
-    expect(notify).toHaveBeenCalledWith("Synchronization request queued for the ingestion worker.", "success");
+    expect(notify).toHaveBeenCalledWith("TTLAB discovery check queued for the isolated ingestion worker.", "success");
     const request = fetchMock.mock.calls.find(([input]) => String(input).includes("/api/admin/ingestion-sync/request"));
     expect(request?.[1]).toMatchObject({
       method: "POST",
@@ -164,7 +164,7 @@ describe("admin ingestion synchronization", () => {
     });
 
     render(<AdminReviewPage papers={[paper as never]} onSelectPaper={vi.fn()} />);
-    expect(await screen.findByRole("heading", { name: "TTLAB publication synchronization" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Check TTLAB for new publications" })).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Paper Metadata" }));
 
     const yearInput = screen.getByLabelText("Year");

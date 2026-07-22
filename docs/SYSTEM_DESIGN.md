@@ -53,12 +53,12 @@ dense index is not an acceptable degraded state.
 - `ingestion/ttlab_page.py` discovers and normalizes catalogue records without
   treating scraped fields as verified facts.
 - `ingestion/manual_import.py` idempotently imports seeds and author aliases.
-- `ingestion/sync.py` retains comparison/invalidation logic for future staged
-  generation work, but its orchestration gate returns
-  `atomic_generation_promotion_not_implemented` before discovery or mutation.
-  Separate phase commits/files cannot be promoted safely as one active corpus.
-- `ingestion/sync_worker.py` and the Admin trigger expose that fail-closed state;
-  no configuration enables scheduled or manual automated promotion. Corpus
+- `ingestion/sync.py` can compare discovered records and persist
+  `IngestionCandidate` rows without changing the active corpus. Its import gate
+  still returns `atomic_generation_promotion_not_implemented` because separate
+  phase commits/files cannot yet be promoted safely as one active corpus.
+- `ingestion/sync_worker.py` and the Admin trigger run discovery in a separate
+  explicitly isolated worker; no configuration enables automated promotion. Corpus
   updates are explicit operator-run builds in an isolated copy followed by
   complete validation and a deliberate maintenance-window replacement.
 - `ingestion/pdf_downloader.py` limits permitted hosts, redirects, file size,
@@ -301,10 +301,14 @@ scope. Protected routes include:
 - actor capabilities, all admin review/correction/publication/extraction
   decisions, and paginated review-event routes.
 
-Bearer actors are configured through `TTLAB_AUTH_ACTORS_JSON` using only token
-SHA-256 digests and stable actor metadata. Production requires at least one
-active admin actor, HTTPS public base URL, exact HTTPS CORS origins, explicit
-trusted hosts, and disabled demo bypass. No default secret is committed.
+Human administrators are local accounts with Argon2id hashes, login lockout,
+eight-hour idle/24-hour absolute sessions, Secure HttpOnly SameSite cookies, and
+CSRF checks. The bootstrap CLI creates the first administrator; the dashboard
+creates additional accounts with one-time temporary passwords. Service bearer
+actors remain available through `TTLAB_AUTH_ACTORS_JSON` using only token SHA-256
+digests. Production requires at least one active local admin or admin service
+actor, HTTPS public base URL, exact HTTPS CORS origins, explicit trusted hosts,
+and disabled demo bypass. No default secret is committed.
 
 Public request bodies are limited and generation endpoints are rate-limited.
 The in-memory limiter supports only the declared one-API-worker topology;
@@ -313,8 +317,8 @@ application is replaced with an external distributed control. Downloader hosts
 and sizes are bounded, but DNS rebinding TOCTOU and hostile-parser isolation
 remain external controls; production API mode disables live PDF work. Security middleware supplies request
 IDs, safe headers, path/body-minimized logs, and a visible security-mode header.
-Token mode does not use cookies, so browser CSRF tokens are not the applicable
-control; exact CORS, HTTPS, token secrecy, and authorization are.
+Cookie sessions require the matching CSRF cookie/header pair. Service-token mode
+does not use cookies; exact CORS, HTTPS, token secrecy, and authorization apply.
 
 ## Frontend architecture
 
@@ -343,7 +347,8 @@ responsive layouts. It displays index/evaluation freshness, evidence locators,
 provider/model/timestamp, review type/status, generated-content notices, and
 unsupported/partial warnings. Student profile and question content remains in
 component/request memory and is not written to browser storage or URLs. Admin
-bearer tokens remain in page/module memory and disappear on reload.
+sessions use HttpOnly cookies; only the non-secret CSRF token is readable by the
+frontend. Service bearer tokens remain an API automation mechanism.
 
 Every public route treats zero approved records as a governed empty projection,
 not as permission to fall back to the technical corpus. Admin Review separately
@@ -369,11 +374,10 @@ institutional identity or token provisioning, incident handling, correction/
 appeal contacts, and SPA fallback routing. Production must not expose local
 API docs or the insecure demo bypass.
 
-Production operation is narrowed to one API worker with synchronization
-disabled. Corpus acquisition/parsing and complete rebuilds are explicit
-operator-run staging tasks with no public listener or bearer/provider secrets;
-the repository does not automate their promotion. The API's reviewer-protected
-diagnostics expose the disabled boundary rather than queuing unsafe work.
+Production operation is narrowed to one API worker. A separate isolated worker
+may run bounded discovery and stage candidates. Corpus acquisition/parsing and
+complete rebuilds remain operator-run staging tasks with no public listener or
+browser/model credentials; the repository does not automate their promotion.
 Network egress isolation, DNS pinning/proxying, process/resource isolation, and
 any multi-worker rate limiter remain deployment responsibilities.
 

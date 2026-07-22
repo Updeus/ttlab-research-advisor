@@ -26,12 +26,18 @@ import {
   ApiError,
   fetchPaper,
   fetchPapers,
+  fetchAdminIdentity,
+  fetchFeatures,
   fetchServiceStatus,
   fetchStats,
   hasReviewerToken,
   isAbortError,
+  loginAdmin,
+  changeAdminPassword,
+  logoutAdmin,
   setReviewerToken,
 } from "./api/client";
+import type { FeatureStatus } from "./api/client";
 import { ListSkeleton, MetricSkeletonGrid, ToastStack } from "./components/UiPrimitives";
 import type { ToastMessage, ToastTone } from "./components/UiPrimitives";
 import { AdminReviewPage } from "./pages/AdminReviewPage";
@@ -51,23 +57,27 @@ type NavItem = {
   shortLabel: string;
   icon: typeof LayoutDashboard;
   count: (stats: Stats | null, paperCount: number) => string | null;
+  feature?: string;
+  adminOnly?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
   { path: "/", label: "Dashboard", shortLabel: "Dashboard", icon: LayoutDashboard, count: () => null },
-  { path: "/papers", label: "Papers", shortLabel: "Papers", icon: Library, count: (stats, papers) => String(stats?.papers ?? papers) },
-  { path: "/search", label: "Search", shortLabel: "Search", icon: Search, count: (stats) => String(stats?.searchable_chunks ?? 0) },
-  { path: "/ask", label: "Ask TTLAB", shortLabel: "Ask", icon: MessageCircleQuestion, count: () => null },
-  { path: "/extensions", label: "Thesis Extension Finder", shortLabel: "Extensions", icon: Lightbulb, count: () => null },
-  { path: "/explorer", label: "Topic/Author Explorer", shortLabel: "Explorer", icon: Compass, count: (stats) => String(stats?.topic_count ?? 0) },
-  { path: "/admin", label: "Admin Review", shortLabel: "Admin", icon: ShieldCheck, count: () => null },
-  { path: "/evaluation", label: "Evaluation", shortLabel: "Evaluation", icon: ClipboardCheck, count: (stats) => String(Object.values(stats?.evaluation_files_present ?? {}).filter(Boolean).length) },
+  { path: "/papers", label: "Papers", shortLabel: "Papers", icon: Library, feature: "papers", count: (stats, papers) => String(stats?.papers ?? papers) },
+  { path: "/search", label: "Search", shortLabel: "Search", icon: Search, feature: "search", count: (stats) => String(stats?.searchable_chunks ?? 0) },
+  { path: "/ask", label: "Ask TTLAB", shortLabel: "Ask", icon: MessageCircleQuestion, feature: "ask", count: () => null },
+  { path: "/extensions", label: "Thesis Extension Finder", shortLabel: "Extensions", icon: Lightbulb, feature: "finder", count: () => null },
+  { path: "/explorer", label: "Topic/Author Explorer", shortLabel: "Explorer", icon: Compass, feature: "explorer", count: (stats) => String(stats?.topic_count ?? 0) },
+  { path: "/admin", label: "Admin Control", shortLabel: "Admin", icon: ShieldCheck, adminOnly: true, count: () => null },
+  { path: "/evaluation", label: "Evaluation", shortLabel: "Evaluation", icon: ClipboardCheck, feature: "evaluation", count: (stats) => String(Object.values(stats?.evaluation_files_present ?? {}).filter(Boolean).length) },
 ];
 
 export function App() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
+  const [features, setFeatures] = useState<FeatureStatus[]>([]);
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const [paperError, setPaperError] = useState<string | null>(null);
   const [statsWarning, setStatsWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,6 +117,10 @@ export function App() {
 
   useEffect(() => {
     loadData();
+    Promise.allSettled([fetchFeatures(), fetchAdminIdentity()]).then(([featureResult, authResult]) => {
+      if (featureResult.status === "fulfilled") setFeatures(featureResult.value.features);
+      setAdminAuthenticated(authResult.status === "fulfilled" && authResult.value.authenticated);
+    });
   }, []);
 
   useEffect(() => {
@@ -135,7 +149,11 @@ export function App() {
           <SecurityMode status={serviceStatus} />
         </div>
         <nav className="tabs" aria-label="Primary">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => {
+            if (item.adminOnly) return adminAuthenticated || serviceStatus?.admin_authentication === "insecure_local_demo_bypass";
+            if (!item.feature) return true;
+            return features.find((feature) => feature.key === item.feature)?.enabled !== false;
+          }).map((item) => {
             const Icon = item.icon;
             const count = item.count(stats, papers.length);
             return (
@@ -175,7 +193,7 @@ export function App() {
         ) : null}
         {!loading && statsWarning ? <p className="notice notice--warning" role="status">{statsWarning}</p> : null}
         {!loading ? (
-          <AppRoutes papers={papers} stats={stats} serviceStatus={serviceStatus} notify={notify} onSharedDataChanged={() => loadData(false)} />
+          <AppRoutes papers={papers} stats={stats} serviceStatus={serviceStatus} adminAuthenticated={adminAuthenticated} onAdminAuthenticated={setAdminAuthenticated} notify={notify} onSharedDataChanged={() => { loadData(false); fetchFeatures().then((result) => setFeatures(result.features)).catch(() => undefined); }} />
         ) : null}
       </main>
       <footer className="app-footer">
@@ -190,12 +208,16 @@ function AppRoutes({
   papers,
   stats,
   serviceStatus,
+  adminAuthenticated,
+  onAdminAuthenticated,
   notify,
   onSharedDataChanged,
 }: {
   papers: Paper[];
   stats: Stats | null;
   serviceStatus: ServiceStatus | null;
+  adminAuthenticated: boolean;
+  onAdminAuthenticated: (authenticated: boolean) => void;
   notify: (message: string, tone?: ToastTone) => void;
   onSharedDataChanged: () => void;
 }) {
@@ -206,7 +228,7 @@ function AppRoutes({
     <Routes>
       <Route path="/" element={<Dashboard stats={stats} papers={papers} />} />
       <Route path="/papers" element={<PaperBrowser papers={papers} />} />
-      <Route path="/papers/:paperId" element={<PaperRoute papers={papers} serviceStatus={serviceStatus} onSelectPaper={openPaper} onNotify={notify} />} />
+      <Route path="/papers/:paperId" element={<PaperRoute papers={papers} serviceStatus={serviceStatus} adminAuthenticated={adminAuthenticated} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/search" element={<SearchPage papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/ask" element={<AskPage papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/ask/:paperId" element={<AskRoute papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
@@ -217,14 +239,14 @@ function AppRoutes({
       <Route path="/explorer/authors" element={<TopicAuthorExplorer initialTab="authors" onSelectPaper={openPaper} />} />
       <Route path="/explorer/authors/:authorId" element={<ExplorerAuthorRoute onSelectPaper={openPaper} />} />
       <Route path="/evaluation" element={<EvaluationDashboardPage />} />
-      <Route path="/admin" element={<AdminGate papers={papers} serviceStatus={serviceStatus} onSelectPaper={openPaper} onNotify={notify} onDataChanged={onSharedDataChanged} />} />
+      <Route path="/admin" element={<AdminGate papers={papers} serviceStatus={serviceStatus} initiallyAuthenticated={adminAuthenticated} onAuthenticated={onAdminAuthenticated} onSelectPaper={openPaper} onNotify={notify} onDataChanged={onSharedDataChanged} />} />
       <Route path="/dashboard" element={<Navigate replace to="/" />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
 
-function PaperRoute({ papers, serviceStatus, onSelectPaper, onNotify }: { papers: Paper[]; serviceStatus: ServiceStatus | null; onSelectPaper: (paperId: string) => void; onNotify: (message: string, tone?: ToastTone) => void }) {
+function PaperRoute({ papers, serviceStatus, adminAuthenticated, onSelectPaper, onNotify }: { papers: Paper[]; serviceStatus: ServiceStatus | null; adminAuthenticated: boolean; onSelectPaper: (paperId: string) => void; onNotify: (message: string, tone?: ToastTone) => void }) {
   const { paperId = "" } = useParams();
   const navigate = useNavigate();
   const cataloguePaper = papers.find((item) => item.paper_id === paperId) ?? null;
@@ -303,7 +325,7 @@ function PaperRoute({ papers, serviceStatus, onSelectPaper, onNotify }: { papers
       onSelectPaper={onSelectPaper}
       onAskPaper={(id) => navigate(`/ask/${encodeURIComponent(id)}`)}
       onNotify={onNotify}
-      canGenerateArtifacts={hasReviewerToken() || serviceStatus?.admin_authentication === "insecure_local_demo_bypass"}
+      canGenerateArtifacts={adminAuthenticated || hasReviewerToken() || serviceStatus?.admin_authentication === "insecure_local_demo_bypass"}
     />
   );
 }
@@ -332,32 +354,78 @@ function AdminGate({
   onSelectPaper,
   onNotify,
   onDataChanged,
+  initiallyAuthenticated,
+  onAuthenticated,
 }: {
   papers: Paper[];
   serviceStatus: ServiceStatus | null;
   onSelectPaper: (paperId: string) => void;
   onNotify: (message: string, tone?: ToastTone) => void;
   onDataChanged: () => void;
+  initiallyAuthenticated: boolean;
+  onAuthenticated: (authenticated: boolean) => void;
 }) {
   const demoBypass = serviceStatus?.admin_authentication === "insecure_local_demo_bypass";
-  const [credentialLoaded, setCredentialLoaded] = useState(hasReviewerToken());
-  const [tokenInput, setTokenInput] = useState("");
+  const [credentialLoaded, setCredentialLoaded] = useState(initiallyAuthenticated || hasReviewerToken());
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
+  useEffect(() => {
+    if (initiallyAuthenticated && !demoBypass) {
+      fetchAdminIdentity().then((result) => setMustChangePassword(result.user.must_change_password)).catch(() => undefined);
+    }
+  }, [initiallyAuthenticated, demoBypass]);
 
   if (!demoBypass && !credentialLoaded) {
     return (
       <section className="page-section auth-gate" aria-labelledby="admin-auth-title">
-        <p className="eyebrow">Protected reviewer surface</p>
-        <h2 id="admin-auth-title">Reviewer authentication required</h2>
-        <p>Enter an environment-provisioned reviewer or administrator bearer token. The token is held only in page memory, is never written to local or session storage, and is cleared on reload.</p>
+        <p className="eyebrow">Protected administrator surface</p>
+        <h2 id="admin-auth-title">Administrator sign in</h2>
+        <p>Use a local administrator account. The session is stored in a secure HttpOnly cookie and expires automatically.</p>
         <form onSubmit={(event) => {
           event.preventDefault();
-          setReviewerToken(tokenInput);
-          setTokenInput("");
-          setCredentialLoaded(true);
+          setLoggingIn(true);
+          setLoginError(null);
+          loginAdmin(username, password)
+            .then((result) => { setMustChangePassword(result.user.must_change_password); if (!result.user.must_change_password) setPassword(""); setCredentialLoaded(true); onAuthenticated(true); })
+            .catch((error: unknown) => setLoginError(error instanceof Error ? error.message : "Sign in failed."))
+            .finally(() => setLoggingIn(false));
         }}>
-          <label htmlFor="reviewer-token">Reviewer bearer token</label>
-          <input id="reviewer-token" type="password" autoComplete="off" minLength={32} required value={tokenInput} onChange={(event) => setTokenInput(event.target.value)} />
-          <button className="action-button" type="submit">Open protected review</button>
+          <label htmlFor="admin-username">Username</label>
+          <input id="admin-username" autoComplete="username" required value={username} onChange={(event) => setUsername(event.target.value)} />
+          <label htmlFor="admin-password">Password</label>
+          <input id="admin-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+          {loginError ? <p className="notice notice--error" role="alert">{loginError}</p> : null}
+          <button className="action-button" type="submit" disabled={loggingIn}>{loggingIn ? "Signing in…" : "Sign in"}</button>
+        </form>
+      </section>
+    );
+  }
+
+  if (!demoBypass && credentialLoaded && mustChangePassword) {
+    return (
+      <section className="page-section auth-gate" aria-labelledby="password-change-title">
+        <h2 id="password-change-title">Choose a permanent password</h2>
+        <p>Your temporary password must be changed before administrative actions are available.</p>
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          setLoggingIn(true);
+          setLoginError(null);
+          changeAdminPassword(password, newPassword)
+            .then(() => { setPassword(""); setNewPassword(""); setMustChangePassword(false); })
+            .catch((error: unknown) => setLoginError(error instanceof Error ? error.message : "Password change failed."))
+            .finally(() => setLoggingIn(false));
+        }}>
+          <label htmlFor="temporary-password">Temporary password</label>
+          <input id="temporary-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+          <label htmlFor="new-password">New password</label>
+          <input id="new-password" type="password" autoComplete="new-password" minLength={12} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
+          {loginError ? <p className="notice notice--error" role="alert">{loginError}</p> : null}
+          <button className="action-button" disabled={loggingIn} type="submit">Change password</button>
         </form>
       </section>
     );
@@ -368,8 +436,8 @@ function AdminGate({
       <div className={`notice ${demoBypass ? "notice--warning" : "notice--success"}`} role="status">
         {demoBypass
           ? "Insecure local-demo bypass is active. Do not expose this configuration on a network."
-          : "A reviewer credential is loaded in page memory for protected API requests."}
-        {!demoBypass ? <button className="link-button" onClick={() => { setReviewerToken(""); setCredentialLoaded(false); }}>Clear credential</button> : null}
+          : "Signed in as an administrator. Changes are attributed and audited."}
+        {!demoBypass ? <button className="link-button" onClick={() => { logoutAdmin().finally(() => { setReviewerToken(""); setCredentialLoaded(false); onAuthenticated(false); }); }}>Sign out</button> : null}
       </div>
       <AdminReviewPage papers={papers} onSelectPaper={onSelectPaper} onNotify={onNotify} onDataChanged={onDataChanged} />
     </>

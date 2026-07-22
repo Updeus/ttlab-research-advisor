@@ -906,6 +906,27 @@ textarea:focus {
   gap: 14px;
 }
 
+.admin-control-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.7rem;
+  margin: 0.65rem 0;
+}
+
+.admin-control-row input {
+  margin-top: 0.25rem;
+}
+
+.admin-control-row span,
+.admin-control-row small {
+  display: block;
+}
+
+.admin-control-row small {
+  color: var(--color-muted);
+  margin-top: 0.15rem;
+}
+
 .ingestion-sync-card {
   margin-top: 18px;
 }

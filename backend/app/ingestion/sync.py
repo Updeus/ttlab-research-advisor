@@ -32,7 +32,7 @@ from app.ingestion.pdf_parser import extract_from_db
 from app.ingestion.ttlab_page import discover_publications
 from app.intelligence.topic_explorer import rebuild_topic_index
 from app.io_utils import fsync_directory
-from app.models import IngestionRun, IngestionSyncState, Paper
+from app.models import IngestionCandidate, IngestionRun, IngestionSyncState, Paper
 from app.security import require_offline_pdf_worker
 
 SOURCE = "ttlab"
@@ -477,6 +477,95 @@ def execute_ttlab_sync(
         release_sync_lease(session, owner)
 
 
+def execute_ttlab_discovery_check(
+    session: Session,
+    *,
+    settings: Settings | None = None,
+    trigger: str = "manual",
+    requested_by: str | None = None,
+    discoverer: Callable[[str, int, bool], list[dict[str, Any]]] = discover_publications,
+) -> dict[str, Any]:
+    """Discover and stage candidates without mutating the active paper corpus."""
+
+    settings = settings or get_settings()
+    if settings.sync_execution_mode != "offline_single_writer" or settings.service_role != "offline_worker":
+        return {"run_id": None, "source": SOURCE, "trigger": trigger, "status": "disabled", "reason": "discovery_requires_explicit_offline_single_writer_worker_mode"}
+    require_offline_pdf_worker(settings, "TTLAB publication discovery")
+    owner = lease_owner()
+    run_id = str(uuid.uuid4())
+    if not acquire_sync_lease(session, owner, settings.sync_lock_minutes):
+        return {"run_id": None, "source": SOURCE, "trigger": trigger, "status": "skipped", "reason": "another_sync_holds_the_lease"}
+    run = IngestionRun(run_id=run_id, source=SOURCE, trigger=f"{trigger}_discovery", requested_by=requested_by, status="running")
+    try:
+        state = ensure_sync_state(session)
+        if trigger == "manual":
+            run.requested_by = requested_by or state.manual_requested_by
+            state.manual_requested_at = None
+            state.manual_requested_by = None
+        state.last_run_id = run_id
+        state.updated_at = utc_now()
+        session.add(run)
+        session.add(state)
+        session.commit()
+        records = discoverer(settings.ttlab_publications_url, settings.sync_max_pages, True)
+        if not records:
+            raise RuntimeError("TTLAB discovery returned no publications; no candidates were changed")
+        atomic_write_seed(records, resolve_project_path(settings, settings.sync_seed_path))
+        created, updated, unchanged = classify_discovery(session, records)
+        statuses = {str(item.get("paper_id")): "new" for item in created}
+        statuses.update({str(item.get("paper_id")): "changed" for item in updated})
+        staged = 0
+        for record in created + updated:
+            source_key = str(record.get("paper_id") or record.get("post_url") or record.get("pdf_url") or record.get("title") or "").strip()
+            if not source_key:
+                continue
+            candidate_id = hashlib.sha256(source_key.encode("utf-8")).hexdigest()[:32]
+            candidate = session.get(IngestionCandidate, candidate_id) or IngestionCandidate(
+                candidate_id=candidate_id,
+                source_key=source_key,
+                title=str(record.get("title") or "Untitled publication"),
+                discovered_run_id=run_id,
+            )
+            candidate.title = str(record.get("title") or candidate.title)
+            candidate.source_url = str(record.get("source_url") or record.get("post_url") or "") or None
+            candidate.pdf_url = str(record.get("pdf_url") or "") or None
+            candidate.metadata_json = record
+            candidate.comparison_status = statuses.get(str(record.get("paper_id")), "changed")
+            candidate.import_status = "pending"
+            candidate.discovered_run_id = run_id
+            candidate.updated_at = utc_now()
+            session.add(candidate)
+            staged += 1
+        run.discovered_count = len(records)
+        run.created_count = len(created)
+        run.updated_count = len(updated)
+        run.unchanged_count = unchanged
+        run.status = "succeeded"
+        run.summary_json = {"candidate_count": staged, "active_corpus_changed": False, "promotion_available": ATOMIC_GENERATION_PROMOTION_IMPLEMENTED}
+        run.finished_at = utc_now()
+        state.last_success_at = utc_now()
+        state.updated_at = utc_now()
+        session.add(run)
+        session.add(state)
+        session.commit()
+        return {"run_id": run_id, "source": SOURCE, "trigger": trigger, "status": "succeeded", "discovered": len(records), "candidates_staged": staged, "unchanged": unchanged, "active_corpus_changed": False}
+    except Exception as exc:
+        session.rollback()
+        failed = session.get(IngestionRun, run_id) or run
+        failed.status = "failed"
+        failed.error_message = f"{type(exc).__name__}: {exc}"
+        failed.finished_at = utc_now()
+        state = ensure_sync_state(session)
+        state.last_failure_at = utc_now()
+        state.updated_at = utc_now()
+        session.add(failed)
+        session.add(state)
+        session.commit()
+        return {"run_id": run_id, "source": SOURCE, "trigger": trigger, "status": "failed", "error": failed.error_message, "active_corpus_changed": False}
+    finally:
+        release_sync_lease(session, owner)
+
+
 def serialize_ingestion_run(run: IngestionRun | None) -> dict[str, Any] | None:
     if run is None:
         return None
@@ -513,16 +602,25 @@ def ingestion_sync_status(session: Session, settings: Settings | None = None) ->
     )
     now = datetime.now(UTC)
     locked_until = as_utc(state.locked_until) if state else None
+    worker_role_active = bool(
+        settings.service_role == "offline_worker"
+        and settings.sync_execution_mode == "offline_single_writer"
+    )
     return {
         "source": SOURCE,
-        "enabled": False,
-        "disabled_reason": "atomic_generation_promotion_not_implemented",
+        # This status is read from the API process, while discovery must run in
+        # a separate process with different role settings. `enabled` therefore
+        # describes the shared queue/schedule switch, not the current process.
+        "enabled": settings.sync_enabled,
+        "configured_enabled": settings.sync_enabled,
+        "disabled_reason": None if settings.sync_enabled else "discovery_checks_disabled",
+        "discovery_check_available": settings.sync_enabled,
+        "current_process_is_discovery_worker": worker_role_active,
+        "candidate_import_available": ATOMIC_GENERATION_PROMOTION_IMPLEMENTED,
         "atomic_generation_promotion_implemented": ATOMIC_GENERATION_PROMOTION_IMPLEMENTED,
         "execution_mode": settings.sync_execution_mode,
         "service_role": settings.service_role,
-        "api_or_production_mode_blocked": (
-            settings.service_role == "api" or settings.security_mode == "production"
-        ),
+        "api_or_production_mode_blocked": settings.service_role == "api",
         "single_writer_enforced": True,
         "network_and_process_isolation_implemented_by_application": False,
         "external_worker_controls_required": True,

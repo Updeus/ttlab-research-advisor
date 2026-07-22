@@ -150,6 +150,8 @@ def list_ollama_models(
 
 def local_llm_status() -> dict[str, Any]:
     settings = get_settings()
+    from app.ollama_policy import effective_ollama_policy
+
     models, warnings, provider_reachable = list_ollama_models(base_url=settings.ollama_base_url)
     benchmark_summary = benchmark_by_model()
     warnings.append(UNVALIDATED_MODEL_WARNING)
@@ -158,10 +160,7 @@ def local_llm_status() -> dict[str, Any]:
         "and after each generation; when Ollama does not report a response digest, output remains attributed "
         "to the mutable tag and is not claimed to have reproducible generation-time model identity."
     )
-    allowed = {
-        name: digest.removeprefix("sha256:").lower()
-        for name, digest in settings.ollama_allowed_model_digests.items()
-    }
+    allowed, default_model, policy_source = effective_ollama_policy(settings)
     allow_all_local = settings.all_local_ollama_models_enabled
     enriched = []
     for model in models:
@@ -176,7 +175,7 @@ def local_llm_status() -> dict[str, Any]:
                 **model,
                 **metadata,
                 "benchmark": benchmark_summary.get(model["name"]),
-                "is_default": model["name"] == settings.ollama_default_model,
+                "is_default": model["name"] == default_model,
                 "digest_verified": digest_pinned,  # deprecated: preflight scope only
                 "digest_verification_scope": "preflight_only" if digest_pinned else "installed_local_demo",
                 "generation_time_digest_verified": False,
@@ -197,13 +196,14 @@ def local_llm_status() -> dict[str, Any]:
         "base_url": settings.ollama_base_url,
         "default_provider": settings.default_llm_provider,
         "default_model": (
-            settings.ollama_default_model
-            if generation_available and any(model["name"] == settings.ollama_default_model for model in enriched)
+            default_model
+            if generation_available and any(model["name"] == default_model for model in enriched)
             else (str(enriched[0]["name"]) if generation_available else "sentence-overlap-v1")
         ),
         "model_count": len(enriched),
         "models": enriched,
         "model_policy": "all_installed_local_models" if allow_all_local else "pinned_digest_only",
+        "model_policy_source": policy_source,
         "candidate_pulls": CANDIDATE_PULLS,
         "recommended_pulls": CANDIDATE_PULLS,  # deprecated response key retained for client compatibility
         "benchmark": read_latest_benchmark(),

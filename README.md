@@ -43,7 +43,10 @@ claim is correct, complete, novel, feasible, or supervisor-approved.
 - Public/technical summaries, contributions, methods, limitations, future work,
   skills/evaluation plans, and text-only podcast scripts.
 - Publication-derived Topic/Author Explorer and explainable related-paper links.
-- Authenticated reviewer/admin mutations, actor-advertised capabilities,
+- Local administrator accounts with Argon2id passwords, expiring HttpOnly
+  sessions, CSRF protection, login lockout, and one-time temporary passwords;
+  service bearer actors remain supported for automation. Authenticated mutations,
+  actor-advertised capabilities,
   separate correction and review actions, human-admin-only publication/rights
   decisions, distinct `ai_reviewed` state, attributed append-only review events
   with a hash chain, and a visibly insecure loopback-only demo bypass.
@@ -204,7 +207,10 @@ the backend, and the frontend without reinstalling, preparing, or verifying:
 ```
 
 The explicit loopback demo accepts every model already installed in Ollama.
-Production mode continues to require `TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS`.
+In production, **Pin and allow all installed models** records every currently
+installed model's immutable digest in the database. Models installed later stay
+blocked until an administrator runs the action again. Environment digest pins
+remain a supported bootstrap/fallback policy.
 When a complete learned-dense index is present, the local demo preloads its
 encoder before the backend reports ready. On the documented 4 GiB WSL baseline,
 the first launch can spend up to about two minutes on this cold start; dense
@@ -233,8 +239,25 @@ status; enabling the demo does not rewrite stored publication or rights decision
 The local operator is treated as the human demo administrator so review,
 correction, approval, and publication controls can be demonstrated. Live PDF
 acquisition and ingestion still run only through the isolated offline-worker
-commands below, not through the API process. Direct backend startup remains
-fail-closed unless environment-configured reviewer/admin actors are supplied.
+commands below, not through the API process. Production backend startup remains
+fail-closed until a local admin account or environment-configured admin service
+actor exists.
+
+### Administrator setup and control center
+
+Create the first production administrator before starting the API:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.admin_cli create jarod --display-name "Jarod"
+```
+
+Omit `--password` so the secret is not stored in shell history. Additional
+administrators can be created in **Admin Control**; each temporary password is
+shown once and must be changed at first sign-in. The control center also provides
+persistent public-feature switches, exact-digest Ollama controls, preview-before-
+execute bulk approval, review blockers, and the protected TTLAB discovery trigger.
+Disabled features disappear from public navigation and their APIs return a stable
+`503 feature_disabled` response while admin diagnostics remain accessible.
 
 Prepare a bounded UI dataset separately:
 
@@ -309,12 +332,17 @@ update authoritative status, and cannot support published results.
 
 ### Automated synchronization boundary
 
-Automated corpus synchronization is intentionally unavailable. The worker and
-Admin trigger fail before discovery or mutation with
+The isolated worker and Admin trigger can check TTLAB and stage new or changed
+`IngestionCandidate` records without mutating the active paper corpus. Configure
+the API with `TTLAB_SYNC_ENABLED=true`, and run the separate worker with
+`TTLAB_SERVICE_ROLE=offline_worker` and
+`TTLAB_SYNC_EXECUTION_MODE=offline_single_writer`.
+
+Candidate import/promotion remains intentionally unavailable and reports
 `atomic_generation_promotion_not_implemented`; configuration cannot enable a
-partially committed promotion. This preserves the last active corpus when any
-future scheduled run would otherwise fail between metadata, extraction, chunk,
-index, topic, and file phases.
+partially committed promotion. This preserves the last active corpus when a
+future import would otherwise fail between metadata, extraction, chunk, index,
+topic, and file phases.
 
 Corpus changes therefore use the explicit commands above in an isolated copy.
 An operator must validate the complete staged database/files/indexes, stop API
@@ -520,11 +548,11 @@ anonymous request parameter.
 - [External submission checks](docs/EXTERNAL_SUBMISSION_CHECKS.md)
 
 Production mode requires explicit trusted hosts/CORS origins, HTTPS public base
-URL, and at least one environment-configured active admin actor. Bearer tokens
-are represented in configuration only by SHA-256 digests and are never
-committed. Token mode does not use cookies; reverse proxy, TLS, monitoring,
-retention, incident response, and institutional identity remain deployment
-responsibilities.
+URL, and at least one active local admin account or environment-configured admin
+service actor. Browser administrators use Secure/HttpOnly/SameSite cookies with
+CSRF headers; passwords are Argon2id-hashed. Service bearer tokens are represented
+in configuration only by SHA-256 digests. Reverse proxy, TLS, monitoring,
+retention, incident response, and institutional identity remain deployment responsibilities.
 
 Automated axe, keyboard, route, responsive-overflow, and Chromium checks provide
 regression evidence only. They do not establish WCAG conformance or conformance

@@ -98,7 +98,8 @@ def test_loopback_demo_actor_can_use_full_human_review_workflow() -> None:
         }
     )
     request.state.request_id = "demo-test"
-    actor = get_current_actor(request, None, settings)
+    with Session(build_security_engine()) as session:
+        actor = get_current_actor(request, None, settings, session)
     payload = actor_capabilities(actor, settings)
 
     assert payload["actor"]["local_demo_bypass"] is True
@@ -209,16 +210,15 @@ def test_actor_configuration_accepts_only_hashed_unique_records() -> None:
         parse_actor_records(duplicate)
 
 
-def test_production_configuration_fails_closed_without_admin_or_https() -> None:
-    with pytest.raises(ValueError, match="active environment-configured admin"):
-        validate_security_configuration(
-            Settings(
-                security_mode="production",
-                cors_origins=["https://advisor.example"],
-                trusted_hosts=["advisor.example"],
-                public_base_url="https://advisor.example",
-            )
+def test_production_configuration_accepts_database_admins_and_requires_https() -> None:
+    validate_security_configuration(
+        Settings(
+            security_mode="production",
+            cors_origins=["https://advisor.example"],
+            trusted_hosts=["advisor.example"],
+            public_base_url="https://advisor.example",
         )
+    )
     with pytest.raises(ValueError, match="https TTLAB_PUBLIC_BASE_URL"):
         validate_security_configuration(
             Settings(
@@ -245,7 +245,7 @@ def test_admin_routes_require_token_enforce_roles_and_attribute_events() -> None
         assert client.post("/api/admin/ingestion-sync/request", headers=auth(REVIEWER_TOKEN)).status_code == 403
         queued_sync = client.post("/api/admin/ingestion-sync/request", headers=auth(ADMIN_TOKEN))
         assert queued_sync.status_code == 409
-        assert "atomic_generation_promotion_not_implemented" in str(queued_sync.json()["detail"])
+        assert "TTLAB_SYNC_ENABLED=true" in str(queued_sync.json()["detail"])
         assert client.get("/api/admin/ingestion-sync", headers=auth(ADMIN_TOKEN)).json()[
             "manual_trigger_allowed"
         ] is False

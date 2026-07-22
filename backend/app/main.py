@@ -8,9 +8,12 @@ from sqlalchemy import text
 from sqlmodel import Session
 
 from app.api.admin import router as admin_router
+from app.api.admin_control import router as admin_control_router
+from app.api.auth import router as auth_router
 from app.api.artifacts import router as artifacts_router
 from app.api.ask import router as ask_router
 from app.api.evaluation import router as evaluation_router
+from app.api.features import router as features_router
 from app.api.explorer import router as explorer_router
 from app.api.llms import router as llms_router
 from app.api.papers import router as papers_router
@@ -34,9 +37,16 @@ from app.middleware import (
     PublicRateLimitMiddleware,
     RequestBodyLimitMiddleware,
     SecurityHeadersMiddleware,
+    FeatureGateMiddleware,
 )
-from app.security import operational_boundary_diagnostics, validate_security_configuration
+from app.security import (
+    operational_boundary_diagnostics,
+    validate_admin_runtime_configuration,
+    validate_security_configuration,
+)
 from app.publication import local_demo_corpus_preview_enabled
+from app.features import ensure_feature_settings
+from app.ollama_policy import seed_ollama_policy_from_environment
 
 settings = get_settings()
 
@@ -45,8 +55,11 @@ settings = get_settings()
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     validate_security_configuration(settings)
     create_db_and_tables()
+    validate_admin_runtime_configuration(settings)
     dense_index_ready = False
     with Session(engine) as session:
+        ensure_feature_settings(session)
+        seed_ollama_policy_from_environment(session, settings)
         validate_present_authoritative_indexes(session)
         dense = index_diagnostics(session, DENSE_INDEX_PATH, DENSE_PROVIDER)
         dense_index_ready = dense.get("status") == "ready" and dense.get("completeness_status") == "complete"
@@ -71,12 +84,13 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-CSRF-Token"],
     expose_headers=["X-Request-ID", "X-TTLAB-Security-Mode", "X-TTLAB-Insecure-Demo"],
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_hosts)
+app.add_middleware(FeatureGateMiddleware)
 app.add_middleware(
     RequestBodyLimitMiddleware,
     max_bytes=settings.max_request_bytes,
@@ -103,7 +117,10 @@ app.include_router(ask_router)
 app.include_router(llms_router)
 app.include_router(recommendations_router)
 app.include_router(artifacts_router)
+app.include_router(features_router)
+app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(admin_control_router)
 app.include_router(evaluation_router)
 app.include_router(explorer_router)
 
@@ -116,7 +133,7 @@ def root() -> dict[str, str]:
         "security_mode": settings.security_mode,
         "admin_authentication": "insecure_local_demo_bypass"
         if settings.security_mode == "local_demo" and settings.allow_insecure_local_demo
-        else "bearer_token_required",
+        else "local_admin_session_or_service_bearer",
         "corpus_access_mode": "unreviewed_local_demo_preview"
         if local_demo_corpus_preview_enabled(settings)
         else "approved_public_projection",

@@ -84,11 +84,13 @@ describe("route-based application shell", () => {
     expect(JSON.parse(String(request?.[1]?.body))).toMatchObject({ overwrite: false });
   });
 
-  it("protects administration and keeps credentials out of web storage", async () => {
+  it("protects administration with local login and keeps credentials out of web storage", async () => {
     const user = userEvent.setup();
     render(<MemoryRouter initialEntries={["/admin"]}><App /></MemoryRouter>);
-    expect(await screen.findByRole("heading", { name: "Reviewer authentication required" })).toBeInTheDocument();
-    await user.type(screen.getByLabelText("Reviewer bearer token"), "a".repeat(32));
+    expect(await screen.findByRole("heading", { name: "Administrator sign in" })).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Username"), "jarod");
+    await user.type(screen.getByLabelText("Password"), "a private password");
+    expect(screen.queryByRole("link", { name: /Admin Control/ })).not.toBeInTheDocument();
     expect(window.localStorage.length).toBe(0);
     expect(window.sessionStorage.length).toBe(0);
   });

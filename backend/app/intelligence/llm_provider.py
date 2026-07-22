@@ -136,22 +136,21 @@ class OllamaProvider:
         settings: Settings | None = None,
     ) -> None:
         settings = settings or get_settings()
+        from app.ollama_policy import effective_ollama_policy
+
+        allowed, default_model, _policy_source = effective_ollama_policy(settings)
         self.base_url = settings.ollama_base_url.rstrip("/")
-        self.model = model_name or settings.ollama_default_model
+        self.model = model_name or default_model
         self.timeout = settings.ollama_timeout_seconds
         self.num_ctx = settings.ollama_num_ctx
         self.keep_alive = settings.ollama_keep_alive
         self.requested_provider = requested_provider
         self.configured_provider = configured_provider
         self.requested_model = model_name
-        allowed = {
-            name: digest.removeprefix("sha256:").lower()
-            for name, digest in settings.ollama_allowed_model_digests.items()
-        }
         self.allow_unpinned_local_model = settings.all_local_ollama_models_enabled
         if self.model not in allowed and not self.allow_unpinned_local_model:
             raise ValueError(
-                f"Ollama model '{self.model}' is not pinned in TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS"
+                f"Ollama model '{self.model}' is not enabled with its current digest in the admin model policy"
             )
         self.expected_digest = allowed.get(self.model)
         self.immutable_model = (
@@ -416,10 +415,13 @@ def get_provider(
 
 def external_provider_available(settings: Settings | None = None) -> bool:
     settings = settings or get_settings()
+    from app.ollama_policy import effective_ollama_policy
+
+    allowed, _default, _source = effective_ollama_policy(settings)
     return bool(
         "ollama" in {provider.strip().lower() for provider in settings.allowed_llm_providers}
         and (
-            settings.ollama_allowed_model_digests
+            allowed
             or settings.all_local_ollama_models_enabled
         )
     )

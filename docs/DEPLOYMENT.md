@@ -59,12 +59,13 @@ Serve the compiled frontend as static files. Configure SPA fallback to
 
 ## Offline corpus-maintenance boundary
 
-The production API cannot acquire or parse PDFs. Automated synchronization is
-also unavailable in an offline worker: both scheduled and manual paths stop
-before discovery or mutation with
-`atomic_generation_promotion_not_implemented`. This is intentional because the
-repository has no atomic active-generation pointer spanning seed metadata,
-SQLite rows, extracted files, chunks, vector indexes, and topic indexes.
+The production API cannot acquire or parse PDFs. A separately configured
+`offline_worker` may perform scheduled or admin-requested TTLAB discovery and
+stage `IngestionCandidate` records; this does not alter the active corpus.
+Candidate import/promotion stops with
+`atomic_generation_promotion_not_implemented` because the repository has no
+atomic active-generation pointer spanning seed metadata, SQLite rows, extracted
+files, chunks, vector indexes, and topic indexes.
 
 To update a corpus, an operator must run discovery/import/extraction/indexing in
 an isolated copy with restricted network access and no HTTP listener, bearer
@@ -72,7 +73,8 @@ tokens, or provider secrets. Validate the entire staged snapshot and checksum
 inventory, quiesce API writes, create a recoverable backup, and replace the
 active snapshot in a maintenance window. This deployment guide does not claim
 that the final switch is automated, online-safe, or multi-process atomic. The
-Admin surface reports the same disabled reason and cannot queue work.
+Admin surface can queue discovery checks and reports the same disabled reason
+for candidate import.
 
 ## TLS proxy and network controls
 

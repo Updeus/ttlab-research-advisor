@@ -17,21 +17,36 @@ export TTLAB_ALLOW_INSECURE_LOCAL_DEMO=true
 The bypass is accepted only from a loopback client address and responses expose
 `X-TTLAB-Insecure-Demo: true`. Never bind that mode to a public interface, use
 it for research results, or describe it as production authentication.
-Its actor is typed `service`, so it cannot create `reviewed`, `ai_reviewed`,
-`approved`, or `rejected` decisions; configure the corresponding authenticated
-human/AI actor when exercising real review-state transitions.
+Its actor is typed as a visibly insecure local human administrator so the full
+workflow can be demonstrated. It is never accepted outside loopback demo mode.
 
 `TTLAB_SECURITY_MODE=production` fails startup unless:
 
-- at least one active admin actor is configured;
+- at least one active local admin account or admin service actor exists;
 - `TTLAB_PUBLIC_BASE_URL` uses HTTPS;
 - the public hostname is in `TTLAB_TRUSTED_HOSTS`;
 - all CORS origins use HTTPS; and
 - insecure local-demo bypass is disabled;
-- `TTLAB_SERVICE_ROLE=api` and synchronization is disabled; and
+- the API uses `TTLAB_SERVICE_ROLE=api` with in-process synchronization disabled; and
 - `TTLAB_API_WORKER_COUNT=1` while the built-in process-local limiter is used.
 
 Interactive OpenAPI/ReDoc endpoints are disabled in production.
+
+## Creating local administrators
+
+Create the first browser administrator before starting production:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.admin_cli create jarod --display-name "Jarod"
+```
+
+Passwords are Argon2id-hashed. Login is locked for 15 minutes after five failed
+attempts. Sessions have an eight-hour idle and 24-hour absolute lifetime and use
+Secure, HttpOnly, SameSite cookies. Every cookie-authenticated mutation must also
+present the matching CSRF cookie value in `X-CSRF-Token`. Additional admins use a
+one-time temporary password created in Admin Control; the account must change it
+before administrative mutations. Administrators cannot deactivate themselves or
+the final active account.
 
 ## Creating bearer actors
 

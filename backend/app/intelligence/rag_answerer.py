@@ -14,6 +14,7 @@ from app.indexing.retriever import RetrievalScope, retrieve
 from app.intelligence.citation_verifier import verify_citations
 from app.intelligence.llm_provider import external_provider_available, get_provider
 from app.models import Paper, RAGAnswer
+from app.ollama_policy import effective_ollama_policy
 from app.runtime_provenance import build_runtime_provenance
 
 GENERIC_PAPER_SCOPE_TERMS = {
@@ -496,7 +497,8 @@ def ask_diagnostics(session: Session, settings: Settings | None = None) -> dict[
     # The anonymous diagnostics surface must not reveal reviewer/history data.
     configured = settings or get_settings()
     allowed = [provider.strip().lower() for provider in configured.allowed_llm_providers]
-    pinned_models = sorted(configured.ollama_allowed_model_digests)
+    pinned_model_digests, configured_ollama_model, policy_source = effective_ollama_policy(configured)
+    pinned_models = sorted(pinned_model_digests)
     allow_all_local = configured.all_local_ollama_models_enabled
     return {
         "total_stored_answers": None,
@@ -515,10 +517,11 @@ def ask_diagnostics(session: Session, settings: Settings | None = None) -> dict[
             },
             "ollama": {
                 "enabled": "ollama" in allowed,
-                "configured_model": configured.ollama_default_model,
-                "configured_model_pinned": configured.ollama_default_model in pinned_models,
+                "configured_model": configured_ollama_model,
+                "configured_model_pinned": configured_ollama_model in pinned_models,
                 "pinned_model_count": len(pinned_models),
                 "model_policy": "all_installed_local_models" if allow_all_local else "pinned_digest_only",
+                "model_policy_source": policy_source,
                 "identity_scope": (
                     "installed_digest_observed_per_generation"
                     if allow_all_local

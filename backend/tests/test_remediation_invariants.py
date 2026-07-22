@@ -416,6 +416,45 @@ def test_ollama_requires_digest_and_records_immutable_provenance(monkeypatch) ->
     assert draft.prompt_metadata["generation_time_digest_verified"] is True
 
 
+def test_explicit_local_demo_allows_any_installed_ollama_model(monkeypatch) -> None:
+    digest = "f" * 64
+    settings = Settings(
+        allow_insecure_local_demo=True,
+        ollama_allow_all_local_models=True,
+    )
+
+    monkeypatch.setattr(
+        "app.intelligence.llm_provider.httpx.get",
+        lambda *_args, **_kwargs: httpx.Response(
+            200,
+            request=httpx.Request("GET", "http://localhost:11434/api/tags"),
+            json={"models": [{"name": "anything:local", "digest": digest}]},
+        ),
+    )
+    monkeypatch.setattr(
+        "app.intelligence.llm_provider.httpx.post",
+        lambda *_args, **_kwargs: httpx.Response(
+            200,
+            request=httpx.Request("POST", "http://localhost:11434/api/generate"),
+            json={
+                "model": "anything:local",
+                "digest": digest,
+                "response": "A locally generated cited answer [c1].",
+            },
+        ),
+    )
+
+    draft = OllamaProvider("anything:local", settings=settings).generate_answer(
+        "What is retrieved?",
+        [{"chunk_id": "c1", "title": "Paper", "text": "A cited claim."}],
+    )
+
+    assert draft.provider == "ollama"
+    assert draft.model == f"anything:local@sha256:{digest}"
+    assert draft.prompt_metadata["provider_resolution"]["model_policy"] == "all_installed_local_models"
+    assert any("without a configured digest pin" in warning for warning in draft.warnings)
+
+
 def test_ollama_standard_response_uses_pre_post_checks_without_claiming_digest_attestation(monkeypatch) -> None:
     digest = "d" * 64
     settings = Settings(ollama_allowed_model_digests={"pinned:1": digest})

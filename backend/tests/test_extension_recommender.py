@@ -335,6 +335,28 @@ def test_recommendation_diagnostics_exclude_ineligible_paper_chunks() -> None:
     assert diagnostics["raw_papers_with_chunks"] is None
 
 
+def test_demo_recommendation_diagnostics_use_technical_corpus() -> None:
+    session, _engine = build_extension_session()
+    try:
+        hidden = session.get(Paper, "rag-platform")
+        assert hidden is not None
+        hidden.review_status = "needs_review"
+        hidden.publication_status = "hidden"
+        session.add(hidden)
+        session.commit()
+
+        public_diagnostics = recommendation_diagnostics(session)
+        demo_diagnostics = recommendation_diagnostics(session, demo_preview=True)
+    finally:
+        session.close()
+
+    assert public_diagnostics["searchable_papers"] == 1
+    assert demo_diagnostics["searchable_papers"] == 2
+    assert demo_diagnostics["searchable_chunks"] == 3
+    assert demo_diagnostics["demo_preview"] is True
+    assert demo_diagnostics["scope"] == "technical_demo"
+
+
 def test_recommender_returns_ranked_recommendations_with_citations() -> None:
     session, _engine = build_extension_session()
     try:

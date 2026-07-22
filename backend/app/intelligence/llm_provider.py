@@ -148,12 +148,15 @@ class OllamaProvider:
             name: digest.removeprefix("sha256:").lower()
             for name, digest in settings.ollama_allowed_model_digests.items()
         }
-        if self.model not in allowed:
+        self.allow_unpinned_local_model = settings.all_local_ollama_models_enabled
+        if self.model not in allowed and not self.allow_unpinned_local_model:
             raise ValueError(
                 f"Ollama model '{self.model}' is not pinned in TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS"
             )
-        self.expected_digest = allowed[self.model]
-        self.immutable_model = f"{self.model}@sha256:{self.expected_digest}"
+        self.expected_digest = allowed.get(self.model)
+        self.immutable_model = (
+            f"{self.model}@sha256:{self.expected_digest}" if self.expected_digest else self.model
+        )
 
     def resolution_metadata(
         self,
@@ -163,6 +166,7 @@ class OllamaProvider:
         fallback_reason: str | None = None,
         generation_time_digest_verified: bool = False,
         tag_stable_across_generation: bool = False,
+        observed_digest: str | None = None,
     ) -> dict[str, Any]:
         metadata: dict[str, Any] = {
             "requested_provider": self.requested_provider,
@@ -170,15 +174,20 @@ class OllamaProvider:
             "effective_provider": effective_provider,
             "requested_model": self.requested_model,
             "configured_model": self.model,
-            "configured_model_digest": f"sha256:{self.expected_digest}",
+            "configured_model_digest": (
+                f"sha256:{self.expected_digest}" if self.expected_digest else None
+            ),
+            "model_policy": (
+                "all_installed_local_models" if self.allow_unpinned_local_model else "pinned_digest_only"
+            ),
             "effective_model": effective_model or self.model,
             "generation_time_digest_verified": generation_time_digest_verified,
             "tag_stable_across_generation": tag_stable_across_generation,
             "fallback_used": fallback_reason is not None,
             "fallback_reason": fallback_reason,
         }
-        if generation_time_digest_verified:
-            metadata["model_digest"] = f"sha256:{self.expected_digest}"
+        if generation_time_digest_verified and observed_digest:
+            metadata["model_digest"] = f"sha256:{observed_digest}"
         return metadata
 
     def generate_answer(
@@ -198,7 +207,14 @@ class OllamaProvider:
                 upstream_metadata={
                     "attempted_provider": "ollama",
                     "attempted_model": self.immutable_model,
-                    "configured_model_digest": f"sha256:{self.expected_digest}",
+                    "configured_model_digest": (
+                        f"sha256:{self.expected_digest}" if self.expected_digest else None
+                    ),
+                    "model_policy": (
+                        "all_installed_local_models"
+                        if self.allow_unpinned_local_model
+                        else "pinned_digest_only"
+                    ),
                     "generation_time_digest_verified": False,
                 },
             ).generate_answer(question, context_chunks, audience, max_words)
@@ -227,11 +243,19 @@ class OllamaProvider:
         preflight_digest: str | None = None
         postflight_digest: str | None = None
         try:
-            preflight_digest = verify_ollama_model_digest(
-                self.base_url,
-                self.model,
-                self.expected_digest,
-                timeout=min(self.timeout, 5.0),
+            preflight_digest = (
+                verify_ollama_model_digest(
+                    self.base_url,
+                    self.model,
+                    self.expected_digest,
+                    timeout=min(self.timeout, 5.0),
+                )
+                if self.expected_digest
+                else get_ollama_model_digest(
+                    self.base_url,
+                    self.model,
+                    timeout=min(self.timeout, 5.0),
+                )
             )
             response = httpx.post(f"{self.base_url}/api/generate", json=payload, timeout=self.timeout)
             response.raise_for_status()
@@ -239,26 +263,41 @@ class OllamaProvider:
             response_identity = verify_ollama_generation_identity(
                 data,
                 configured_model=self.model,
-                expected_digest=self.expected_digest,
+                expected_digest=preflight_digest,
             )
-            postflight_digest = verify_ollama_model_digest(
-                self.base_url,
-                self.model,
-                self.expected_digest,
-                timeout=min(self.timeout, 5.0),
+            postflight_digest = (
+                verify_ollama_model_digest(
+                    self.base_url,
+                    self.model,
+                    self.expected_digest,
+                    timeout=min(self.timeout, 5.0),
+                )
+                if self.expected_digest
+                else get_ollama_model_digest(
+                    self.base_url,
+                    self.model,
+                    timeout=min(self.timeout, 5.0),
+                )
             )
+            if postflight_digest != preflight_digest:
+                raise ValueError("Ollama model tag changed digest during generation")
             answer = clean_markup(str(data.get("response") or "")).strip()
             if not answer:
                 raise ValueError("Ollama returned an empty response.")
             digest_attested = bool(response_identity["generation_time_digest_verified"])
-            effective_model = self.immutable_model if digest_attested else self.model
+            observed_immutable_model = f"{self.model}@sha256:{preflight_digest}"
+            effective_model = observed_immutable_model if digest_attested else self.model
             warnings: list[str] = []
             if not digest_attested:
                 warnings.append(
-                    "The configured Ollama tag matched its pinned digest before and after generation, but the "
-                    "generation response did not report a digest. This output is attributed to the mutable tag; "
-                    "the two checks narrow but do not eliminate the tag-mutation race or establish reproducible "
-                    "generation-time model identity."
+                    "The Ollama tag kept the same installed digest before and after generation, but the generation "
+                    "response did not report a digest. This output is attributed to the mutable tag; the two checks "
+                    "narrow but do not eliminate the tag-mutation race or establish reproducible generation-time "
+                    "model identity."
+                )
+            if self.allow_unpinned_local_model and not self.expected_digest:
+                warnings.append(
+                    "Local demo policy allowed this installed Ollama model without a configured digest pin."
                 )
             return LLMAnswerDraft(
                 answer_text=answer,
@@ -273,10 +312,14 @@ class OllamaProvider:
                         effective_model=effective_model,
                         generation_time_digest_verified=digest_attested,
                         tag_stable_across_generation=True,
+                        observed_digest=preflight_digest,
                     ),
-                    "configured_model_digest": f"sha256:{self.expected_digest}",
+                    "configured_model_digest": (
+                        f"sha256:{self.expected_digest}" if self.expected_digest else None
+                    ),
+                    "observed_model_digest": f"sha256:{preflight_digest}",
                     **(
-                        {"model_digest": f"sha256:{self.expected_digest}"}
+                        {"model_digest": f"sha256:{preflight_digest}"}
                         if digest_attested
                         else {}
                     ),
@@ -310,7 +353,14 @@ class OllamaProvider:
                 upstream_metadata={
                     "attempted_provider": "ollama",
                     "attempted_model": self.immutable_model,
-                    "configured_model_digest": f"sha256:{self.expected_digest}",
+                    "configured_model_digest": (
+                        f"sha256:{self.expected_digest}" if self.expected_digest else None
+                    ),
+                    "model_policy": (
+                        "all_installed_local_models"
+                        if self.allow_unpinned_local_model
+                        else "pinned_digest_only"
+                    ),
                     "preflight_model_digest": (
                         f"sha256:{preflight_digest}" if preflight_digest is not None else None
                     ),
@@ -368,7 +418,10 @@ def external_provider_available(settings: Settings | None = None) -> bool:
     settings = settings or get_settings()
     return bool(
         "ollama" in {provider.strip().lower() for provider in settings.allowed_llm_providers}
-        and settings.ollama_allowed_model_digests
+        and (
+            settings.ollama_allowed_model_digests
+            or settings.all_local_ollama_models_enabled
+        )
     )
 
 
@@ -393,6 +446,27 @@ def verify_ollama_model_digest(
             )
         return actual
     raise ValueError(f"Pinned Ollama model '{model_name}' is not installed")
+
+
+def get_ollama_model_digest(
+    base_url: str,
+    model_name: str,
+    *,
+    timeout: float,
+) -> str:
+    """Resolve the current digest for an installed model in local-demo all-model mode."""
+
+    response = httpx.get(f"{base_url.rstrip('/')}/api/tags", timeout=timeout)
+    response.raise_for_status()
+    for record in response.json().get("models", []):
+        name = str(record.get("name") or record.get("model") or "").strip()
+        if name != model_name:
+            continue
+        digest = str(record.get("digest") or "").removeprefix("sha256:").lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise ValueError(f"Installed Ollama model '{model_name}' did not report a valid digest")
+        return digest
+    raise ValueError(f"Ollama model '{model_name}' is not installed")
 
 
 def verify_ollama_generation_identity(

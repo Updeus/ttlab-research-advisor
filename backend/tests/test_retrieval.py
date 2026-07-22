@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Generator
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
@@ -13,6 +14,7 @@ from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.indexing.keyword_search import make_snippet, rebuild_keyword_index, search_keyword
 from app.indexing.retriever import diversify_ranked_entries, expand_query, has_rag_signal, retrieve
 from app.indexing.vector_store import search_vector_store
+from app.indexing import vector_store
 from app.main import app
 from app.models import Chunk, Paper
 
@@ -148,6 +150,45 @@ def test_vector_search_ranks_relevant_chunk_above_unrelated(tmp_path: Path) -> N
 
     assert warnings == []
     assert results[0]["chunk_id"] == "rag-chunk"
+
+
+def test_vector_search_continues_past_higher_ranked_filtered_rows(tmp_path: Path) -> None:
+    session, _engine = build_test_session()
+    index_path = tmp_path / "embeddings.json"
+    try:
+        index_chunks(session, output_path=index_path)
+        results, warnings = search_vector_store(
+            session,
+            "retrieval augmented search highway traffic",
+            top_k=1,
+            index_path=index_path,
+            paper_id="traffic-paper",
+        )
+    finally:
+        session.close()
+
+    assert warnings == []
+    assert [result["chunk_id"] for result in results] == ["traffic-chunk"]
+
+
+def test_vector_search_reuses_validated_context_until_index_commit_changes(tmp_path: Path) -> None:
+    session, _engine = build_test_session()
+    index_path = tmp_path / "embeddings.json"
+    try:
+        index_chunks(session, output_path=index_path)
+        vector_store.clear_vector_search_context_cache()
+        with patch.object(
+            vector_store,
+            "load_vector_search_context",
+            wraps=vector_store.load_vector_search_context,
+        ) as load_context:
+            search_vector_store(session, "retrieval augmented search", top_k=1, index_path=index_path)
+            search_vector_store(session, "retrieval augmented search", top_k=1, index_path=index_path)
+    finally:
+        vector_store.clear_vector_search_context_cache()
+        session.close()
+
+    assert load_context.call_count == 1
 
 
 def test_hybrid_retrieval_combines_scores_and_returns_pages(tmp_path: Path) -> None:

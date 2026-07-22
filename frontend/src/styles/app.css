@@ -759,6 +759,57 @@ textarea:focus {
   line-height: 1.55;
 }
 
+.cited-answer {
+  display: grid;
+  gap: 12px;
+  color: #42545c;
+  line-height: 1.65;
+}
+
+.cited-answer p,
+.cited-answer ul {
+  margin: 0;
+}
+
+.cited-answer ul {
+  padding-left: 22px;
+}
+
+.cited-answer li + li {
+  margin-top: 8px;
+}
+
+.inline-citation {
+  display: inline;
+  border-radius: 4px;
+  padding: 1px 4px;
+  background: var(--color-green-soft);
+  color: var(--color-teal-dark);
+  font-size: 0.92em;
+  font-weight: 800;
+  line-height: 1.8;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.inline-citation:hover,
+.inline-citation:focus-visible {
+  background: #cce9e3;
+}
+
+.inline-citation--unverified,
+.inline-citation--unresolved {
+  background: var(--color-amber-soft);
+  color: #7a4b00;
+  text-decoration: none;
+}
+
+.citation-card:target {
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 3px rgba(14, 116, 104, 0.15);
+}
+
 .recommendation-card {
   display: grid;
   gap: 16px;

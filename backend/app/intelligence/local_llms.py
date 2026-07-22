@@ -162,11 +162,13 @@ def local_llm_status() -> dict[str, Any]:
         name: digest.removeprefix("sha256:").lower()
         for name, digest in settings.ollama_allowed_model_digests.items()
     }
+    allow_all_local = settings.all_local_ollama_models_enabled
     enriched = []
     for model in models:
         name = str(model.get("name") or "")
         actual_digest = str(model.get("digest") or "").removeprefix("sha256:").lower()
-        if name not in allowed or actual_digest != allowed[name]:
+        digest_pinned = name in allowed and actual_digest == allowed[name]
+        if not allow_all_local and not digest_pinned:
             continue
         metadata = model_metadata(model["name"])
         enriched.append(
@@ -175,11 +177,12 @@ def local_llm_status() -> dict[str, Any]:
                 **metadata,
                 "benchmark": benchmark_summary.get(model["name"]),
                 "is_default": model["name"] == settings.ollama_default_model,
-                "digest_verified": True,  # deprecated: preflight scope only
-                "digest_verification_scope": "preflight_only",
+                "digest_verified": digest_pinned,  # deprecated: preflight scope only
+                "digest_verification_scope": "preflight_only" if digest_pinned else "installed_local_demo",
                 "generation_time_digest_verified": False,
                 "tag_stability_checked_per_generation": True,
                 "configured_model_identity": f"{name}@sha256:{actual_digest}",
+                "model_policy": "all_installed_local_models" if allow_all_local else "pinned_digest_only",
             }
         )
     generation_available = bool(
@@ -194,12 +197,13 @@ def local_llm_status() -> dict[str, Any]:
         "base_url": settings.ollama_base_url,
         "default_provider": settings.default_llm_provider,
         "default_model": (
-            f"{settings.ollama_default_model}@sha256:{allowed[settings.ollama_default_model]}"
-            if generation_available and settings.ollama_default_model in allowed
-            else "sentence-overlap-v1"
+            settings.ollama_default_model
+            if generation_available and any(model["name"] == settings.ollama_default_model for model in enriched)
+            else (str(enriched[0]["name"]) if generation_available else "sentence-overlap-v1")
         ),
         "model_count": len(enriched),
         "models": enriched,
+        "model_policy": "all_installed_local_models" if allow_all_local else "pinned_digest_only",
         "candidate_pulls": CANDIDATE_PULLS,
         "recommended_pulls": CANDIDATE_PULLS,  # deprecated response key retained for client compatibility
         "benchmark": read_latest_benchmark(),

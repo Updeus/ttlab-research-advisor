@@ -9,33 +9,57 @@ from app.evaluation.dashboard import evaluation_files_present, latest_evaluation
 from app.indexing.embedder import eligible_chunks
 from app.intelligence.topic_explorer import list_topics
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, RAGAnswer, ReviewEvent, ThesisRecommendation, Topic
-from app.publication import content_generation_diagnostics, is_public_content, is_public_metadata, public_papers
+from app.publication import (
+    content_generation_diagnostics,
+    is_local_demo_content,
+    is_public_content,
+    is_public_metadata,
+    local_demo_corpus_preview_enabled,
+    public_papers,
+)
 from app.api.index_health import public_index_projection_health
 
 router = APIRouter(prefix="/api", tags=["papers"])
 
 
 @router.get("/papers")
-def list_papers(session: Annotated[Session, Depends(get_session)]) -> list[dict[str, object]]:
-    papers = public_papers(session)
+def list_papers(
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> list[dict[str, object]]:
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    papers = list(session.exec(select(Paper)).all()) if demo_preview else public_papers(session)
     papers.sort(key=lambda item: (item.year or 0, item.title), reverse=True)
-    return [serialize_public_paper(paper) for paper in papers]
+    return [serialize_public_paper(paper, demo_preview=demo_preview) for paper in papers]
 
 
 @router.get("/papers/{paper_id}")
-def get_paper(paper_id: str, session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
+def get_paper(
+    paper_id: str,
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, object]:
     paper = session.get(Paper, paper_id)
-    if paper is None or not is_public_metadata(paper):
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    if paper is None or (not demo_preview and not is_public_metadata(paper)):
         raise HTTPException(status_code=404, detail="Paper not found")
-    return serialize_public_paper(paper)
+    return serialize_public_paper(paper, demo_preview=demo_preview)
 
 
 @router.get("/papers/{paper_id}/extraction")
-def get_extraction(paper_id: str, session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
+def get_extraction(
+    paper_id: str,
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, object]:
     paper = session.get(Paper, paper_id)
+    demo_preview = local_demo_corpus_preview_enabled(settings)
     if (
         paper is None
-        or not is_public_content(session, paper)
+        or not (
+            is_public_content(session, paper)
+            or (demo_preview and is_local_demo_content(session, paper))
+        )
     ):
         raise HTTPException(status_code=404, detail="Paper not found")
     diagnostics = paper.extraction_diagnostics if isinstance(paper.extraction_diagnostics, dict) else {}
@@ -69,12 +93,17 @@ def get_extraction(paper_id: str, session: Annotated[Session, Depends(get_sessio
 def get_paper_chunks(
     paper_id: str,
     session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
     full: bool = Query(default=False),
 ) -> list[dict[str, object]]:
     paper = session.get(Paper, paper_id)
+    demo_preview = local_demo_corpus_preview_enabled(settings)
     if (
         paper is None
-        or not is_public_content(session, paper)
+        or not (
+            is_public_content(session, paper)
+            or (demo_preview and is_local_demo_content(session, paper))
+        )
     ):
         raise HTTPException(status_code=404, detail="Paper not found")
     if full:
@@ -139,10 +168,11 @@ def get_stats(
     session: Annotated[Session, Depends(get_session)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, object]:
-    papers = public_papers(session)
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    papers = list(session.exec(select(Paper)).all()) if demo_preview else public_papers(session)
     public_ids = {paper.paper_id for paper in papers}
     total = len(papers)
-    eligible = eligible_chunks(session, public_only=True)
+    eligible = eligible_chunks(session, public_only=not demo_preview)
     searchable_papers = len({chunk.paper_id for chunk in eligible})
     searchable_chunks = len(eligible)
     index_health = public_index_projection_health(
@@ -162,7 +192,7 @@ def get_stats(
             pdf_unavailability_reasons[paper.pdf_unavailability_reason] = (
                 pdf_unavailability_reasons.get(paper.pdf_unavailability_reason, 0) + 1
             )
-    topic_result = list_topics(session, limit=10)
+    topic_result = list_topics(session, limit=10, demo_preview=demo_preview)
     top_topics = [
         (item["name"], item["paper_count"])
         for item in topic_result["items"]
@@ -205,7 +235,8 @@ def get_stats(
         "evaluation_files_present": eval_files,
         "evaluation_last_run_at": latest_evaluation_timestamp(),
         "top_topics": top_topics,
-        "recent_papers": [serialize_public_paper(paper) for paper in recent],
+        "recent_papers": [serialize_public_paper(paper, demo_preview=demo_preview) for paper in recent],
+        "corpus_access_mode": "unreviewed_local_demo_preview" if demo_preview else "approved_public_projection",
         "evaluation_status": "available" if any(eval_files.values()) else "not_started",
     }
 
@@ -228,7 +259,7 @@ def serialize_chunk(chunk: Chunk, *, full: bool) -> dict[str, object]:
     }
 
 
-def serialize_public_paper(paper: Paper) -> dict[str, object]:
+def serialize_public_paper(paper: Paper, *, demo_preview: bool = False) -> dict[str, object]:
     """Return publication metadata without local paths, raw records, or notes."""
 
     return {
@@ -262,6 +293,7 @@ def serialize_public_paper(paper: Paper) -> dict[str, object]:
         "reviewed_at": paper.reviewed_at.isoformat() if paper.reviewed_at else None,
         "created_at": paper.created_at.isoformat(),
         "updated_at": paper.updated_at.isoformat(),
+        "demo_preview": demo_preview,
     }
 
 

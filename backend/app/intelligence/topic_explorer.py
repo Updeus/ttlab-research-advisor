@@ -21,6 +21,18 @@ REVIEWED_STATUSES = {"reviewed", "approved"}
 PUBLIC_APPROVED_STATUSES = {"approved"}
 EXPLORER_SOURCE = "deterministic_explorer"
 
+
+def review_visible(status: str | None, *, demo_preview: bool) -> bool:
+    """Expose drafts only in explicit demo projections; rejected links stay hidden."""
+
+    return status != "rejected" if demo_preview else status == "approved"
+
+
+def author_identity_visible(author: Author, *, demo_preview: bool) -> bool:
+    if demo_preview:
+        return author.identity_status not in {"invalid", "merged"}
+    return author.identity_status == "resolved"
+
 SPECIAL_LABELS = {
     "ai": "AI",
     "iot": "IoT",
@@ -539,35 +551,45 @@ def display_topic_name(session: Session, topic_id: str) -> str:
     return topic.name if topic else topic_id.replace("-", " ").title()
 
 
-def explorer_overview(session: Session) -> dict[str, Any]:
-    topics = list(
-        session.exec(select(Topic).where(Topic.review_status == "approved").order_by(Topic.name)).all()
-    )
-    authors = list(
-        session.exec(
+def explorer_overview(session: Session, *, demo_preview: bool = False) -> dict[str, Any]:
+    topics = [
+        topic
+        for topic in session.exec(select(Topic).order_by(Topic.name)).all()
+        if review_visible(topic.review_status, demo_preview=demo_preview)
+    ]
+    authors = [
+        author
+        for author in session.exec(
             select(Author)
-            .where(Author.identity_status == "resolved")
-            .where(Author.review_status == "approved")
-            .where(Author.identity_review_status == "approved")
             .where(Author.paper_count > 0)
             .order_by(Author.name)
         ).all()
-    )
-    papers = sorted(eligible_papers(session, public=True), key=lambda item: (item.year or 0, item.title), reverse=True)
+        if author_identity_visible(author, demo_preview=demo_preview)
+        and review_visible(author.review_status, demo_preview=demo_preview)
+        and review_visible(author.identity_review_status, demo_preview=demo_preview)
+    ]
+    papers = sorted(eligible_papers(session, public=not demo_preview), key=lambda item: (item.year or 0, item.title), reverse=True)
     public_ids = {paper.paper_id for paper in papers}
-    paper_topic_count = (
-        session.exec(
-            select(func.count())
-            .select_from(PaperTopic)
-            .where(PaperTopic.paper_id.in_(public_ids))
-            .where(PaperTopic.review_status == "approved")
-        ).one()
-        if public_ids else 0
-    )
-    public_author_rows = list_authors(session, limit=200)["items"]
+    if demo_preview and public_ids:
+        paper_topic_count = sum(
+            1
+            for link in session.exec(select(PaperTopic).where(PaperTopic.paper_id.in_(public_ids))).all()
+            if review_visible(link.review_status, demo_preview=True)
+        )
+    else:
+        paper_topic_count = (
+            session.exec(
+                select(func.count())
+                .select_from(PaperTopic)
+                .where(PaperTopic.paper_id.in_(public_ids))
+                .where(PaperTopic.review_status == "approved")
+            ).one()
+            if public_ids else 0
+        )
+    public_author_rows = list_authors(session, limit=200, demo_preview=demo_preview)["items"]
     public_author_ids = {row["author_id"] for row in public_author_rows if row.get("author_id") is not None}
     author_topic_count = sum(
-        len(top_topics_for_author(session, author))
+        len(top_topics_for_author(session, author, demo_preview=demo_preview))
         for author_id in public_author_ids
         if (author := session.get(Author, author_id)) is not None
     )
@@ -577,10 +599,12 @@ def explorer_overview(session: Session) -> dict[str, Any]:
         "paper_count": len(papers),
         "linked_paper_topics": paper_topic_count,
         "linked_author_topics": author_topic_count,
-        "top_topics": list_topics(session, limit=8)["items"],
-        "top_authors": list_authors(session, limit=8)["items"],
+        "top_topics": list_topics(session, limit=8, demo_preview=demo_preview)["items"],
+        "top_authors": list_authors(session, limit=8, demo_preview=demo_preview)["items"],
         "recent_papers": [paper_summary(paper) for paper in papers[:5]],
         "explorer_index_status": "ready" if paper_topic_count else "empty",
+        "demo_preview": demo_preview,
+        "corpus_access_mode": "unreviewed_local_demo_preview" if demo_preview else "approved_public_projection",
     }
 
 
@@ -591,35 +615,41 @@ def list_topics(
     min_papers: int | None = None,
     limit: int = 50,
     offset: int = 0,
+    demo_preview: bool = False,
 ) -> dict[str, Any]:
-    topics = list(
-        session.exec(select(Topic).where(Topic.review_status == "approved").order_by(Topic.name)).all()
-    )
-    rows = [row for topic in topics if (row := topic_card(session, topic))["paper_count"] > 0]
+    topics = [
+        topic
+        for topic in session.exec(select(Topic).order_by(Topic.name)).all()
+        if review_visible(topic.review_status, demo_preview=demo_preview)
+    ]
+    rows = [row for topic in topics if (row := topic_card(session, topic, demo_preview=demo_preview))["paper_count"] > 0]
     if q:
         needle = q.lower()
         rows = [row for row in rows if needle in row["name"].lower() or needle in row["normalized_name"]]
     if min_papers is not None:
         rows = [row for row in rows if row["paper_count"] >= min_papers]
     rows.sort(key=lambda item: (item["paper_count"], item["author_count"], item["name"]), reverse=True)
-    return {"total": len(rows), "limit": limit, "offset": offset, "items": rows[offset : offset + limit]}
+    return {
+        "total": len(rows), "limit": limit, "offset": offset, "items": rows[offset : offset + limit],
+        "demo_preview": demo_preview,
+        "corpus_access_mode": "unreviewed_local_demo_preview" if demo_preview else "approved_public_projection",
+    }
 
 
-def topic_card(session: Session, topic: Topic) -> dict[str, Any]:
-    public_ids = {paper.paper_id for paper in eligible_papers(session, public=True)}
+def topic_card(session: Session, topic: Topic, *, demo_preview: bool = False) -> dict[str, Any]:
+    public_ids = {paper.paper_id for paper in eligible_papers(session, public=not demo_preview)}
     paper_links = [
         link
         for link in session.exec(
             select(PaperTopic)
             .where(PaperTopic.topic_id == topic.topic_id)
-            .where(PaperTopic.review_status == "approved")
         ).all()
-        if link.paper_id in public_ids
+        if link.paper_id in public_ids and review_visible(link.review_status, demo_preview=demo_preview)
     ]
-    top_authors = public_authors_for_topic(session, paper_links)[:4]
+    top_authors = public_authors_for_topic(session, paper_links, demo_preview=demo_preview)[:4]
     sample_papers = [
         paper_summary(paper)
-        for paper in papers_for_links(session, sorted(paper_links, key=lambda item: item.score, reverse=True)[:4])
+        for paper in papers_for_links(session, sorted(paper_links, key=lambda item: item.score, reverse=True)[:4], demo_preview=demo_preview)
     ]
     return {
         "topic_id": topic.topic_id,
@@ -631,33 +661,33 @@ def topic_card(session: Session, topic: Topic) -> dict[str, Any]:
         "top_authors": top_authors,
         "sample_papers": sample_papers,
         "review_status": topic.review_status,
+        "demo_preview": demo_preview,
     }
 
 
-def topic_detail(session: Session, topic_id: str) -> dict[str, Any] | None:
+def topic_detail(session: Session, topic_id: str, *, demo_preview: bool = False) -> dict[str, Any] | None:
     topic = session.get(Topic, topic_id) or topic_by_query(session, topic_id)
-    if topic is None or topic.review_status != "approved":
+    if topic is None or not review_visible(topic.review_status, demo_preview=demo_preview):
         return None
-    public_ids = {paper.paper_id for paper in eligible_papers(session, public=True)}
+    public_ids = {paper.paper_id for paper in eligible_papers(session, public=not demo_preview)}
     paper_links = [
         link for link in session.exec(
             select(PaperTopic)
             .where(PaperTopic.topic_id == topic.topic_id)
-            .where(PaperTopic.review_status == "approved")
         ).all()
-        if link.paper_id in public_ids
+        if link.paper_id in public_ids and review_visible(link.review_status, demo_preview=demo_preview)
     ]
-    public_topic_authors = public_authors_for_topic(session, paper_links)
-    related = related_topics(session, topic.topic_id, paper_links)
+    public_topic_authors = public_authors_for_topic(session, paper_links, demo_preview=demo_preview)
+    related = related_topics(session, topic.topic_id, paper_links, demo_preview=demo_preview)
     return {
-        **topic_card(session, topic),
+        **topic_card(session, topic, demo_preview=demo_preview),
         "papers": [
             {
                 **paper_summary(paper),
                 "score": link.score,
                 "evidence": link.evidence_json,
             }
-            for link, paper in paper_link_pairs(session, sorted(paper_links, key=lambda item: item.score, reverse=True))
+            for link, paper in paper_link_pairs(session, sorted(paper_links, key=lambda item: item.score, reverse=True), demo_preview=demo_preview)
         ],
         "authors": public_topic_authors,
         "related_topics": related,
@@ -671,21 +701,26 @@ def topic_by_query(session: Session, value: str) -> Topic | None:
     return session.exec(select(Topic).where(Topic.normalized_name == normalized[0])).first()
 
 
-def related_topics(session: Session, topic_id: str, paper_links: list[PaperTopic]) -> list[dict[str, Any]]:
+def related_topics(
+    session: Session,
+    topic_id: str,
+    paper_links: list[PaperTopic],
+    *,
+    demo_preview: bool = False,
+) -> list[dict[str, Any]]:
     paper_ids = {link.paper_id for link in paper_links}
     counts: dict[str, int] = {}
     for link in session.exec(
         select(PaperTopic)
         .where(PaperTopic.paper_id.in_(list(paper_ids)))
-        .where(PaperTopic.review_status == "approved")
     ).all() if paper_ids else []:
-        if link.topic_id == topic_id:
+        if link.topic_id == topic_id or not review_visible(link.review_status, demo_preview=demo_preview):
             continue
         counts[link.topic_id] = counts.get(link.topic_id, 0) + 1
     related = []
     for other_topic_id, shared_papers in sorted(counts.items(), key=lambda item: item[1], reverse=True)[:8]:
         topic = session.get(Topic, other_topic_id)
-        if topic and topic.review_status == "approved":
+        if topic and review_visible(topic.review_status, demo_preview=demo_preview):
             related.append({"topic_id": topic.topic_id, "name": topic.name, "shared_paper_count": shared_papers})
     return related
 
@@ -697,22 +732,25 @@ def list_authors(
     topic: str | None = None,
     limit: int = 50,
     offset: int = 0,
+    demo_preview: bool = False,
 ) -> dict[str, Any]:
-    authors = list(
-        session.exec(
+    authors = [
+        author
+        for author in session.exec(
             select(Author)
-            .where(Author.identity_status == "resolved")
-            .where(Author.review_status == "approved")
-            .where(Author.identity_review_status == "approved")
             .where(Author.paper_count > 0)
             .order_by(Author.name)
         ).all()
-    )
+        if author_identity_visible(author, demo_preview=demo_preview)
+        and review_visible(author.review_status, demo_preview=demo_preview)
+        and review_visible(author.identity_review_status, demo_preview=demo_preview)
+    ]
     if q:
         needle = q.casefold()
         aliases_by_author: dict[int, list[str]] = {}
-        for alias in session.exec(select(AuthorAlias).where(AuthorAlias.review_status == "approved")).all():
-            aliases_by_author.setdefault(alias.canonical_author_id, []).append(alias.alias)
+        for alias in session.exec(select(AuthorAlias)).all():
+            if review_visible(alias.review_status, demo_preview=demo_preview):
+                aliases_by_author.setdefault(alias.canonical_author_id, []).append(alias.alias)
         authors = [
             author
             for author in authors
@@ -721,44 +759,54 @@ def list_authors(
         ]
     if topic:
         topic_record = topic_by_query(session, topic)
-        if topic_record and topic_record.review_status == "approved":
+        if topic_record and review_visible(topic_record.review_status, demo_preview=demo_preview):
             author_ids = {
                 link.author_id
                 for link in session.exec(
                     select(AuthorTopic)
                     .where(AuthorTopic.topic_id == topic_record.topic_id)
-                    .where(AuthorTopic.review_status == "approved")
                 ).all()
+                if review_visible(link.review_status, demo_preview=demo_preview)
             }
             authors = [author for author in authors if author.id in author_ids]
         else:
             authors = []
-    rows = [row for author in authors if (row := author_card(session, author))["paper_count"] > 0]
+    rows = [row for author in authors if (row := author_card(session, author, demo_preview=demo_preview))["paper_count"] > 0]
     rows.sort(key=lambda item: (item["paper_count"], item["name"]), reverse=True)
-    return {"total": len(rows), "limit": limit, "offset": offset, "items": rows[offset : offset + limit]}
+    return {
+        "total": len(rows), "limit": limit, "offset": offset, "items": rows[offset : offset + limit],
+        "demo_preview": demo_preview,
+        "corpus_access_mode": "unreviewed_local_demo_preview" if demo_preview else "approved_public_projection",
+    }
 
 
-def author_detail(session: Session, author_id: int) -> dict[str, Any] | None:
+def author_detail(session: Session, author_id: int, *, demo_preview: bool = False) -> dict[str, Any] | None:
     author = session.get(Author, author_id)
     if (
         author is None
-        or author.review_status != "approved"
-        or author.identity_review_status != "approved"
-        or author.identity_status != "resolved"
+        or not review_visible(author.review_status, demo_preview=demo_preview)
+        or not review_visible(author.identity_review_status, demo_preview=demo_preview)
+        or not author_identity_visible(author, demo_preview=demo_preview)
     ):
         return None
-    papers = authored_papers(session, author)
-    topics = top_topics_for_author(session, author)
+    papers = authored_papers(session, author, demo_preview=demo_preview)
+    topics = top_topics_for_author(session, author, demo_preview=demo_preview)
     coauthors = coauthors_for(author.canonical_name or author.name, papers)
     venues = sorted({paper.venue for paper in papers if paper.venue})
     artifacts_count = session.exec(
         select(func.count())
         .select_from(PaperArtifact)
         .where(PaperArtifact.paper_id.in_([paper.paper_id for paper in papers]))
-        .where(PaperArtifact.review_status == "approved")
     ).one() if papers else 0
+    if not demo_preview and papers:
+        artifacts_count = session.exec(
+            select(func.count())
+            .select_from(PaperArtifact)
+            .where(PaperArtifact.paper_id.in_([paper.paper_id for paper in papers]))
+            .where(PaperArtifact.review_status == "approved")
+        ).one()
     return {
-        **author_card(session, author),
+        **author_card(session, author, demo_preview=demo_preview),
         "papers": [paper_summary(paper) for paper in sorted(papers, key=lambda item: (item.year or 0, item.title), reverse=True)],
         "topics": topics,
         "coauthors": coauthors,
@@ -769,13 +817,14 @@ def author_detail(session: Session, author_id: int) -> dict[str, Any] | None:
         "review_status": author.review_status,
         "identity_review_status": author.identity_review_status,
         "identity_status": author.identity_status,
-        "aliases": author_aliases(session, author),
+        "aliases": author_aliases(session, author, demo_preview=demo_preview),
+        "demo_preview": demo_preview,
     }
 
 
-def author_card(session: Session, author: Author) -> dict[str, Any]:
-    papers = authored_papers(session, author)
-    topics = top_topics_for_author(session, author)[:5]
+def author_card(session: Session, author: Author, *, demo_preview: bool = False) -> dict[str, Any]:
+    papers = authored_papers(session, author, demo_preview=demo_preview)
+    topics = top_topics_for_author(session, author, demo_preview=demo_preview)[:5]
     recent = sorted(papers, key=lambda item: (item.year or 0, item.title), reverse=True)[:3]
     return {
         "author_id": author.id,
@@ -788,6 +837,7 @@ def author_card(session: Session, author: Author) -> dict[str, Any]:
         "identity_review_status": author.identity_review_status,
         "identity_status": author.identity_status,
         "source_basis": "Publication-derived evidence only; not an endorsement or statement of researcher availability.",
+        "demo_preview": demo_preview,
     }
 
 
@@ -801,25 +851,28 @@ def author_card_from_link(session: Session, link: AuthorTopic) -> dict[str, Any]
     }
 
 
-def authored_papers(session: Session, author: Author) -> list[Paper]:
+def authored_papers(session: Session, author: Author, *, demo_preview: bool = False) -> list[Paper]:
     names = {normalize_author_key(author.canonical_name or author.name), normalize_author_key(author.name)}
-    names.update(alias["normalized_alias"] for alias in author_aliases(session, author))
+    names.update(alias["normalized_alias"] for alias in author_aliases(session, author, demo_preview=demo_preview))
     return [
         paper
-        for paper in eligible_papers(session, public=True)
+        for paper in eligible_papers(session, public=not demo_preview)
         if any(normalize_author_key(name) in names for name in paper.authors)
     ]
 
 
-def author_aliases(session: Session, author: Author) -> list[dict[str, Any]]:
+def author_aliases(session: Session, author: Author, *, demo_preview: bool = False) -> list[dict[str, Any]]:
     if author.id is None:
         return []
-    aliases = session.exec(
-        select(AuthorAlias)
-        .where(AuthorAlias.canonical_author_id == author.id)
-        .where(AuthorAlias.review_status == "approved")
-        .order_by(AuthorAlias.alias)
-    ).all()
+    aliases = [
+        alias
+        for alias in session.exec(
+            select(AuthorAlias)
+            .where(AuthorAlias.canonical_author_id == author.id)
+            .order_by(AuthorAlias.alias)
+        ).all()
+        if review_visible(alias.review_status, demo_preview=demo_preview)
+    ]
     return [
         {
             "alias": alias.alias,
@@ -831,21 +884,21 @@ def author_aliases(session: Session, author: Author) -> list[dict[str, Any]]:
     ]
 
 
-def top_topics_for_author(session: Session, author: Author) -> list[dict[str, Any]]:
-    public_ids = {paper.paper_id for paper in authored_papers(session, author)}
+def top_topics_for_author(session: Session, author: Author, *, demo_preview: bool = False) -> list[dict[str, Any]]:
+    public_ids = {paper.paper_id for paper in authored_papers(session, author, demo_preview=demo_preview)}
     counts: dict[str, dict[str, Any]] = {}
     links = session.exec(
         select(PaperTopic)
         .where(PaperTopic.paper_id.in_(public_ids))
-        .where(PaperTopic.review_status == "approved")
     ).all() if public_ids else []
+    links = [link for link in links if review_visible(link.review_status, demo_preview=demo_preview)]
     approved_author_topics = {
         link.topic_id
         for link in session.exec(
             select(AuthorTopic)
             .where(AuthorTopic.author_id == author.id)
-            .where(AuthorTopic.review_status == "approved")
         ).all()
+        if review_visible(link.review_status, demo_preview=demo_preview)
     } if author.id is not None else set()
     for link in links:
         entry = counts.setdefault(link.topic_id, {"paper_ids": set(), "score": 0.0})
@@ -856,23 +909,28 @@ def top_topics_for_author(session: Session, author: Author) -> list[dict[str, An
         counts.items(), key=lambda item: (len(item[1]["paper_ids"]), item[1]["score"]), reverse=True
     ):
         topic = session.get(Topic, topic_id)
-        if topic and topic.review_status == "approved" and topic_id in approved_author_topics:
+        if topic and review_visible(topic.review_status, demo_preview=demo_preview) and topic_id in approved_author_topics:
             topics.append(
                 {
                     "topic_id": topic.topic_id,
                     "name": topic.name,
                     "paper_count": len(values["paper_ids"]),
                     "score": round(values["score"], 4),
-                    "evidence": {"public_paper_ids": sorted(values["paper_ids"])},
+                    "evidence": {"demo_paper_ids" if demo_preview else "public_paper_ids": sorted(values["paper_ids"])},
                 }
             )
     return topics
 
 
-def public_authors_for_topic(session: Session, paper_links: list[PaperTopic]) -> list[dict[str, Any]]:
+def public_authors_for_topic(
+    session: Session,
+    paper_links: list[PaperTopic],
+    *,
+    demo_preview: bool = False,
+) -> list[dict[str, Any]]:
     """Build topic authors solely from reviewed authorship on public papers."""
 
-    papers = papers_for_links(session, paper_links)
+    papers = papers_for_links(session, paper_links, demo_preview=demo_preview)
     counts: dict[str, int] = {}
     for paper in papers:
         for name in paper.authors:
@@ -880,25 +938,29 @@ def public_authors_for_topic(session: Session, paper_links: list[PaperTopic]) ->
             if key:
                 counts[key] = counts.get(key, 0) + 1
     rows: list[dict[str, Any]] = []
-    for author in session.exec(
-        select(Author)
-        .where(Author.review_status == "approved")
-        .where(Author.identity_review_status == "approved")
-        .where(Author.identity_status == "resolved")
-    ).all():
+    for author in session.exec(select(Author)).all():
+        if not author_identity_visible(author, demo_preview=demo_preview):
+            continue
+        if not review_visible(author.review_status, demo_preview=demo_preview) or not review_visible(
+            author.identity_review_status, demo_preview=demo_preview
+        ):
+            continue
         identity_keys = {
             normalize_author_key(author.canonical_name or author.name),
             normalize_author_key(author.name),
         }
-        identity_keys.update(alias["normalized_alias"] for alias in author_aliases(session, author))
+        identity_keys.update(alias["normalized_alias"] for alias in author_aliases(session, author, demo_preview=demo_preview))
         paper_count = sum(counts.get(key, 0) for key in identity_keys if key)
         approved_author_topic = session.exec(
             select(AuthorTopic)
             .where(AuthorTopic.author_id == author.id)
             .where(AuthorTopic.topic_id == paper_links[0].topic_id)
-            .where(AuthorTopic.review_status == "approved")
         ).first() if paper_links else None
-        if paper_count and approved_author_topic is not None:
+        if (
+            paper_count
+            and approved_author_topic is not None
+            and review_visible(approved_author_topic.review_status, demo_preview=demo_preview)
+        ):
             rows.append(
                 {
                     "author_id": author.id,
@@ -930,17 +992,25 @@ def expertise_summary(author: Author, topics: list[dict[str, Any]], papers: list
     )
 
 
-def get_related_papers(session: Session, paper_id: str, *, limit: int = 5) -> list[dict[str, Any]]:
+def get_related_papers(
+    session: Session,
+    paper_id: str,
+    *,
+    limit: int = 5,
+    demo_preview: bool = False,
+) -> list[dict[str, Any]]:
     paper = session.get(Paper, paper_id)
-    if paper is None or not is_public_content(session, paper):
+    if paper is None or (not demo_preview and not is_public_content(session, paper)):
         return []
-    all_papers = [candidate for candidate in eligible_papers(session, public=True) if candidate.paper_id != paper_id]
-    base_topics = topics_for_paper(session, paper.paper_id)
+    if demo_preview and paper.corpus_eligibility_status != "eligible":
+        return []
+    all_papers = [candidate for candidate in eligible_papers(session, public=not demo_preview) if candidate.paper_id != paper_id]
+    base_topics = topics_for_paper(session, paper.paper_id, demo_preview=demo_preview)
     base_authors = set(paper.authors)
     feature_hashing_scores = feature_hashing_related_scores(session, paper, limit=max(limit * 4, limit))
     results: list[dict[str, Any]] = []
     for candidate in all_papers:
-        candidate_topics = topics_for_paper(session, candidate.paper_id)
+        candidate_topics = topics_for_paper(session, candidate.paper_id, demo_preview=demo_preview)
         shared_topics = sorted(base_topics.intersection(candidate_topics))
         shared_authors = sorted(base_authors.intersection(candidate.authors))
         reasons: list[str] = []
@@ -981,6 +1051,7 @@ def get_related_papers(session: Session, paper_id: str, *, limit: int = 5) -> li
                 "shared_topics": [display_topic_name(session, topic_id) for topic_id in shared_topics],
                 "shared_authors": shared_authors,
                 "source_basis": sorted(set(source_basis)),
+                "demo_preview": demo_preview,
             }
         )
     return sorted(results, key=lambda item: (item["score"], item["year"] or 0, item["title"]), reverse=True)[:limit]
@@ -999,14 +1070,14 @@ def feature_hashing_related_scores(session: Session, paper: Paper, *, limit: int
     return scores
 
 
-def topics_for_paper(session: Session, paper_id: str) -> set[str]:
+def topics_for_paper(session: Session, paper_id: str, *, demo_preview: bool = False) -> set[str]:
     return {
         link.topic_id
         for link in session.exec(
             select(PaperTopic)
             .where(PaperTopic.paper_id == paper_id)
-            .where(PaperTopic.review_status == "approved")
         ).all()
+        if review_visible(link.review_status, demo_preview=demo_preview)
     }
 
 
@@ -1020,17 +1091,22 @@ def token_set(value: str) -> set[str]:
     return {token.lower() for token in re.findall(r"[a-zA-Z0-9]+", value) if len(token) > 3}
 
 
-def paper_link_pairs(session: Session, links: list[PaperTopic]) -> list[tuple[PaperTopic, Paper]]:
+def paper_link_pairs(
+    session: Session,
+    links: list[PaperTopic],
+    *,
+    demo_preview: bool = False,
+) -> list[tuple[PaperTopic, Paper]]:
     pairs: list[tuple[PaperTopic, Paper]] = []
     for link in links:
         paper = session.get(Paper, link.paper_id)
-        if paper and is_public_metadata(paper):
+        if paper and (demo_preview or is_public_metadata(paper)):
             pairs.append((link, paper))
     return pairs
 
 
-def papers_for_links(session: Session, links: list[PaperTopic]) -> list[Paper]:
-    return [paper for _link, paper in paper_link_pairs(session, links)]
+def papers_for_links(session: Session, links: list[PaperTopic], *, demo_preview: bool = False) -> list[Paper]:
+    return [paper for _link, paper in paper_link_pairs(session, links, demo_preview=demo_preview)]
 
 
 def paper_summary(paper: Paper) -> dict[str, Any]:

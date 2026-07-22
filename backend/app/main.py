@@ -26,7 +26,9 @@ from app.indexing.embedder import (
     index_diagnostics,
     validate_present_authoritative_indexes,
 )
+from app.indexing.dense_runtime import dense_runtime_diagnostics, warm_dense_provider
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
+from app.indexing.vector_store import cached_vector_search_context
 from app.middleware import (
     PublicGenerationConcurrencyMiddleware,
     PublicRateLimitMiddleware,
@@ -34,6 +36,7 @@ from app.middleware import (
     SecurityHeadersMiddleware,
 )
 from app.security import operational_boundary_diagnostics, validate_security_configuration
+from app.publication import local_demo_corpus_preview_enabled
 
 settings = get_settings()
 
@@ -42,8 +45,19 @@ settings = get_settings()
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     validate_security_configuration(settings)
     create_db_and_tables()
+    dense_index_ready = False
     with Session(engine) as session:
         validate_present_authoritative_indexes(session)
+        dense = index_diagnostics(session, DENSE_INDEX_PATH, DENSE_PROVIDER)
+        dense_index_ready = dense.get("status") == "ready" and dense.get("completeness_status") == "complete"
+    if local_demo_corpus_preview_enabled(settings) and dense_index_ready:
+        # Load the learned encoder before declaring the demo API ready. Importing
+        # PyTorch in the 4 GiB WSL baseline can monopolize the process briefly;
+        # accepting requests during that cold load made Dense mode look frozen.
+        warm_dense_provider()
+        if dense_runtime_diagnostics()["state"] == "ready":
+            with Session(engine) as session:
+                cached_vector_search_context(session, provider_name=DENSE_PROVIDER, index_path=DENSE_INDEX_PATH)
     yield
 
 
@@ -103,6 +117,9 @@ def root() -> dict[str, str]:
         "admin_authentication": "insecure_local_demo_bypass"
         if settings.security_mode == "local_demo" and settings.allow_insecure_local_demo
         else "bearer_token_required",
+        "corpus_access_mode": "unreviewed_local_demo_preview"
+        if local_demo_corpus_preview_enabled(settings)
+        else "approved_public_projection",
         "frontend": settings.frontend_url,
         "api_docs": "/docs" if settings.security_mode == "local_demo" else "disabled",
         "health": "/health",

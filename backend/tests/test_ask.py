@@ -6,6 +6,8 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.db import get_session
+from app.api.ask import AskRequest, ask
+from app.api.papers import list_papers
 from app.config import Settings
 from app.indexing.keyword_search import rebuild_keyword_index
 from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
@@ -447,6 +449,62 @@ def test_public_ask_provenance_does_not_disclose_hidden_technical_corpus() -> No
     assert provenance["retrieval_identity"]["scope"] == "public"
     assert all(item["corpus_snapshot_hash"] is None for item in provenance["retrieval_identity"]["indexes"])
     assert all(item.get("index_sha256") is None for item in provenance["retrieval_identity"]["indexes"])
+
+
+def test_explicit_local_demo_preview_can_ask_hidden_technical_corpus() -> None:
+    local_engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(local_engine)
+    with Session(local_engine) as session:
+        paper = Paper(
+            paper_id="demo-technical",
+            title="Demo Technical Paper",
+            corpus_eligibility_status="eligible",
+            extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_count=1,
+        )
+        chunk = Chunk(
+            chunk_id="demo-technical-c1",
+            paper_id=paper.paper_id,
+            chunk_index=0,
+            text="Retrieval augmented generation grounds answers in cited source passages.",
+            word_count=9,
+            source_hash="demo-hash",
+            extraction_generation_id=EXTRACTION_GENERATION,
+        )
+        session.add(paper)
+        session.add(chunk)
+        session.flush()
+        paper.chunk_generation_id = canonical_chunks_sha256(db_chunk_payload([chunk]))
+        session.add(paper)
+        session.commit()
+        rebuild_keyword_index(session)
+
+    settings = Settings(
+        allow_insecure_local_demo=True,
+        demo_corpus_preview=True,
+    )
+    with Session(local_engine) as session:
+        papers = list_papers(session, settings)
+        posted = ask(
+            AskRequest(
+                question="Which paper discusses retrieval augmented generation?",
+                mode="keyword",
+                provider="offline_extractive",
+                paper_id="demo-technical",
+            ),
+            session,
+            settings,
+        )
+
+    assert papers[0]["demo_preview"] is True
+    assert posted["demo_preview"] is True
+    assert posted["retrieval_metadata"]["retrieval_scope"] == "technical"
+    assert posted["citations"][0]["paper_id"] == "demo-technical"
 
 
 def test_llm_api_lists_local_models(monkeypatch) -> None:

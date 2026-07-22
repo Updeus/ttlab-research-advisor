@@ -15,9 +15,10 @@ type MetricItem = {
 };
 
 export function Dashboard({ stats, papers }: DashboardProps) {
+  const demoPreview = stats?.corpus_access_mode === "unreviewed_local_demo_preview" || papers.some((paper) => paper.demo_preview);
   const withPdf = stats?.with_pdf_url ?? papers.filter((paper) => paper.pdf_url).length;
   const primaryMetrics: MetricItem[] = [
-    { label: "Published papers", value: stats?.papers ?? papers.length, note: "approved public catalogue", tone: "primary" },
+    { label: demoPreview ? "Demo catalogue" : "Published papers", value: stats?.papers ?? papers.length, note: demoPreview ? "unreviewed local preview" : "approved public catalogue", tone: "primary" },
     { label: "Extracted PDFs", value: stats?.extracted_pdfs ?? papers.filter((paper) => paper.pdf_text_status === "extracted").length, note: "full papers with text" },
     { label: "Searchable chunks", value: stats?.searchable_chunks ?? stats?.total_chunks ?? 0, note: "indexed source passages" },
     { label: "Topics", value: stats?.topic_count ?? 0, note: `${stats?.author_count ?? 0} authors indexed` },

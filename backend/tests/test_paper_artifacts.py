@@ -4,6 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
+from app.api.artifacts import get_artifacts_for_paper
+from app.config import Settings
 from app.db import get_session
 from app.evaluation.artifact_eval import citation_coverage_percentage, evaluate_case
 from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
@@ -232,6 +234,34 @@ def test_artifact_api_endpoints_and_batch_limit_work() -> None:
     assert diagnostics.json()["total_artifacts"] >= 2
     assert batch.status_code == 200
     assert batch.json()["processed"] == 1
+
+
+def test_demo_can_read_unreviewed_generated_artifacts() -> None:
+    session, engine = build_artifact_session()
+    session.add(
+        PaperArtifact(
+            artifact_id="demo-draft-summary",
+            paper_id="artifact-paper",
+            artifact_type="public_summary",
+            generated_json={"text": "Draft demo summary"},
+            generated_text="Draft demo summary",
+            review_status="needs_review",
+            warnings_json=[],
+        )
+    )
+    session.commit()
+    session.close()
+
+    with Session(engine) as demo_session:
+        response = get_artifacts_for_paper(
+            "artifact-paper",
+            demo_session,
+            Settings(allow_insecure_local_demo=True, demo_corpus_preview=True),
+        )
+
+    assert response
+    assert response[0]["demo_preview"] is True
+    assert "may not be reviewed" in response[0]["warnings"][-1]
 
 
 def test_artifact_eval_calculates_citation_coverage() -> None:

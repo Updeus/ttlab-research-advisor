@@ -13,8 +13,22 @@ from app.db import create_db_and_tables, engine
 from app.indexing.retriever import RetrievalScope, retrieve
 from app.intelligence.citation_verifier import verify_citations
 from app.intelligence.llm_provider import external_provider_available, get_provider
-from app.models import RAGAnswer
+from app.models import Paper, RAGAnswer
 from app.runtime_provenance import build_runtime_provenance
+
+GENERIC_PAPER_SCOPE_TERMS = {
+    "about",
+    "contribution",
+    "contributions",
+    "describe",
+    "findings",
+    "main",
+    "paper",
+    "say",
+    "says",
+    "summary",
+    "summarize",
+}
 
 
 def utc_now() -> datetime:
@@ -36,9 +50,21 @@ def ask_question(
     retrieval_scope: RetrievalScope = "public",
     provider_settings: Settings | None = None,
 ) -> dict[str, Any]:
+    retrieval_question = question
+    scoped_paper = session.get(Paper, paper_id) if paper_id else None
+    generic_paper_scope = False
+    if scoped_paper is not None:
+        scoped_terms = source_query_terms(question)
+        if not scoped_terms or scoped_terms.issubset(GENERIC_PAPER_SCOPE_TERMS):
+            generic_paper_scope = True
+            retrieval_question = (
+                f"{scoped_paper.title} abstract conclusion discussion results performance contribution"
+            )
+        else:
+            retrieval_question = f"{question} {scoped_paper.title}"
     retrieval = retrieve(
         session,
-        question,
+        retrieval_question,
         mode=mode,
         top_k=top_k,
         paper_id=paper_id,
@@ -47,12 +73,24 @@ def ask_question(
     )
     retrieved_chunks = [format_retrieved_chunk(result) for result in retrieval["results"]]
     warnings = list(retrieval.get("warnings", []))
-    answerability = assess_answerability(question, retrieval["results"], paper_id=paper_id)
+    answerability = assess_answerability(
+        "" if generic_paper_scope else question,
+        retrieval["results"],
+        paper_id=paper_id,
+    )
     response_retrieval_metadata = {
         "expanded_query": retrieval.get("expanded_query"),
         "query_expansions": retrieval.get("query_expansions", []),
         "retrieval_strategy": retrieval.get("retrieval_strategy", "explicit_config_v1"),
         "retrieval_scope": retrieval_scope,
+        **(
+            {
+                "paper_scope_query_augmented": True,
+                "generic_paper_scope": generic_paper_scope,
+            }
+            if scoped_paper is not None
+            else {}
+        ),
     }
     if not retrieved_chunks or not answerability["answerable"]:
         answer = build_unsupported_answer(
@@ -459,6 +497,7 @@ def ask_diagnostics(session: Session, settings: Settings | None = None) -> dict[
     configured = settings or get_settings()
     allowed = [provider.strip().lower() for provider in configured.allowed_llm_providers]
     pinned_models = sorted(configured.ollama_allowed_model_digests)
+    allow_all_local = configured.all_local_ollama_models_enabled
     return {
         "total_stored_answers": None,
         "grounded_answers": None,
@@ -479,11 +518,20 @@ def ask_diagnostics(session: Session, settings: Settings | None = None) -> dict[
                 "configured_model": configured.ollama_default_model,
                 "configured_model_pinned": configured.ollama_default_model in pinned_models,
                 "pinned_model_count": len(pinned_models),
-                "identity_scope": "configured_digest_with_per_generation_attestation_state",
+                "model_policy": "all_installed_local_models" if allow_all_local else "pinned_digest_only",
+                "identity_scope": (
+                    "installed_digest_observed_per_generation"
+                    if allow_all_local
+                    else "configured_digest_with_per_generation_attestation_state"
+                ),
             },
         },
         "external_provider_available": external_provider_available(configured),
-        "external_provider_availability_scope": "configured_pinned_model_not_runtime_reachability",
+        "external_provider_availability_scope": (
+            "local_demo_all_installed_models_not_runtime_reachability"
+            if allow_all_local
+            else "configured_pinned_model_not_runtime_reachability"
+        ),
         "last_answer_timestamp": None,
         "scope": "public",
     }

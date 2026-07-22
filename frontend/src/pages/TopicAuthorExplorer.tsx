@@ -193,6 +193,11 @@ export function TopicAuthorExplorer({ onSelectPaper, initialTab = "overview", in
       <p className="notice">
         Topic and author relationships are deterministic and source-derived from indexed papers, chunks, and artifacts. They are not manually verified unless reviewed.
       </p>
+      {overview?.demo_preview ? (
+        <p className="notice notice--warning" data-demo-preview="true">
+          Local demo corpus: unreviewed topic, author, and related-paper links are visible here for demonstration. Review status remains shown on each record.
+        </p>
+      ) : null}
       {error ? (
         <div className="notice notice--error" role="alert">
           <p>{error}</p>

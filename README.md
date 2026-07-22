@@ -196,6 +196,23 @@ The one-command loopback demo is:
 ./scripts/run_everything.sh
 ```
 
+After the first setup, use the fast demo launcher to start or reuse Ollama,
+the backend, and the frontend without reinstalling, preparing, or verifying:
+
+```bash
+./scripts/start_demo.sh
+```
+
+The explicit loopback demo accepts every model already installed in Ollama.
+Production mode continues to require `TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS`.
+When a complete learned-dense index is present, the local demo preloads its
+encoder before the backend reports ready. On the documented 4 GiB WSL baseline,
+the first launch can spend up to about two minutes on this cold start; dense
+requests then avoid that model-load stall.
+
+Open `http://127.0.0.1:5173` and keep the launcher terminal open. Press
+`Ctrl+C` to stop services started by the script.
+
 Useful variants:
 
 ```bash
@@ -207,13 +224,25 @@ Useful variants:
 
 The launcher binds locally and opts into a clearly labeled insecure demo admin
 bypass. Responses carry `X-TTLAB-Insecure-Demo: true`. Never enable this bypass
-in production. Direct backend startup is fail-closed for protected routes unless
-environment-configured reviewer/admin actors are supplied.
+in production. In this loopback-only mode all interactive product screens use a
+clearly labeled preview of the technically eligible corpus: Dashboard, Paper
+Browser, Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer,
+related papers, generated summaries/podcast scripts, Evaluation, and Admin
+review. Draft artifacts and graph links remain visibly labeled with their review
+status; enabling the demo does not rewrite stored publication or rights decisions.
+The local operator is treated as the human demo administrator so review,
+correction, approval, and publication controls can be demonstrated. Live PDF
+acquisition and ingestion still run only through the isolated offline-worker
+commands below, not through the API process. Direct backend startup remains
+fail-closed unless environment-configured reviewer/admin actors are supplied.
 
 Prepare a bounded UI dataset separately:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
+TTLAB_SERVICE_ROLE=offline_worker \
+  TTLAB_SYNC_EXECUTION_MODE=offline_single_writer \
+  PYTHONPATH=backend \
+  .venv/bin/python -m app.demo.prepare_demo --limit 25
 ```
 
 The bounded feature-hashing output is isolated under `data/indexes/demo/` and

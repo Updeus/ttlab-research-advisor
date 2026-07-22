@@ -157,6 +157,11 @@ export function App() {
 
       <p className="sr-only" role="status" aria-live="polite">{titleForPath(location.pathname)} view loaded</p>
       <main id="main-content" ref={mainRef} tabIndex={-1}>
+        {serviceStatus?.corpus_access_mode === "unreviewed_local_demo_preview" ? (
+          <p className="notice notice--warning" role="status">
+            Local demonstration preview: catalogue and Ask use technically eligible records that may still require metadata, extraction, publication, or rights review.
+          </p>
+        ) : null}
         {loading ? <InitialAppSkeleton /> : null}
         {!loading && paperError ? (
           <section className="page-section" aria-labelledby="startup-error-title">

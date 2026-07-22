@@ -12,13 +12,14 @@ import httpx
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
+from starlette.requests import Request
 from sqlalchemy import text
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import Settings, get_settings
-from app.api.admin import admin_review_lock, admin_review_lock_path, serialize_admin_review_requests
+from app.api.admin import actor_capabilities, admin_review_lock, admin_review_lock_path, serialize_admin_review_requests
 from app.db import get_session
 from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.ingestion.pdf_downloader import DownloadRecord, download_pdfs, validate_remote_pdf_url
@@ -26,7 +27,7 @@ from app.ingestion.pdf_parser import extract_pdf_text, safe_output_path
 from app.main import app, readiness_index_checks
 from app.middleware import PublicGenerationConcurrencyMiddleware, PublicRateLimitMiddleware
 from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
-from app.security import parse_actor_records, validate_security_configuration
+from app.security import get_current_actor, parse_actor_records, validate_security_configuration
 
 # Obvious deterministic fixtures, never deployment credentials.
 ADMIN_TOKEN = "TEST_ONLY_ADMIN_" + ("a" * 32)
@@ -76,6 +77,35 @@ def offline_worker_security_settings() -> Settings:
             "sync_execution_mode": "offline_single_writer",
         }
     )
+
+
+def test_loopback_demo_actor_can_use_full_human_review_workflow() -> None:
+    settings = Settings(
+        allow_insecure_local_demo=True,
+        demo_corpus_preview=True,
+    )
+    request = Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "scheme": "http",
+            "path": "/api/admin/capabilities",
+            "raw_path": b"/api/admin/capabilities",
+            "query_string": b"",
+            "headers": [],
+            "client": ("127.0.0.1", 41234),
+            "server": ("127.0.0.1", 8000),
+        }
+    )
+    request.state.request_id = "demo-test"
+    actor = get_current_actor(request, None, settings)
+    payload = actor_capabilities(actor, settings)
+
+    assert payload["actor"]["local_demo_bypass"] is True
+    assert payload["actor"]["reviewer_type"] == "human"
+    assert payload["capabilities"]["approve_or_reject"] is True
+    assert payload["capabilities"]["set_publication_and_rights"] is True
+    assert payload["capabilities"]["trigger_ingestion"] is False
 
 
 def build_security_engine():

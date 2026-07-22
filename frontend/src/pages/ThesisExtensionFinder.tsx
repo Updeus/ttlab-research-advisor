@@ -70,6 +70,8 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
 
   const publicCorpusEmpty = diagnostics !== null
     && (diagnostics.searchable_chunks === 0 || diagnostics.searchable_papers === 0);
+  const demoPreview = diagnostics?.demo_preview === true
+    || diagnostics?.corpus_access_mode === "unreviewed_local_demo_preview";
 
   function updateRequest(update: Partial<ExtensionFinderRequest>) {
     setRequest((current) => ({ ...current, ...update }));
@@ -136,9 +138,15 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
       <p className="notice">
         Privacy: interests, skills, timeline, constraints, and preferences stay in this page and are sent only for the current request. The public endpoint does not save the profile. Do not enter confidential or personal data.
       </p>
-      <p className="notice">
-        Finder evidence comes only from approved public papers with cleared rights, searchable access, and eligible extracted text. Metadata-only catalogue records are excluded.
-      </p>
+      {demoPreview ? (
+        <p className="notice notice--warning" data-demo-preview="true">
+          Local demo corpus: the Finder can use all technically eligible extracted papers. Some records and outputs may still need editorial, rights, or publication review.
+        </p>
+      ) : (
+        <p className="notice">
+          Finder evidence comes only from approved public papers with cleared rights, searchable access, and eligible extracted text. Metadata-only catalogue records are excluded.
+        </p>
+      )}
 
       <div className="finder-panel finder-panel--advisor" aria-busy={loading}>
         <div className="finder-sections">
@@ -265,8 +273,10 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
       {publicCorpusEmpty ? (
         <div id="finder-public-corpus-empty" data-finder-public-corpus-state="empty">
           <EmptyState
-            title="No papers are approved for public Finder recommendations yet"
-            body="The public Finder remains disabled until editorial publication, document-rights, extraction, and searchable-access review produce an eligible public corpus. Reviewer-only technical prototype evidence is not substituted into this public route."
+            title={demoPreview ? "No technically eligible paper text is indexed yet" : "No papers are approved for public Finder recommendations yet"}
+            body={demoPreview
+              ? "Run local demo preparation for at least one PDF, then retry diagnostics. The Finder needs extracted, generation-bound chunks."
+              : "The public Finder remains disabled until editorial publication, document-rights, extraction, and searchable-access review produce an eligible public corpus. Reviewer-only technical prototype evidence is not substituted into this public route."}
           />
         </div>
       ) : null}
@@ -305,7 +315,7 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
             </p>
             <h3>Recommendation Run</h3>
             <p>
-              Generated {result.payload.recommendations.length} transient structured recommendations from indexed TTLAB source chunks. This public run was not saved or human-reviewed.
+              Generated {result.payload.recommendations.length} transient structured recommendations from indexed TTLAB source chunks. This {result.payload.demo_preview ? "local demo" : "public"} run was not saved or human-reviewed.
             </p>
           </article>
 
@@ -323,7 +333,9 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
             {result.payload.recommendations.length === 0 ? (
               <EmptyState
                 title="No cited recommendation could be generated"
-                body="Try broader interests. Recommendations use only approved public papers with searchable source evidence."
+                body={result.payload.demo_preview
+                  ? "Try broader interests. Recommendations use technically eligible local demo papers with searchable source evidence."
+                  : "Try broader interests. Recommendations use only approved public papers with searchable source evidence."}
               />
             ) : null}
           </div>

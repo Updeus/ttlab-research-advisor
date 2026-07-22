@@ -135,6 +135,10 @@ def validate_security_configuration(settings: Settings) -> None:
     if settings.security_mode == "production":
         if settings.allow_insecure_local_demo:
             raise ValueError("Production cannot enable insecure local-demo authentication bypass")
+        if settings.demo_corpus_preview:
+            raise ValueError("Production cannot expose the unreviewed local-demo corpus preview")
+        if settings.ollama_allow_all_local_models:
+            raise ValueError("Production cannot allow unpinned Ollama models")
         if not records or not any(record.active and record.role == "admin" for record in records):
             raise ValueError("Production requires at least one active environment-configured admin actor")
         if not settings.public_base_url or not settings.public_base_url.startswith("https://"):
@@ -235,7 +239,10 @@ def get_current_actor(
                     actor_id="local-demo-bypass",
                     display_name="Insecure local demo",
                     role="admin",
-                    reviewer_type="service",
+                    # Explicit loopback demo mode represents the person at the
+                    # local machine so the complete review workflow is usable.
+                    # Production still requires an authenticated human actor.
+                    reviewer_type="human",
                     request_id=request_id,
                     local_demo_bypass=True,
                 ),

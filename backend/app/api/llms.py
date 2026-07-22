@@ -29,7 +29,14 @@ def local_llms() -> dict[str, object]:
     if not payload.get("generation_available"):
         public_warnings.insert(
             0,
-            "No digest-verified local generation model is currently usable; Ask TTLAB defaults to the offline extractive provider.",
+            "No installed local Ollama model is currently usable; Ask TTLAB defaults to the offline extractive provider."
+            if payload.get("model_policy") == "all_installed_local_models"
+            else "No digest-verified local generation model is currently usable; Ask TTLAB defaults to the offline extractive provider.",
+        )
+    elif payload.get("model_policy") == "all_installed_local_models":
+        public_warnings.insert(
+            0,
+            "Local demo policy allows every model installed in Ollama; these models are not required to have configured digest pins.",
         )
     payload["warnings"] = public_warnings
     return redact_local_paths(payload)

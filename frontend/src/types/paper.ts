@@ -21,13 +21,14 @@ export type Paper = {
   ocr_review_required: boolean;
   corpus_eligibility_status: string;
   corpus_exclusion_reason: string | null;
-  publication_status: "published";
-  rights_status: "cleared";
-  public_access_level: "metadata_only" | "searchable";
+  publication_status: "pending_review" | "published" | "hidden";
+  rights_status: "unknown" | "cleared" | "restricted";
+  public_access_level: "hidden" | "metadata_only" | "searchable";
   pdf_title_match_status: string;
   page_count: number | null;
   chunk_count: number;
-  review_status: "approved";
+  review_status: ReviewStatus;
+  demo_preview?: boolean;
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
@@ -75,6 +76,7 @@ export type Stats = {
   top_topics: [string, number][];
   recent_papers: Paper[];
   evaluation_status: string;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type ExtractionDiagnostics = {
@@ -190,7 +192,8 @@ export type SearchResponse = {
   vector_provider: string | null;
   retrieval_strategy: string;
   retriever_config: RetrieverConfig;
-  retrieval_scope: "public";
+  retrieval_scope: "public" | "technical";
+  demo_preview?: boolean;
 };
 
 export type SearchDiagnostics = {
@@ -211,6 +214,7 @@ export type SearchDiagnostics = {
   keyword: IndexDiagnostics;
   feature_hashing: IndexDiagnostics;
   dense: IndexDiagnostics;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type AskRequest = {
@@ -283,7 +287,7 @@ export type AskResponse = {
     expanded_query: string | null;
     query_expansions: string[];
     retrieval_strategy: string;
-    retrieval_scope: "public";
+    retrieval_scope: "public" | "technical";
   };
   generation_metadata: Record<string, unknown>;
   answerability: {
@@ -312,6 +316,7 @@ export type AskResponse = {
   }>;
   runtime_provenance: Record<string, unknown>;
   source_text_delivery: "bounded_snippets_only";
+  demo_preview?: boolean;
   warnings: string[];
   unsupported_claims: string[];
   created_at: string;
@@ -323,6 +328,7 @@ export type AskDiagnostics = {
   partial_answers: null;
   unsupported_answers: null;
   default_provider: string;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
   history_counts_visibility: string;
   history_counts_observed: false;
   allowed_providers: string[];
@@ -345,6 +351,12 @@ export type AskDiagnostics = {
   keyword_index: IndexDiagnostics;
   feature_hashing_index: IndexDiagnostics;
   dense_index: IndexDiagnostics;
+  dense_provider?: {
+    state: "idle" | "warming" | "ready" | "unavailable";
+    started_at: string | null;
+    ready_at: string | null;
+    elapsed_seconds: number | null;
+  };
 };
 
 export type LocalLlmBenchmarkSummary = {
@@ -391,6 +403,7 @@ export type LocalLlmStatus = {
   }[];
   benchmark: Record<string, unknown> | null;
   warnings: string[];
+  model_policy?: "all_installed_local_models" | "pinned_digest_only";
 };
 
 export type ExtensionFinderRequest = {
@@ -491,6 +504,8 @@ export type ExtensionFinderResponse = {
   reviewed_by?: string | null;
   corrected_recommendations_json?: Record<string, unknown>;
   created_at: string;
+  demo_preview?: boolean;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type ExtensionDiagnostics = {
@@ -503,6 +518,9 @@ export type ExtensionDiagnostics = {
   searchable_papers: number;
   default_provider: string;
   last_recommendation_timestamp: string | null;
+  scope?: "public" | "technical_demo" | string;
+  demo_preview?: boolean;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type ArtifactCitation = {
@@ -600,6 +618,8 @@ export type PaperArtifact = {
   warnings: string[];
   created_at?: string;
   updated_at?: string;
+  demo_preview?: boolean;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type GenerateArtifactsResponse = {
@@ -1016,6 +1036,7 @@ export type TopicSummary = {
   top_authors: AuthorSummary[];
   sample_papers: PaperSummary[];
   review_status: string;
+  demo_preview?: boolean;
 };
 
 export type TopicDetail = TopicSummary & {
@@ -1059,6 +1080,8 @@ export type ExplorerOverview = {
   top_authors: AuthorSummary[];
   recent_papers: PaperSummary[];
   explorer_index_status: "ready" | "empty" | string;
+  demo_preview?: boolean;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type ServiceStatus = {
@@ -1070,6 +1093,7 @@ export type ServiceStatus = {
   api_docs: string;
   health: string;
   readiness: string;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type PaginatedTopics = {
@@ -1077,6 +1101,8 @@ export type PaginatedTopics = {
   limit: number;
   offset: number;
   items: TopicSummary[];
+  demo_preview?: boolean;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type PaginatedAuthors = {
@@ -1084,6 +1110,8 @@ export type PaginatedAuthors = {
   limit: number;
   offset: number;
   items: AuthorSummary[];
+  demo_preview?: boolean;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
 };
 
 export type RelatedPaper = PaperSummary & {

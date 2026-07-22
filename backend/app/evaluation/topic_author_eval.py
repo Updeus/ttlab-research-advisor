@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import importlib.metadata
 import json
@@ -32,6 +33,10 @@ from app.intelligence.topic_explorer import (
     topic_candidates_for_paper,
 )
 from app.models import Author, AuthorAlias, AuthorTopic, Paper, PaperTopic
+from data.evaluation.validate_topic_author_silver_v1 import (
+    BINDING_RECEIPT,
+    validate as validate_topic_silver_binding,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 DATASET = ROOT / "data/evaluation/topic_author_silver_v1.jsonl"
@@ -40,6 +45,7 @@ DATABASE = ROOT / "data/papers.db"
 DENSE_INDEX = ROOT / "data/indexes/dense_embeddings.json"
 DENSE_MANIFEST = ROOT / "data/indexes/dense_embeddings.manifest.json"
 OUTPUT_DIR = ROOT / "artifacts/phase4/topic_author"
+CURRENT_BINDING_RECEIPT = BINDING_RECEIPT
 UNKNOWN = "other/unknown"
 BOOTSTRAP_SEED = 94017
 BOOTSTRAP_SAMPLES = 2000
@@ -57,6 +63,16 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def display_path(path: Path) -> str:
+    """Record repository-relative paths where possible without rejecting explicit external inputs."""
+
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(ROOT.resolve()))
+    except ValueError:
+        return str(resolved)
+
+
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
@@ -68,6 +84,68 @@ def label_universe(cases: list[dict[str, Any]]) -> list[str]:
 def expected_labels(case: dict[str, Any]) -> set[str]:
     labels = set(case["final_labels"])
     return labels or {UNKNOWN}
+
+
+def rebind_cases_to_current_corpus(
+    cases: list[dict[str, Any]],
+    binding_receipt: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Apply only validator-attested source-locator migrations in memory."""
+
+    bindings = binding_receipt["current_case_binding"]["case_bindings"]
+    by_key = {(item["case_id"], item["frozen_chunk_id"]): item for item in bindings}
+    if len(by_key) != len(bindings):
+        raise RuntimeError("Topic silver binding receipt has duplicate case/chunk entries")
+    rebound = copy.deepcopy(cases)
+    consumed: set[tuple[str, str]] = set()
+    for case in rebound:
+        chunk_map: dict[str, str] = {}
+        for evidence in case["evidence"]:
+            if evidence["evidence_type"] != "source_chunk":
+                continue
+            frozen_id = str(evidence["chunk_id"])
+            key = (case["case_id"], frozen_id)
+            binding = by_key.get(key)
+            if binding is None:
+                raise RuntimeError(f"Missing validated current source binding for {case['case_id']} / {frozen_id}")
+            if binding["paper_id"] != case["paper_id"]:
+                raise RuntimeError(f"Cross-paper current source binding for {case['case_id']}")
+            if binding["frozen_source_hash"] != evidence["source_hash"]:
+                raise RuntimeError(f"Frozen source hash mismatch in binding for {case['case_id']}")
+            if not binding["persisted_excerpt_exact_match"]:
+                raise RuntimeError(f"Unverified source excerpt binding for {case['case_id']}")
+            chunk_map[frozen_id] = binding["current_chunk_id"]
+            evidence["frozen_chunk_id"] = frozen_id
+            evidence["frozen_source_hash"] = evidence["source_hash"]
+            evidence["chunk_id"] = binding["current_chunk_id"]
+            evidence["source_hash"] = binding["current_source_hash"]
+            evidence["binding_resolution"] = binding["resolution"]
+            consumed.add(key)
+        case["label_evidence"] = {
+            label: [chunk_map.get(locator, locator) for locator in locators]
+            for label, locators in case["label_evidence"].items()
+        }
+    if consumed != set(by_key):
+        raise RuntimeError("Topic silver binding receipt contains unconsumed source entries")
+    return rebound
+
+
+def consume_current_binding_receipt(
+    cases: list[dict[str, Any]],
+    receipt_path: Path = CURRENT_BINDING_RECEIPT,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Revalidate and consume a deterministic current-corpus binding receipt."""
+
+    if not receipt_path.exists():
+        raise RuntimeError(
+            "Current topic-silver binding receipt is absent; run "
+            "data/evaluation/validate_topic_author_silver_v1.py first"
+        )
+    recorded = json.loads(receipt_path.read_text(encoding="utf-8"))
+    live = validate_topic_silver_binding(output_json=None)
+    if canonical_bytes(recorded) != canonical_bytes(live):
+        raise RuntimeError("Current topic-silver binding receipt is stale or does not match the active corpus")
+    return rebind_cases_to_current_corpus(cases, recorded), recorded
 
 
 def lexical_predictions(session: Session, cases: list[dict[str, Any]]) -> tuple[dict[str, set[str]], dict[str, dict[str, float]]]:
@@ -88,11 +166,12 @@ def lexical_predictions(session: Session, cases: list[dict[str, Any]]) -> tuple[
 def dense_predictions(
     session: Session,
     cases: list[dict[str, Any]],
+    binding_receipt: dict[str, Any],
 ) -> tuple[dict[str, set[str]], dict[str, dict[str, float]], dict[str, Any]]:
     manifest = json.loads(DENSE_MANIFEST.read_text(encoding="utf-8"))
-    silver_manifest = json.loads(SILVER_MANIFEST.read_text(encoding="utf-8"))
-    if manifest["corpus"]["snapshot_hash"] != silver_manifest["corpus"]["snapshot_hash"]:
-        raise RuntimeError("Dense index and silver corpus snapshots differ")
+    current_execution_corpus = binding_receipt["current_execution_corpus"]
+    if manifest["corpus"]["snapshot_hash"] != current_execution_corpus["snapshot_hash"]:
+        raise RuntimeError("Dense index and validated current-execution corpus snapshots differ")
     if sha256_file(DENSE_INDEX) != manifest["index"]["sha256"]:
         raise RuntimeError("Dense index checksum differs from its authoritative manifest")
     payload = json.loads(DENSE_INDEX.read_text(encoding="utf-8"))
@@ -151,6 +230,9 @@ def dense_predictions(
         "max_labels": 6,
         "threshold_trials": trials,
         "test_labels_not_used_for_selection": True,
+        "frozen_annotation_corpus": binding_receipt["frozen_annotation_corpus"],
+        "current_execution_corpus": current_execution_corpus,
+        "source_binding": "validated exact IDs plus unique locator fallback with exact persisted-excerpt match",
     }
     return predictions, rounded_scores, config
 
@@ -398,8 +480,12 @@ def git_commit() -> str:
     return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.strip()
 
 
-def run(output_dir: Path = OUTPUT_DIR) -> dict[str, Any]:
-    cases = load_jsonl(DATASET)
+def run(
+    output_dir: Path = OUTPUT_DIR,
+    binding_receipt_path: Path = CURRENT_BINDING_RECEIPT,
+) -> dict[str, Any]:
+    frozen_cases = load_jsonl(DATASET)
+    cases, binding_receipt = consume_current_binding_receipt(frozen_cases, binding_receipt_path)
     labels = label_universe(cases)
     output_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="ttlab-topic-eval-") as directory:
@@ -409,7 +495,7 @@ def run(output_dir: Path = OUTPUT_DIR) -> dict[str, Any]:
         with Session(disposable_engine) as session:
             rebuild_summary = rebuild_topic_index(session)
             lexical, lexical_scores = lexical_predictions(session, cases)
-            dense, dense_scores, dense_config = dense_predictions(session, cases)
+            dense, dense_scores, dense_config = dense_predictions(session, cases, binding_receipt)
             author_audit = audit_authors(session)
     metrics: dict[str, Any] = {
         "schema_version": 1,
@@ -417,6 +503,13 @@ def run(output_dir: Path = OUTPUT_DIR) -> dict[str, Any]:
         "reviewer_type": "ai", "human_validation": False,
         "labels": labels,
         "methods": {},
+        "evidence_binding": {
+            "frozen_annotation_corpus": binding_receipt["frozen_annotation_corpus"],
+            "current_execution_corpus": binding_receipt["current_execution_corpus"],
+            "resolution_counts": binding_receipt["current_case_binding"]["resolution_counts"],
+            "source_snapshot_drift_count": binding_receipt["current_case_binding"]["source_snapshot_drift_count"],
+            "interpretation": binding_receipt["current_case_binding"]["interpretation"],
+        },
     }
     all_predictions = []
     for method_index, (method, predictions, scores) in enumerate((("controlled_lexical", lexical, lexical_scores), ("dense_prototype", dense, dense_scores))):
@@ -443,7 +536,14 @@ def run(output_dir: Path = OUTPUT_DIR) -> dict[str, Any]:
         "topic_code_sha256": sha256_file(ROOT / "backend/app/intelligence/topic_explorer.py"),
         "evaluation_code_sha256": sha256_file(Path(__file__)),
         "silver_dataset_sha256": silver_manifest["dataset_sha256"],
-        "corpus": silver_manifest["corpus"],
+        "frozen_annotation_corpus": binding_receipt["frozen_annotation_corpus"],
+        "current_execution_corpus": binding_receipt["current_execution_corpus"],
+        "current_binding_receipt": {
+            "path": display_path(binding_receipt_path),
+            "sha256": sha256_file(binding_receipt_path),
+            "resolution_counts": binding_receipt["current_case_binding"]["resolution_counts"],
+            "source_snapshot_drift_count": binding_receipt["current_case_binding"]["source_snapshot_drift_count"],
+        },
         "runtime": {name: importlib.metadata.version(name) for name in ("sqlmodel", "sentence-transformers", "torch", "transformers")},
         "database_execution": "disposable byte copy; live database not mutated",
         "topic_rebuild_summary": rebuild_summary,
@@ -466,8 +566,9 @@ def run(output_dir: Path = OUTPUT_DIR) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
+    parser.add_argument("--binding-receipt", type=Path, default=CURRENT_BINDING_RECEIPT)
     args = parser.parse_args()
-    result = run(args.output_dir)
+    result = run(args.output_dir, args.binding_receipt)
     print(json.dumps({
         "lexical_test": result["metrics"]["methods"]["controlled_lexical"]["test"],
         "dense_test": result["metrics"]["methods"]["dense_prototype"]["test"],

@@ -15,9 +15,9 @@ Entity & Principal fields \\
 Entity & Principal fields \\
 \midrule
 \endhead
-Paper & identifier; title; source authors; canonical identity links; year/date/venue; abstract; source/PDF paths; DOI; keywords; provenance; ingestion, extraction, eligibility, OCR, and review statuses; timestamps \\
-Chunk & identifier; paper foreign key; page start/end; inferred section; text; word/token count; source hash; eligibility/index status; timestamp \\
-Index manifest & corpus snapshot/hash; ordered chunk/source hashes; provider/model/revision; dimension/normalisation; configuration/code/index hashes; index role; completeness \\
+Paper & identifier; title; source authors; canonical identity links; metadata/provenance; ingestion, extraction, eligibility, OCR and review states; extraction/chunk/public-index generations; publication, rights and access states; timestamps \\
+Chunk & identifier; paper foreign key; page start/end; inferred section; exact text; word/token count; source hash; extraction generation; eligibility/index status; timestamp \\
+Index generation/manifest & immutable generation plus current pointer; corpus snapshot/hash; ordered chunk/source hashes; provider/model/revision; dimension/normalisation; configuration/code/index hashes; role/completeness \\
 RAGAnswer & question; answer; retrieved chunk/paper/citation structures; provider/model/configuration; grounding and unsupported-claim warnings; reviewer fields; timestamps \\
 Thesis Recommendation & transient request profile; ranked recommendation structures; evidence/gap/suggestion boundaries; citations; provider/model; grounding/review state; timestamp \\
 Paper Artifact & paper foreign key; artifact type; generated text/JSON; citations and source sections; provider/model; grounding/review state \\
@@ -39,11 +39,11 @@ ReviewEvent & item type/ID; previous/new state; reviewer ID/name/type/role; requ
 \toprule
 Group & Purpose & Access \\
 \midrule
-papers & statistics, browse/detail, extraction and public artifact views & public read \\
-search & keyword, feature-hashing, dense, and hybrid retrieval with evidence/diagnostics & public read \\
-ask & transient generation; persisted history/review operations separated & public transient; protected persistence \\
-recommendations & transient evidence-only/full profile-driven results & public transient \\
-topics/authors & explorer overview/detail and related papers; rebuild separated & public read; protected rebuild \\
+papers & approved statistics, browse/detail, extraction and artifact views & public projection \\
+search & projection-filtered retrieval; technical scope exists only in protected/local code & public projection \\
+ask & transient public generation; technical evaluation/persisted history separated & public projection; protected/local technical \\
+recommendations & transient evidence-only/full output over approved public evidence & public projection \\
+topics/authors & approved explorer relations; technical rebuild separated & public projection; protected rebuild \\
 artifacts & public reviewed-safe output; generation/review operations & mixed public/protected \\
 evaluation & evaluation state, corpus/index freshness, and public-safe results & public read \\
 admin & review queues, mutations, events, corrections & reviewer/admin bearer \\
@@ -52,8 +52,91 @@ health/readiness & liveness and database/index completeness state & public read 
 \end{tabularx}
 \end{table}
 
-FastAPI's generated OpenAPI document is available only in local-demo mode. Production disables interactive docs unless an operator creates an explicit boundary. Public serializers redact local paths, private reviewer notes, draft corrections, and restricted source text where appropriate.
+FastAPI's generated OpenAPI document is available only in local-demo mode. Production disables interactive docs unless an operator creates an explicit boundary. Public request models expose no technical-scope selector. Public serializers redact local paths, private reviewer notes, draft corrections, restricted source text, and technical identity hashes where appropriate.
 
 \section{Review-state semantics}
 
 \texttt{needs\_review} denotes unreviewed content; \texttt{ai\_reviewed} denotes declared AI formative review; \texttt{needs\_reprocess} denotes preserved content that cannot be safely reproduced under current configuration; \texttt{reviewed}, \texttt{approved}, and \texttt{rejected} require a human actor with an appropriate role. Structural grounding remains separate from every review state.
+
+\section{Representative executable contracts}
+
+The following abridged listings show the implementation points behind the Finder, review, and privacy claims. They preserve operative field names and assertions while omitting imports, defaults not relevant to the claim, and test setup. The repository paths named in each explanation are authoritative; these excerpts are explanatory, not a second implementation.
+
+\begingroup
+\lstset{aboveskip=0.35em,belowskip=0.35em}
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged Finder request schema.}]
+class ExtensionFinderRequest(BaseModel):
+    interests: str = Field(min_length=1, max_length=2_000)
+    skills: list[str] = Field(default_factory=list, max_length=50)
+    available_time: Literal["2 weeks", "1 month", "semester"]
+    project_type: Literal["software prototype", "data analysis",
+                          "ML experiment", "dashboard/visualization", "other"]
+    data_constraints: str = Field(max_length=1_000)
+    preferred_difficulty: Literal["easy", "medium", "hard"]
+    top_k: int = Field(default=5, ge=1, le=10)
+    retrieval_mode: Literal["keyword", "feature_hashing",
+                            "dense", "hybrid"]
+
+    @field_validator("interests")
+    @classmethod
+    def interests_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("interests must not be empty")
+        return value.strip()
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/intelligence/extension\_recommender.py}. \textbf{Rationale:} bound the public profile and make supported choices explicit. \textbf{Input/output:} untrusted profile JSON becomes a normalized typed request. \textbf{Failure:} blank, oversized, or out-of-enum values produce validation errors; declared skills, time, and data access remain unverified. \textbf{Trace:} RQ4 and UI-03.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged recommendation route boundary.}]
+@router.post("/extensions")
+def create_extension_recommendations(request, session):
+    return recommend_extensions(session, request, persist=False)
+
+@router.get("/extensions/history")
+def extension_recommendation_history(
+    session,
+    _actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
+):
+    records = session.exec(select(ThesisRecommendation)).all()
+    return [serialize_recommendation(record) for record in records]
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/api/recommendations.py}; the prefix yields \codepath{POST /api/recommendations/extensions}. \textbf{Rationale:} separate public advice from review history. \textbf{Input/output:} a validated profile returns a transient recommendation; a reviewer-authenticated read returns serialized stored records. \textbf{Failure:} public history access is rejected and public generation cannot request persistence. \textbf{Trace:} RQ4/RQ7 and UI-03, UI-06, UI-09.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged review-event schema.}]
+class ReviewEvent(SQLModel, table=True):
+    review_event_id: str = Field(primary_key=True)
+    item_type: str
+    item_id: str
+    action: str
+    previous_status: str | None
+    new_status: str | None
+    reviewer_id: str
+    reviewer_type: str
+    reviewer_role: str
+    request_id: str
+    diff_json: dict[str, Any]
+    previous_event_hash: str | None
+    event_hash: str | None
+    created_at: datetime
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/models/review.py}. \textbf{Rationale:} retain actor attribution and correction history. \textbf{Input/output:} an item transition plus actor, request, diff, and prior hash becomes a canonical hash-linked event. \textbf{Failure:} database triggers reject updates/deletes; a chain mismatch is detectable, although the hash is neither a signature nor an external timestamp. \textbf{Trace:} RQ5/RQ7 and UI-07--UI-08.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Core assertions from the public non-persistence test.}]
+answer = client.post("/api/ask", json={"question": private_q})
+finder = client.post("/api/recommendations/extensions",
+                     json={"interests": private_interests})
+assert answer.json()["persist"] is False
+assert finder.json()["persist"] is False
+assert answer.headers["cache-control"] == "no-store"
+assert finder.headers["cache-control"] == "no-store"
+assert client.get("/api/ask/history").status_code == 401
+assert client.get("/api/recommendations/extensions/history").status_code == 401
+assert session.exec(select(RAGAnswer)).all() == []
+assert session.exec(select(ThesisRecommendation)).all() == []
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/tests/test\_security\_privacy.py}. \textbf{Rationale:} falsify accidental retention or history disclosure. \textbf{Input/output:} private-looking public Ask/Finder requests return transient, non-cacheable responses. \textbf{Failure:} any persistence, cacheable header, or anonymous history response fails the test; external browser, proxy, operating-system, and network logs remain outside it. \textbf{Trace:} RQ7 and UI-06/UI-09.
+\endgroup

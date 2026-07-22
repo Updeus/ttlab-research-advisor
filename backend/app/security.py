@@ -107,9 +107,15 @@ def validate_security_configuration(settings: Settings) -> None:
         raise ValueError("PDF page and redirect limits must be non-negative and usable")
     if not settings.allowed_pdf_hosts:
         raise ValueError("TTLAB_ALLOWED_PDF_HOSTS must contain at least one explicit host")
-    supported_providers = {"offline_extractive", "ollama", "openai"}
+    supported_providers = {"offline_extractive", "ollama"}
     if not settings.allowed_llm_providers or not set(settings.allowed_llm_providers).issubset(supported_providers):
         raise ValueError("TTLAB_ALLOWED_LLM_PROVIDERS contains an unsupported provider")
+    if settings.default_llm_provider not in settings.allowed_llm_providers:
+        raise ValueError("TTLAB_DEFAULT_LLM_PROVIDER must be present in TTLAB_ALLOWED_LLM_PROVIDERS")
+    for model_name, digest in settings.ollama_allowed_model_digests.items():
+        normalized = digest.removeprefix("sha256:").lower()
+        if not model_name.strip() or not _SHA256_RE.fullmatch(normalized):
+            raise ValueError("TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS must map model names to immutable SHA-256 digests")
     if not settings.trusted_hosts or any("*" in host for host in settings.trusted_hosts):
         raise ValueError("TTLAB_TRUSTED_HOSTS must contain explicit hosts and may not use wildcards")
     if any(origin == "*" for origin in settings.cors_origins):
@@ -138,6 +144,69 @@ def validate_security_configuration(settings: Settings) -> None:
             raise ValueError("Production public hostname must be present in TTLAB_TRUSTED_HOSTS")
         if any(urlparse(origin).scheme != "https" for origin in settings.cors_origins):
             raise ValueError("Production CORS origins must use https")
+        if settings.service_role != "api" or settings.sync_execution_mode != "disabled":
+            raise ValueError("Production API mode cannot run PDF acquisition, parsing, or ingestion workers")
+        if settings.api_worker_count != 1:
+            raise ValueError(
+                "The built-in public generation limiter is process-local; production requires one API worker "
+                "unless an external distributed limiter is implemented"
+            )
+
+
+def require_offline_pdf_worker(settings: Settings, operation: str) -> None:
+    """Fail closed unless a local, explicitly isolated worker owns PDF work."""
+
+    allowed = (
+        settings.security_mode != "production"
+        and settings.service_role == "offline_worker"
+        and settings.sync_execution_mode == "offline_single_writer"
+    )
+    if not allowed:
+        raise RuntimeError(
+            f"{operation} is disabled in production/API mode; run it only in an explicit offline worker. "
+            "Production requires externally enforced network egress and process isolation."
+        )
+
+
+def operational_boundary_diagnostics(settings: Settings) -> dict[str, object]:
+    """Report application guarantees and deliberately unimplemented controls."""
+
+    pdf_enabled = (
+        settings.security_mode != "production"
+        and settings.service_role == "offline_worker"
+        and settings.sync_execution_mode == "offline_single_writer"
+    )
+    rate_topology_supported = settings.api_worker_count == 1
+    return {
+        "pdf_processing": {
+            "application_mode": settings.service_role,
+            "live_acquisition_and_parsing_enabled": pdf_enabled,
+            "production_api_enabled": False,
+            "required_external_controls": [
+                "network-egress-isolated worker",
+                "process isolation and resource limits",
+                "DNS pinning or egress proxy resistant to rebinding TOCTOU",
+            ],
+            "external_controls_implemented_by_application": False,
+            "dns_rebinding_toctou_fully_mitigated": False,
+        },
+        "rate_limiting": {
+            "implementation": "process_local_memory",
+            "configured_api_workers": settings.api_worker_count,
+            "supported_topology": "single_api_worker",
+            "topology_supported": rate_topology_supported,
+            "distributed_limiter_implemented": False,
+            "external_distributed_limiter_required_for_multiple_workers": True,
+        },
+        "generation_capacity": {
+            "implementation": "process_local_bounded_queue",
+            "max_active_requests": settings.public_generation_max_concurrency,
+            "max_waiting_requests": settings.public_generation_max_queue,
+            "queue_timeout_seconds": settings.public_generation_queue_timeout_seconds,
+            "covered_paths": ["POST /api/ask", "POST /api/recommendations/extensions"],
+            "distributed_admission_control_implemented": False,
+        },
+    }
 
 
 def _unauthorized(detail: str = "Authentication required") -> HTTPException:

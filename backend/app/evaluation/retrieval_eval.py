@@ -349,6 +349,7 @@ def evaluate_retrieval(
                 top_k=resolved_retrieval_depth,
                 provider=provider,
                 config=resolved_retriever_config,
+                scope="technical",
             )
         )
         raw_results = response.get("results", [])
@@ -393,7 +394,7 @@ def evaluate_retrieval(
         seed=bootstrap_seed,
         retain_replicates=retain_bootstrap_replicates,
     )
-    corpus = corpus_descriptor(eligible_chunks(session))
+    corpus = corpus_descriptor(session, eligible_chunks(session))
     return {
         "$schema": RESULT_SCHEMA_ID,
         "schema_version": RESULT_SCHEMA_VERSION,
@@ -522,7 +523,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--questions", default="data/evaluation/questions.jsonl")
     parser.add_argument(
         "--mode",
-        choices=["keyword", "feature_hashing", "dense", "semantic", "hybrid"],
+        choices=["keyword", "feature_hashing", "dense", "hybrid"],
         default="hybrid",
     )
     parser.add_argument("--top-k", type=int, default=10)

@@ -1,0 +1,259 @@
+{
+  "by_split": {
+    "all_including_sensitivity": {
+      "counts": {
+        "evidence_only_hits_at_3": 10,
+        "full_finder_hits_at_3": 8
+      },
+      "metrics": {
+        "candidate_specific_template_conformance_rate": 0.9,
+        "evidence_only_hit_at_3": 1.0,
+        "evidence_only_mrr": 0.733333,
+        "full_finder_hit_at_3": 0.8,
+        "full_finder_mrr": 0.55,
+        "full_profile_constraint_contract_fidelity_rate": 0.9,
+        "paired_hit_at_3_delta": -0.2,
+        "paired_mrr_delta": -0.183333,
+        "source_fact_suggestion_separation_rate": 0.9,
+        "unknown_implementation_time_retention_rate": 0.9
+      },
+      "profile_count": 10
+    },
+    "dev": {
+      "counts": {
+        "evidence_only_hits_at_3": 4,
+        "full_finder_hits_at_3": 3
+      },
+      "metrics": {
+        "candidate_specific_template_conformance_rate": 1.0,
+        "evidence_only_hit_at_3": 1.0,
+        "evidence_only_mrr": 0.75,
+        "full_finder_hit_at_3": 0.75,
+        "full_finder_mrr": 0.5,
+        "full_profile_constraint_contract_fidelity_rate": 1.0,
+        "paired_hit_at_3_delta": -0.25,
+        "paired_mrr_delta": -0.25,
+        "source_fact_suggestion_separation_rate": 1.0,
+        "unknown_implementation_time_retention_rate": 1.0
+      },
+      "profile_count": 4
+    },
+    "primary_dev_and_test": {
+      "counts": {
+        "evidence_only_hits_at_3": 9,
+        "full_finder_hits_at_3": 7
+      },
+      "metrics": {
+        "candidate_specific_template_conformance_rate": 0.888889,
+        "evidence_only_hit_at_3": 1.0,
+        "evidence_only_mrr": 0.703704,
+        "full_finder_hit_at_3": 0.777778,
+        "full_finder_mrr": 0.555556,
+        "full_profile_constraint_contract_fidelity_rate": 0.888889,
+        "paired_hit_at_3_delta": -0.222222,
+        "paired_mrr_delta": -0.148148,
+        "source_fact_suggestion_separation_rate": 0.888889,
+        "unknown_implementation_time_retention_rate": 0.888889
+      },
+      "profile_count": 9
+    },
+    "sensitivity": {
+      "counts": {
+        "evidence_only_hits_at_3": 1,
+        "full_finder_hits_at_3": 1
+      },
+      "metrics": {
+        "candidate_specific_template_conformance_rate": 1.0,
+        "evidence_only_hit_at_3": 1.0,
+        "evidence_only_mrr": 1.0,
+        "full_finder_hit_at_3": 1.0,
+        "full_finder_mrr": 0.5,
+        "full_profile_constraint_contract_fidelity_rate": 1.0,
+        "paired_hit_at_3_delta": 0.0,
+        "paired_mrr_delta": -0.5,
+        "source_fact_suggestion_separation_rate": 1.0,
+        "unknown_implementation_time_retention_rate": 1.0
+      },
+      "profile_count": 1
+    },
+    "test": {
+      "counts": {
+        "evidence_only_hits_at_3": 5,
+        "full_finder_hits_at_3": 4
+      },
+      "metrics": {
+        "candidate_specific_template_conformance_rate": 0.8,
+        "evidence_only_hit_at_3": 1.0,
+        "evidence_only_mrr": 0.666667,
+        "full_finder_hit_at_3": 0.8,
+        "full_finder_mrr": 0.6,
+        "full_profile_constraint_contract_fidelity_rate": 0.8,
+        "paired_hit_at_3_delta": -0.2,
+        "paired_mrr_delta": -0.066667,
+        "source_fact_suggestion_separation_rate": 0.8,
+        "unknown_implementation_time_retention_rate": 0.8
+      },
+      "profile_count": 5
+    }
+  },
+  "constraint_variation": {
+    "crop-time-pair": {
+      "all_implementation_times_remain_unknown": true,
+      "all_profiles_satisfy_full_constraint_contract": true,
+      "evidence_only_rankings": {
+        "finder-v2-t01": [
+          "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+          "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+          "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb"
+        ],
+        "finder-v2-t02": [
+          "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71",
+          "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+          "above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb"
+        ]
+      },
+      "full_finder_rankings": {
+        "finder-v2-t01": [
+          "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+          "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71"
+        ],
+        "finder-v2-t02": [
+          "on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3",
+          "crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71"
+        ]
+      },
+      "full_ranking_changed_across_constraints": false,
+      "input_available_times": [
+        "2 weeks",
+        "semester"
+      ],
+      "input_preferred_difficulties": [
+        "easy",
+        "hard"
+      ],
+      "interpretation": "The system preserves supplied constraints but does not convert available time into a paper-supported feasibility fact.",
+      "profile_ids": [
+        "finder-v2-t01",
+        "finder-v2-t02"
+      ]
+    }
+  },
+  "evaluation_id": "finder-proxy-v2",
+  "limitations": [
+    "The ten profiles are synthetic and AI-authored, not completed by students.",
+    "Usefulness and feasibility labels are same-AI proxy judgments, not student or supervisor validation.",
+    "Candidate-specific template conformance is mechanically encouraged by the deterministic template and is not an independent quality judgment.",
+    "A gold-title hit does not establish novelty, deliverability, data access, ethics approval, or supervisor fit.",
+    "Confidence intervals exclude label, corpus-selection, and reviewer uncertainty.",
+    "The paired constraint-sensitivity profile is excluded from the primary held-out estimate and reported only as sensitivity evidence.",
+    "Technical retrieval scope does not validate public recommendations."
+  ],
+  "metric_boundaries": {
+    "candidate_specific_template_conformance_rate": "Checks that deterministic templates name and cite only their current candidate. It is a contract test, not independent specificity or usefulness evidence.",
+    "full_profile_constraint_contract_fidelity_rate": "Checks deterministic propagation of interests, skills/gaps, available time, project type, data constraints, preferred difficulty, and preferred topics. It does not establish practical feasibility or human usefulness.",
+    "gold_paper_hit_at_3_and_mrr": "Paper lookup on source-derived need profiles that avoid copying titles. A hit does not validate the generated project or its feasibility."
+  },
+  "null_result_policy": "Paired deltas are reported with their sign and interval; null or negative findings are not suppressed.",
+  "repeatability": {
+    "disagreement_count": 0,
+    "disagreements": [],
+    "interpretation": "Repeated same-AI procedure under shuffled presentation; not independent or human inter-rater reliability.",
+    "orders_differ": true,
+    "pass_1_seed": 1429,
+    "pass_2_seed": 2718,
+    "reviewer": {
+      "entailment_verified": false,
+      "human_review": false,
+      "independent_human_raters": 0,
+      "label_tier": "ai_silver",
+      "pass_interpretation": "same_ai_procedure_repeatability_not_inter_rater_reliability",
+      "reviewer_id": "codex-ai-review",
+      "reviewer_type": "ai"
+    },
+    "same_case_set": true
+  },
+  "retrieval_scope": "technical",
+  "reviewer": {
+    "entailment_verified": false,
+    "human_review": false,
+    "independent_human_raters": 0,
+    "label_tier": "ai_silver",
+    "pass_interpretation": "same_ai_procedure_repeatability_not_inter_rater_reliability",
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai"
+  },
+  "status": "completed",
+  "test_bootstrap_95_ci": {
+    "cluster_count": 5,
+    "cluster_key": "cluster_id",
+    "confidence_level": 0.95,
+    "corpus_selection_uncertainty_included": false,
+    "label_uncertainty_included": false,
+    "method": "cluster_level_percentile_bootstrap",
+    "metrics": {
+      "candidate_specific_template_conformance_rate": {
+        "ci_lower": 0.4,
+        "ci_upper": 1.0,
+        "estimate": 0.8,
+        "valid_replicates": 5000
+      },
+      "evidence_only_hit_at_3": {
+        "ci_lower": 1.0,
+        "ci_upper": 1.0,
+        "estimate": 1.0,
+        "valid_replicates": 5000
+      },
+      "evidence_only_mrr": {
+        "ci_lower": 0.433333,
+        "ci_upper": 0.9,
+        "estimate": 0.666667,
+        "valid_replicates": 5000
+      },
+      "full_finder_hit_at_3": {
+        "ci_lower": 0.4,
+        "ci_upper": 1.0,
+        "estimate": 0.8,
+        "valid_replicates": 5000
+      },
+      "full_finder_mrr": {
+        "ci_lower": 0.3,
+        "ci_upper": 0.9,
+        "estimate": 0.6,
+        "valid_replicates": 5000
+      },
+      "full_profile_constraint_contract_fidelity_rate": {
+        "ci_lower": 0.4,
+        "ci_upper": 1.0,
+        "estimate": 0.8,
+        "valid_replicates": 5000
+      },
+      "paired_hit_at_3_delta": {
+        "ci_lower": -0.6,
+        "ci_upper": 0.0,
+        "estimate": -0.2,
+        "valid_replicates": 5000
+      },
+      "paired_mrr_delta": {
+        "ci_lower": -0.6,
+        "ci_upper": 0.466667,
+        "estimate": -0.066667,
+        "valid_replicates": 5000
+      },
+      "source_fact_suggestion_separation_rate": {
+        "ci_lower": 0.4,
+        "ci_upper": 1.0,
+        "estimate": 0.8,
+        "valid_replicates": 5000
+      },
+      "unknown_implementation_time_retention_rate": {
+        "ci_lower": 0.4,
+        "ci_upper": 1.0,
+        "estimate": 0.8,
+        "valid_replicates": 5000
+      }
+    },
+    "replicates": 5000,
+    "seed": 20260720,
+    "unit": "profile_family"
+  }
+}

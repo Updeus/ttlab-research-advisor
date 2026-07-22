@@ -2,7 +2,8 @@ from pathlib import Path
 
 import fitz
 
-from app.ingestion.ocr import OCRPageResult
+from app.ingestion import pdf_parser as pdf_parser_module
+from app.ingestion.ocr import OCRPageResult, tesseract_language_data_identity
 from app.ingestion.pdf_parser import extract_pdf_text, title_match_diagnostic, title_match_diagnostic_pages
 
 
@@ -45,6 +46,9 @@ class FakeOCRProvider:
     def availability(self) -> tuple[bool, str | None]:
         return self.status != "dependency_unavailable", "missing fake dependency" if self.status == "dependency_unavailable" else None
 
+    def version(self) -> str:
+        return "fake-ocr-v1"
+
     def extract_page(self, _page, page_number: int) -> OCRPageResult:
         return OCRPageResult(
             page_number=page_number,
@@ -52,7 +56,32 @@ class FakeOCRProvider:
             confidence=0.91 if self.status == "completed" else None,
             status=self.status,
             provider=self.name,
+            provider_version=self.version(),
             error="missing fake dependency" if self.status == "dependency_unavailable" else None,
+        )
+
+
+class VersionedTesseractProvider(FakeOCRProvider):
+    name = "tesseract"
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.version_value = "tesseract-test-v1"
+        self.extract_calls = 0
+
+    def version(self) -> str:
+        return self.version_value
+
+    def extract_page(self, page, page_number: int) -> OCRPageResult:
+        self.extract_calls += 1
+        result = super().extract_page(page, page_number)
+        return OCRPageResult(
+            **{
+                **result.__dict__,
+                "provider": self.name,
+                "provider_version": self.version(),
+                "configuration": {"test": "deterministic"},
+            }
         )
 
 
@@ -136,6 +165,79 @@ def test_optional_ocr_records_page_provenance_and_dependency_absence(tmp_path: P
     assert unavailable["extraction_status"] == "scanned_pdf"
     assert unavailable["diagnostics"]["ocr_status"] == "dependency_unavailable"
     assert unavailable["pages"][0]["review_required"] is True
+
+
+def test_ocr_version_and_language_pack_identity_participate_in_cache_generation(monkeypatch, tmp_path: Path) -> None:
+    pdf_path = tmp_path / "versioned-scanned.pdf"
+    create_image_pdf(pdf_path)
+    provider = VersionedTesseractProvider()
+    configuration = {
+        "language": "eng",
+        "config": "--oem 3 --psm 6",
+        "render_dpi": 144,
+        "language_data": {
+            "status": "available",
+            "resolved_path": "/test/eng.traineddata",
+            "sha256": "a" * 64,
+        },
+    }
+    monkeypatch.setattr(pdf_parser_module, "deterministic_ocr_configuration", lambda: configuration)
+
+    first = extract_pdf_text(
+        "versioned-ocr",
+        pdf_path,
+        tmp_path / "versioned-output",
+        run_ocr=True,
+        ocr_provider=provider,
+    )
+    cached = extract_pdf_text(
+        "versioned-ocr",
+        pdf_path,
+        tmp_path / "versioned-output",
+        run_ocr=True,
+        ocr_provider=provider,
+    )
+    provider.version_value = "tesseract-test-v2"
+    version_changed = extract_pdf_text(
+        "versioned-ocr",
+        pdf_path,
+        tmp_path / "versioned-output",
+        run_ocr=True,
+        ocr_provider=provider,
+    )
+    configuration = {
+        **configuration,
+        "language_data": {**configuration["language_data"], "sha256": "b" * 64},
+    }
+    language_pack_changed = extract_pdf_text(
+        "versioned-ocr",
+        pdf_path,
+        tmp_path / "versioned-output",
+        run_ocr=True,
+        ocr_provider=provider,
+    )
+
+    assert provider.extract_calls == 3
+    assert cached["artifact_generation_id"] == first["artifact_generation_id"]
+    assert version_changed["artifact_generation_id"] != first["artifact_generation_id"]
+    assert language_pack_changed["artifact_generation_id"] != version_changed["artifact_generation_id"]
+    assert language_pack_changed["extraction_config"]["ocr_provider_version"] == "tesseract-test-v2"
+    assert language_pack_changed["extraction_config"]["ocr_configuration"]["language_data"]["sha256"] == "b" * 64
+    assert language_pack_changed["diagnostics"]["ocr_configuration"]["language_data"]["resolved_path"] == "/test/eng.traineddata"
+
+
+def test_tesseract_language_data_identity_is_hashed_or_explicitly_unavailable() -> None:
+    identity = tesseract_language_data_identity("eng")
+
+    assert identity["language"] == "eng"
+    assert identity["status"] in {"available", "unavailable"}
+    if identity["status"] == "available":
+        assert Path(identity["resolved_path"]).is_file()
+        assert len(identity["sha256"]) == 64
+        assert identity["reason"] is None
+    else:
+        assert identity["sha256"] is None
+        assert identity["reason"]
 
 
 def test_normal_text_and_figure_page_does_not_trigger_ocr_or_review(tmp_path: Path) -> None:

@@ -1,8 +1,19 @@
 # Review Remediation Matrix
 
+> **Historical register.** This file preserves the July 2026 pre-audit
+> remediation record and its then-current values. It is not the authoritative
+> peer-review closure register. The independent audit baseline is commit
+> `b561fa73c1de50569d7e76261b2aa37195524c21` / snapshot
+> `corpus-04a010207327069a`; current manuscript v1-form evidence was executed at
+> `73092e48f173b74f726659bd5b98224545ac23bb` / snapshot
+> `corpus-f4638c633bea82b0`. Use
+> `docs/peer_review_readiness/REMEDIATION_MATRIX.csv` and
+> `docs/peer_review_readiness/FINAL_READINESS_REPORT.md` for current status.
+> Historical counts below are intentionally not rewritten as current results.
+
 ## Purpose and status vocabulary
 
-This is the authoritative closure register for the July 2026 overall flaws and
+This was the authoritative closure register for the July 2026 overall flaws and
 limitations assessment, `AUTHOR_REVIEW.md`, and the requirements in
 `CODEX_MASTER_REMEDIATION_PROMPT.md`. The baseline was rechecked against
 `origin/main` at `ce6d805afba27c2550da2ca58d1f844793ea25a8`; the remediation

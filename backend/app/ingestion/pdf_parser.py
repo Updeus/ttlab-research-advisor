@@ -9,12 +9,15 @@ from pathlib import Path
 from typing import Any
 
 import fitz
+from sqlalchemy import delete
 from sqlmodel import Session, select
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.db import create_db_and_tables, engine
-from app.ingestion.ocr import OCRProvider, get_ocr_provider
-from app.models import Paper
+from app.io_utils import atomic_write_json, atomic_write_text
+from app.ingestion.ocr import OCRProvider, deterministic_ocr_configuration, get_ocr_provider
+from app.models import Chunk, Paper
+from app.security import require_offline_pdf_worker
 
 
 def utc_now() -> datetime:
@@ -27,6 +30,94 @@ def count_words(text: str) -> int:
 
 def text_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def canonical_json_sha256(value: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
+def file_hash(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def extraction_configuration(
+    *,
+    run_ocr: bool,
+    ocr_provider: OCRProvider | None,
+    expected_title: str | None,
+    max_pdf_bytes: int,
+    max_pdf_pages: int,
+) -> dict[str, Any]:
+    provider_name = getattr(ocr_provider, "name", "tesseract") if run_ocr else None
+    provider_version: str | None = None
+    if run_ocr and ocr_provider is not None and hasattr(ocr_provider, "version"):
+        try:
+            provider_version = ocr_provider.version()
+        except Exception:
+            provider_version = None
+    return {
+        "run_ocr": run_ocr,
+        "ocr_provider": provider_name,
+        "ocr_provider_version": provider_version,
+        "ocr_configuration": (
+            deterministic_ocr_configuration()
+            if run_ocr and provider_name == "tesseract"
+            else {"status": "provider_specific_configuration_unavailable"} if run_ocr else None
+        ),
+        "expected_title": expected_title,
+        "max_pdf_bytes": max_pdf_bytes,
+        "max_pdf_pages": max_pdf_pages,
+    }
+
+
+def load_valid_cached_extraction(
+    json_path: Path,
+    txt_path: Path,
+    *,
+    input_pdf_sha256: str,
+    extraction_config: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Load a cache generation only when both authoritative links validate."""
+
+    if not json_path.exists() or not txt_path.exists():
+        return None
+    try:
+        cached = json.loads(json_path.read_text(encoding="utf-8"))
+        if not isinstance(cached, dict):
+            return None
+        expected_text_hash = str(cached.get("text_artifact_sha256") or "")
+        if not re.fullmatch(r"[0-9a-f]{64}", expected_text_hash):
+            return None
+        if cached.get("artifact_contract") != "json_authoritative_text_mirror_v1":
+            return None
+        if cached.get("input_pdf_sha256") != input_pdf_sha256:
+            return None
+        if cached.get("extraction_config") != extraction_config:
+            return None
+        if str(cached.get("full_text_path") or "") != str(txt_path):
+            return None
+        if file_hash(txt_path) != expected_text_hash:
+            return None
+        generation_payload = {
+            "paper_id": cached.get("paper_id"),
+            "input_pdf_sha256": input_pdf_sha256,
+            "extraction_config": extraction_config,
+            "text_artifact_sha256": expected_text_hash,
+        }
+        expected_generation_id = hashlib.sha256(
+            json.dumps(generation_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        if cached.get("artifact_generation_id") != expected_generation_id:
+            return None
+        return cached
+    except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+        return None
 
 
 def inspect_page_content(page: fitz.Page, native_text: str) -> dict[str, Any]:
@@ -189,9 +280,6 @@ def extract_pdf_text(
     output_dir.mkdir(parents=True, exist_ok=True)
     json_path = safe_output_path(output_dir, paper_id, ".json")
     txt_path = safe_output_path(output_dir, paper_id, ".txt")
-    if json_path.exists() and txt_path.exists() and not overwrite:
-        return json.loads(json_path.read_text(encoding="utf-8"))
-
     if not local_pdf_path.exists() or not local_pdf_path.is_file():
         return build_failed_result(paper_id, local_pdf_path, json_path, txt_path, "Configured PDF path is not a file.")
     if local_pdf_path.suffix.lower() != ".pdf":
@@ -214,8 +302,26 @@ def extract_pdf_text(
                 "Configured input does not contain a PDF signature.",
             )
 
-    warnings: list[str] = []
+    input_pdf_sha256 = file_hash(local_pdf_path)
     provider = ocr_provider or (get_ocr_provider("tesseract") if run_ocr else None)
+    extraction_config = extraction_configuration(
+        run_ocr=run_ocr,
+        ocr_provider=provider,
+        expected_title=expected_title,
+        max_pdf_bytes=max_pdf_bytes,
+        max_pdf_pages=max_pdf_pages,
+    )
+    if not overwrite:
+        cached = load_valid_cached_extraction(
+            json_path,
+            txt_path,
+            input_pdf_sha256=input_pdf_sha256,
+            extraction_config=extraction_config,
+        )
+        if cached is not None:
+            return cached
+
+    warnings: list[str] = []
     try:
         document = fitz.open(local_pdf_path)
     except Exception as exc:
@@ -250,6 +356,7 @@ def extract_pdf_text(
             ocr_provider_version: str | None = None
             ocr_confidence: float | None = None
             ocr_error: str | None = None
+            ocr_configuration: dict[str, Any] | None = None
             text_source = "native" if native_text else "none"
             should_ocr = run_ocr and (
                 content["content_class"] in {"scanned", "unknown"}
@@ -262,6 +369,7 @@ def extract_pdf_text(
                 ocr_provider_version = ocr_result.provider_version
                 ocr_confidence = ocr_result.confidence
                 ocr_error = ocr_result.error
+                ocr_configuration = ocr_result.configuration
                 ocr_text = ocr_result.text.strip()
                 if ocr_text:
                     if native_text and ocr_text not in native_text:
@@ -290,6 +398,7 @@ def extract_pdf_text(
                 "ocr_provider_version": ocr_provider_version,
                 "ocr_confidence": ocr_confidence,
                 "ocr_error": ocr_error,
+                "ocr_configuration": ocr_configuration,
                 "review_required": review_required,
                 "provenance": {
                     "local_pdf_path": str(local_pdf_path),
@@ -297,6 +406,7 @@ def extract_pdf_text(
                     "native_extractor": f"PyMuPDF {fitz.VersionBind}",
                     "ocr_provider": ocr_provider_name,
                     "ocr_provider_version": ocr_provider_version,
+                    "ocr_configuration": ocr_configuration,
                 },
             }
             pages.append(page_record)
@@ -331,6 +441,20 @@ def extract_pdf_text(
     if title_match["status"] == "possible_mismatch":
         warnings.append("The bounded-page title check may not match the publication record; exclude until reviewed.")
 
+    serialized_text = full_text + ("\n" if full_text else "")
+    text_artifact_sha256 = text_hash(serialized_text)
+    artifact_generation_id = hashlib.sha256(
+        json.dumps(
+            {
+                "paper_id": paper_id,
+                "input_pdf_sha256": input_pdf_sha256,
+                "extraction_config": extraction_config,
+                "text_artifact_sha256": text_artifact_sha256,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
     result = {
         "paper_id": paper_id,
         "local_pdf_path": str(local_pdf_path),
@@ -338,6 +462,11 @@ def extract_pdf_text(
         "pages": pages,
         "full_text_path": str(txt_path),
         "text_hash": text_hash(full_text),
+        "text_artifact_sha256": text_artifact_sha256,
+        "artifact_generation_id": artifact_generation_id,
+        "artifact_contract": "json_authoritative_text_mirror_v1",
+        "input_pdf_sha256": input_pdf_sha256,
+        "extraction_config": extraction_config,
         "extraction_status": extraction_status,
         "warnings": warnings,
         "diagnostics": {
@@ -356,14 +485,18 @@ def extract_pdf_text(
             "ocr_status": ocr_status,
             "ocr_provider": provider.name if provider is not None else None,
             "ocr_provider_version": provider.version() if provider is not None and hasattr(provider, "version") else None,
+            "ocr_configuration": extraction_config.get("ocr_configuration"),
             "ocr_pages_count": ocr_pages_count,
             "ocr_review_required": ocr_review_required,
             "pdf_title_match": title_match,
             "extraction_error": extraction_error,
         },
     }
-    txt_path.write_text(full_text + ("\n" if full_text else ""), encoding="utf-8")
-    json_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # The JSON manifest is the authoritative commit record and is replaced
+    # last. A crash after replacing TXT leaves the old JSON/hash pair invalid,
+    # which consumers quarantine instead of accepting a mixed generation.
+    atomic_write_text(txt_path, serialized_text)
+    atomic_write_json(json_path, result)
     return result
 
 
@@ -388,6 +521,8 @@ def build_failed_result(
     txt_path: Path,
     error: str,
 ) -> dict[str, Any]:
+    serialized_text = ""
+    text_artifact_sha256 = text_hash(serialized_text)
     result = {
         "paper_id": paper_id,
         "local_pdf_path": str(local_pdf_path),
@@ -395,6 +530,11 @@ def build_failed_result(
         "pages": [],
         "full_text_path": str(txt_path),
         "text_hash": text_hash(""),
+        "text_artifact_sha256": text_artifact_sha256,
+        "artifact_generation_id": hashlib.sha256(
+            f"{paper_id}|failed|{text_artifact_sha256}|{error}".encode("utf-8")
+        ).hexdigest(),
+        "artifact_contract": "json_authoritative_text_mirror_v1",
         "extraction_status": "failed",
         "warnings": [],
         "diagnostics": {
@@ -421,12 +561,52 @@ def build_failed_result(
             "extraction_error": error,
         },
     }
-    json_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    txt_path.write_text("", encoding="utf-8")
+    atomic_write_text(txt_path, serialized_text)
+    atomic_write_json(json_path, result)
     return result
 
 
 def update_paper_from_extraction(session: Session, paper: Paper, result: dict[str, Any], json_path: Path) -> None:
+    # Local import avoids the metadata-cleaner -> parser cycle while keeping
+    # one invalidation contract shared with manual corrections.
+    from app.ingestion.manual_import import (
+        invalidate_generated_outputs_for_paper,
+        reset_dependent_graph_reviews_for_paper,
+    )
+
+    new_generation_id = str(result.get("artifact_generation_id") or "") or None
+    new_input_sha256 = str(result.get("input_pdf_sha256") or "") or None
+    extraction_config = result.get("extraction_config")
+    new_config_sha256 = canonical_json_sha256(extraction_config) if isinstance(extraction_config, dict) else None
+    generation_changed = paper.extraction_generation_id != new_generation_id
+    source_bytes_changed = paper.extraction_input_pdf_sha256 != new_input_sha256
+    if generation_changed:
+        session.exec(delete(Chunk).where(Chunk.paper_id == paper.paper_id))
+        paper.chunk_count = 0
+        paper.chunk_extraction_generation_id = None
+        paper.chunk_generation_id = None
+        paper.public_index_generation_id = None
+        paper.publication_status = "pending_review"
+        paper.public_access_level = "hidden"
+        if source_bytes_changed:
+            paper.rights_status = "unknown"
+        reset_dependent_graph_reviews_for_paper(
+            session,
+            paper.paper_id,
+            reason="Extraction generation changed; source-derived topic relationships require re-review.",
+        )
+        invalidate_generated_outputs_for_paper(
+            session,
+            paper.paper_id,
+            reason="Extraction generation changed; regenerate and reapprove this source-grounded output.",
+        )
+        paper.extraction_review_status = "needs_review"
+        paper.extraction_reviewer_notes = None
+        paper.extraction_reviewed_at = None
+        paper.extraction_reviewed_by = None
+    paper.extraction_generation_id = new_generation_id
+    paper.extraction_input_pdf_sha256 = new_input_sha256
+    paper.extraction_config_sha256 = new_config_sha256
     diagnostics = dict(result.get("diagnostics", {}))
     diagnostics["warnings"] = result.get("warnings", [])
     status = result.get("extraction_status")
@@ -500,7 +680,10 @@ def extract_from_db(
     output_dir: Path = Path("data/extracted_text"),
     run_ocr: bool = False,
     ocr_provider: OCRProvider | None = None,
+    settings_override: Settings | None = None,
 ) -> dict[str, int]:
+    worker_settings = settings_override or get_settings()
+    require_offline_pdf_worker(worker_settings, "Batch PDF parsing")
     summary = {
         "attempted": 0,
         "extracted": 0,
@@ -528,9 +711,28 @@ def extract_from_db(
             session.add(paper)
             continue
         json_path = safe_output_path(output_dir, paper.paper_id, ".json")
-        if json_path.exists() and not overwrite and paper.pdf_text_status in {"extracted", "no_text"}:
-            summary["skipped_existing"] += 1
-            continue
+        txt_path = safe_output_path(output_dir, paper.paper_id, ".txt")
+        extraction_config = extraction_configuration(
+            run_ocr=run_ocr,
+            ocr_provider=ocr_provider,
+            expected_title=paper.title,
+            max_pdf_bytes=worker_settings.max_pdf_download_bytes,
+            max_pdf_pages=worker_settings.max_pdf_pages,
+        )
+        if not overwrite:
+            cached = load_valid_cached_extraction(
+                json_path,
+                txt_path,
+                input_pdf_sha256=file_hash(local_pdf_path),
+                extraction_config=extraction_config,
+            )
+            if cached is not None:
+                # The manifest is authoritative. Reconcile database state even
+                # after a prior process promoted the files but crashed before
+                # committing the corresponding Paper generation.
+                update_paper_from_extraction(session, paper, cached, json_path)
+                summary["skipped_existing"] += 1
+                continue
         summary["attempted"] += 1
         result = extract_pdf_text(
             paper.paper_id,
@@ -540,6 +742,8 @@ def extract_from_db(
             run_ocr=run_ocr,
             ocr_provider=ocr_provider,
             expected_title=paper.title,
+            max_pdf_bytes=worker_settings.max_pdf_download_bytes,
+            max_pdf_pages=worker_settings.max_pdf_pages,
         )
         update_paper_from_extraction(session, paper, result, json_path)
         status = result["extraction_status"]

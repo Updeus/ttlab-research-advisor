@@ -5,7 +5,57 @@
 
 The study is an executed artefact-oriented design-science/engineering case study combined with controlled offline evaluation. The unit of engineering analysis is a versioned corpus-and-system snapshot. The unit of retrieval and QA analysis is a question case. The unit of recommendation analysis is a synthetic project profile. The unit of topic analysis is a paper case. Performance measurements use one operation or route workload per repetition. No human participants were recruited.
 
-The study proceeded in six evidence phases: (1) corpus, extraction, identity, and index repair; (2) source-derived retrieval evaluation; (3) atomic QA and citation review; (4) recommendation, topic/author, and generated-output review; (5) frontend, privacy, authentication, security, and accessibility verification; and (6) performance, external-format sanity, reproduction, and sanitized release preparation. All empirical labels produced in this pass identify \texttt{reviewer\_type=ai}.
+The study proceeded through an initial six-phase evaluation and a separate remediation evaluation. The initial phases covered corpus, extraction, identity and indexes; retrieval; atomic QA/citation review; recommendation, topics/authors and generated outputs; interface/security verification; and performance, release, and reproduction. Because that evidence was repeatedly inspected while implementation defects were being diagnosed, it is retained as immutable historical v1 evidence rather than re-labelled as prospective. The later protocol froze source-derived cases, splits, code, corpus, configuration, and output contracts before its held-out execution. Every empirical label produced by either process identifies \texttt{reviewer\_type=ai}.
+
+\section{Design-science process mapping}
+
+The study follows the design-science requirements that an artefact address a relevant problem and be rigorously demonstrated and evaluated \cite{hevner2004designscience}. It also maps to the six activities in the Peffers et al. methodology \cite{peffers2007dsrm}. \Cref{tab:dsrm-map} records how that mapping is evidenced in this repository. The phases are not claimed to have occurred as a perfectly linear waterfall; design and evaluation iterated when a test exposed a stale index, weak abstention, unsafe review boundary, or misleading presentation state.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Design-science activities mapped to executed repository evidence.}
+\label{tab:dsrm-map}
+\begin{tabularx}{\textwidth}{P{35mm}P{48mm}Y}
+\toprule
+Activity & Project interpretation & Executed evidence \\
+\midrule
+Problem identification & publication lists do not support inspectable full-text discovery or bounded project formulation & problem statement; supervisor direction; corpus and interface audit \\
+Objectives & preserve evidence, expose uncertainty, support discovery/advice, and remain demoable on a small lawful corpus & RQ/objective table; data and API contracts; scope exclusions \\
+Design/development & build corpus/index, retrieval, Ask, Finder, explorer, evaluation, and review surfaces & versioned backend/frontend; schemas; manifests; code-native figures \\
+Demonstration & execute primary workflows on the frozen authorized corpus & runtime probe; captured Ask/Evaluation states; Finder and Admin route traces \\
+Evaluation & measure data integrity, retrieval, QA, recommendation, topics, review, performance, and interface contracts & phase artefacts; raw cases; statistics; backend/frontend tests; PDF preflight \\
+Communication & report positive and negative findings with reproducible boundaries & thesis/paper; appendices; sanitized bundle; evidence and remediation registers \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The central design claim is a pattern rather than an isolated screen: an output is reviewable when its source unit, transformation/configuration, uncertainty, and correction state survive every boundary that serializes or displays it. That principle produced several constructs: eligibility state for corpus membership; manifest state for indexes; citation and warning structures for answers; fact/future-work/gap/suggestion types for recommendations; controlled-label evidence for topics; canonical/alias states for authors; and actor-typed, hash-linked events for review. The evaluation asks whether each construct is populated and whether its implied quality claim survives stricter case-level analysis.
+
+\section{Requirement-to-failure logic}
+
+Implementation requirements were derived from observable failure modes rather than feature names. A ``semantic search'' requirement, for example, would prejudge the dense model; the operational requirement is instead to expose independently identified retrieval modes and compare them. A ``grounded answer'' requirement would conflate locators with entailment; the requirement is to return citations and warnings, then evaluate claim support, citation correctness, completeness, and abstention separately. A ``thesis recommender'' requirement could imply assignment authority; the requirement is to rank source evidence and place generated extensions behind a clearly labelled, optional boundary. The resulting falsification-oriented mapping is summarized in \cref{tab:failure-logic}.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Observed risk, design response, and falsifying evidence.}
+\label{tab:failure-logic}
+\begin{tabularx}{\textwidth}{P{38mm}P{49mm}Y}
+\toprule
+Observed risk & Design response & Evidence that can falsify success \\
+\midrule
+wrong or unavailable document enters search & title/content eligibility and persistent unavailable/mismatch states & audit counts; excluded IDs; source hashes; extraction diagnostics \\
+derived index silently covers a subset & ordered corpus/configuration manifest and startup rejection & coverage/hash mismatch tests; readiness state \\
+retrieval label implies superiority & explicit mode names, shared protocol, tuning split, ablation & held-out rankings; paired statistics; negative comparisons \\
+citation badge implies a correct answer & structured citations plus separate claim, link, point, and abstention review & partial/incorrect links; missing points; false-positive answers \\
+paper facts become generated ``future work'' & typed baseline, explicit/inferred/missing gap, and suggestion fields & source-locator checks; boundary criterion decisions \\
+topic/author link implies verified expertise & controlled evidence and publication-derived qualifier; conservative identity candidates & per-label errors; identity/source audit \\
+correction erases history or AI impersonates a human & append-only actor-typed events and role-restricted states & mutation/role tests; event-chain and idempotence checks \\
+passing UI appears equivalent to human validation & requirement/API/view/test trace plus explicit human-study boundary & automated failures; missing user/assistive-technology study \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \section{Evidence hierarchy and reproducibility controls}
 
@@ -20,17 +70,23 @@ Claims were admitted only when supported by an authoritative source:
   \item compiled/rendered documents establish publication artefact quality.
 \end{enumerate}
 
-Generated manuscript macros and tables are produced from frozen JSON artefacts by \codepath{thesis/scripts/generate_manuscript_assets.py}; their input and output hashes are recorded in \codepath{thesis/generated/manuscript_metrics_manifest.json}. Tests and build counts are reported only as engineering verification, never as quality metrics.
+Generated manuscript macros and tables are produced from frozen JSON artefacts by \codepath{thesis/scripts/generate_manuscript_assets.py}; their input and output hashes are recorded in \codepath{thesis/generated/manuscript_metrics_manifest.json}. The remediation package is \VTwoPackageStatus{} and its source revision prefix is \texttt{\VTwoEvaluationSourceCommitPrefix}. The generator refuses a partial package and imports every remediation numerical result from its validated macro file; hand-entered copies are rejected by manuscript validation. Tests and build counts are reported only as engineering verification, never as quality metrics.
+
+The evidence hierarchy also separates committed application state from generated manuscript state. The manuscript manifest records the committed base commit/tree, the exact generator hash, each input hash, and each output hash. Generated files and compiled PDFs form an explicit dirty-output boundary; they are not silently attributed to the earlier performance execution revision. Corpus snapshot, model revision/hash, evaluation artefact revisions, manuscript source state, and PDF hash are related identifiers, not interchangeable meanings of ``version.''
+
+The immutable historical v1 artefacts retain their negative findings but are classified as post-selection diagnosis. The prospective remediation protocol instead froze source locators, answer points, absence probes, profile needs, known-positive topics, split IDs, code, corpus, configuration, and environment before held-out execution. It reconciles PDF--extraction--chunk generations on a temporary database, rebuilds keyword search, runs once, performs a shuffled second AI-silver review, retains disagreements, and recomputes cluster-bootstrap intervals. Same-process repeatability is not independent reliability or human validation; intervals omit label and corpus-selection uncertainty. Rights-sensitive answers, snippets, and recommendations remain ignored locally while structural outputs and hashes are versioned.
+
+The run binds source \texttt{\VTwoEvaluationSourceCommitPrefix} to technical corpus \texttt{\VTwoCorpusSnapshotId} (\VTwoTechnicalEligiblePapers{} papers; \VTwoTechnicalEligibleChunks{} chunks), scope \VTwoEvaluationScope{}, and public-projection execution \VTwoPublicProjectionExercised{}. Technical eligibility requires matching extraction/chunk generations; public delivery additionally requires human approval, published state, cleared rights, searchable access, approved extraction, and a current public generation. Selective QA fixes keyword retrieval and the \texttt{\VTwoQAProvider}/\texttt{\VTwoQAModel} path. Finder pairs evidence-only and \texttt{\VTwoFinderModel} rankings. \VTwoTopicMethod{} is evaluated only for known-positive recall, and the \texttt{\VTwoOCRProvider} fixture exercises the parser without claiming scanned-corpus accuracy.
 
 \section{Corpus freeze and inclusion rules}
 
 Catalog records were retained even when full text was unavailable. A paper entered the experimental full-text corpus only when its PDF was present, extractable, and its identity passed title/document checks. Suspected PDF/title mismatches were excluded, not repaired by assumption. Every eligible chunk's identifier and source hash contributes to the ordered corpus snapshot hash. The authoritative corpus is \texttt{\CorpusSnapshotId}, comprising \EligiblePaperCount{} papers and \EligibleChunkCount{} chunks. The catalog additionally contains \NoTextPaperCount{} records requiring text acquisition/review and \MismatchPaperCount{} mismatch exclusions.
 
-\section{AI-reviewed silver annotation}
+\section{Historical v1 AI-reviewed silver annotation}
 
-Retrieval cases were constructed from source passages and stratified by exact fact, methods, results, limitations/future work, title/author/venue, topic/application, comparison, broad intent, multi-paper synthesis, hard negative, and out-of-corpus intent. A creation pass recorded relevant paper IDs, supporting chunks/pages, rationale, and answerability. A later shuffled verification pass checked labels without access to system rankings. Creation/verification disagreements and adjudication were retained. Because the same AI reviewer process performed both passes, consistency is described as annotation consistency, not inter-rater reliability.
+The historical retrieval cases were constructed from source passages and stratified by exact fact, methods, results, limitations/future work, title/author/venue, topic/application, comparison, broad intent, multi-paper synthesis, hard negative, and out-of-corpus intent. A creation pass recorded relevant paper IDs, supporting chunks/pages, rationale, and answerability. A later shuffled verification pass checked labels without access to system rankings. Creation/verification disagreements and adjudication were retained. Because the same AI reviewer process performed both passes, consistency is described as annotation consistency, not inter-rater reliability.
 
-QA review used a related \QaCaseCount{}-case set with 46 answerable and \QaUnanswerableCaseCount{} unanswerable questions. Answers were segmented into atomic checkable claims; each claim--citation relation was assessed as supported, partial, or unsupported. AI-reviewed silver reference answer points were assessed separately. Recommendation and topic reviews used the same two-pass AI-silver principle. Human validation remains a limitation throughout.
+Historical QA review used a related \QaCaseCount{}-case set with 46 answerable and \QaUnanswerableCaseCount{} unanswerable questions. Answers were segmented into atomic checkable claims; each claim--citation relation was assessed as supported, partial, or unsupported. AI-reviewed silver reference answer points were assessed separately. Recommendation and topic reviews used the same two-pass AI-silver principle. Human validation remains a limitation throughout.
 
 \section{Retrieval metrics}
 
@@ -47,11 +103,15 @@ Hit@$k$ is one when $R_q\cap S_{q,k}\neq\emptyset$ and zero otherwise. Reciproca
 
 Percentile bootstrap 95\% CIs used 10,000 query-level resamples with fixed seeds. Paired randomisation tests compared the tuned hybrid with baselines on answerable test cases. Holm correction controlled multiplicity within metric and experiment families. These intervals reflect query-sample uncertainty, not uncertainty in AI-silver labels or corpus selection.
 
+Null results are retained as results. A confidence interval spanning zero does not prove equivalence, and an adjusted $p$-value above the threshold does not prove no difference. Likewise, an ablation inspected after candidate selection is descriptive and cannot be used to retune on the held-out set. The reporting rule is therefore: identify the selection boundary, report point estimate and uncertainty, state whether the planned comparison rejected its null, and avoid converting failure to reject into equality or non-inferiority.
+
+AI-label uncertainty is handled by disclosure and case retention rather than a fabricated numeric adjustment. The same declared AI process performed source-first creation and shuffled verification, so exact agreement measures repeatability under that procedure, not independent reliability. Disagreements, rationales, and source locators remain available for later human adjudication. Bootstrap intervals resample cases/profiles but hold labels fixed; every interpretation therefore states that correlated label error and corpus selection are outside the interval.
+
 \section{QA, recommendation, and topic metrics}
 
 Strict supported-claim rate counts only fully supported checkable claims. Citation correctness divides correct claim--citation links by all reviewed links; citation completeness measures citation presence, not correctness. Answer-point coverage divides fully covered points by all expected points. Abstention accuracy distinguishes answering answerable cases from declining unanswerable ones.
 
-The recommendation experiment compared three evidence-only paper/passages with three full-finder recommendations for each of \RecommendationProfileCount{} profiles. AI-proxy criteria included relevance, source fidelity, fact/future-work/gap/suggestion separation, novelty caution, feasibility, MVP and stretch scope, risk, skills, evaluation plan, and proxy usefulness. The paired contrast resampled profiles. Topic evaluation reported multi-label micro precision, recall, F1, exact match, and coverage for the controlled lexical and learned-dense prototype methods on a development/test split.
+The historical recommendation experiment compared three evidence-only paper/passages with three full-finder recommendations for each of \RecommendationProfileCount{} profiles. AI-proxy criteria included relevance, source fidelity, fact/future-work/gap/suggestion separation, novelty caution, feasibility, MVP and stretch scope, risk, skills, evaluation plan, and proxy usefulness. Its paired contrast resampled profiles. Historical topic evaluation reported multi-label micro precision, recall, F1, exact match, and coverage for controlled lexical and learned-dense prototypes. The later positive-only topic protocol deliberately narrows its construct to known-positive recall and case coverage; predictions beyond the listed positives are not counted as false positives.
 
 \section{Performance and external sanity methodology}
 

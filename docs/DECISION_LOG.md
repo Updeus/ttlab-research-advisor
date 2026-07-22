@@ -1,5 +1,14 @@
 # Remediation Decision Log
 
+> **Append-only historical record.** Decisions and measurements below retain
+> the revision that motivated them and are not silently updated to current
+> results. In particular, entries naming `corpus-04a010207327069a` or the old
+> v1 metrics describe the independent-audit baseline at
+> `b561fa73c1de50569d7e76261b2aa37195524c21`. Current manuscript v1-form
+> evidence was executed at `73092e48f173b74f726659bd5b98224545ac23bb`
+> against `corpus-f4638c633bea82b0`; current disposition is recorded under
+> `docs/peer_review_readiness/`.
+
 This append-only log records material choices made while executing
 `CODEX_MASTER_REMEDIATION_PROMPT.md`. It exists so routine technical and
 editorial decisions do not disappear into implementation history. Evidence and

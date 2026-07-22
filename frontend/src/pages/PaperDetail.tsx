@@ -16,6 +16,7 @@ import type {
   PodcastScriptArtifact,
   RelatedPaper,
 } from "../types/paper";
+import { isSearchablePublicPaper } from "../utils/publication";
 
 type PaperDetailProps = {
   paper: Paper;
@@ -105,23 +106,26 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
       ? "No direct PDF URL was discovered for this publication."
       : extraction?.possible_scanned_pdf
         ? "This PDF may be scanned or image-heavy; extracted text is limited."
-        : extraction?.extraction_error
-          ? "Text extraction failed for this PDF."
-          : null;
+        : null;
 
   const bundleArtifact = artifacts.find((artifact) => artifact.artifact_type === "paper_intelligence_bundle");
   const podcastArtifact = artifacts.find((artifact) => artifact.artifact_type === "podcast_script");
-  const bundle = isPaperBundle(bundleArtifact?.generated_json) ? bundleArtifact.generated_json : null;
-  const podcast = isPodcastScript(podcastArtifact?.generated_json) ? podcastArtifact.generated_json : null;
-  const latestArtifact = bundleArtifact ?? podcastArtifact;
+  const bundlePayload = bundleArtifact?.effective_json;
+  const podcastPayload = podcastArtifact?.effective_json;
+  const bundle = isPaperBundle(bundlePayload) ? bundlePayload : null;
+  const podcast = isPodcastScript(podcastPayload) ? podcastPayload : null;
+  const latestArtifact = bundle ? bundleArtifact : podcast ? podcastArtifact : undefined;
+  const hasPendingArtifact = artifacts.length > 0 && !bundle && !podcast;
 
   function generateArtifacts() {
+    const overwrite = artifacts.length > 0;
     setArtifactLoading(true);
     setArtifactError(null);
-    generatePaperArtifacts(paper.paper_id)
+    generatePaperArtifacts(paper.paper_id, overwrite)
       .then((response) => {
         setArtifacts(response.artifacts);
-        onNotify?.(`Generated ${response.artifacts.length} paper intelligence artifacts.`, response.grounding_status === "unsupported" ? "warning" : "success");
+        const verb = overwrite ? "Regenerated" : "Generated";
+        onNotify?.(`${verb} ${response.artifacts.length} paper intelligence artifacts.`, response.grounding_status === "unsupported" ? "warning" : "success");
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : "Unable to generate paper intelligence.";
@@ -161,7 +165,7 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
           <StatusBadge label={paper.review_status} />
         </div>
         <div className="paper-card__links">
-          {onAskPaper ? (
+          {onAskPaper && isSearchablePublicPaper(paper) ? (
             <button className="link-button" onClick={() => onAskPaper(paper.paper_id)}>
               Ask about this paper
             </button>
@@ -197,11 +201,11 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
           </article>
           <article className="metric">
             <span className="metric__label">Words</span>
-            <strong>{extraction?.total_word_count ?? paper.total_word_count ?? "Not available"}</strong>
+            <strong>{extraction?.total_word_count ?? "Not available"}</strong>
           </article>
           <article className="metric">
             <span className="metric__label">Pages with text</span>
-            <strong>{extraction?.pages_with_text ?? paper.pages_with_text ?? "Not available"}</strong>
+            <strong>{extraction?.pages_with_text ?? "Not available"}</strong>
           </article>
           <article className="metric">
             <span className="metric__label">Chunks</span>
@@ -217,9 +221,9 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
             busy={artifactLoading}
             onClick={generateArtifacts}
             disabled={detailLoading || chunks.length === 0}
-            busyLabel={artifacts.length ? "Refreshing..." : "Generating..."}
+            busyLabel={artifacts.length ? "Regenerating..." : "Generating..."}
           >
-            {artifacts.length ? "Refresh Artifacts" : "Generate Artifacts"}
+            {artifacts.length ? "Regenerate Artifacts" : "Generate Artifacts"}
           </GenerateButton>
         ) : <span className="section-kicker">Generation requires a reviewer credential.</span>}
       </div>
@@ -234,8 +238,11 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
             <StatusBadge label={latestArtifact.review_status} />
             <StatusBadge label={latestArtifact.grounding_status} tone={latestArtifact.grounding_status === "grounded" ? "good" : "warn"} />
           </div>
-          <span>Provider/model: {latestArtifact.provider} / {latestArtifact.model}</span>
-          <span>Generated: {new Date(latestArtifact.created_at).toLocaleString()}</span>
+          <span>Provider/model: {latestArtifact.provenance?.provider ?? latestArtifact.provider ?? "unavailable"} / {latestArtifact.provenance?.model ?? latestArtifact.model ?? "unavailable"}</span>
+          {latestArtifact.provenance ? <span>Approved version: {latestArtifact.provenance.approved_version}</span> : null}
+          {latestArtifact.provenance?.generated_at || latestArtifact.created_at ? (
+            <span>Generated: {new Date(latestArtifact.provenance?.generated_at ?? latestArtifact.created_at ?? "").toLocaleString()}</span>
+          ) : null}
           <span>{latestArtifact.reviewed_at ? `Reviewed ${new Date(latestArtifact.reviewed_at).toLocaleString()}` : "No human review recorded"}</span>
         </div>
       ) : null}
@@ -267,8 +274,10 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
         </div>
       ) : (
         <EmptyState
-          title="No paper intelligence artifacts yet"
-          body="Generate artifacts after chunks are available to show summaries, limitations, extensions, skills, evaluation plans, and podcast script text."
+          title={hasPendingArtifact ? "Paper intelligence is awaiting approval" : "No paper intelligence artifacts yet"}
+          body={hasPendingArtifact
+            ? "Generated content is withheld from this public view until a permitted human administrator approves its current version. Review it in the protected Admin workspace."
+            : "Generate artifacts after chunks are available to show summaries, limitations, extensions, skills, evaluation plans, and podcast script text."}
         />
       )}
 
@@ -306,7 +315,7 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
         {!detailLoading && !relatedPapers.length ? (
           <EmptyState
             title="No related papers found yet"
-            body="Run topic rebuild: PYTHONPATH=backend .venv/bin/python -m app.intelligence.topic_explorer rebuild"
+            body="Related work appears only when approved public paper relationships are available."
           />
         ) : null}
       </div>

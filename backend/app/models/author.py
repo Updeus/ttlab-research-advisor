@@ -25,6 +25,8 @@ class Author(SQLModel, table=True):
     identity_status: str = Field(default="unresolved", index=True)
     identity_review_status: str = Field(default="needs_review", index=True)
     identity_review_notes: Optional[str] = None
+    identity_reviewed_at: Optional[datetime] = None
+    identity_reviewed_by: Optional[str] = None
     merged_into_author_id: Optional[int] = Field(default=None, foreign_key="author.id", index=True)
     persistent_identifier: Optional[str] = None
     persistent_identifier_source: Optional[str] = None
@@ -40,5 +42,7 @@ class AuthorAlias(SQLModel, table=True):
     source: str = "seed_import"
     review_status: str = Field(default="needs_review", index=True)
     reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

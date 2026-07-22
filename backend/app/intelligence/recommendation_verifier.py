@@ -20,6 +20,7 @@ def verify_recommendations(
     all_recommendations_have_citations = True
     all_claims_map_to_retrieved_chunks = True
     has_inferred_or_missing_gap = False
+    has_structural_support = False
 
     for recommendation in recommendations:
         rank = recommendation.get("rank", "?")
@@ -41,6 +42,8 @@ def verify_recommendations(
             if chunk_id not in retrieved_chunks_by_id:
                 all_claims_map_to_retrieved_chunks = False
                 warnings.append(f"Recommendation {rank} has a source-supported fact without a retrieved chunk.")
+            else:
+                has_structural_support = True
 
         gap = recommendation.get("identified_gap") or {}
         support_status = gap.get("support_status")
@@ -66,15 +69,19 @@ def verify_recommendations(
         if citation_scores and max(citation_scores) < 0.05:
             warnings.append(f"Recommendation {rank} has weak retrieval evidence.")
 
-    if not has_any_citation:
+    if not has_any_citation or not has_structural_support:
         status = "unsupported"
-    elif not all_recommendations_have_citations or not all_claims_map_to_retrieved_chunks or has_inferred_or_missing_gap:
-        status = "partial"
     else:
-        status = "grounded"
+        # Structural IDs and lexical source excerpts do not establish semantic
+        # entailment, so automatic verification cannot report fully grounded.
+        status = "partial"
+        warnings.append(
+            "Recommendation source links are structurally valid but semantic support remains unverified."
+        )
 
     return {
         "grounding_status": status,
+        "support_status": "support_unverified" if status == "partial" else "unsupported",
         "warnings": dedupe_preserve_order(warnings),
     }
 

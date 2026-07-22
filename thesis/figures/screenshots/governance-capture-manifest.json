@@ -1,0 +1,395 @@
+{
+  "schema_version": 3,
+  "status": "pass",
+  "promotable": true,
+  "generated_at": "2026-07-21T06:15:52.163Z",
+  "claim_boundary": "Live implementation evidence only; not a usability study, human review, semantic-entailment result, ethics approval, or permission to redistribute source documents.",
+  "capture_scope": {
+    "evaluation": "omitted from the governance-only capture set; no prospective evaluation package is simulated or executed for screenshots",
+    "finder": "empty public projection pending human editorial and rights approval; technical prototype evidence is excluded",
+    "admin": "write-blocked service-reviewer session showing aggregate governance state without approval authority"
+  },
+  "source": {
+    "git_commit": "9a274b82d0f7fa68952369d5ec68565b0a93cbb1",
+    "git_tree": "11cd8c5fa0e0f57ee4171d23eabb40587f1ec65f",
+    "worktree_clean": true,
+    "capture_set": "governance",
+    "frontend_origin": "http://127.0.0.1:4173",
+    "api_origin": "http://127.0.0.1:8000",
+    "operator_declared_isolated": true
+  },
+  "isolation": {
+    "enforcement": "snapshot_evidence_plus_distinct_inode_plus_exact_index_copy_plus_source_hash_guards",
+    "runtime_root_parent": "/tmp",
+    "runtime_root_is_real_directory": true,
+    "source_database_sha256_expected": "00de01982f4720d26f9f3d8453922fe688f1360b153aec742ee20a7eb31e9875",
+    "source_database_sha256_at_script_start": "00de01982f4720d26f9f3d8453922fe688f1360b153aec742ee20a7eb31e9875",
+    "source_database_family_sha256_expected": "af9e3c1121bf5e661978232f2523488377069f0182cc99830b42ee00e0075b61",
+    "source_database_family_sha256_at_script_start": "af9e3c1121bf5e661978232f2523488377069f0182cc99830b42ee00e0075b61",
+    "source_database_sidecars_at_script_start": [
+      "papers.db-wal",
+      "papers.db-shm"
+    ],
+    "snapshot_evidence_sha256": "6100bda5d15b89b4325a0d4e8ef6d1ad4b2e5a43a7bee1b0137723b21fd9b0cc",
+    "snapshot_method": "sqlite3.Connection.backup",
+    "snapshot_integrity_check": "ok",
+    "runtime_database_distinct_inode": true,
+    "runtime_database_sha256_at_script_start": "d7c785e590e6e01857442baa957fe9a1f63cc98127847c2feded84c3827e7498",
+    "source_index_inventory_sha256_at_script_start": "a429b914c134d582178c597f9d0a24c07707f8b471a5c1256eaf7813f4614c22",
+    "runtime_index_inventory_sha256_at_script_start": "a429b914c134d582178c597f9d0a24c07707f8b471a5c1256eaf7813f4614c22",
+    "index_file_count": 16,
+    "source_database_sha256_after_capture": "00de01982f4720d26f9f3d8453922fe688f1360b153aec742ee20a7eb31e9875",
+    "source_index_inventory_sha256_after_capture": "a429b914c134d582178c597f9d0a24c07707f8b471a5c1256eaf7813f4614c22",
+    "source_database_family_sha256_after_capture": "af9e3c1121bf5e661978232f2523488377069f0182cc99830b42ee00e0075b61",
+    "observed_source_assets_unchanged_during_script": true
+  },
+  "privacy_and_safety": {
+    "bearer_token_recorded": false,
+    "browser_storage_required": false,
+    "tracked_screenshot_directory_written": false,
+    "record_level_admin_content_captured": false,
+    "mutation_methods_blocked": [
+      "PATCH",
+      "PUT",
+      "DELETE"
+    ],
+    "post_requests_permitted": false,
+    "only_allowed_post_path": null,
+    "promotion_review": {
+      "required": true,
+      "reviewer_type_for_empty_or_aggregate_governance_capture": "ai_assisted_review_permitted",
+      "human_authorization_required_if_source_bearing_content_is_present": true
+    },
+    "browser_storage": {
+      "local_storage_keys": [],
+      "session_storage_keys": []
+    }
+  },
+  "preflight": [
+    {
+      "label": "service_root",
+      "path": "/",
+      "status": 200,
+      "response_sha256": "21ae54b3a4919c8b82a9a4564591a02856823a25f4b7c49d474185e9b883d3d5"
+    },
+    {
+      "label": "health",
+      "path": "/health",
+      "status": 200,
+      "response_sha256": "ac090394bc4f66b85e75397aefe20a14127dc5760d76cc9909607798a3aeea75"
+    },
+    {
+      "label": "readiness",
+      "path": "/ready",
+      "status": 200,
+      "response_sha256": "d48fd43196f5b2195ccac3926c35ebdc763a187254d77e467d33237e18d2f559"
+    },
+    {
+      "label": "admin_capabilities",
+      "path": "/api/admin/capabilities",
+      "status": 200,
+      "response_sha256": "dc6d8d142e1731490c6aaafbded046c4d5254216411e7c1f771598dc95cfedcc"
+    },
+    {
+      "label": "author_review_queue",
+      "path": "/api/admin/review-queue",
+      "status": 200,
+      "response_sha256": "9fcd7949788e61b1e954394402f04bc22c2dadf77a8a58d8752694fb7216b6c4"
+    },
+    {
+      "label": "author_topic_review_queue",
+      "path": "/api/admin/review-queue",
+      "status": 200,
+      "response_sha256": "7cf0fc50ea5a519e895da20a6243cd6340c0c732db9936b9f2b0aef67398979d"
+    },
+    {
+      "label": "finder_diagnostics",
+      "path": "/api/recommendations/extensions/diagnostics",
+      "status": 200,
+      "response_sha256": "ad718383856824c6693dcaa5194601ab11682707add727041309f24e0f99ce83"
+    },
+    {
+      "label": "admin_overview_before",
+      "path": "/api/admin/overview",
+      "status": 200,
+      "response_sha256": "1cc4c7ee4a778b11312cac0086200dda2e5718a45776261cfbf03c6529e703e2"
+    },
+    {
+      "label": "admin_overview_after",
+      "path": "/api/admin/overview",
+      "status": 200,
+      "response_sha256": "1cc4c7ee4a778b11312cac0086200dda2e5718a45776261cfbf03c6529e703e2"
+    },
+    {
+      "label": "author_review_queue_after",
+      "path": "/api/admin/review-queue",
+      "status": 200,
+      "response_sha256": "9fcd7949788e61b1e954394402f04bc22c2dadf77a8a58d8752694fb7216b6c4"
+    },
+    {
+      "label": "author_topic_review_queue_after",
+      "path": "/api/admin/review-queue",
+      "status": 200,
+      "response_sha256": "7cf0fc50ea5a519e895da20a6243cd6340c0c732db9936b9f2b0aef67398979d"
+    }
+  ],
+  "governance_queue_accessibility": {
+    "record_content_recorded": false,
+    "author": {
+      "status": "accessible",
+      "aggregate_total": 135,
+      "returned_count": 135
+    },
+    "author_topic": {
+      "status": "accessible",
+      "aggregate_total": 313,
+      "returned_count": 200
+    }
+  },
+  "finder_public_projection": {
+    "state": "expected_empty_pending_human_editorial_and_rights_approval",
+    "expected_searchable_chunks": 0,
+    "expected_searchable_papers": 0,
+    "expected_recommendation_posts": 0,
+    "expected_recommendations": 0,
+    "technical_prototype_evidence_included": false,
+    "profile_id": "ui-demo-capture-v1",
+    "profile_sha256": "1e79352a61f8518239ec3d6ab49ec83d7e7f09f5750660e96f55bdbe85eede61",
+    "profile_sent_to_api": false,
+    "evaluation_case": false,
+    "interpretation": "Fixed synthetic form state shown only to demonstrate the fail-closed empty public projection; not a held-out evaluation case, student profile, technical-corpus result, or publication approval.",
+    "diagnostics_sha256": "ad718383856824c6693dcaa5194601ab11682707add727041309f24e0f99ce83",
+    "observed_searchable_chunks": 0,
+    "observed_searchable_papers": 0
+  },
+  "captures": [
+    {
+      "filename": "finder-public-projection-empty.png",
+      "sha256": "cc4d95d68472f3002ad2dd23bed3cbe8cd855d46ff45de03cfaf36290783581f",
+      "bytes": 113711,
+      "width_css_px": 1244,
+      "height_css_px": 877,
+      "width_px": 1244,
+      "height_px": 877
+    },
+    {
+      "filename": "admin-governance-shell-current.png",
+      "sha256": "6f41a4e23daa2e276a57ae761b8e5af509dc8ef63d064abcbb0970e23b1b0dbe",
+      "bytes": 58099,
+      "width_css_px": 1240,
+      "height_css_px": 647,
+      "width_px": 1240,
+      "height_px": 649
+    }
+  ],
+  "browser": {
+    "api_responses": [
+      {
+        "method": "GET",
+        "path": "/",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/papers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/papers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/stats",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/stats",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/recommendations/extensions/diagnostics",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/recommendations/extensions/diagnostics",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/papers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/papers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/stats",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/stats",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/ingestion-sync",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/review-queue",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/overview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/publication-preview/papers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/review-events",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/capabilities",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/overview",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/publication-preview/papers",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/capabilities",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/ingestion-sync",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/review-queue",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/review-events",
+        "status": 200
+      }
+    ],
+    "blocked_requests": [],
+    "request_failures": [],
+    "console_errors": [],
+    "page_errors": []
+  },
+  "observed_state_summary": {
+    "before_sha256": "980018872cc3cadb4100da7d51b86876cb897727bf13f68da03d351c78015d4e",
+    "before": {
+      "papers_total": 134,
+      "total_chunks": 735,
+      "total_review_events": 48,
+      "rag_answers": {
+        "needs_review": 0,
+        "ai_reviewed": 0,
+        "reviewed": 0,
+        "approved": 0,
+        "rejected": 0,
+        "needs_reprocess": 27
+      },
+      "thesis_recommendations": {
+        "needs_review": 0,
+        "ai_reviewed": 0,
+        "reviewed": 0,
+        "approved": 0,
+        "rejected": 0,
+        "needs_reprocess": 7
+      },
+      "paper_artifacts": {
+        "needs_review": 0,
+        "ai_reviewed": 0,
+        "reviewed": 0,
+        "approved": 0,
+        "rejected": 0,
+        "needs_reprocess": 14
+      },
+      "author_needs_review_total": 135,
+      "author_topic_needs_review_total": 313,
+      "review_event_integrity_status": "verified",
+      "database_integrity_status": "ready"
+    },
+    "after_sha256": "980018872cc3cadb4100da7d51b86876cb897727bf13f68da03d351c78015d4e",
+    "after": {
+      "papers_total": 134,
+      "total_chunks": 735,
+      "total_review_events": 48,
+      "rag_answers": {
+        "needs_review": 0,
+        "ai_reviewed": 0,
+        "reviewed": 0,
+        "approved": 0,
+        "rejected": 0,
+        "needs_reprocess": 27
+      },
+      "thesis_recommendations": {
+        "needs_review": 0,
+        "ai_reviewed": 0,
+        "reviewed": 0,
+        "approved": 0,
+        "rejected": 0,
+        "needs_reprocess": 7
+      },
+      "paper_artifacts": {
+        "needs_review": 0,
+        "ai_reviewed": 0,
+        "reviewed": 0,
+        "approved": 0,
+        "rejected": 0,
+        "needs_reprocess": 14
+      },
+      "author_needs_review_total": 135,
+      "author_topic_needs_review_total": 313,
+      "review_event_integrity_status": "verified",
+      "database_integrity_status": "ready"
+    },
+    "observed_summary_unchanged": true
+  },
+  "errors": []
+}

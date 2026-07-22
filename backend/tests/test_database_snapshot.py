@@ -9,8 +9,10 @@ import pytest
 from app.reproducibility import database_snapshot
 
 
-def _database(path: Path) -> None:
+def _database(path: Path, *, wal: bool = False) -> None:
     with sqlite3.connect(path) as connection:
+        if wal:
+            assert connection.execute("PRAGMA journal_mode=WAL").fetchone()[0] == "wal"
         connection.executescript(
             """
             CREATE TABLE paper (paper_id TEXT PRIMARY KEY, title TEXT NOT NULL);
@@ -37,7 +39,7 @@ def test_snapshot_uses_backup_records_integrity_and_avoids_absolute_paths(tmp_pa
     source = tmp_path / "authorized.db"
     target = tmp_path / "frozen.db"
     evidence = tmp_path / "snapshot.json"
-    _database(source)
+    _database(source, wal=True)
 
     result = database_snapshot.snapshot_database(source, target, evidence)
 
@@ -49,6 +51,8 @@ def test_snapshot_uses_backup_records_integrity_and_avoids_absolute_paths(tmp_pa
     assert result["source"]["label"] == "authorized.db"
     assert result["source"]["sha256_before"] == result["source"]["sha256_after"]
     assert result["source"]["bytes_before"] == result["source"]["bytes_after"]
+    assert result["source"]["journal_mode_before"] == "wal"
+    assert result["source"]["journal_mode_after"] == "wal"
     assert result["snapshot"]["label"] == "frozen.db"
     assert result["snapshot"]["sha256"] == database_snapshot.sha256_path(target)
     assert result["snapshot"]["bytes"] == target.stat().st_size
@@ -61,6 +65,7 @@ def test_snapshot_uses_backup_records_integrity_and_avoids_absolute_paths(tmp_pa
     with sqlite3.connect(f"{target.resolve().as_uri()}?mode=ro", uri=True) as connection:
         assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert connection.execute("SELECT COUNT(*) FROM paper").fetchone()[0] == 2
+    assert list(tmp_path.glob(".frozen.db.*.tmp*")) == []
 
 
 def test_snapshot_never_overwrites_existing_target(tmp_path: Path) -> None:

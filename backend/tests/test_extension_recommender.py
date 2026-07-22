@@ -4,11 +4,13 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.db import get_session
 from app.evaluation.extension_eval import citation_coverage_percentage, evaluate_case
 from app.indexing.keyword_search import rebuild_keyword_index
+from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
+from app.intelligence import extension_recommender as extension_recommender_module
 from app.intelligence.extension_recommender import (
     SCORE_WEIGHTS,
     ExtensionFinderRequest,
@@ -24,6 +26,9 @@ from app.intelligence.extension_recommender import (
 from app.intelligence.recommendation_verifier import verify_recommendations
 from app.main import app
 from app.models import Chunk, Paper, ThesisRecommendation
+
+EXTRACTION_GENERATION = "a" * 64
+CHUNK_GENERATION = "b" * 64
 
 
 def build_extension_session() -> tuple[Session, object]:
@@ -45,6 +50,15 @@ def build_extension_session() -> tuple[Session, object]:
             pdf_text_status="extracted",
             chunk_count=2,
             corpus_eligibility_status="eligible",
+            review_status="approved",
+            extraction_review_status="approved",
+            publication_status="published",
+            rights_status="cleared",
+            public_access_level="searchable",
+            extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_generation_id=CHUNK_GENERATION,
+            public_index_generation_id=CHUNK_GENERATION,
         )
     )
     session.add(
@@ -57,6 +71,15 @@ def build_extension_session() -> tuple[Session, object]:
             pdf_text_status="extracted",
             chunk_count=1,
             corpus_eligibility_status="eligible",
+            review_status="approved",
+            extraction_review_status="approved",
+            publication_status="published",
+            rights_status="cleared",
+            public_access_level="searchable",
+            extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_generation_id=CHUNK_GENERATION,
+            public_index_generation_id=CHUNK_GENERATION,
         )
     )
     session.add(
@@ -73,6 +96,7 @@ def build_extension_session() -> tuple[Session, object]:
             ),
             word_count=16,
             source_hash="rag-1",
+            extraction_generation_id=EXTRACTION_GENERATION,
         )
     )
     session.add(
@@ -89,6 +113,7 @@ def build_extension_session() -> tuple[Session, object]:
             ),
             word_count=16,
             source_hash="rag-2",
+            extraction_generation_id=EXTRACTION_GENERATION,
         )
     )
     session.add(
@@ -102,8 +127,18 @@ def build_extension_session() -> tuple[Session, object]:
             text="The traffic dashboard uses public data visualization to analyze congestion patterns.",
             word_count=10,
             source_hash="traffic-1",
+            extraction_generation_id=EXTRACTION_GENERATION,
         )
     )
+    session.flush()
+    for paper_id in ("rag-platform", "traffic-dashboard"):
+        chunks = list(session.exec(select(Chunk).where(Chunk.paper_id == paper_id)).all())
+        generation_id = canonical_chunks_sha256(db_chunk_payload(chunks))
+        paper = session.get(Paper, paper_id)
+        assert paper is not None
+        paper.chunk_generation_id = generation_id
+        paper.public_index_generation_id = generation_id
+        session.add(paper)
     session.commit()
     rebuild_keyword_index(session)
     return session, engine
@@ -193,13 +228,13 @@ def test_recommendation_weights_are_validated_normalized_and_changeable() -> Non
         validated_score_weights({"retrieval_relevance": 1.0})
 
 
-def test_gap_detection_uses_the_matching_sentence_and_labels_inference() -> None:
-    explicit = identify_gap(
+def test_gap_detection_uses_conservative_source_phrase_and_inference_labels() -> None:
+    source_phrase = identify_gap(
         [
             {
                 "chunk_id": "c1",
                 "section": "Conclusion",
-                "snippet": "A dataset is described first. Future work should evaluate a broader sample.",
+                "snippet": "A dataset is described first. We identify as future work evaluation on a broader sample.",
             }
         ]
     )
@@ -221,12 +256,53 @@ def test_gap_detection_uses_the_matching_sentence_and_labels_inference() -> None
             }
         ]
     )
+    unattributed_phrase = identify_gap(
+        [
+            {
+                "chunk_id": "c4",
+                "section": "Conclusion",
+                "snippet": "A dataset is described first. Future work should evaluate a broader sample.",
+            }
+        ]
+    )
 
-    assert explicit["support_status"] == "explicit_in_paper"
-    assert explicit["text"].endswith("Future work should evaluate a broader sample.")
+    assert source_phrase["support_status"] == "source_phrase_unverified"
+    assert source_phrase["text"].endswith("We identify as future work evaluation on a broader sample.")
     assert inferred["support_status"] == "inferred_from_paper"
     assert inferred["text"].startswith("Inferred extension opening")
+    assert unattributed_phrase["support_status"] == "inferred_from_paper"
+    assert "explicit_in_paper" not in {
+        source_phrase["support_status"],
+        inferred["support_status"],
+        unattributed_phrase["support_status"],
+    }
     assert generic["support_status"] == "not_found"
+
+
+def test_gap_detection_ignores_related_work_and_negated_future_work_phrases() -> None:
+    related_work = identify_gap(
+        [
+            {
+                "chunk_id": "related",
+                "section": "Related Work",
+                "snippet": "Prior authors state that future work should use a larger dataset.",
+            }
+        ]
+    )
+    negated = identify_gap(
+        [
+            {
+                "chunk_id": "negated",
+                "section": "Conclusion",
+                "snippet": "We do not identify future work as a limitation of this completed benchmark.",
+            }
+        ]
+    )
+
+    assert related_work["support_status"] == "not_found"
+    assert related_work["source_chunk_ids"] == []
+    assert negated["support_status"] == "not_found"
+    assert negated["source_chunk_ids"] == []
 
 
 def test_multiword_avoid_topic_does_not_penalize_one_generic_token() -> None:
@@ -253,8 +329,10 @@ def test_recommendation_diagnostics_exclude_ineligible_paper_chunks() -> None:
 
     assert diagnostics["searchable_chunks"] == 3
     assert diagnostics["searchable_papers"] == 2
-    assert diagnostics["raw_chunks"] == 4
-    assert diagnostics["raw_papers_with_chunks"] == 3
+    # Public diagnostics intentionally do not disclose the hidden technical
+    # corpus size; only the publishable projection is countable anonymously.
+    assert diagnostics["raw_chunks"] is None
+    assert diagnostics["raw_papers_with_chunks"] is None
 
 
 def test_recommender_returns_ranked_recommendations_with_citations() -> None:
@@ -274,6 +352,49 @@ def test_recommender_returns_ranked_recommendations_with_citations() -> None:
         "not_found",
     }
     assert stored is not None
+
+
+def test_finder_cli_requires_explicit_persistence_even_for_technical_scope(monkeypatch, capsys) -> None:
+    defaults = extension_recommender_module.build_parser().parse_args(
+        ["recommend", "--interests", "retrieval augmented generation"]
+    )
+    explicit = extension_recommender_module.build_parser().parse_args(
+        [
+            "recommend",
+            "--interests",
+            "retrieval augmented generation",
+            "--scope",
+            "technical",
+            "--persist",
+        ]
+    )
+    assert defaults.scope == "public"
+    assert defaults.persist is False
+    assert explicit.scope == "technical"
+    assert explicit.persist is True
+
+    session, local_engine = build_extension_session()
+    session.close()
+    monkeypatch.setattr(extension_recommender_module, "engine", local_engine)
+    monkeypatch.setattr(extension_recommender_module, "create_db_and_tables", lambda: None)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "extension_recommender",
+            "recommend",
+            "--interests",
+            "retrieval augmented generation",
+            "--scope",
+            "technical",
+        ],
+    )
+
+    extension_recommender_module.main()
+    capsys.readouterr()
+    with Session(local_engine) as verification_session:
+        stored = list(verification_session.exec(select(ThesisRecommendation)).all())
+
+    assert stored == []
 
 
 def test_offline_recommendation_provider_works_without_external_api() -> None:
@@ -309,7 +430,8 @@ def test_recommendation_verifier_marks_grounded_partial_and_unsupported() -> Non
     )
     unsupported = verify_recommendations([{**base_recommendation, "citations": []}], retrieved, available_time="semester")
 
-    assert grounded["grounding_status"] == "grounded"
+    assert grounded["grounding_status"] == "partial"
+    assert grounded["support_status"] == "support_unverified"
     assert partial["grounding_status"] == "partial"
     assert unsupported["grounding_status"] == "unsupported"
 
@@ -339,10 +461,11 @@ def test_extension_recommendation_api_endpoints_and_stats_work() -> None:
     assert fetched.status_code == 401
     assert history.status_code == 401
     assert diagnostics.status_code == 200
-    assert diagnostics.json()["total_recommendation_runs"] == 0
+    assert diagnostics.json()["total_recommendation_runs"] is None
+    assert diagnostics.json()["history_counts_visibility"] == "protected_reviewer_only"
     assert stats.status_code == 200
-    assert stats.json()["total_extension_recommendation_runs"] == 0
-    assert stats.json()["total_extension_ideas"] == 0
+    assert "total_extension_recommendation_runs" not in stats.json()
+    assert "total_extension_ideas" not in stats.json()
 
 
 def test_extension_eval_calculates_citation_coverage_correctly() -> None:

@@ -2,10 +2,11 @@ from collections.abc import Generator
 
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.db import get_session
 from app.evaluation.artifact_eval import citation_coverage_percentage, evaluate_case
+from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.intelligence.artifact_verifier import verify_artifact_payload
 from app.intelligence.paper_artifact_generator import generate_paper_artifacts
 from app.main import app
@@ -23,6 +24,7 @@ TEST_ADMIN = AuthenticatedActor(
 
 
 def build_artifact_session() -> tuple[Session, object]:
+    extraction_generation = "a" * 64
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -30,19 +32,25 @@ def build_artifact_session() -> tuple[Session, object]:
     )
     SQLModel.metadata.create_all(engine)
     session = Session(engine)
-    session.add(
-        Paper(
-            paper_id="artifact-paper",
-            title="Machine Learning Research Advisor",
-            authors=["Asha Singh"],
-            year=2025,
-            pdf_text_status="extracted",
-            corpus_eligibility_status="eligible",
-            pages_with_text=8,
-            page_count=8,
-            chunk_count=3,
-        )
+    paper = Paper(
+        paper_id="artifact-paper",
+        title="Machine Learning Research Advisor",
+        authors=["Asha Singh"],
+        year=2025,
+        pdf_text_status="extracted",
+        corpus_eligibility_status="eligible",
+        review_status="approved",
+        extraction_review_status="approved",
+        publication_status="published",
+        rights_status="cleared",
+        public_access_level="searchable",
+        extraction_generation_id=extraction_generation,
+        chunk_extraction_generation_id=extraction_generation,
+        pages_with_text=8,
+        page_count=8,
+        chunk_count=3,
     )
+    session.add(paper)
     session.add(
         Chunk(
             chunk_id="artifact-paper-0001",
@@ -57,6 +65,7 @@ def build_artifact_session() -> tuple[Session, object]:
             ),
             word_count=20,
             source_hash="artifact-1",
+            extraction_generation_id=extraction_generation,
         )
     )
     session.add(
@@ -73,6 +82,7 @@ def build_artifact_session() -> tuple[Session, object]:
             ),
             word_count=18,
             source_hash="artifact-2",
+            extraction_generation_id=extraction_generation,
         )
     )
     session.add(
@@ -89,8 +99,14 @@ def build_artifact_session() -> tuple[Session, object]:
             ),
             word_count=18,
             source_hash="artifact-3",
+            extraction_generation_id=extraction_generation,
         )
     )
+    session.flush()
+    chunks = list(session.exec(select(Chunk).where(Chunk.paper_id == paper.paper_id)).all())
+    paper.chunk_generation_id = canonical_chunks_sha256(db_chunk_payload(chunks))
+    paper.public_index_generation_id = paper.chunk_generation_id
+    session.add(paper)
     session.commit()
     return session, engine
 
@@ -211,7 +227,7 @@ def test_artifact_api_endpoints_and_batch_limit_work() -> None:
     assert generated.status_code == 200
     assert generated.json()["artifacts"][0]["citations"]
     assert listed.status_code == 200
-    assert len(listed.json()) >= 2
+    assert listed.json() == []
     assert diagnostics.status_code == 200
     assert diagnostics.json()["total_artifacts"] >= 2
     assert batch.status_code == 200

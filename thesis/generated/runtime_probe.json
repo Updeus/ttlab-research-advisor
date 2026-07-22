@@ -3,8 +3,8 @@
   "probe_version": "thesis-runtime-probe-v2",
   "generation_provenance": {
     "committed_base": {
-      "commit": "f4abb767018f9db13a2a9ac5bee1e6f6fca3428e",
-      "tree": "bcd72e37cfd935aa3a6a73e70197356f449492b5",
+      "commit": "4eb01d5daddd396648917969fd30a2e99e4e77ff",
+      "tree": "05cebf1d8869859bb17f65a9196b7a9c3560d281",
       "backend_dirty": false
     },
     "exact_probe": {
@@ -48,6 +48,54 @@
     "status": "ready",
     "checks": {
       "database": true,
+      "database_integrity": {
+        "dialect": "sqlite",
+        "foreign_keys": 1,
+        "journal_mode": "wal",
+        "busy_timeout_ms": 5000,
+        "foreign_key_check_violations": [],
+        "json_integrity_violation_count": 0,
+        "json_integrity_violations": [],
+        "orphan_author_merge_count": 0,
+        "author_merge_fk_enforcement": "legacy_trigger_guard",
+        "single_writer": true,
+        "writer_topology": "one application/ingestion writer; concurrent readers allowed",
+        "multi_writer_supported": false,
+        "status": "ready"
+      },
+      "operational_boundaries": {
+        "pdf_processing": {
+          "application_mode": "api",
+          "live_acquisition_and_parsing_enabled": false,
+          "production_api_enabled": false,
+          "required_external_controls": [
+            "network-egress-isolated worker",
+            "process isolation and resource limits",
+            "DNS pinning or egress proxy resistant to rebinding TOCTOU"
+          ],
+          "external_controls_implemented_by_application": false,
+          "dns_rebinding_toctou_fully_mitigated": false
+        },
+        "rate_limiting": {
+          "implementation": "process_local_memory",
+          "configured_api_workers": 1,
+          "supported_topology": "single_api_worker",
+          "topology_supported": true,
+          "distributed_limiter_implemented": false,
+          "external_distributed_limiter_required_for_multiple_workers": true
+        },
+        "generation_capacity": {
+          "implementation": "process_local_bounded_queue",
+          "max_active_requests": 2,
+          "max_waiting_requests": 4,
+          "queue_timeout_seconds": 2.0,
+          "covered_paths": [
+            "POST /api/ask",
+            "POST /api/recommendations/extensions"
+          ],
+          "distributed_admission_control_implemented": false
+        }
+      },
       "keyword_index": {
         "required": true,
         "ready": true,
@@ -75,228 +123,108 @@
     }
   },
   "stats": {
-    "papers": 134,
-    "searchable_papers": 96,
-    "eligible_chunks": 719,
-    "raw_chunks": 735,
-    "keyword_indexed_chunks": 719,
-    "feature_hashing_indexed_chunks": 719,
-    "dense_indexed_chunks": 719,
-    "author_count": 133,
-    "topic_count": 39,
+    "papers": 0,
+    "searchable_papers": 0,
+    "eligible_chunks": 0,
+    "raw_chunks": 0,
+    "keyword_indexed_chunks": 0,
+    "feature_hashing_indexed_chunks": 0,
+    "dense_indexed_chunks": 0,
+    "author_count": 0,
+    "topic_count": 0,
     "review_event_count": null,
     "latest_evaluation_at": null
   },
   "search_diagnostics": {
-    "total_chunks": 735,
-    "raw_chunks": 735,
-    "eligible_chunks": 719,
-    "searchable_chunks": 719,
-    "searchable_papers": 96,
-    "chunks_indexed_for_keyword_search": 719,
-    "chunks_indexed_for_feature_hashing": 719,
-    "chunks_indexed_for_dense_search": 719,
-    "chunks_indexed_for_semantic_search": 719,
+    "total_chunks": 0,
+    "raw_chunks": null,
+    "eligible_chunks": 0,
+    "searchable_chunks": 0,
+    "searchable_papers": 0,
+    "chunks_indexed_for_keyword_search": 0,
+    "chunks_indexed_for_feature_hashing": 0,
+    "chunks_indexed_for_dense_search": 0,
+    "chunks_indexed_for_semantic_search": null,
+    "semantic_search_deprecation": "Feature hashing is a lexical baseline; use feature_hashing explicitly.",
     "keyword": {
-      "fts_available": true,
-      "keyword_indexed_chunks": 719,
-      "eligible_chunks": 719,
-      "eligible_papers": 96,
-      "coverage_ratio": 1.0,
-      "corpus_snapshot_id": "corpus-04a010207327069a",
-      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "stored_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "completeness_status": "complete",
-      "provider": "sqlite_fts5_bm25",
-      "errors": [],
-      "total_chunks": 719,
-      "status": "ready"
+      "status": "ready",
+      "projection_status": "public_projection_empty",
+      "indexed_chunks": 0,
+      "public_eligible_chunks": 0,
+      "underlying_index_status": "ready",
+      "underlying_representation_valid": true,
+      "underlying_error_count": 0,
+      "last_indexed_at": null
     },
     "feature_hashing": {
-      "valid": true,
       "status": "ready",
-      "errors": [],
-      "provider": "feature_hashing",
-      "model_name": "sha256-signed-token-hashing-v1",
-      "model_revision": "1",
-      "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39",
-      "dimensions": 256,
-      "normalization": "l2",
-      "indexed_chunks": 719,
-      "eligible_chunks": 719,
-      "eligible_papers": 96,
-      "completeness_status": "complete",
-      "corpus_snapshot_id": "corpus-04a010207327069a",
-      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "configuration_hash": "0e1747930d46faf752a9a7acda3e0aaa79147a6bbd1fa1b672866620e7513707",
-      "index_sha256": "f23353187252bb88188f8f5561c90de282481c1e87130405ccf556a14f319fa5",
-      "created_at": "2026-07-12T23:14:04.312681+00:00",
-      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
-      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "semantic_indexed_chunks": 719,
-      "embedding_provider": "feature_hashing",
-      "embedding_dimensions": 256,
-      "index_status": "ready",
-      "last_indexed_at": "2026-07-12T23:14:04.312681+00:00"
+      "projection_status": "public_projection_empty",
+      "indexed_chunks": 0,
+      "public_eligible_chunks": 0,
+      "underlying_index_status": "ready",
+      "underlying_representation_valid": true,
+      "underlying_error_count": 0,
+      "last_indexed_at": "2026-07-21T04:21:30.070704+00:00",
+      "classification": "lexical_feature_hashing"
     },
     "dense": {
-      "valid": true,
       "status": "ready",
-      "errors": [],
-      "provider": "dense",
-      "model_name": "sentence-transformers/all-MiniLM-L6-v2",
-      "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
-      "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c",
-      "dimensions": 384,
-      "normalization": "l2",
-      "indexed_chunks": 719,
-      "eligible_chunks": 719,
-      "eligible_papers": 96,
-      "completeness_status": "complete",
-      "corpus_snapshot_id": "corpus-04a010207327069a",
-      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "configuration_hash": "82bd4770afaf734b2fab006a9f9ff253bc5f1fe8e3b02ba4cd248d1fe6cb61d9",
-      "index_sha256": "ac0d1242787760638f294d8268166a99782d652fef66af70c5ba3739e1b15673",
-      "created_at": "2026-07-12T23:17:06.509772+00:00",
-      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
-      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "semantic_indexed_chunks": 719,
-      "embedding_provider": "dense",
-      "embedding_dimensions": 384,
-      "index_status": "ready",
-      "last_indexed_at": "2026-07-12T23:17:06.509772+00:00"
+      "projection_status": "public_projection_empty",
+      "indexed_chunks": 0,
+      "public_eligible_chunks": 0,
+      "underlying_index_status": "ready",
+      "underlying_representation_valid": true,
+      "underlying_error_count": 0,
+      "last_indexed_at": "2026-07-21T04:29:24.762183+00:00"
     },
-    "semantic": {
-      "valid": true,
-      "status": "ready",
-      "errors": [],
-      "provider": "feature_hashing",
-      "model_name": "sha256-signed-token-hashing-v1",
-      "model_revision": "1",
-      "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39",
-      "dimensions": 256,
-      "normalization": "l2",
-      "indexed_chunks": 719,
-      "eligible_chunks": 719,
-      "eligible_papers": 96,
-      "completeness_status": "complete",
-      "corpus_snapshot_id": "corpus-04a010207327069a",
-      "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "configuration_hash": "0e1747930d46faf752a9a7acda3e0aaa79147a6bbd1fa1b672866620e7513707",
-      "index_sha256": "f23353187252bb88188f8f5561c90de282481c1e87130405ccf556a14f319fa5",
-      "created_at": "2026-07-12T23:14:04.312681+00:00",
-      "code_commit": "166c6fc45befa0a2847b320328042ab861a34e9d",
-      "current_corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
-      "semantic_indexed_chunks": 719,
-      "embedding_provider": "feature_hashing",
-      "embedding_dimensions": 256,
-      "index_status": "ready",
-      "last_indexed_at": "2026-07-12T23:14:04.312681+00:00"
-    },
-    "embedding_provider": "feature_hashing",
-    "embedding_dimensions": 256,
+    "embedding_provider": null,
+    "embedding_dimensions": null,
     "index_status": "ready",
-    "last_indexed_timestamp": "2026-07-12T23:14:04.312681+00:00"
+    "last_indexed_timestamp": null
   },
   "searches": {
     "keyword": {
-      "result_count": 5,
+      "result_count": 0,
       "warnings": [],
-      "results": [
-        {
-          "rank": 1,
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0006-657f03c84944",
-          "page_start": 6,
-          "page_end": 6,
-          "section": "Conclusion",
-          "combined_score": 0.181728
-        },
-        {
-          "rank": 2,
-          "paper_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562",
-          "chunk_id": "a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562-chunk-0001-41ef83ebaf97",
-          "page_start": 1,
-          "page_end": 2,
-          "section": "Introduction",
-          "combined_score": 0.071219
-        },
-        {
-          "rank": 3,
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-f097efe29bdc",
-          "page_start": 1,
-          "page_end": 1,
-          "section": "Introduction",
-          "combined_score": 0.208224
-        }
-      ]
+      "results": []
     },
     "feature_hashing": {
-      "result_count": 5,
+      "result_count": 0,
       "warnings": [],
-      "results": [
-        {
-          "rank": 1,
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0006-657f03c84944",
-          "page_start": 6,
-          "page_end": 6,
-          "section": "Conclusion",
-          "combined_score": 0.267152
-        },
-        {
-          "rank": 2,
-          "paper_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0",
-          "chunk_id": "a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0-chunk-0001-6842f401aa20",
-          "page_start": 1,
-          "page_end": 2,
-          "section": "Literature Review",
-          "combined_score": 0.207061
-        },
-        {
-          "rank": 3,
-          "paper_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db",
-          "chunk_id": "using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db-chunk-0000-f097efe29bdc",
-          "page_start": 1,
-          "page_end": 1,
-          "section": "Introduction",
-          "combined_score": 0.267169
-        }
-      ]
+      "results": []
     }
   },
   "answer": {
-    "grounding_status": "grounded",
-    "provider": "offline_extractive",
-    "model": "sentence-overlap-v1",
-    "citation_count": 5,
-    "retrieved_chunk_count": 5,
-    "warnings": []
+    "grounding_status": "unsupported",
+    "provider": "not_invoked",
+    "model": "not_invoked",
+    "citation_count": 0,
+    "retrieved_chunk_count": 0,
+    "warnings": [
+      "No relevant indexed TTLAB chunks were retrieved."
+    ]
   },
   "recommendation": {
-    "grounding_status": "partial",
+    "grounding_status": "unsupported",
     "provider": "offline_deterministic",
-    "recommendation_count": 3,
+    "recommendation_count": 0,
     "warnings": [
-      "Recommendation 1 did not find explicit limitations or future work in retrieved chunks.",
-      "Recommendation 1 has student skill gaps: API design, evaluation, information retrieval.",
-      "Recommendation 2 has student skill gaps: API design, evaluation, information retrieval.",
-      "Recommendation 3 has student skill gaps: API design, evaluation, information retrieval, domain research."
+      "No relevant indexed TTLAB chunks were retrieved.",
+      "No indexed TTLAB chunks defensibly matched the student profile."
     ]
   },
   "evaluation_status": {
-    "retrieval": "available",
-    "qa": "available",
-    "extension": "available",
-    "artifact": "available"
+    "retrieval": "historical",
+    "qa": "historical",
+    "extension": "historical",
+    "artifact": "historical"
   },
   "explorer": {
-    "topic_count": 39,
-    "author_count": 109,
-    "paper_count": 96,
-    "linked_paper_topics": 170,
-    "linked_author_topics": 313
+    "topic_count": 0,
+    "author_count": 0,
+    "paper_count": 0,
+    "linked_paper_topics": 0,
+    "linked_author_topics": 0
   },
   "anonymous_protection": {
     "admin_overview_status": 401,

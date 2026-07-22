@@ -34,7 +34,12 @@ def evaluate_extension_recommendations(
     evaluated_cases: list[dict[str, Any]] = []
     for case in cases:
         request = request_from_case(case, top_k=top_k)
-        response = recommend_extensions(session, request, persist=persist)
+        response = recommend_extensions(
+            session,
+            request,
+            persist=persist,
+            retrieval_scope="technical",
+        )
         evaluated_cases.append(evaluate_case(case, response))
     return {
         "case_count": len(evaluated_cases),

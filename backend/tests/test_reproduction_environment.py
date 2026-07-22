@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -14,10 +16,85 @@ def test_tracked_reproduction_lock_covers_app_dense_ocr_and_audit_paths() -> Non
     packages = environment.locked_packages(ROOT / "backend/requirements-lock.txt")
     assert len(packages) >= 80
     assert packages["fastapi"] == "0.139.0"
+    assert packages["httpx2"] == "2.7.0"
+    assert packages["pymupdf"] == "1.28.0"
     assert packages["sentence-transformers"] == "5.6.0"
     assert packages["torch"] == "2.13.0+cpu"
     assert packages["pytesseract"] == "0.3.13"
     assert packages["pip-audit"] == "2.10.1"
+
+
+def test_full_reproduction_enters_explicit_offline_worker_for_extraction() -> None:
+    script = (ROOT / "scripts" / "reproduce_all.sh").read_text(encoding="utf-8")
+    extraction_stage = """run_in_source extraction env \\
+    TTLAB_SERVICE_ROLE=offline_worker \\
+    TTLAB_SYNC_EXECUTION_MODE=offline_single_writer \\
+    \"$PYTHON\" -m app.ingestion.pdf_parser extract --overwrite"""
+
+    assert extraction_stage in script
+    assert "export TTLAB_SERVICE_ROLE=offline_worker" not in script
+
+
+def test_full_reproduction_fails_loudly_without_tesseract() -> None:
+    script = (ROOT / "scripts" / "reproduce_all.sh").read_text(encoding="utf-8")
+
+    assert 'if [[ "$MODE" == "full" ]]; then' in script
+    assert "command -v tesseract >/dev/null" in script
+    assert "full remediation-v2 OCR fixture and corpus extraction" in script
+
+
+def test_reproduction_workspace_is_new_sentinel_owned_and_cleanup_guarded() -> None:
+    script_path = ROOT / "scripts" / "reproduce_all.sh"
+    script = script_path.read_text(encoding="utf-8")
+    with tempfile.TemporaryDirectory(
+        prefix="ttlab-existing-reproduction-",
+        dir="/tmp",
+    ) as existing:
+        result = subprocess.run(
+            ["bash", str(script_path), "--mode", "quick", "--work-dir", existing],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+    assert result.returncode != 0
+    assert "must be new and absent" in result.stderr
+    assert "WORK_SENTINEL_NAME" in script
+    assert "verify_workspace_ownership" in script
+    assert "WORK_DEVICE_INODE" in script
+    assert "rm -rf --one-file-system -- \"$WORK\"" in script
+    assert script.index("verify_workspace_ownership\n  rm -rf") > script.index(
+        "git -C \"$ROOT\" worktree remove"
+    )
+
+
+def test_reproduction_rejects_broad_workspace_roots() -> None:
+    result = subprocess.run(
+        ["bash", str(ROOT / "scripts" / "reproduce_all.sh"), "--work-dir", "/tmp"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "broad or sensitive root" in result.stderr
+
+    sensitive_child = subprocess.run(
+        [
+            "bash",
+            str(ROOT / "scripts" / "reproduce_all.sh"),
+            "--work-dir",
+            "/etc/ttlab-reproduction-must-not-be-created",
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert sensitive_child.returncode != 0
+    assert "unique child of /tmp or /var/tmp" in sensitive_child.stderr
 
 
 @pytest.mark.parametrize(

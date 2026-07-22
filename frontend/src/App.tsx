@@ -23,10 +23,13 @@ import {
 } from "react-router-dom";
 
 import {
+  ApiError,
+  fetchPaper,
   fetchPapers,
   fetchServiceStatus,
   fetchStats,
   hasReviewerToken,
+  isAbortError,
   setReviewerToken,
 } from "./api/client";
 import { ListSkeleton, MetricSkeletonGrid, ToastStack } from "./components/UiPrimitives";
@@ -54,10 +57,10 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/", label: "Dashboard", shortLabel: "Dashboard", icon: LayoutDashboard, count: () => null },
   { path: "/papers", label: "Papers", shortLabel: "Papers", icon: Library, count: (stats, papers) => String(stats?.papers ?? papers) },
   { path: "/search", label: "Search", shortLabel: "Search", icon: Search, count: (stats) => String(stats?.searchable_chunks ?? 0) },
-  { path: "/ask", label: "Ask TTLAB", shortLabel: "Ask", icon: MessageCircleQuestion, count: (stats) => String(stats?.total_ask_answers ?? 0) },
-  { path: "/extensions", label: "Thesis Extension Finder", shortLabel: "Extensions", icon: Lightbulb, count: (stats) => String(stats?.total_extension_recommendation_runs ?? 0) },
+  { path: "/ask", label: "Ask TTLAB", shortLabel: "Ask", icon: MessageCircleQuestion, count: () => null },
+  { path: "/extensions", label: "Thesis Extension Finder", shortLabel: "Extensions", icon: Lightbulb, count: () => null },
   { path: "/explorer", label: "Topic/Author Explorer", shortLabel: "Explorer", icon: Compass, count: (stats) => String(stats?.topic_count ?? 0) },
-  { path: "/admin", label: "Admin Review", shortLabel: "Admin", icon: ShieldCheck, count: (stats) => String(stats?.admin_review_queue_count ?? 0) },
+  { path: "/admin", label: "Admin Review", shortLabel: "Admin", icon: ShieldCheck, count: () => null },
   { path: "/evaluation", label: "Evaluation", shortLabel: "Evaluation", icon: ClipboardCheck, count: (stats) => String(Object.values(stats?.evaluation_files_present ?? {}).filter(Boolean).length) },
 ];
 
@@ -65,7 +68,7 @@ export function App() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [paperError, setPaperError] = useState<string | null>(null);
   const [statsWarning, setStatsWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -73,16 +76,22 @@ export function App() {
   const mainRef = useRef<HTMLElement>(null);
   const location = useLocation();
 
-  function loadData() {
-    setLoading(true);
-    setError(null);
+  function loadData(showInitialLoading = true) {
+    if (showInitialLoading) setLoading(true);
+    setPaperError(null);
     setStatsWarning(null);
     Promise.allSettled([fetchPapers(), fetchStats(), fetchServiceStatus()])
       .then(([paperResult, statsResult, serviceResult]) => {
-        if (paperResult.status === "rejected") {
-          throw paperResult.reason;
+        if (paperResult.status === "fulfilled") {
+          setPapers(paperResult.value);
+        } else {
+          setPapers([]);
+          setPaperError(
+            paperResult.reason instanceof Error
+              ? paperResult.reason.message
+              : "Unable to load publication records.",
+          );
         }
-        setPapers(paperResult.value);
         if (statsResult.status === "fulfilled") {
           setStats(statsResult.value);
         } else {
@@ -91,10 +100,9 @@ export function App() {
         }
         setServiceStatus(serviceResult.status === "fulfilled" ? serviceResult.value : null);
       })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Unable to load publication records.");
-      })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (showInitialLoading) setLoading(false);
+      });
   }
 
   useEffect(() => {
@@ -150,18 +158,19 @@ export function App() {
       <p className="sr-only" role="status" aria-live="polite">{titleForPath(location.pathname)} view loaded</p>
       <main id="main-content" ref={mainRef} tabIndex={-1}>
         {loading ? <InitialAppSkeleton /> : null}
-        {error ? (
+        {!loading && paperError ? (
           <section className="page-section" aria-labelledby="startup-error-title">
             <div className="notice notice--error" role="alert">
-              <h2 id="startup-error-title">Publication service unavailable</h2>
-              <p>{error}</p>
-              <button className="action-button" onClick={loadData}>Retry</button>
+              <h2 id="startup-error-title">Publication catalogue unavailable</h2>
+              <p>{paperError}</p>
+              <p>Independent routes remain available while the catalogue is retried.</p>
+              <button className="action-button" onClick={() => loadData()}>Retry publication catalogue</button>
             </div>
           </section>
         ) : null}
-        {!loading && !error && statsWarning ? <p className="notice notice--warning" role="status">{statsWarning}</p> : null}
-        {!loading && !error ? (
-          <AppRoutes papers={papers} stats={stats} serviceStatus={serviceStatus} notify={notify} />
+        {!loading && statsWarning ? <p className="notice notice--warning" role="status">{statsWarning}</p> : null}
+        {!loading ? (
+          <AppRoutes papers={papers} stats={stats} serviceStatus={serviceStatus} notify={notify} onSharedDataChanged={() => loadData(false)} />
         ) : null}
       </main>
       <footer className="app-footer">
@@ -177,11 +186,13 @@ function AppRoutes({
   stats,
   serviceStatus,
   notify,
+  onSharedDataChanged,
 }: {
   papers: Paper[];
   stats: Stats | null;
   serviceStatus: ServiceStatus | null;
   notify: (message: string, tone?: ToastTone) => void;
+  onSharedDataChanged: () => void;
 }) {
   const navigate = useNavigate();
   const openPaper = (paperId: string) => navigate(`/papers/${encodeURIComponent(paperId)}`);
@@ -190,7 +201,7 @@ function AppRoutes({
     <Routes>
       <Route path="/" element={<Dashboard stats={stats} papers={papers} />} />
       <Route path="/papers" element={<PaperBrowser papers={papers} />} />
-      <Route path="/papers/:paperId" element={<PaperRoute papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
+      <Route path="/papers/:paperId" element={<PaperRoute papers={papers} serviceStatus={serviceStatus} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/search" element={<SearchPage papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/ask" element={<AskPage papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/ask/:paperId" element={<AskRoute papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
@@ -201,17 +212,82 @@ function AppRoutes({
       <Route path="/explorer/authors" element={<TopicAuthorExplorer initialTab="authors" onSelectPaper={openPaper} />} />
       <Route path="/explorer/authors/:authorId" element={<ExplorerAuthorRoute onSelectPaper={openPaper} />} />
       <Route path="/evaluation" element={<EvaluationDashboardPage />} />
-      <Route path="/admin" element={<AdminGate papers={papers} serviceStatus={serviceStatus} onSelectPaper={openPaper} onNotify={notify} />} />
+      <Route path="/admin" element={<AdminGate papers={papers} serviceStatus={serviceStatus} onSelectPaper={openPaper} onNotify={notify} onDataChanged={onSharedDataChanged} />} />
       <Route path="/dashboard" element={<Navigate replace to="/" />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
 
-function PaperRoute({ papers, onSelectPaper, onNotify }: { papers: Paper[]; onSelectPaper: (paperId: string) => void; onNotify: (message: string, tone?: ToastTone) => void }) {
+function PaperRoute({ papers, serviceStatus, onSelectPaper, onNotify }: { papers: Paper[]; serviceStatus: ServiceStatus | null; onSelectPaper: (paperId: string) => void; onNotify: (message: string, tone?: ToastTone) => void }) {
   const { paperId = "" } = useParams();
   const navigate = useNavigate();
-  const paper = papers.find((item) => item.paper_id === paperId);
+  const cataloguePaper = papers.find((item) => item.paper_id === paperId) ?? null;
+  const [directPaper, setDirectPaper] = useState<Paper | null>(null);
+  const [directError, setDirectError] = useState<Error | null>(null);
+  const [directLoading, setDirectLoading] = useState(!cataloguePaper);
+  const [directRequestId, setDirectRequestId] = useState(paperId);
+  const requestController = useRef<AbortController | null>(null);
+  const paper = cataloguePaper ?? (directPaper?.paper_id === paperId ? directPaper : null);
+  const directStateMatchesRoute = directRequestId === paperId;
+
+  function loadDirectPaper() {
+    if (!paperId || cataloguePaper) return;
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
+    setDirectRequestId(paperId);
+    setDirectLoading(true);
+    setDirectError(null);
+    setDirectPaper(null);
+    fetchPaper(paperId, controller.signal)
+      .then(setDirectPaper)
+      .catch((error: unknown) => {
+        if (!isAbortError(error)) {
+          setDirectError(error instanceof Error ? error : new Error("Unable to load this paper record."));
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setDirectLoading(false);
+      });
+  }
+
+  useEffect(() => {
+    if (cataloguePaper) {
+      requestController.current?.abort();
+      setDirectPaper(null);
+      setDirectError(null);
+      setDirectLoading(false);
+      return;
+    }
+    loadDirectPaper();
+    return () => requestController.current?.abort();
+    // The direct request is keyed only by the route ID and catalogue resolution.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cataloguePaper, paperId]);
+
+  if (!paper && (!directStateMatchesRoute || directLoading)) {
+    return (
+      <section className="page-section" aria-labelledby="paper-detail-loading" aria-busy="true">
+        <h2 id="paper-detail-loading">Loading paper detail</h2>
+        <ListSkeleton count={2} lines={3} />
+      </section>
+    );
+  }
+  if (!paper && directStateMatchesRoute && directError instanceof ApiError && directError.status === 404) {
+    return <NotFound title="Paper not found" body="This paper ID is not present in the public publication snapshot." />;
+  }
+  if (!paper && directStateMatchesRoute && directError) {
+    return (
+      <section className="page-section" aria-labelledby="paper-detail-error-title">
+        <div className="notice notice--error" role="alert">
+          <h2 id="paper-detail-error-title">Paper detail unavailable</h2>
+          <p>{directError.message}</p>
+          <button className="action-button" onClick={loadDirectPaper}>Retry paper detail</button>
+        </div>
+      </section>
+    );
+  }
   if (!paper) {
     return <NotFound title="Paper not found" body="This paper ID is not present in the public publication snapshot." />;
   }
@@ -222,7 +298,7 @@ function PaperRoute({ papers, onSelectPaper, onNotify }: { papers: Paper[]; onSe
       onSelectPaper={onSelectPaper}
       onAskPaper={(id) => navigate(`/ask/${encodeURIComponent(id)}`)}
       onNotify={onNotify}
-      canGenerateArtifacts={hasReviewerToken()}
+      canGenerateArtifacts={hasReviewerToken() || serviceStatus?.admin_authentication === "insecure_local_demo_bypass"}
     />
   );
 }
@@ -245,7 +321,19 @@ function ExplorerAuthorRoute({ onSelectPaper }: { onSelectPaper: (paperId: strin
     : <NotFound title="Author not found" body="Author identifiers must be positive integers." />;
 }
 
-function AdminGate({ papers, serviceStatus, onSelectPaper, onNotify }: { papers: Paper[]; serviceStatus: ServiceStatus | null; onSelectPaper: (paperId: string) => void; onNotify: (message: string, tone?: ToastTone) => void }) {
+function AdminGate({
+  papers,
+  serviceStatus,
+  onSelectPaper,
+  onNotify,
+  onDataChanged,
+}: {
+  papers: Paper[];
+  serviceStatus: ServiceStatus | null;
+  onSelectPaper: (paperId: string) => void;
+  onNotify: (message: string, tone?: ToastTone) => void;
+  onDataChanged: () => void;
+}) {
   const demoBypass = serviceStatus?.admin_authentication === "insecure_local_demo_bypass";
   const [credentialLoaded, setCredentialLoaded] = useState(hasReviewerToken());
   const [tokenInput, setTokenInput] = useState("");
@@ -278,7 +366,7 @@ function AdminGate({ papers, serviceStatus, onSelectPaper, onNotify }: { papers:
           : "A reviewer credential is loaded in page memory for protected API requests."}
         {!demoBypass ? <button className="link-button" onClick={() => { setReviewerToken(""); setCredentialLoaded(false); }}>Clear credential</button> : null}
       </div>
-      <AdminReviewPage papers={papers} onSelectPaper={onSelectPaper} onNotify={onNotify} />
+      <AdminReviewPage papers={papers} onSelectPaper={onSelectPaper} onNotify={onNotify} onDataChanged={onDataChanged} />
     </>
   );
 }

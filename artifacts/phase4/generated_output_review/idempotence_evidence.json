@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "database_input_sha256": "9c496d600ba46bc83edd3e37b5b5a55ac1b54827d1c38573f3e17f5c541699d5",
+  "database_input_sha256": "27e164441bdebd960aa17ba2805ca2c0ae536b953e715df6aadcb7cf14017796",
   "compatibility": {
     "status": "compatible",
     "migration_required": false,
@@ -23,16 +23,17 @@
       "rag_answer:needs_reprocess": 27,
       "thesis_recommendation:ai_reviewed": 7
     },
-    "items_with_corrections": 48,
-    "citation_evidence_locator_count": 269
+    "items_with_corrections": 44,
+    "citation_evidence_locator_count": 221
   },
+  "preexisting_version_events": 27,
   "first_pass": {
-    "created_events": 48,
-    "changed_records": 48,
-    "skipped_existing": 0,
+    "created_events": 21,
+    "changed_records": 21,
+    "skipped_existing": 27,
     "review_event_integrity": {
       "status": "verified",
-      "verified_events": 48,
+      "verified_events": 69,
       "legacy_unverified_events": 0,
       "invalid_event_ids": []
     }
@@ -43,7 +44,7 @@
     "skipped_existing": 48,
     "review_event_integrity": {
       "status": "verified",
-      "verified_events": 48,
+      "verified_events": 69,
       "legacy_unverified_events": 0,
       "invalid_event_ids": []
     }
@@ -52,7 +53,7 @@
     "rag_answer": 27,
     "thesis_recommendation": 7,
     "paper_artifact": 14,
-    "review_event": 48
+    "review_event": 69
   },
   "live_database_mutated": false
 }

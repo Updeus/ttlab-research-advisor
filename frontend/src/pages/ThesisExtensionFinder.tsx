@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { fetchExtensionDiagnostics, recommendExtensions, searchChunks } from "../api/client";
+import { fetchExtensionDiagnostics, isAbortError, recommendExtensions, searchChunks } from "../api/client";
 import { EmptyState, GenerateButton, InlineProgress, ListSkeleton } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
 import type {
@@ -29,24 +29,28 @@ const DEFAULT_REQUEST: ExtensionFinderRequest = {
   preferred_topics: ["AI", "research discovery"],
   avoid_topics: [],
   top_k: 5,
-  retrieval_mode: "hybrid",
+  retrieval_mode: "keyword",
   provider: "auto",
 };
+
+type FinderResult =
+  | { mode: "advisor"; profile: ExtensionFinderRequest; payload: ExtensionFinderResponse }
+  | { mode: "evidence_only"; profile: ExtensionFinderRequest; payload: SearchResponse };
 
 export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: ThesisExtensionFinderProps) {
   const [request, setRequest] = useState<ExtensionFinderRequest>(DEFAULT_REQUEST);
   const [skillsText, setSkillsText] = useState(DEFAULT_REQUEST.skills.join(", "));
   const [preferredTopicsText, setPreferredTopicsText] = useState(DEFAULT_REQUEST.preferred_topics.join(", "));
   const [avoidTopicsText, setAvoidTopicsText] = useState("");
-  const [response, setResponse] = useState<ExtensionFinderResponse | null>(null);
+  const [result, setResult] = useState<FinderResult | null>(null);
+  const [failedRequest, setFailedRequest] = useState<{ mode: "advisor" | "evidence_only"; profile: ExtensionFinderRequest } | null>(null);
   const [diagnostics, setDiagnostics] = useState<ExtensionDiagnostics | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [diagnosticsError, setDiagnosticsError] = useState<string | null>(null);
   const [runMode, setRunMode] = useState<"advisor" | "evidence_only">("advisor");
-  const [evidenceResponse, setEvidenceResponse] = useState<SearchResponse | null>(null);
-  const [submittedProfile, setSubmittedProfile] = useState<ExtensionFinderRequest | null>(null);
-  const [submittedMode, setSubmittedMode] = useState<"advisor" | "evidence_only">("advisor");
+  const requestSequence = useRef(0);
+  const requestController = useRef<AbortController | null>(null);
 
   function loadDiagnostics() {
     setDiagnosticsError(null);
@@ -62,47 +66,62 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
     loadDiagnostics();
   }, []);
 
+  useEffect(() => () => requestController.current?.abort(), []);
+
+  const publicCorpusEmpty = diagnostics !== null
+    && (diagnostics.searchable_chunks === 0 || diagnostics.searchable_papers === 0);
+
   function updateRequest(update: Partial<ExtensionFinderRequest>) {
     setRequest((current) => ({ ...current, ...update }));
   }
 
-  function submit() {
-    const payload: ExtensionFinderRequest = {
+  function submit(requestOverride?: { mode: "advisor" | "evidence_only"; profile: ExtensionFinderRequest }) {
+    const payload: ExtensionFinderRequest = requestOverride?.profile ?? {
       ...request,
       skills: splitList(skillsText),
       preferred_topics: splitList(preferredTopicsText),
       avoid_topics: splitList(avoidTopicsText),
     };
+    const submittedMode = requestOverride?.mode ?? runMode;
     if (!payload.interests.trim()) {
       setError("Enter at least one student interest.");
       return;
     }
+
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
+    const sequence = ++requestSequence.current;
     setLoading(true);
     setError(null);
-    setSubmittedProfile(payload);
-    setSubmittedMode(runMode);
-    const operation = runMode === "evidence_only"
-      ? searchChunks(profileQuery(payload), payload.retrieval_mode, Math.min(payload.top_k * 3, 20))
-      : recommendExtensions(payload);
+    setFailedRequest(null);
+    const operation = submittedMode === "evidence_only"
+      ? searchChunks(profileQuery(payload), payload.retrieval_mode, Math.min(payload.top_k * 3, 20), controller.signal)
+      : recommendExtensions(payload, controller.signal);
     operation
-      .then((result) => {
-        if (runMode === "evidence_only") {
-          const evidence = result as SearchResponse;
-          setEvidenceResponse(evidence);
+      .then((payloadResult) => {
+        if (sequence !== requestSequence.current) return;
+        if (submittedMode === "evidence_only") {
+          const evidence = payloadResult as SearchResponse;
+          setResult({ mode: "evidence_only", profile: payload, payload: evidence });
           onNotify?.(`Evidence-only retrieval returned ${evidence.result_count} source passages.`, evidence.result_count ? "success" : "warning");
         } else {
-          const advisor = result as ExtensionFinderResponse;
-          setResponse(advisor);
+          const advisor = payloadResult as ExtensionFinderResponse;
+          setResult({ mode: "advisor", profile: payload, payload: advisor });
           onNotify?.(`Generated ${advisor.recommendations.length} thesis recommendations.`, advisor.grounding_status === "unsupported" ? "warning" : "success");
         }
-        return loadDiagnostics();
+        loadDiagnostics();
       })
       .catch((err: unknown) => {
+        if (sequence !== requestSequence.current || isAbortError(err)) return;
         const message = err instanceof Error ? err.message : "Recommendation failed.";
         setError(message);
+        setFailedRequest({ mode: submittedMode, profile: payload });
         onNotify?.(message, "error");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (sequence === requestSequence.current) setLoading(false);
+      });
   }
 
   return (
@@ -116,6 +135,9 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
       </p>
       <p className="notice">
         Privacy: interests, skills, timeline, constraints, and preferences stay in this page and are sent only for the current request. The public endpoint does not save the profile. Do not enter confidential or personal data.
+      </p>
+      <p className="notice">
+        Finder evidence comes only from approved public papers with cleared rights, searchable access, and eligible extracted text. Metadata-only catalogue records are excluded.
       </p>
 
       <div className="finder-panel finder-panel--advisor" aria-busy={loading}>
@@ -208,7 +230,7 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
                   <option value="keyword">keyword</option>
                   <option value="feature_hashing">feature-hashing baseline</option>
                   <option value="dense">dense semantic (learned model)</option>
-                  <option value="hybrid">hybrid</option>
+                  <option value="hybrid">hybrid (experimental; not validated as better)</option>
                 </select>
               </label>
             </div>
@@ -220,7 +242,13 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
             <label><input type="radio" name="finder-mode" checked={runMode === "advisor"} onChange={() => setRunMode("advisor")} /> Full advisor suggestions</label>
             <label><input type="radio" name="finder-mode" checked={runMode === "evidence_only"} onChange={() => setRunMode("evidence_only")} /> Evidence-only ranked papers/passages</label>
           </fieldset>
-          <GenerateButton busy={loading} busyLabel="Finding..." onClick={submit} disabled={!request.interests.trim()}>
+          <GenerateButton
+            busy={loading}
+            busyLabel="Finding..."
+            onClick={() => submit()}
+            disabled={!request.interests.trim() || publicCorpusEmpty}
+            aria-describedby={publicCorpusEmpty ? "finder-public-corpus-empty" : undefined}
+          >
             {runMode === "advisor" ? "Find Thesis Extensions" : "Retrieve Evidence Only"}
           </GenerateButton>
         </div>
@@ -230,8 +258,16 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
         <div className="search-diagnostics">
           <span>{diagnostics.searchable_chunks} searchable chunks</span>
           <span>{diagnostics.searchable_papers} papers with chunks</span>
-          <span>{diagnostics.total_recommendation_runs} stored reviewer/legacy runs</span>
+          <span>{diagnostics.total_recommendation_runs === null ? "Stored recommendation history protected" : `${diagnostics.total_recommendation_runs} stored reviewer/legacy runs`}</span>
           <span>{diagnostics.default_provider.replaceAll("_", " ")}</span>
+        </div>
+      ) : null}
+      {publicCorpusEmpty ? (
+        <div id="finder-public-corpus-empty" data-finder-public-corpus-state="empty">
+          <EmptyState
+            title="No papers are approved for public Finder recommendations yet"
+            body="The public Finder remains disabled until editorial publication, document-rights, extraction, and searchable-access review produce an eligible public corpus. Reviewer-only technical prototype evidence is not substituted into this public route."
+          />
         </div>
       ) : null}
       {diagnosticsError ? (
@@ -241,53 +277,53 @@ export function ThesisExtensionFinder({ papers, onSelectPaper, onNotify }: Thesi
         </div>
       ) : null}
 
-      {loading && response ? <InlineProgress label="Refreshing ranked recommendations and citation checks..." /> : null}
+      {loading && result ? <InlineProgress label="Refreshing ranked recommendations and citation checks..." /> : null}
       {error ? (
         <div id="finder-error" className="notice notice--error" role="alert">
           <p>{error}</p>
-          {request.interests.trim() ? <button className="action-button" onClick={submit}>Retry finder request</button> : null}
+          {failedRequest ? <button className="action-button" onClick={() => submit(failedRequest)}>Retry finder request</button> : null}
         </div>
       ) : null}
-      {loading && !response ? <ListSkeleton count={Number(request.top_k) || 3} lines={5} /> : null}
+      {loading && !result ? <ListSkeleton count={Number(request.top_k) || 3} lines={5} /> : null}
 
-      {submittedProfile ? <ProfileEcho profile={submittedProfile} mode={submittedMode} /> : null}
+      {result ? <ProfileEcho profile={result.profile} mode={result.mode} /> : null}
 
-      {evidenceResponse ? <EvidenceOnlyResults response={evidenceResponse} papers={papers} onSelectPaper={onSelectPaper} /> : null}
+      {result?.mode === "evidence_only" ? <EvidenceOnlyResults response={result.payload} papers={papers} onSelectPaper={onSelectPaper} /> : null}
 
-      {response ? (
+      {result?.mode === "advisor" ? (
         <div className="answer-layout">
           <article className="answer-card">
             <div className="paper-card__meta">
-              <span className={`grounding grounding--${response.grounding_status}`}>{response.grounding_status}</span>
-              <span>{response.provider.replaceAll("_", " ")}</span>
-              <span>{response.retrieval_mode}</span>
-              <span>{response.model}</span>
-              <span>Generated {new Date(response.created_at).toLocaleString()}</span>
+              <span className={`grounding grounding--${result.payload.grounding_status}`}>{result.payload.grounding_status}</span>
+              <span>{result.payload.provider.replaceAll("_", " ")}</span>
+              <span>{result.payload.retrieval_mode}</span>
+              <span>{result.payload.model}</span>
+              <span>Generated {new Date(result.payload.created_at).toLocaleString()}</span>
             </div>
             <p className="paper-card__status">
               Grounding status reports structural citations and weak lexical overlap; it does not establish entailment or factual correctness.
             </p>
             <h3>Recommendation Run</h3>
             <p>
-              Generated {response.recommendations.length} transient structured recommendations from indexed TTLAB source chunks. This public run was not saved or human-reviewed.
+              Generated {result.payload.recommendations.length} transient structured recommendations from indexed TTLAB source chunks. This public run was not saved or human-reviewed.
             </p>
           </article>
 
-          {response.warnings.length ? <p className="notice notice--warning">{response.warnings.join(" ")}</p> : null}
+          {result.payload.warnings.length ? <p className="notice notice--warning">{result.payload.warnings.join(" ")}</p> : null}
 
           <div className="paper-list">
-            {response.recommendations.map((recommendation) => (
+            {result.payload.recommendations.map((recommendation) => (
               <RecommendationCard
-                key={`${response.recommendation_id}-${recommendation.paper_id}`}
+                key={`${result.payload.recommendation_id}-${recommendation.paper_id}`}
                 recommendation={recommendation}
                 paper={papers.find((item) => item.paper_id === recommendation.paper_id)}
                 onSelectPaper={onSelectPaper}
               />
             ))}
-            {response.recommendations.length === 0 ? (
+            {result.payload.recommendations.length === 0 ? (
               <EmptyState
                 title="No cited recommendation could be generated"
-                body="Try broader interests or rebuild the search indexes so more chunks are available."
+                body="Try broader interests. Recommendations use only approved public papers with searchable source evidence."
               />
             ) : null}
           </div>
@@ -411,6 +447,10 @@ function RecommendationCard({
         <span>Time: {recommendation.implementation_time}</span>
         <span>Data: {recommendation.data_availability}</span>
       </div>
+
+      {recommendation.difficulty === "unknown" ? (
+        <p className="notice notice--warning" role="status">Difficulty could not be inferred from the available source evidence. Treat feasibility as unverified until a supervisor or domain expert checks the scope.</p>
+      ) : null}
 
       <div className="recommendation-columns">
         <SmallList title="Required Skills" items={recommendation.required_skills} />

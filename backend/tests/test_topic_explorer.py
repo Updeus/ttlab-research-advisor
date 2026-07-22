@@ -9,6 +9,7 @@ from sqlmodel import Session, SQLModel, create_engine, func, select
 from app.db import get_session
 from app.demo import prepare_demo as prepare_demo_module
 from app.demo.smoke_check import run_smoke_check
+from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.intelligence import topic_explorer as topic_explorer_module
 from app.intelligence.topic_explorer import (
     author_detail,
@@ -20,6 +21,9 @@ from app.intelligence.topic_explorer import (
 from app.main import app
 from app.models import Author, AuthorTopic, Chunk, Paper, PaperArtifact, PaperTopic, Topic
 
+EXTRACTION_GENERATION = "a" * 64
+CHUNK_GENERATION = "b" * 64
+
 
 def build_explorer_engine(*, reviewed: bool = False):
     engine = create_engine(
@@ -29,9 +33,9 @@ def build_explorer_engine(*, reviewed: bool = False):
     )
     SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
-        session.add(Author(name="Asha Singh", review_status="needs_review"))
-        session.add(Author(name="Ben Lee", review_status="needs_review"))
-        session.add(Author(name="Cara Jones", review_status="needs_review"))
+        session.add(Author(name="Asha Singh", canonical_name="Asha Singh", normalized_name="asha singh", review_status="approved", identity_status="resolved", identity_review_status="approved"))
+        session.add(Author(name="Ben Lee", canonical_name="Ben Lee", normalized_name="ben lee", review_status="approved", identity_status="resolved", identity_review_status="approved"))
+        session.add(Author(name="Cara Jones", canonical_name="Cara Jones", normalized_name="cara jones", review_status="approved", identity_status="resolved", identity_review_status="approved"))
         session.add(
             Paper(
                 paper_id="rag-paper",
@@ -43,6 +47,14 @@ def build_explorer_engine(*, reviewed: bool = False):
                 review_status="approved" if reviewed else "needs_review",
                 pdf_text_status="extracted",
                 corpus_eligibility_status="eligible",
+                publication_status="published",
+                rights_status="cleared",
+                public_access_level="searchable",
+                extraction_generation_id=EXTRACTION_GENERATION,
+                chunk_extraction_generation_id=EXTRACTION_GENERATION,
+                chunk_generation_id=CHUNK_GENERATION,
+                public_index_generation_id=CHUNK_GENERATION,
+                chunk_count=1,
             )
         )
         session.add(
@@ -55,6 +67,14 @@ def build_explorer_engine(*, reviewed: bool = False):
                 topics=["retrieval augmented generation", "web applications"],
                 pdf_text_status="extracted",
                 corpus_eligibility_status="eligible",
+                publication_status="published",
+                rights_status="cleared",
+                public_access_level="searchable",
+                extraction_generation_id=EXTRACTION_GENERATION,
+                chunk_extraction_generation_id=EXTRACTION_GENERATION,
+                chunk_generation_id=CHUNK_GENERATION,
+                public_index_generation_id=CHUNK_GENERATION,
+                chunk_count=1,
             )
         )
         session.add(
@@ -66,6 +86,14 @@ def build_explorer_engine(*, reviewed: bool = False):
                 topics=["optimisation"],
                 pdf_text_status="extracted",
                 corpus_eligibility_status="eligible",
+                publication_status="published",
+                rights_status="cleared",
+                public_access_level="searchable",
+                extraction_generation_id=EXTRACTION_GENERATION,
+                chunk_extraction_generation_id=EXTRACTION_GENERATION,
+                chunk_generation_id=CHUNK_GENERATION,
+                public_index_generation_id=CHUNK_GENERATION,
+                chunk_count=0,
             )
         )
         session.add(
@@ -75,6 +103,7 @@ def build_explorer_engine(*, reviewed: bool = False):
                 chunk_index=0,
                 section="Abstract",
                 text="Retrieval augmented generation and information retrieval help students inspect cited research evidence.",
+                extraction_generation_id=EXTRACTION_GENERATION,
             )
         )
         session.add(
@@ -84,6 +113,7 @@ def build_explorer_engine(*, reviewed: bool = False):
                 chunk_index=0,
                 section="Methodology",
                 text="The web application uses RAG, search, and a dashboard for academic discovery.",
+                extraction_generation_id=EXTRACTION_GENERATION,
             )
         )
         session.add(
@@ -96,8 +126,29 @@ def build_explorer_engine(*, reviewed: bool = False):
                 generation_status="generated",
             )
         )
+        session.flush()
+        for paper_id in ("rag-paper", "related-paper"):
+            chunks = list(session.exec(select(Chunk).where(Chunk.paper_id == paper_id)).all())
+            generation_id = canonical_chunks_sha256(db_chunk_payload(chunks))
+            paper = session.get(Paper, paper_id)
+            assert paper is not None
+            paper.chunk_generation_id = generation_id
+            paper.public_index_generation_id = generation_id
+            session.add(paper)
         session.commit()
     return engine
+
+
+def approve_explorer_graph(session: Session) -> None:
+    for paper in session.exec(select(Paper).where(Paper.corpus_eligibility_status == "eligible")).all():
+        paper.review_status = "approved"
+        paper.extraction_review_status = "approved"
+        session.add(paper)
+    for model in (Topic, PaperTopic, AuthorTopic):
+        for record in session.exec(select(model)).all():
+            record.review_status = "approved"
+            session.add(record)
+    session.commit()
 
 
 def make_override(engine):
@@ -167,6 +218,7 @@ def test_topic_rebuild_excludes_ineligible_papers_and_generated_artifact_topics(
         session.commit()
 
         rebuild_topic_index(session)
+        approve_explorer_graph(session)
         excluded_links = session.exec(
             select(PaperTopic).where(PaperTopic.paper_id == "excluded-paper")
         ).all()
@@ -210,10 +262,43 @@ def test_reviewed_manual_topics_are_not_overwritten_by_inferred_topics() -> None
     assert linked_topic_ids == {"manual-topic"}
 
 
+def test_approved_topic_metadata_and_unchanged_link_reviews_survive_rebuild() -> None:
+    engine = build_explorer_engine()
+    with Session(engine) as session:
+        rebuild_topic_index(session)
+        topic = session.get(Topic, "rag")
+        link = session.get(PaperTopic, "rag-paper:rag")
+        assert topic is not None
+        assert link is not None
+        topic.name = "Human-reviewed Retrieval Systems"
+        topic.description = "Human-approved description that rebuilds must preserve."
+        topic.review_status = "approved"
+        link.review_status = "approved"
+        link.reviewer_notes = "Evidence checked."
+        session.add(topic)
+        session.add(link)
+        session.commit()
+
+        summary = rebuild_topic_index(session)
+        rebuilt_topic = session.get(Topic, "rag")
+        rebuilt_link = session.get(PaperTopic, "rag-paper:rag")
+
+    assert rebuilt_topic is not None
+    assert rebuilt_topic.name == "Human-reviewed Retrieval Systems"
+    assert rebuilt_topic.description == "Human-approved description that rebuilds must preserve."
+    assert rebuilt_topic.review_status == "approved"
+    assert rebuilt_link is not None
+    assert rebuilt_link.review_status == "approved"
+    assert rebuilt_link.reviewer_notes == "Evidence checked."
+    assert summary["approved_topics_preserved"] >= 1
+    assert summary["preserved_link_reviews"] >= 1
+
+
 def test_author_topic_aggregation_and_related_paper_reasons_work() -> None:
     engine = build_explorer_engine()
     with Session(engine) as session:
         rebuild_topic_index(session)
+        approve_explorer_graph(session)
         author_links = session.exec(select(AuthorTopic)).all()
         related = get_related_papers(session, "rag-paper", limit=5)
 
@@ -257,6 +342,7 @@ def test_explorer_api_endpoints_and_stats_work() -> None:
     engine = build_explorer_engine()
     with Session(engine) as session:
         rebuild_topic_index(session)
+        approve_explorer_graph(session)
 
     app.dependency_overrides[get_session] = make_override(engine)
     try:
@@ -289,6 +375,11 @@ def test_explorer_api_endpoints_and_stats_work() -> None:
 
 def test_demo_prepare_helper_is_idempotent_in_skip_mode(monkeypatch) -> None:
     engine = build_explorer_engine()
+    monkeypatch.setattr(
+        prepare_demo_module,
+        "extract_from_db",
+        lambda *args, **kwargs: {"attempted": 0, "extracted": 0, "skipped_existing": 0},
+    )
     monkeypatch.setattr(prepare_demo_module, "index_chunks", lambda *args, **kwargs: {"indexed_chunks": 0})
     with Session(engine) as session:
         first = prepare_demo_module.prepare_demo(session=session, limit=1, skip_downloads=True, skip_artifacts=True)
@@ -307,6 +398,7 @@ def test_smoke_check_returns_structured_status_without_network() -> None:
     engine = build_explorer_engine()
     with Session(engine) as session:
         rebuild_topic_index(session)
+        approve_explorer_graph(session)
 
     app.dependency_overrides[get_session] = make_override(engine)
     try:

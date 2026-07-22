@@ -2,15 +2,24 @@ TECTONIC ?= $(shell command -v tectonic 2>/dev/null || { test -x "$(HOME)/.local
 PYTHON ?= .venv/bin/python
 PERFORMANCE_ARTIFACT ?= artifacts/phase6/performance/performance_full_results.json
 PERFORMANCE_VALIDATION ?= artifacts/phase6/performance/performance_validation.json
+V2_DIR := artifacts/peer_review_remediation/v2
+V2_VALIDATOR := data/evaluation/validate_peer_review_remediation_v2.py
 
-.PHONY: all thesis thesis-assets thesis-assets-frozen thesis-compile thesis-word thesis-word-validate paper paper-assets paper-compile evidence docs-validate benchmark benchmark-resume performance-validate reproduce reproduce-quick release clean
+.PHONY: all thesis thesis-assets thesis-assets-frozen thesis-assets-layout thesis-layout thesis-compile thesis-word thesis-word-validate paper paper-assets paper-assets-layout paper-layout paper-compile peer-review-v2-validate evidence docs-validate benchmark benchmark-resume performance-validate reproduce reproduce-quick release clean
 
 all: thesis paper
 
-thesis-assets: evidence
+peer-review-v2-validate:
+	@test -s "$(V2_DIR)/freeze_receipt_v2.json"
+	@test -s "$(V2_DIR)/manifest_v2.json"
+	@test -s "$(V2_DIR)/validation_attestation_v2.json"
+	@test -s "$(V2_DIR)/manuscript_macros_v2.tex"
+	PYTHONPATH=backend "$(PYTHON)" "$(V2_VALIDATOR)" --versionable-only
+
+thesis-assets: evidence peer-review-v2-validate
 	PYTHONPATH=backend "$(PYTHON)" thesis/scripts/generate_manuscript_assets.py
 
-thesis-assets-frozen:
+thesis-assets-frozen: peer-review-v2-validate
 	@test -s thesis/generated/evidence_snapshot.json
 	@test -s artifacts/phase1/phase1_evidence.json
 	@test -s artifacts/phase2/retrieval/summary.json
@@ -19,6 +28,11 @@ thesis-assets-frozen:
 	@test -s artifacts/phase6/performance/performance_full_results.json
 	@test -s artifacts/phase6/performance/performance_validation.json
 	PYTHONPATH=backend "$(PYTHON)" thesis/scripts/generate_manuscript_assets.py
+
+thesis-assets-layout:
+	PYTHONPATH=backend "$(PYTHON)" thesis/scripts/generate_manuscript_assets.py --allow-v2-not-run
+
+thesis-layout: thesis-assets-layout thesis-compile
 
 thesis-compile:
 	@test -n "$(TECTONIC)" || { echo "tectonic is required (PATH or $$HOME/.local/bin/tectonic)"; exit 1; }
@@ -35,8 +49,13 @@ thesis-word: thesis
 thesis-word-validate: thesis-word
 	"$(PYTHON)" thesis/scripts/validate_word.py build/thesis-editable.docx --render --render-dir tmp/pdfs/thesis-word-validation
 
-paper-assets:
+paper-assets: peer-review-v2-validate
 	PYTHONPATH=backend "$(PYTHON)" paper/scripts/generate_paper_assets.py
+
+paper-assets-layout:
+	PAPER_ALLOW_MISSING_PERFORMANCE=1 PYTHONPATH=backend "$(PYTHON)" paper/scripts/generate_paper_assets.py --allow-v2-not-run
+
+paper-layout: paper-assets-layout paper-compile
 
 paper-compile:
 	@test -n "$(TECTONIC)" || { echo "tectonic is required (PATH or $$HOME/.local/bin/tectonic)"; exit 1; }

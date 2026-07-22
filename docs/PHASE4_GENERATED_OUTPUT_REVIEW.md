@@ -2,21 +2,35 @@
 
 ## Purpose and review boundary
 
-This phase audits every generated output currently stored in `data/papers.db`, corrects reproducible defects, and records an append-only review event. The reviewer identity is `codex-ai-review`, the reviewer type is `ai`, and the distinct successful state is `ai_reviewed`.
+This phase defines a deterministic audit for stored generated outputs, correction
+of reproducible defects, and append-only review events. The currently retained
+artifact was re-executed at source commit
+`0d4b9bdcb657034beab5c288ab174983eb0760e3` against an isolated database
+copy; it is not a projection of the current operational `data/papers.db`. The
+reviewer identity is `codex-ai-review`, the reviewer type is `ai`, and the
+distinct successful target state is `ai_reviewed`.
 
 `ai_reviewed` is not human approval. It means that automated checks found current source locators, the expected output structure, and explicit boundaries between source-supported facts and generated suggestions. It does not establish novelty, complete semantic entailment, author agreement, supervisor suitability, feasibility, or user usefulness. Those claims require human assessment.
 
-## Pre-review inventory and defect
+## Re-execution inventory and defect
 
-The live inventory contained 48 generated records:
+The retained re-execution planned decisions for 48 generated records:
 
-| Record type | Count | Initial review state |
+| Record type | Count | Re-execution treatment |
 | --- | ---: | --- |
-| RAG answers | 27 | `needs_review` |
-| Thesis recommendations | 7 | `needs_review` |
-| Paper artifacts, including bundles and podcast scripts | 14 | `needs_review` |
+| RAG answers | 27 | Existing events for this review version were reused; target state `needs_reprocess` |
+| Thesis recommendations | 7 | New review-version events were created; target state `ai_reviewed` |
+| Paper artifacts, including bundles and podcast scripts | 14 | New review-version events were created; target state `ai_reviewed` |
 
-There were no review events before this pass. All stored generated-output citation locators referenced chunk identifiers from the earlier chunking run and did not resolve against the current eligible corpus. A locator that no longer resolves cannot support a grounded claim, even if its cached snippet appears plausible.
+The isolated input contained 48 review events before the target-copy apply. Of
+the planned records, 27 RAG answers already had a matching
+`phase4-generated-output-review-v1` event and were reused; the other 21 planned
+records required a new version event. The review policy remains conservative:
+a locator that no longer resolves cannot support a grounded claim, even if its
+cached snippet appears plausible. An earlier repository revision recorded the
+initial 48-created/48-changed live application; that archived execution is not
+the current artifact and remains available in Git history rather than being
+silently relabelled.
 
 ## Review method
 
@@ -46,15 +60,27 @@ The 14 artifacts cover stored public and technical summaries, contribution, meth
 
 ## Recorded evidence
 
-The completed live apply created 48 review events and corrected 48 records. The events contain 269 paper/chunk/page evidence locators. Review-event integrity verified all 48 events with no invalid or legacy-unverified events.
+The source-commit-`0d4b9bdcb657034beab5c288ab174983eb0760e3` artifact records
+48 planned decisions and 221 paper/chunk/page evidence locators. On the isolated target copy, the first pass
+created 21 version events and changed the corresponding seven recommendations
+and 14 artifacts; it reused the 27 existing RAG version events. Review-event
+integrity verified the resulting 69-event chain with no invalid or
+legacy-unverified events.
 
-The disposable database proof produced:
+The disposable two-pass proof produced:
 
-- first pass: 48 events created and 48 records changed;
-- second pass: zero events created, zero records changed, and all 48 existing reviews reused; and
-- no mutation of the live database during the proof.
+- first pass: 21 events created, 21 records changed, and 27 existing version
+  events reused;
+- second pass: zero events created, zero records changed, and all 48 planned
+  reviews reused; and
+- `live_database_mutated=false`.
 
-After the proof passed, the live apply produced the same 48 decisions. Its immediate second pass created zero events, changed zero records, reused all 48 reviews, and re-verified the event chain. The pre-apply private SQLite backup passed `PRAGMA quick_check`; its logical SQL dump SHA-256 matched the source dump (`dfc073787b79a1c75834644ad64672c5d9c9fe002605668271254e420e84e09e`). The post-apply database passed `PRAGMA quick_check` and returned no foreign-key violations. The repository smoke check reported 17 passes, zero warnings, zero failures, and overall `PASS`.
+The immediate second pass on the isolated target copy also created/changed
+zero, skipped all 48 planned items, and re-verified all 69 events. The retained
+manifest binds the database hashes before and after that isolated apply. It does
+not claim that the current operational database was mutated or that its review
+state equals the reproduction copy; current delivery state is reported by the
+read-only evidence snapshot.
 
 Sanitized, redistributable evidence is stored in `artifacts/phase4/generated_output_review/`:
 
@@ -67,17 +93,27 @@ Generated answer, recommendation, summary, and podcast bodies are not copied int
 
 ## Reproduction
 
-From the repository root, an audit-only run performs the disposable proof and writes evidence without changing the live database:
+From the repository root, an audit-only run performs the disposable proof
+without applying decisions to the selected database. Use a separate output
+directory when checking the retained evidence:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.generated_output_review
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.generated_output_review \
+  --output-dir /tmp/ttlab-generated-output-review-audit
 ```
 
-To apply the review after the built-in disposable proof succeeds:
+To exercise the apply path, point it at an explicitly prepared disposable
+database copy and a separate output directory:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.evaluation.generated_output_review --apply-live
+PYTHONPATH=backend .venv/bin/python -m app.evaluation.generated_output_review \
+  --database /tmp/ttlab-generated-output-review.db \
+  --output-dir /tmp/ttlab-generated-output-review-apply \
+  --apply-live
 ```
+
+Do not use `--apply-live` against the operational database merely to reproduce
+the manuscript evidence.
 
 Focused tests:
 

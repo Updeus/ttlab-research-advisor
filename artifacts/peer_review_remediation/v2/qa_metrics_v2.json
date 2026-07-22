@@ -1,0 +1,204 @@
+{
+  "by_split": {
+    "all": {
+      "case_count": 18,
+      "counts": {
+        "answer_points": 24,
+        "citation_links": 17,
+        "claim_count": 19,
+        "correct_exact_gold_locator_links": 1,
+        "covered_answer_points": 7,
+        "false_negative": 0,
+        "false_positive": 6,
+        "incorrect_links": 5,
+        "partial_same_paper_links": 11,
+        "returned_citations": 17,
+        "structurally_cited_claim_count": 17,
+        "true_negative": 0,
+        "true_positive": 12,
+        "used_returned_citations": 17
+      },
+      "metrics": {
+        "abstention_accuracy": 0.666667,
+        "abstention_rate": 0.0,
+        "answer_point_coverage": 0.291667,
+        "answerability_precision": 0.666667,
+        "answerability_recall": 1.0,
+        "citation_completeness": 0.894737,
+        "exact_gold_locator_citation_precision": 0.058824,
+        "false_positive_rate": 1.0,
+        "returned_citation_utilization": 1.0
+      }
+    },
+    "dev": {
+      "case_count": 6,
+      "counts": {
+        "answer_points": 8,
+        "citation_links": 6,
+        "claim_count": 6,
+        "correct_exact_gold_locator_links": 0,
+        "covered_answer_points": 4,
+        "false_negative": 0,
+        "false_positive": 2,
+        "incorrect_links": 2,
+        "partial_same_paper_links": 4,
+        "returned_citations": 6,
+        "structurally_cited_claim_count": 6,
+        "true_negative": 0,
+        "true_positive": 4,
+        "used_returned_citations": 6
+      },
+      "metrics": {
+        "abstention_accuracy": 0.666667,
+        "abstention_rate": 0.0,
+        "answer_point_coverage": 0.5,
+        "answerability_precision": 0.666667,
+        "answerability_recall": 1.0,
+        "citation_completeness": 1.0,
+        "exact_gold_locator_citation_precision": 0.0,
+        "false_positive_rate": 1.0,
+        "returned_citation_utilization": 1.0
+      }
+    },
+    "test": {
+      "case_count": 12,
+      "counts": {
+        "answer_points": 16,
+        "citation_links": 11,
+        "claim_count": 13,
+        "correct_exact_gold_locator_links": 1,
+        "covered_answer_points": 3,
+        "false_negative": 0,
+        "false_positive": 4,
+        "incorrect_links": 3,
+        "partial_same_paper_links": 7,
+        "returned_citations": 11,
+        "structurally_cited_claim_count": 11,
+        "true_negative": 0,
+        "true_positive": 8,
+        "used_returned_citations": 11
+      },
+      "metrics": {
+        "abstention_accuracy": 0.666667,
+        "abstention_rate": 0.0,
+        "answer_point_coverage": 0.1875,
+        "answerability_precision": 0.666667,
+        "answerability_recall": 1.0,
+        "citation_completeness": 0.846154,
+        "exact_gold_locator_citation_precision": 0.090909,
+        "false_positive_rate": 1.0,
+        "returned_citation_utilization": 1.0
+      }
+    }
+  },
+  "evaluation_id": "qa-selective-response-v2",
+  "limitations": [
+    "The 18-case set is small and AI-authored; it is AI-silver, not human validated.",
+    "Exact locator correctness and lexical answer-point coverage do not establish semantic entailment.",
+    "Confidence intervals exclude label, corpus-selection, and model-state uncertainty.",
+    "Technical retrieval scope does not establish public eligibility or public behavior."
+  ],
+  "metric_boundaries": {
+    "answer_point_coverage": "Predeclared lexical answer points found in the returned answer; abstained answerable cases contribute zero covered points.",
+    "citation_completeness": "Claims with at least one structurally resolved returned citation divided by reviewable returned claims.",
+    "exact_gold_locator_citation_precision": "Exact predeclared chunk matches divided by structurally used claim-to-citation links. Same-paper non-gold links are partial and not counted correct. This is AI-silver locator precision, not entailment.",
+    "returned_citation_utilization": "Distinct returned citations used by claim markers divided by distinct returned citations."
+  },
+  "repeatability": {
+    "disagreement_count": 0,
+    "disagreements": [],
+    "interpretation": "Repeated same-AI procedure under shuffled presentation; not independent or human inter-rater reliability.",
+    "orders_differ": true,
+    "pass_1_seed": 1429,
+    "pass_2_seed": 2718,
+    "reviewer": {
+      "entailment_verified": false,
+      "human_review": false,
+      "independent_human_raters": 0,
+      "label_tier": "ai_silver",
+      "pass_interpretation": "same_ai_procedure_repeatability_not_inter_rater_reliability",
+      "reviewer_id": "codex-ai-review",
+      "reviewer_type": "ai"
+    },
+    "same_case_set": true
+  },
+  "retrieval_scope": "technical",
+  "reviewer": {
+    "entailment_verified": false,
+    "human_review": false,
+    "independent_human_raters": 0,
+    "label_tier": "ai_silver",
+    "pass_interpretation": "same_ai_procedure_repeatability_not_inter_rater_reliability",
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai"
+  },
+  "status": "completed",
+  "test_bootstrap_95_ci": {
+    "cluster_count": 7,
+    "cluster_key": "cluster_id",
+    "confidence_level": 0.95,
+    "corpus_selection_uncertainty_included": false,
+    "label_uncertainty_included": false,
+    "method": "cluster_level_percentile_bootstrap",
+    "metrics": {
+      "abstention_accuracy": {
+        "ci_lower": 0.444444,
+        "ci_upper": 0.9,
+        "estimate": 0.666667,
+        "valid_replicates": 5000
+      },
+      "abstention_rate": {
+        "ci_lower": 0.0,
+        "ci_upper": 0.0,
+        "estimate": 0.0,
+        "valid_replicates": 5000
+      },
+      "answer_point_coverage": {
+        "ci_lower": 0.0625,
+        "ci_upper": 0.3,
+        "estimate": 0.1875,
+        "valid_replicates": 5000
+      },
+      "answerability_precision": {
+        "ci_lower": 0.444444,
+        "ci_upper": 0.9,
+        "estimate": 0.666667,
+        "valid_replicates": 5000
+      },
+      "answerability_recall": {
+        "ci_lower": 1.0,
+        "ci_upper": 1.0,
+        "estimate": 1.0,
+        "valid_replicates": 5000
+      },
+      "citation_completeness": {
+        "ci_lower": 0.692308,
+        "ci_upper": 1.0,
+        "estimate": 0.846154,
+        "valid_replicates": 5000
+      },
+      "exact_gold_locator_citation_precision": {
+        "ci_lower": 0.0,
+        "ci_upper": 0.1875,
+        "estimate": 0.090909,
+        "valid_replicates": 5000
+      },
+      "false_positive_rate": {
+        "ci_lower": 1.0,
+        "ci_upper": 1.0,
+        "estimate": 1.0,
+        "valid_replicates": 4989
+      },
+      "returned_citation_utilization": {
+        "ci_lower": 1.0,
+        "ci_upper": 1.0,
+        "estimate": 1.0,
+        "valid_replicates": 5000
+      }
+    },
+    "replicates": 5000,
+    "seed": 20260720,
+    "unit": "named_source_paper"
+  },
+  "threshold_tuned_on_v2": false
+}

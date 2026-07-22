@@ -1,38 +1,64 @@
 \chapter{Research Questions and Objectives}
 \label{ch:rqs}
 
-The research questions span the data pipeline, retrieval and RAG quality, recommendation structure, research discovery and governance, and reproducibility. Each question is answered by a method--evidence--result--conclusion chain rather than by implementation claims alone.
+The research questions separate data integrity, retrieval, answer quality, recommendation, discovery/review, reproduction, and interface governance. The earlier five-question structure overloaded recommendation with topic/identity review and combined reproducibility with human-interface claims. Seven questions now give each construct a primary outcome and an explicit evidence boundary.
 
 \begin{description}[leftmargin=16mm,style=multiline]
-  \item[RQ1] With what coverage, structural quality, and observable failure modes can the catalog snapshot be transformed into an eligible page-aware corpus and complete authoritative indexes?
+  \item[RQ1] With what coverage, structural quality, and observable failure modes can the catalogue snapshot be transformed into an eligible page-aware corpus and complete authoritative indexes?
   \item[RQ2] How do keyword, feature-hashing, learned dense, heuristic hybrid, and development-tuned hybrid retrieval compare on held-out source-derived questions, and which heuristic terms materially change rankings?
-  \item[RQ3] To what extent does the offline extractive answerer produce source-supported claims, correct and complete citations, answer-point coverage, and appropriate abstention?
-  \item[RQ4] What does AI-assisted proxy review reveal about the evidence fidelity and limitations of thesis-extension recommendations, controlled topic labels, publication-derived author links, and persisted generated outputs?
-  \item[RQ5] To what extent is the bounded artefact reproducible and reviewable on documented local hardware, externally format-compatible, and governed by privacy-minimizing, authenticated, accessible evidence interfaces without redistributing restricted PDFs?
+  \item[RQ3] To what extent does the offline extractive answerer produce source-supported claims, correct claim--citation links, answer-point coverage, and appropriate abstention?
+  \item[RQ4] Relative to an evidence-only baseline, what does AI-assisted proxy review reveal about the Thesis Extension Finder's relevance, source/suggestion separation, feasibility, scope, risk, and evaluation-plan quality?
+  \item[RQ5] What quality and governance limits remain in controlled topic assignment, publication-derived author links, identity handling, and persisted generated-output review?
+  \item[RQ6] To what extent can the bounded artefact and sanitized evidence package be reproduced and operationally characterized on documented local hardware, and what external format compatibility is demonstrated?
+  \item[RQ7] To what extent do the implemented public and protected interfaces preserve evidence, uncertainty, privacy, authentication, correction, failure recovery, and automated accessibility contracts?
 \end{description}
+
+\section{Research objectives}
+
+The questions correspond to seven objectives:
+
+\begin{enumerate}
+  \item establish one authoritative corpus/index boundary that fails loudly on missing, mismatched, partial, or stale state;
+  \item compare retrieval families under one controlled split, with tuning and post-selection analysis clearly separated;
+  \item evaluate answer support, attribution, completeness, and selective response as distinct constructs;
+  \item implement and evaluate a thesis-extension workflow that keeps paper facts and system advice separate;
+  \item provide inspectable topic/author discovery and attributable generated-output correction without unsafe identity or approval claims;
+  \item bind code, corpus, model, experiment, document, and release evidence while characterizing local operational cost and external-format limits; and
+  \item trace user-facing requirements through APIs, interface states, protected mutations, and automated tests without treating software verification as human usability evidence.
+\end{enumerate}
 
 \section{Research-question design}
 
-\Cref{tab:rq-plan} states the authoritative evidence and bounded conclusion type for each question.
+\Cref{tab:rq-plan} states the authoritative evidence and bounded conclusion type for each question. Its purpose is to prevent evidence migration: an inventory count cannot prove effectiveness, an AI-proxy review cannot prove student benefit, and a passing interface test cannot prove accessibility conformance.
 
-\begin{table}[htbp]
-\centering
-\small
-\caption{Research questions connected to executed method, evidence, and conclusion type.}
-\label{tab:rq-plan}
-\begin{tabularx}{\textwidth}{P{9mm}P{39mm}P{48mm}Y}
+\begin{longtable}{P{9mm}P{36mm}P{48mm}P{43mm}}
+\caption{Research questions connected to executed method, evidence, and conclusion type.}\label{tab:rq-plan}\\
 \toprule
 RQ & Method & Authoritative evidence & Conclusion type \\
 \midrule
-1 & corpus eligibility audit; extraction diagnostics; section silver review; manifest validation & Phase 1 evidence; database integrity; three index manifests; 40 section cases & coverage, integrity, and observed data failures \\
-2 & 30/20 development/test evaluation; baselines; tuning; ablations; paired statistics & raw per-query rankings; retrieval summary/statistics/errors & bounded offline retrieval quality and term sensitivity \\
-3 & 50-case atomic claim/citation/answer-point review; answerability checks & 400 claim labels; 81 answer points; case-bootstrap intervals; error taxonomy & bounded offline RAG evidence quality, not human-perceived usefulness \\
-4 & paired 28-profile recommendation comparison; 60-case topic comparison; identity audit; complete stored-output review & 168 recommendation arm outputs; topic predictions/metrics; author audit; 48 append-only review events & advisory/discovery behavior, not student benefit, endorsement, or human approval \\
-5 & repeated performance benchmark; automated verification; review-state and interface checks; external open-corpus sanity check; release scan & Phase 6 raw results; test/build logs; review evidence; Europe PMC manifest; release checksums & bounded reproducibility, reviewability, format compatibility, and evidence-interface governance \\
+\endfirsthead
+\toprule
+RQ & Method & Authoritative evidence & Conclusion type \\
+\midrule
+\endhead
+1 & technical eligibility/identity/generation audit; extraction/OCR diagnostics; public-projection and manifest validation & Phase 1 evidence; database integrity; active index generations; section cases; remediation OCR fixture & technical coverage/integrity, public-gate state, and observed data failures \\
+\addlinespace
+2 & historical v1 development/test evaluation; baselines; tuning; ablation; paired statistics & immutable raw per-query rankings; retrieval summary, statistics, and error taxonomy & bounded post-selection retrieval diagnosis and heuristic sensitivity \\
+\addlinespace
+3 & historical atomic diagnosis plus prospective source-first selective-response evaluation & v1 claim/link/point labels; prospective frozen cases, structural outputs, two-pass decisions, intervals & bounded extractive QA and repaired answerability/locator behavior, not entailment or human usefulness \\
+\addlinespace
+4 & historical proxy diagnosis plus prospective paired evidence-only/full comparison and sensitivity & v1 criteria; prospective frozen profiles, paired rankings, contract checks, profile-level intervals & proxy ranking/contract behavior, not novelty, feasibility, supervisor fit, or student benefit \\
+\addlinespace
+5 & historical topic comparison plus prospective positive-only recall; identity/source and stored-output review & historical/positive-only topic outputs; author audit; review events/idempotence & inspectable discovery/review behavior, not topic precision, expertise, public behavior, endorsement, or human approval \\
+\addlinespace
+6 & repeated benchmark; full/quick reproduction; release scan; external open-corpus sanity check; document preflight & Phase 6 raw results; reproduction and release manifests; Europe PMC manifest; PDF checks & bounded local reproducibility, operational characterization, and format compatibility \\
+\addlinespace
+7 & requirement--API--view--test tracing; public privacy probe; role/authentication tests; failure-state and responsive/accessibility checks & route/API contracts; runtime probe; backend security tests; frontend component/E2E/accessibility tests & implemented evidence-interface governance, not user satisfaction, WCAG conformance, or production readiness \\
 \bottomrule
-\end{tabularx}
-\end{table}
+\end{longtable}
 
 \section{Claim boundaries}
 
-RQ2 tests retrieval against AI-silver evidence and does not establish broader-corpus performance. RQ3 tests extractive answers against AI-silver evidence but does not establish human-perceived answer quality. RQ4 combines AI-proxy recommendation, controlled-label, identity, and review evidence; novelty, feasibility, data access, supervisor fit, expertise, and availability remain externally confirmable. RQ5 reports local concurrency-one performance, attributable review and interface controls, restricted-PDF exclusion, and a three-article external format sanity check; it does not establish production capacity or broad generalisation. The complete mapping appears in \cref{app:traceability}.
+RQ1 concerns a generation-linked technical subset and cannot make unavailable or unapproved records publicly searchable. RQ2's immutable historical v1 comparison does not establish broader-corpus effectiveness or equivalence. RQ3 evaluates deterministic extractive configurations; its intervals exclude AI-label uncertainty and cannot represent every RAG generator. RQ4 evaluates source-derived profiles and an AI proxy; novelty, data access, time, prerequisite mastery, and supervisor suitability remain external. RQ5 measures known-positive controlled labels, source-backed relations, and review mechanics; it does not establish topic precision, current author identity, availability, endorsement, public behavior, or human approval.
+
+RQ6 reports concurrency-one local measurements, restricted-content-aware reproduction, and a three-article external XML check. It does not establish service capacity, PDF transfer, or broad generalization. RQ7 verifies coded contracts and automated regressions. It does not establish comprehension, trust, satisfaction, accessibility conformance, or usability with assistive technology. The complete method--evidence--result--conclusion mapping appears in Appendix~\ref{app:traceability}.

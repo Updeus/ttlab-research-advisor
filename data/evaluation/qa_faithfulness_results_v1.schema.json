@@ -39,8 +39,8 @@
     "split": {"enum": ["dev", "test"]},
     "answer": {"type": "string", "minLength": 1},
     "answer_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "provider": {"const": "offline_extractive"},
-    "model": {"const": "sentence-overlap-v1"},
+    "provider": {"enum": ["offline_extractive", "not_invoked"]},
+    "model": {"enum": ["sentence-overlap-v1", "not_invoked"]},
     "retrieval_mode": {"const": "hybrid"},
     "top_k": {"const": 5},
     "returned_citation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
@@ -65,6 +65,23 @@
     "reviewer_id": {"const": "codex-ai-review"},
     "reviewed_at": {"type": "string", "format": "date-time"}
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"provider": {"const": "not_invoked"}},
+        "required": ["provider"]
+      },
+      "then": {
+        "properties": {
+          "model": {"const": "not_invoked"},
+          "did_abstain": {"const": true}
+        }
+      },
+      "else": {
+        "properties": {"model": {"const": "sentence-overlap-v1"}}
+      }
+    }
+  ],
   "$defs": {
     "reviewPass": {
       "type": "object",

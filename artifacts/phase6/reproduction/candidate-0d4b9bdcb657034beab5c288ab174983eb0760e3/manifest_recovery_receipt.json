@@ -1,0 +1,54 @@
+{
+  "case_outputs_rescored": false,
+  "evaluation_reexecuted": false,
+  "evaluation_source_commit": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+  "labels_or_metrics_changed": false,
+  "locked_validator_identity": {
+    "lock_path": "backend/requirements-lock.txt",
+    "lock_sha256": "93e43a941f8ca2bd25124c83360b54ff6f2109e575f3abefb211a7383b8058eb",
+    "locked_package_count": 95,
+    "python_version": "3.12.3",
+    "runner_path": "data/evaluation/run_peer_review_remediation_v2.py",
+    "runner_sha256": "ce4466564ed7fa19c95b9b8f348bf4fb43c522836de3008f10a70ab8ffc90b44",
+    "status": "locked_environment_valid",
+    "validator_path": "data/evaluation/validate_peer_review_remediation_v2.py",
+    "validator_sha256": "1de537ad8a0a2b052f485e52f7fd681680311bfe398990ef818e1860cfc210ca"
+  },
+  "manifest_sha256": "bdc8e8b289d36834479f7bcc1c2efc9857b9812171dd3d4df7f2bff6680e18d9",
+  "normalization": [
+    {
+      "normalized_sha256": "519981929b4f554fa50f85c7184401d9246a1d643303534036f6d4b671ded6dd",
+      "original_sha256": "a1247dff6cf6710855dfae83088ac94a6b53309b341e1724b273c36269e4c017",
+      "path": "qa_raw_outputs_v2.jsonl",
+      "records_normalized": 18,
+      "rows": 18,
+      "source_identity_records_corrected": 0
+    },
+    {
+      "normalized_sha256": "104b63727bf259225eb97c6498d28febf7f470d7e0c860f962d3affb74b35c93",
+      "original_sha256": "746d0fb0a7cd3289c0842085a7f0e118dbef3ed01e65742f10e233dbe6b3a238",
+      "path": "qa_full_raw_v2.jsonl",
+      "records_normalized": 18,
+      "rows": 18,
+      "source_identity_records_corrected": 0
+    },
+    {
+      "normalized_sha256": "c7d73bde28470a17c3a438e3916a53b91eb7e380916252e7f397a87b2d8be1b8",
+      "original_sha256": "4b356ddd1653412e0441e3240814751c8ef0344aa58eab3ef671fb3ee21b0fb0",
+      "path": "finder_raw_outputs_v2.jsonl",
+      "records_normalized": 10,
+      "rows": 10,
+      "source_identity_records_corrected": 10
+    },
+    {
+      "normalized_sha256": "f23e3d6eb13a45b766df10e8b8359b0a41c37ea32ea4261e1b65eb51d1ef07b8",
+      "original_sha256": "25de0cdeacc89c134f84b370d5563ab22dc1d1aa1bb971919b9914be4cd79287",
+      "path": "finder_full_raw_v2.jsonl",
+      "records_normalized": 10,
+      "rows": 10,
+      "source_identity_records_corrected": 10
+    }
+  ],
+  "status": "PASS",
+  "validation_attestation_sha256": "f6d320bc246666bd19e7c6642c49e40b53d3acb3b52a789599e1eb3a290f34b7"
+}

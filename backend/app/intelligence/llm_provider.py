@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-import os
+import hashlib
+import json
 import re
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 import httpx
 
-from app.config import get_settings
+from app.config import Settings, get_settings
+
+PROMPT_TEMPLATE_VERSION = "ask-ttlab-grounded-v2"
 
 
 @dataclass
@@ -37,6 +40,38 @@ class OfflineExtractiveProvider:
     provider = "offline_extractive"
     model = "sentence-overlap-v1"
 
+    def __init__(
+        self,
+        *,
+        requested_provider: str = "offline_extractive",
+        configured_provider: str = "offline_extractive",
+        requested_model: str | None = None,
+        configured_model: str | None = None,
+        fallback_reason: str | None = None,
+        fallback_exception_class: str | None = None,
+        upstream_metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self.requested_provider = requested_provider
+        self.configured_provider = configured_provider
+        self.requested_model = requested_model
+        self.configured_model = configured_model or self.model
+        self.fallback_reason = fallback_reason
+        self.fallback_exception_class = fallback_exception_class
+        self.upstream_metadata = dict(upstream_metadata or {})
+
+    def resolution_metadata(self) -> dict[str, Any]:
+        return {
+            "requested_provider": self.requested_provider,
+            "configured_provider": self.configured_provider,
+            "effective_provider": self.provider,
+            "requested_model": self.requested_model,
+            "configured_model": self.configured_model,
+            "effective_model": self.model,
+            "fallback_used": self.fallback_reason is not None,
+            "fallback_reason": self.fallback_reason,
+            "fallback_exception_class": self.fallback_exception_class,
+        }
+
     def generate_answer(
         self,
         question: str,
@@ -44,11 +79,39 @@ class OfflineExtractiveProvider:
         audience: str = "general",
         max_words: int = 250,
     ) -> LLMAnswerDraft:
+        prompt_input = {
+            "template": "offline-extractive-v1",
+            "question": question,
+            "audience": audience,
+            "max_words": max_words,
+            "chunk_ids": [str(chunk.get("chunk_id") or "") for chunk in context_chunks],
+        }
+        prompt_hash = hashlib.sha256(
+            json.dumps(prompt_input, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        configuration_hash = hashlib.sha256(
+            json.dumps(
+                {"model": self.model, "algorithm": "sentence-overlap-v1"},
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        metadata = {
+            "audience": audience,
+            "context_chunk_count": len(context_chunks),
+            "max_words": max_words,
+            "provider_resolution": self.resolution_metadata(),
+            "prompt_template_version": "offline-extractive-v1",
+            "prompt_sha256": prompt_hash,
+            "generation_config_sha256": configuration_hash,
+            **self.upstream_metadata,
+        }
         if not context_chunks:
             return LLMAnswerDraft(
                 answer_text="I could not answer this from the indexed TTLAB paper chunks.",
                 provider=self.provider,
                 model=self.model,
+                prompt_metadata=metadata,
                 warnings=["No retrieved chunks were supplied to the offline extractive provider."],
             )
         answer = build_extractive_answer(question, context_chunks, max_words=max_words)
@@ -56,7 +119,7 @@ class OfflineExtractiveProvider:
             answer_text=answer,
             provider=self.provider,
             model=self.model,
-            prompt_metadata={"audience": audience, "context_chunk_count": len(context_chunks), "max_words": max_words},
+            prompt_metadata=metadata,
             warnings=[],
         )
 
@@ -64,13 +127,59 @@ class OfflineExtractiveProvider:
 class OllamaProvider:
     provider = "ollama"
 
-    def __init__(self, model_name: str | None = None) -> None:
-        settings = get_settings()
+    def __init__(
+        self,
+        model_name: str | None = None,
+        *,
+        requested_provider: str = "ollama",
+        configured_provider: str = "ollama",
+        settings: Settings | None = None,
+    ) -> None:
+        settings = settings or get_settings()
         self.base_url = settings.ollama_base_url.rstrip("/")
         self.model = model_name or settings.ollama_default_model
         self.timeout = settings.ollama_timeout_seconds
         self.num_ctx = settings.ollama_num_ctx
         self.keep_alive = settings.ollama_keep_alive
+        self.requested_provider = requested_provider
+        self.configured_provider = configured_provider
+        self.requested_model = model_name
+        allowed = {
+            name: digest.removeprefix("sha256:").lower()
+            for name, digest in settings.ollama_allowed_model_digests.items()
+        }
+        if self.model not in allowed:
+            raise ValueError(
+                f"Ollama model '{self.model}' is not pinned in TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS"
+            )
+        self.expected_digest = allowed[self.model]
+        self.immutable_model = f"{self.model}@sha256:{self.expected_digest}"
+
+    def resolution_metadata(
+        self,
+        *,
+        effective_provider: str = "ollama",
+        effective_model: str | None = None,
+        fallback_reason: str | None = None,
+        generation_time_digest_verified: bool = False,
+        tag_stable_across_generation: bool = False,
+    ) -> dict[str, Any]:
+        metadata: dict[str, Any] = {
+            "requested_provider": self.requested_provider,
+            "configured_provider": self.configured_provider,
+            "effective_provider": effective_provider,
+            "requested_model": self.requested_model,
+            "configured_model": self.model,
+            "configured_model_digest": f"sha256:{self.expected_digest}",
+            "effective_model": effective_model or self.model,
+            "generation_time_digest_verified": generation_time_digest_verified,
+            "tag_stable_across_generation": tag_stable_across_generation,
+            "fallback_used": fallback_reason is not None,
+            "fallback_reason": fallback_reason,
+        }
+        if generation_time_digest_verified:
+            metadata["model_digest"] = f"sha256:{self.expected_digest}"
+        return metadata
 
     def generate_answer(
         self,
@@ -80,9 +189,26 @@ class OllamaProvider:
         max_words: int = 250,
     ) -> LLMAnswerDraft:
         if not context_chunks:
-            return OfflineExtractiveProvider().generate_answer(question, context_chunks, audience, max_words)
+            return OfflineExtractiveProvider(
+                requested_provider=self.requested_provider,
+                configured_provider=self.configured_provider,
+                requested_model=self.requested_model,
+                configured_model=self.immutable_model,
+                fallback_reason="no_context_chunks",
+                upstream_metadata={
+                    "attempted_provider": "ollama",
+                    "attempted_model": self.immutable_model,
+                    "configured_model_digest": f"sha256:{self.expected_digest}",
+                    "generation_time_digest_verified": False,
+                },
+            ).generate_answer(question, context_chunks, audience, max_words)
         prompt = build_ollama_prompt(question, context_chunks, audience=audience, max_words=max_words)
         payload = {
+            # Ollama's documented generate API accepts model names/tags, not a
+            # digest-suffixed reference. A response-reported digest can bind an
+            # output to immutable bytes. Otherwise pre/post tag checks narrow
+            # (but do not eliminate) the tag-mutation race and the output stays
+            # attributed to the mutable tag.
             "model": self.model,
             "prompt": prompt,
             "stream": False,
@@ -94,87 +220,210 @@ class OllamaProvider:
                 "num_predict": max(120, min(max_words * 2, 700)),
             },
         }
+        prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        generation_config_hash = hashlib.sha256(
+            json.dumps(payload["options"], sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        preflight_digest: str | None = None
+        postflight_digest: str | None = None
         try:
+            preflight_digest = verify_ollama_model_digest(
+                self.base_url,
+                self.model,
+                self.expected_digest,
+                timeout=min(self.timeout, 5.0),
+            )
             response = httpx.post(f"{self.base_url}/api/generate", json=payload, timeout=self.timeout)
             response.raise_for_status()
             data = response.json()
+            response_identity = verify_ollama_generation_identity(
+                data,
+                configured_model=self.model,
+                expected_digest=self.expected_digest,
+            )
+            postflight_digest = verify_ollama_model_digest(
+                self.base_url,
+                self.model,
+                self.expected_digest,
+                timeout=min(self.timeout, 5.0),
+            )
             answer = clean_markup(str(data.get("response") or "")).strip()
             if not answer:
                 raise ValueError("Ollama returned an empty response.")
+            digest_attested = bool(response_identity["generation_time_digest_verified"])
+            effective_model = self.immutable_model if digest_attested else self.model
+            warnings: list[str] = []
+            if not digest_attested:
+                warnings.append(
+                    "The configured Ollama tag matched its pinned digest before and after generation, but the "
+                    "generation response did not report a digest. This output is attributed to the mutable tag; "
+                    "the two checks narrow but do not eliminate the tag-mutation race or establish reproducible "
+                    "generation-time model identity."
+                )
             return LLMAnswerDraft(
                 answer_text=answer,
                 provider=self.provider,
-                model=str(data.get("model") or self.model),
+                model=effective_model,
                 prompt_metadata={
                     "audience": audience,
                     "context_chunk_count": len(context_chunks),
                     "max_words": max_words,
                     "ollama_metrics": extract_ollama_metrics(data),
+                    "provider_resolution": self.resolution_metadata(
+                        effective_model=effective_model,
+                        generation_time_digest_verified=digest_attested,
+                        tag_stable_across_generation=True,
+                    ),
+                    "configured_model_digest": f"sha256:{self.expected_digest}",
+                    **(
+                        {"model_digest": f"sha256:{self.expected_digest}"}
+                        if digest_attested
+                        else {}
+                    ),
+                    "preflight_model_digest": f"sha256:{preflight_digest}",
+                    "postflight_model_digest": f"sha256:{postflight_digest}",
+                    "generation_time_digest_verified": digest_attested,
+                    "tag_stable_across_generation": True,
+                    "ollama_response_identity": response_identity,
+                    "prompt_template_version": PROMPT_TEMPLATE_VERSION,
+                    "prompt_sha256": prompt_hash,
+                    "generation_config_sha256": generation_config_hash,
                 },
-                warnings=[],
+                warnings=warnings,
             )
         except Exception as exc:
-            fallback = OfflineExtractiveProvider().generate_answer(question, context_chunks, audience, max_words)
+            if isinstance(exc, httpx.HTTPError):
+                reason = "ollama_transport_or_http_failure"
+            elif isinstance(exc, ValueError) and ("digest" in str(exc).lower() or "not installed" in str(exc).lower()):
+                reason = "ollama_model_identity_verification_failed"
+            elif isinstance(exc, ValueError):
+                reason = "ollama_invalid_response"
+            else:
+                reason = "ollama_generation_failed"
+            fallback = OfflineExtractiveProvider(
+                requested_provider=self.requested_provider,
+                configured_provider=self.configured_provider,
+                requested_model=self.requested_model,
+                configured_model=self.immutable_model,
+                fallback_reason=reason,
+                fallback_exception_class=type(exc).__name__,
+                upstream_metadata={
+                    "attempted_provider": "ollama",
+                    "attempted_model": self.immutable_model,
+                    "configured_model_digest": f"sha256:{self.expected_digest}",
+                    "preflight_model_digest": (
+                        f"sha256:{preflight_digest}" if preflight_digest is not None else None
+                    ),
+                    "postflight_model_digest": (
+                        f"sha256:{postflight_digest}" if postflight_digest is not None else None
+                    ),
+                    "generation_time_digest_verified": False,
+                    "attempted_prompt_template_version": PROMPT_TEMPLATE_VERSION,
+                    "attempted_prompt_sha256": prompt_hash,
+                    "attempted_generation_config_sha256": generation_config_hash,
+                },
+            ).generate_answer(question, context_chunks, audience, max_words)
             fallback.warnings.append(
-                f"Ollama model {self.model} was unavailable or failed; used offline extractive fallback. "
-                f"Reason: {type(exc).__name__}."
+                f"Ollama model {self.model} was unavailable, failed, or changed identity during generation; "
+                f"used offline extractive fallback. Reason: {type(exc).__name__}."
             )
             return fallback
 
 
-class OptionalOpenAIProvider:
-    provider = "openai"
-    model = "not-configured"
-
-    def __init__(self) -> None:
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        self.model = os.getenv("TTLAB_OPENAI_MODEL", "gpt-4.1-mini")
-
-    @property
-    def available(self) -> bool:
-        return bool(self.api_key)
-
-    def generate_answer(
-        self,
-        question: str,
-        context_chunks: list[dict[str, Any]],
-        audience: str = "general",
-        max_words: int = 250,
-    ) -> LLMAnswerDraft:
-        if not self.available:
-            return OfflineExtractiveProvider().generate_answer(question, context_chunks, audience, max_words)
-        return LLMAnswerDraft(
-            answer_text="External OpenAI answer generation is configured but not enabled in this Phase 4 adapter.",
-            provider=self.provider,
-            model=self.model,
-            warnings=["OpenAI adapter is a non-required stub; offline extractive provider remains the supported default."],
-        )
-
-
-def get_provider(provider_name: str = "auto", model_name: str | None = None) -> LLMProvider:
-    normalized = (provider_name or "auto").strip().lower()
-    settings = get_settings()
+def get_provider(
+    provider_name: str = "auto",
+    model_name: str | None = None,
+    *,
+    settings: Settings | None = None,
+) -> LLMProvider:
+    requested = (provider_name or "auto").strip().lower()
+    normalized = requested
+    settings = settings or get_settings()
     allowed = {provider.strip().lower() for provider in settings.allowed_llm_providers}
     if normalized == "extractive_mock":
         normalized = "offline_extractive"
     if normalized == "auto":
-        preferred = os.getenv("TTLAB_DEFAULT_LLM_PROVIDER", "offline_extractive").strip().lower()
-        normalized = preferred if preferred in allowed else "offline_extractive"
+        normalized = settings.default_llm_provider
     if normalized not in allowed:
         raise ValueError(f"LLM provider '{normalized}' is not in TTLAB_ALLOWED_LLM_PROVIDERS")
     if normalized == "offline_extractive":
-        return OfflineExtractiveProvider()
+        if model_name:
+            raise ValueError("A model override is supported only for the pinned Ollama provider")
+        return OfflineExtractiveProvider(
+            requested_provider=requested,
+            configured_provider=normalized,
+            requested_model=model_name,
+        )
     if normalized == "ollama":
-        return OllamaProvider(model_name=model_name)
-    if normalized == "openai":
-        openai = OptionalOpenAIProvider()
-        return openai if openai.available else OfflineExtractiveProvider()
+        return OllamaProvider(
+            model_name=model_name,
+            requested_provider=requested,
+            configured_provider=normalized,
+            settings=settings,
+        )
     raise ValueError(f"Unknown LLM provider: {provider_name}")
 
 
-def external_provider_available() -> bool:
-    settings = get_settings()
-    return "openai" in {provider.strip().lower() for provider in settings.allowed_llm_providers} and OptionalOpenAIProvider().available
+def external_provider_available(settings: Settings | None = None) -> bool:
+    settings = settings or get_settings()
+    return bool(
+        "ollama" in {provider.strip().lower() for provider in settings.allowed_llm_providers}
+        and settings.ollama_allowed_model_digests
+    )
+
+
+def verify_ollama_model_digest(
+    base_url: str,
+    model_name: str,
+    expected_digest: str,
+    *,
+    timeout: float,
+) -> str:
+    response = httpx.get(f"{base_url.rstrip('/')}/api/tags", timeout=timeout)
+    response.raise_for_status()
+    models = response.json().get("models", [])
+    for record in models:
+        name = str(record.get("name") or record.get("model") or "").strip()
+        if name != model_name:
+            continue
+        actual = str(record.get("digest") or "").removeprefix("sha256:").lower()
+        if actual != expected_digest:
+            raise ValueError(
+                f"Ollama digest mismatch for '{model_name}'; expected sha256:{expected_digest}"
+            )
+        return actual
+    raise ValueError(f"Pinned Ollama model '{model_name}' is not installed")
+
+
+def verify_ollama_generation_identity(
+    payload: dict[str, Any],
+    *,
+    configured_model: str,
+    expected_digest: str,
+) -> dict[str, Any]:
+    """Validate response identity without inventing a digest Ollama did not report."""
+
+    response_model = str(payload.get("model") or "").strip()
+    response_digest = str(payload.get("model_digest") or payload.get("digest") or "")
+    if response_model != configured_model:
+        raise ValueError("Ollama generation response reported a different model tag")
+    normalized_digest = response_digest.removeprefix("sha256:").lower()
+    if response_digest and normalized_digest != expected_digest:
+        raise ValueError("Ollama generation response reported a different model digest")
+    if normalized_digest:
+        return {
+            "requested_model": configured_model,
+            "response_model": response_model,
+            "response_digest": f"sha256:{normalized_digest}",
+            "identity_basis": "generation_response_reported_digest",
+            "generation_time_digest_verified": True,
+        }
+    return {
+        "requested_model": configured_model,
+        "response_model": response_model,
+        "identity_basis": "response_tag_plus_pre_and_post_tag_digest_checks",
+        "generation_time_digest_verified": False,
+    }
 
 
 def build_ollama_prompt(
@@ -185,8 +434,10 @@ def build_ollama_prompt(
     max_words: int,
 ) -> str:
     compact_chunks = []
-    ordered_chunks = order_context_chunks_for_question(question, context_chunks)
-    for index, chunk in enumerate(ordered_chunks[:8], start=1):
+    # Citation verification resolves [S1], [S2], ... against the candidate
+    # citation list in retrieval order. Preserve that exact order here so a
+    # prompt-local alias can never point at a different chunk.
+    for index, chunk in enumerate(context_chunks[:8], start=1):
         source_id = f"S{index}"
         chunk_id = str(chunk.get("chunk_id") or f"chunk-{index}")
         title = clean_markup(str(chunk.get("title") or "Untitled paper"))

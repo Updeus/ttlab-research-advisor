@@ -3,13 +3,13 @@
   "generator": "thesis/scripts/generate_manuscript_assets.py",
   "generation_provenance": {
     "committed_base": {
-      "commit": "f4abb767018f9db13a2a9ac5bee1e6f6fca3428e",
-      "tree": "bcd72e37cfd935aa3a6a73e70197356f449492b5",
+      "commit": "10fe54f85785cc64c1f5e29dba1e003db4f95ea2",
+      "tree": "8fe382af35f8417327b724690adbe970201bb60a",
       "backend_dirty": false
     },
     "exact_generator": {
       "path": "thesis/scripts/generate_manuscript_assets.py",
-      "sha256": "aeccf51ca19a91f844510ed198bedff3296aa7f77e9e23ebfb5607d0e0f1d558"
+      "sha256": "45429f4828b3ebce80b223a5340959412569b7b5493c5806bf0fbb09786c50f7"
     },
     "expected_manuscript_output_dirty_boundary": [
       "thesis/generated/**",
@@ -17,26 +17,39 @@
     ],
     "semantics": "The commit/tree identify the clean committed application base. Exact generator, input, and output hashes bind this asset set. The generated manuscript outputs are an explicit self-referential dirty boundary and are not claimed to originate from a final clean commit."
   },
+  "remediation_v2": {
+    "status": "completed_package_validated",
+    "completed": true,
+    "layout_only": false,
+    "manifest_sha256": "bdc8e8b289d36834479f7bcc1c2efc9857b9812171dd3d4df7f2bff6680e18d9",
+    "validation_attestation_sha256": "f6d320bc246666bd19e7c6642c49e40b53d3acb3b52a789599e1eb3a290f34b7",
+    "macro_attestation_cycle_avoided": "Canonical v2 macros exclude manifest/attestation hashes; this downstream manifest binds both after completed-package validation."
+  },
+  "recommendation_coverage": {
+    "source": "metrics.ranking_coverage",
+    "layout_fallback_used": false,
+    "final_evidence_eligible": true
+  },
   "sources": {
     "evidence_snapshot": {
       "path": "thesis/generated/evidence_snapshot.json",
-      "sha256": "6fc481a1eefcb0e33d19eefbbe38864195d96bef730b688adca5a61d144dd648"
+      "sha256": "cd0fba072d26cada24df1593847939bd6b53ffb191c60323795227afa2470016"
     },
     "phase1": {
       "path": "artifacts/phase1/phase1_evidence.json",
-      "sha256": "bef831edcd4ec81df3ea4a94fbae2e9042de07a5bba525a450f59df1173aa50c"
+      "sha256": "b34a79a9b733462a04fde168ee6578c22ffc63f48da8188fa282b05c19a303d9"
     },
     "retrieval": {
       "path": "artifacts/phase2/retrieval/summary.json",
-      "sha256": "791130cf879b29f9b85dcfbbb3b88ebb1d5e9eb1539bf24bf79aa52a19ee3617"
+      "sha256": "972242ae34f717cb22645eca06ef909fab2a2822760fbbb6a111e6616fd5bf32"
     },
     "retrieval_statistics": {
       "path": "artifacts/phase2/retrieval/paired_statistics.json",
-      "sha256": "64ffc984123b2a4e1717decec11d5bb97ee7bc99b7ec10ad00fb2dcd7d9f5a3d"
+      "sha256": "d36fc1d5818c137829f7c0ae91135c08f911cd5e0e6ecd1af72083524580c2b0"
     },
     "retrieval_errors": {
       "path": "artifacts/phase2/retrieval/error_taxonomy.json",
-      "sha256": "57f02a4d3b989e6a31f1cbe93af38b9d58199140c948a736cc5d2a5e4bfc43ff"
+      "sha256": "2a8ecf17fd8154c57cf4af59e666ba7361ed5cde43981d52c701329e83198121"
     },
     "retrieval_labels": {
       "path": "data/evaluation/retrieval_silver_v1.jsonl",
@@ -44,23 +57,23 @@
     },
     "qa": {
       "path": "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json",
-      "sha256": "a62d0ecfc5a2e0a71bb412e8b6fb1e1a300709a21a0f6b3f0bed0782641f5f51"
+      "sha256": "e0bd8cc758f0e12a34632e3655c11496360a9196f1b1e4e261e1d1b289d67bdc"
     },
     "recommendation": {
       "path": "artifacts/phase4/recommendation_proxy_v1/aggregate_results.json",
-      "sha256": "b9bc05cf9f0a6cefbfa93fb672fb2ccc3438faef906b8bb0a6c1f43eeef524e1"
+      "sha256": "e4a58170a988aec69b41e9596e635279f186919ddc2710f8986ced1ff7da1917"
     },
     "topics": {
       "path": "artifacts/phase4/topic_author/topic_metrics.json",
-      "sha256": "00b06f7c22c05b5b4d12c68657f636cf41c747c4f93dbbecec7b13904f8b1fa3"
+      "sha256": "320fc86fb6497158bb58f51c71fa322dcd5ac0bb8fdea83856a8a46bdea44a4d"
     },
     "authors": {
       "path": "artifacts/phase4/topic_author/author_identity_audit.json",
-      "sha256": "c67cbc2b8a326912aee18021aff17a6cf7581c80f54e04a8ef421f0af918880d"
+      "sha256": "c15419c51ee0ac3b4b761394d08075055b7431186ba241044eb29f6400770706"
     },
     "generated_review": {
       "path": "artifacts/phase4/generated_output_review/generated_output_review_summary.json",
-      "sha256": "f6102bbec33c8b7793a8c1d48482ec9d4883ed399c85dfd68f4690aef256eb46"
+      "sha256": "b49005213907ba30b4423bae25937ee31c7c461bbece68f63382155577c1efb3"
     },
     "external_sanity": {
       "path": "artifacts/phase6/external_sanity/external_sanity_manifest.json",
@@ -68,25 +81,118 @@
     },
     "performance": {
       "path": "artifacts/phase6/performance/performance_full_results.json",
-      "sha256": "8642812aa50891c533d238a6ca5f3b6d7870d96ff8c1cf303d8ef9075cbed01e"
+      "sha256": "153115c0330f5c2a0d32f36a357c03edbd111a786f610e76093a432f0f112c4e"
     },
     "performance_validation": {
       "path": "artifacts/phase6/performance/performance_validation.json",
-      "sha256": "c6ff67a680caccdf0fd518fbf1fd5b13f64a8498dcc3e483ca16fb94278bee43"
+      "sha256": "a1054872b728e622d5aa6741b1017ed7dce94767162a35fb856148ee56e280dc"
+    },
+    "v2_manuscript_package_helper": {
+      "path": "scripts/manuscript_v2_package.py",
+      "sha256": "1e040690bf79ecaa38abc405d7d2953da83c67364ff52c039b4b752e0f96926a"
+    },
+    "recommendation_manuscript_metrics_helper": {
+      "path": "scripts/recommendation_manuscript_metrics.py",
+      "sha256": "010016c2e722d8b844f6a85d3819ace04577d5f20504daf0901fe3056af4f0d5"
+    },
+    "v2_finder_disagreements_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_disagreements_v2.json",
+      "sha256": "da1b86992e1d5d2f396164aa42a104219e25540d9bf126143e5688ad718f234d",
+      "bytes": 580
+    },
+    "v2_finder_metrics_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_metrics_v2.json",
+      "sha256": "57088dd34c6c089249c6472e7e775e0eeea704666aa6a2212aa61e032d400bd7",
+      "bytes": 9625
+    },
+    "v2_finder_raw_outputs_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_raw_outputs_v2.jsonl",
+      "sha256": "c7d73bde28470a17c3a438e3916a53b91eb7e380916252e7f397a87b2d8be1b8",
+      "bytes": 308226
+    },
+    "v2_finder_review_pass1_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_review_pass1_v2.jsonl",
+      "sha256": "05945868daac3c63eeb3be466c8aa9e93db999b3d16bcde04f247ef8d19f6e69",
+      "bytes": 23265
+    },
+    "v2_finder_review_pass2_v2": {
+      "path": "artifacts/peer_review_remediation/v2/finder_review_pass2_v2.jsonl",
+      "sha256": "551a26e4a87797b1bd1983b382569dcc116731dea21de5bd4536182f6b3541b8",
+      "bytes": 23265
+    },
+    "v2_freeze_receipt_v2": {
+      "path": "artifacts/peer_review_remediation/v2/freeze_receipt_v2.json",
+      "sha256": "00c7d2541a9a88e3092cece6f3bb4fb239700c79c2fcb307f9e43b23d709d9f3",
+      "bytes": 129109
+    },
+    "v2_manifest_v2": {
+      "path": "artifacts/peer_review_remediation/v2/manifest_v2.json",
+      "sha256": "bdc8e8b289d36834479f7bcc1c2efc9857b9812171dd3d4df7f2bff6680e18d9",
+      "bytes": 13859
+    },
+    "v2_manuscript_macros_v2": {
+      "path": "artifacts/peer_review_remediation/v2/manuscript_macros_v2.tex",
+      "sha256": "30c34d9f78c1c4f545dd21afc6ba1be092d572024e5eba21ddef756087370d1f",
+      "bytes": 3617
+    },
+    "v2_ocr_fixture_results_v2": {
+      "path": "artifacts/peer_review_remediation/v2/ocr_fixture_results_v2.json",
+      "sha256": "2c4bf158ecc552b4de3b2297eb898f2fe68163e32a269c5d54908057f274a3ad",
+      "bytes": 14069
+    },
+    "v2_qa_disagreements_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_disagreements_v2.json",
+      "sha256": "da1b86992e1d5d2f396164aa42a104219e25540d9bf126143e5688ad718f234d",
+      "bytes": 580
+    },
+    "v2_qa_metrics_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_metrics_v2.json",
+      "sha256": "3c22146ece06ff1369b9ce10dce8c8c87e56814e11e76d632f095312dcf6c5c6",
+      "bytes": 6797
+    },
+    "v2_qa_raw_outputs_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_raw_outputs_v2.jsonl",
+      "sha256": "519981929b4f554fa50f85c7184401d9246a1d643303534036f6d4b671ded6dd",
+      "bytes": 182376
+    },
+    "v2_qa_review_pass1_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_review_pass1_v2.jsonl",
+      "sha256": "2fc6f48a074a6d5135fc5b15ef5ee8150839d1d86eee5ad53698931848ea0ed2",
+      "bytes": 23175
+    },
+    "v2_qa_review_pass2_v2": {
+      "path": "artifacts/peer_review_remediation/v2/qa_review_pass2_v2.jsonl",
+      "sha256": "7d9cb470ca1ebec8bdf378f17b76c97290eb28654750eed4f3af1ad51d4ef8dc",
+      "bytes": 23175
+    },
+    "v2_topic_metrics_v2": {
+      "path": "artifacts/peer_review_remediation/v2/topic_metrics_v2.json",
+      "sha256": "5f178b7e3316412ea4bb138efe22555364dbed30f32e7d851ce410a103abc42c",
+      "bytes": 61855
+    },
+    "v2_topic_predictions_v2": {
+      "path": "artifacts/peer_review_remediation/v2/topic_predictions_v2.jsonl",
+      "sha256": "8a3a60e792764d80aa9c0c0d85d12e22619959651cd437c2cfdb30eb9728797a",
+      "bytes": 44492
+    },
+    "v2_validation_attestation_v2": {
+      "path": "artifacts/peer_review_remediation/v2/validation_attestation_v2.json",
+      "sha256": "f6d320bc246666bd19e7c6642c49e40b53d3acb3b52a789599e1eb3a290f34b7",
+      "bytes": 1651
     }
   },
   "outputs": {
     "macros": {
       "path": "thesis/generated/evidence_macros.tex",
-      "sha256": "85a5d12e6aad3cb2e3ef98838e8f9854ce1f8fda99792d2a07c2cf585f914cac"
+      "sha256": "833397c8915da67d379c6e55fe901b28ff225b06cfd5adf91c90b0806d2eaad3"
     },
     "retrieval_csv": {
       "path": "thesis/generated/retrieval_results.csv",
-      "sha256": "830dd1d6753ee7799462ea8174b9ecc1eac8d7dc4a13a7af9792b8181f308cf5"
+      "sha256": "ca7b44c6acbf72cdad78a66356dea34eedef32076355dab726e7727f068bd4f4"
     },
     "qa_csv": {
       "path": "thesis/generated/qa_results.csv",
-      "sha256": "d39465ad3957d474fa936a593669b3b4ae60b2f539b3d34a503075e6a3aa29f1"
+      "sha256": "6a515480a90b4d6acf93f8b1e090c40ea1cd968b21f5aaf78d6153ab11740e4d"
     },
     "topic_csv": {
       "path": "thesis/generated/topic_results.csv",
@@ -94,11 +200,11 @@
     },
     "performance_csv": {
       "path": "thesis/generated/performance_results.csv",
-      "sha256": "8c4d520e3dd8a77f0a62f9ec9cd0425e32c34c855562320cf68eb2cb56c7de9a"
+      "sha256": "d9a7a8970fd5105e0b66ce9d28f598290285b5c3b6fd13f9121c091848f828d2"
     }
   },
   "values": {
-    "CorpusSnapshotId": "corpus-04a010207327069a",
+    "CorpusSnapshotId": "corpus-f4638c633bea82b0",
     "CatalogPaperCount": 134,
     "AvailablePdfCount": 98,
     "NoPdfUrlCount": 34,
@@ -113,7 +219,7 @@
     "EligibleUnknownChunkCount": 199,
     "EligibleUnknownChunkPercent": "27.7",
     "ExtractedPageCount": 698,
-    "ExtractedWordCount": "455,601",
+    "ExtractedWordCount": "455,532",
     "SectionSilverAccuracy": "0.900",
     "SectionSilverCaseCount": 40,
     "SectionSilverMacroPrecision": "0.892",
@@ -124,46 +230,75 @@
     "RetrievalAnswerableTestCount": 19,
     "RetrievalUnanswerableTestCount": 1,
     "QaCaseCount": 50,
-    "QaClaimCount": 400,
-    "QaSupportedClaimCount": 398,
-    "QaPartiallySupportedClaimCount": 2,
+    "QaClaimCount": 334,
+    "QaSupportedClaimCount": 331,
+    "QaPartiallySupportedClaimCount": 3,
     "QaUnsupportedClaimCount": 0,
-    "QaCorrectCitationCount": 250,
+    "QaCorrectCitationCount": 218,
+    "QaPartialCitationCount": 110,
+    "QaIncorrectCitationCount": 6,
     "QaAnswerPointCount": 81,
     "QaCoveredAnswerPointCount": 11,
+    "QaPartiallyCoveredAnswerPointCount": 37,
+    "QaMissingAnswerPointCount": 33,
+    "QaReturnedCitationCount": 125,
+    "QaUsedReturnedCitationCount": 125,
     "QaUnanswerableCaseCount": 4,
-    "QaUnanswerableAbstentionCount": 0,
-    "QaSupportedClaimRate": "0.995",
-    "QaSupportedClaimRateLow": "0.987",
+    "QaUnanswerableAbstentionCount": 1,
+    "QaResponseCount": 49,
+    "QaAbstentionCount": 1,
+    "QaSupportedClaimRate": "0.991",
+    "QaSupportedClaimRateLow": "0.980",
     "QaSupportedClaimRateHigh": "1.000",
-    "QaCitationCorrectness": "0.625",
-    "QaCitationCorrectnessLow": "0.564",
-    "QaCitationCorrectnessHigh": "0.691",
+    "QaCitationCorrectness": "0.653",
+    "QaCitationCorrectnessLow": "0.592",
+    "QaCitationCorrectnessHigh": "0.715",
     "QaCitationCompleteness": "1.000",
-    "QaAnswerPointCoverage": "0.136",
+    "QaAnswerPointCoverage": "0.1358",
     "QaAnswerPointCoverageLow": "0.067",
     "QaAnswerPointCoverageHigh": "0.211",
-    "QaUnanswerableAbstentionRate": "0.000",
-    "QaAbstentionAccuracy": "0.920",
-    "QaAbstentionAccuracyLow": "0.840",
-    "QaAbstentionAccuracyHigh": "0.980",
-    "QaCitationUtilization": "0.592",
+    "QaUnanswerableAbstentionRate": "0.250",
+    "QaUnanswerableAbstentionRateLow": "0.000",
+    "QaUnanswerableAbstentionRateHigh": "1.000",
+    "QaAbstentionAccuracy": "0.940",
+    "QaAbstentionAccuracyLow": "0.860",
+    "QaAbstentionAccuracyHigh": "1.000",
+    "QaCitationUtilization": "1.000",
     "RecommendationProfileCount": 28,
     "RecommendationEvidenceRelevance": "0.631",
-    "RecommendationFullRelevance": "0.655",
-    "RecommendationRelevanceDifference": "0.024",
-    "RecommendationDifferenceLow": "-0.024",
-    "RecommendationDifferenceHigh": "0.071",
-    "RecommendationEvidenceRelevanceLow": "0.524",
-    "RecommendationEvidenceRelevanceHigh": "0.726",
-    "RecommendationFullRelevanceLow": "0.560",
-    "RecommendationFullRelevanceHigh": "0.750",
-    "RecommendationItemCountPerArm": 84,
-    "RecommendationFeasibilityPartialCount": 84,
-    "RecommendationEvaluationPlanPassCount": 72,
-    "RecommendationEvaluationPlanPartialCount": 12,
-    "RecommendationReviewAgreement": "0.994",
-    "RecommendationCriterionCount": 1092,
+    "RecommendationFullRelevance": "0.595",
+    "RecommendationRelevanceDifference": "-0.036",
+    "RecommendationDifferenceLow": "-0.119",
+    "RecommendationDifferenceHigh": "0.048",
+    "RecommendationEvidenceRelevanceLow": "0.536",
+    "RecommendationEvidenceRelevanceHigh": "0.738",
+    "RecommendationFullRelevanceLow": "0.673",
+    "RecommendationFullRelevanceHigh": "0.869",
+    "RecommendationRequestedSlotCount": 84,
+    "RecommendationEvidenceReturnedCount": 84,
+    "RecommendationFullReturnedCount": 67,
+    "RecommendationFullMissingCount": 17,
+    "RecommendationFullReturnCoverage": "0.798",
+    "RecommendationFullProfilesAtCutoff": 16,
+    "RecommendationFullShortProfileCount": 12,
+    "RecommendationSeparationPassCount": 66,
+    "RecommendationSeparationPartialCount": 0,
+    "RecommendationSeparationFailCount": 1,
+    "RecommendationFeasibilityPassCount": 0,
+    "RecommendationFeasibilityPartialCount": 0,
+    "RecommendationFeasibilityFailCount": 67,
+    "RecommendationMvpPassCount": 64,
+    "RecommendationMvpPartialCount": 3,
+    "RecommendationMvpFailCount": 0,
+    "RecommendationEvaluationPlanPassCount": 31,
+    "RecommendationEvaluationPlanPartialCount": 7,
+    "RecommendationEvaluationPlanFailCount": 29,
+    "RecommendationUsefulnessPassCount": 0,
+    "RecommendationUsefulnessPartialCount": 0,
+    "RecommendationUsefulnessFailCount": 67,
+    "RecommendationLayoutFallback": "false",
+    "RecommendationReviewAgreement": "0.991",
+    "RecommendationCriterionCount": 905,
     "TopicCaseCount": 60,
     "TopicTestCount": 24,
     "TopicDevCount": 36,
@@ -175,6 +310,12 @@
     "TopicDenseRecall": "0.694",
     "TopicDenseFone": "0.521",
     "TopicDenseCoverage": "0.958",
+    "TopicVocabularyCount": 40,
+    "TopicSupportedTestLabelCount": 26,
+    "TopicZeroGoldTestLabelCount": 14,
+    "TopicExactBindingCount": 119,
+    "TopicReboundBindingCount": 1,
+    "TopicBindingDriftCount": 1,
     "RawAuthorRowCount": 136,
     "CanonicalAuthorCount": 133,
     "PossibleAuthorMergeCount": 13,
@@ -185,7 +326,13 @@
     "GeneratedArtifactCount": 14,
     "GeneratedAiReviewedCount": 21,
     "GeneratedNeedsReprocessCount": 27,
-    "GeneratedReviewEventCount": 48,
+    "GeneratedReviewEventCount": 21,
+    "GeneratedReviewChangedCount": 21,
+    "GeneratedReviewReusedCount": 27,
+    "GeneratedReviewVerifiedEventCount": 69,
+    "GeneratedReviewSecondPassCreatedCount": 0,
+    "GeneratedReviewSecondPassChangedCount": 0,
+    "GeneratedReviewSecondPassSkippedCount": 48,
     "ExternalSanityDocumentCount": 3,
     "ExternalSanityTopOneCount": 3,
     "ExternalSanityChunkCount": 70,
@@ -195,33 +342,33 @@
     "PerformanceFailureCount": 0,
     "PerformanceCpu": "AMD Ryzen 7 5800X 8-Core Processor",
     "PerformanceMemoryGiB": "3.8",
-    "PerformanceSourceCommit": "5ccf22ec",
-    "PerformanceProvenancePrefix": "61378b9aa78a",
-    "PerformanceMaxRssMiB": "751.5",
-    "PerformanceTableRows": "Dense indexing & 145.005 & 145.020 & 66.169 & 134.066 \\\\\nKeyword retrieval & 9.809 & 10.126 & 8.091 & 9.526 \\\\\nDense retrieval & 84.487 & 86.265 & 12.215 & 78.342 \\\\\nHybrid retrieval & 93.355 & 93.616 & 20.326 & 86.385 \\\\\nOffline answer & 83.355 & 83.736 & 9.842 & 75.800 \\\\\nRecommendation & 83.604 & 85.675 & 10.482 & 76.668 \\\\\nASGI endpoint set & 79.606 & 81.178 & 3.948 & 72.397 \\\\\nFrontend route set & 12.496 & 12.807 & 12.463 & 12.631 \\\\",
-    "TunedMinusKeywordMrr": "-0.088",
-    "TunedMinusKeywordMrrLow": "-0.237",
-    "TunedMinusKeywordMrrHigh": "0.044",
-    "TunedMinusKeywordRawP": "0.375",
+    "PerformanceSourceCommit": "73092e48",
+    "PerformanceProvenancePrefix": "2a71252db4f5",
+    "PerformanceMaxRssMiB": "737.4",
+    "PerformanceTableRows": "Dense indexing & 153.033 & 154.315 & 75.343 & 146.302 \\\\\nKeyword retrieval & 5.390 & 5.898 & 1.639 & 5.071 \\\\\nDense retrieval & 80.473 & 80.579 & 4.580 & 69.943 \\\\\nHybrid retrieval & 83.195 & 85.775 & 9.084 & 77.882 \\\\\nOffline answer & 83.628 & 84.276 & 9.052 & 77.127 \\\\\nRecommendation & 7.157 & 7.407 & 3.410 & 6.650 \\\\\nASGI endpoint set & 81.709 & 82.840 & 5.712 & 76.504 \\\\\nFrontend route set & 13.732 & 13.763 & 13.307 & 13.422 \\\\",
+    "TunedMinusKeywordMrr": "-0.035",
+    "TunedMinusKeywordMrrLow": "-0.140",
+    "TunedMinusKeywordMrrHigh": "0.053",
+    "TunedMinusKeywordRawP": "0.750",
     "TunedMinusKeywordAdjustedP": "1.000",
-    "TunedMinusDenseMrr": "-0.079",
-    "TunedMinusDenseMrrLow": "-0.175",
-    "TunedMinusDenseMrrHigh": "0.000",
-    "TunedMinusDenseRawP": "0.250",
+    "TunedMinusDenseMrr": "-0.026",
+    "TunedMinusDenseMrrLow": "-0.140",
+    "TunedMinusDenseMrrHigh": "0.079",
+    "TunedMinusDenseRawP": "1.000",
     "TunedMinusDenseAdjustedP": "1.000",
-    "TunedMinusFeatureHashingMrr": "0.272",
-    "TunedMinusFeatureHashingMrrLow": "0.026",
-    "TunedMinusFeatureHashingMrrHigh": "0.518",
-    "TunedMinusFeatureHashingRawP": "0.061",
-    "TunedMinusFeatureHashingAdjustedP": "1.000",
+    "TunedMinusFeatureHashingMrr": "0.325",
+    "TunedMinusFeatureHashingMrrLow": "0.123",
+    "TunedMinusFeatureHashingMrrHigh": "0.535",
+    "TunedMinusFeatureHashingRawP": "0.012",
+    "TunedMinusFeatureHashingAdjustedP": "0.316",
     "QaIncompleteCaseCount": 44,
     "QaOffTopicRetrievalCaseCount": 42,
-    "QaWithinPaperMissCaseCount": 14,
+    "QaWithinPaperMissCaseCount": 16,
     "QaAnswerPointOmissionCaseCount": 13,
-    "QaSentenceSelectionMissCaseCount": 12,
-    "QaIncorrectCitationCaseCount": 4,
-    "QaFalsePositiveCaseCount": 4,
-    "RetrievalExtractionErrorCaseCount": 1,
+    "QaSentenceSelectionMissCaseCount": 9,
+    "QaIncorrectCitationCaseCount": 3,
+    "QaFalsePositiveCaseCount": 3,
+    "RetrievalExtractionErrorCaseCount": 0,
     "RetrievalIntentMismatchCaseCount": 2,
     "RetrievalCorpusAbsenceCaseCount": 1,
     "RetrievalKeywordRecallThree": "0.939",
@@ -245,15 +392,16 @@
     "RetrievalHeuristicHybridRecallThree": "0.795",
     "RetrievalHeuristicHybridRecallThreeLow": "0.611",
     "RetrievalHeuristicHybridRecallThreeHigh": "0.947",
-    "RetrievalHeuristicHybridRecallTen": "0.917",
-    "RetrievalHeuristicHybridMrr": "0.813",
-    "RetrievalHeuristicHybridNdcgTen": "0.829",
-    "RetrievalTunedHybridRecallThree": "0.856",
-    "RetrievalTunedHybridRecallThreeLow": "0.707",
-    "RetrievalTunedHybridRecallThreeHigh": "0.974",
-    "RetrievalTunedHybridRecallTen": "0.925",
-    "RetrievalTunedHybridMrr": "0.860",
-    "RetrievalTunedHybridNdcgTen": "0.871",
-    "RetrievalUnanswerableFalsePositiveCount": 1
+    "RetrievalHeuristicHybridRecallTen": "0.969",
+    "RetrievalHeuristicHybridMrr": "0.822",
+    "RetrievalHeuristicHybridNdcgTen": "0.848",
+    "RetrievalTunedHybridRecallThree": "0.909",
+    "RetrievalTunedHybridRecallThreeLow": "0.795",
+    "RetrievalTunedHybridRecallThreeHigh": "1.000",
+    "RetrievalTunedHybridRecallTen": "0.978",
+    "RetrievalTunedHybridMrr": "0.912",
+    "RetrievalTunedHybridNdcgTen": "0.924",
+    "RetrievalUnanswerableFalsePositiveCount": 1,
+    "TopicLabelErrorRows": "Agriculture & 2 & 1 & 0 & 0.667 & 1.000 \\\\\nAI & 0 & 0 & 4 & 0.000 & 0.000 \\\\\nClustering & 3 & 1 & 0 & 0.750 & 1.000 \\\\\nEnergy & 1 & 0 & 2 & 1.000 & 0.333 \\\\\nNetworks & 0 & 2 & 2 & 0.000 & 0.000 \\\\\nRAG & 2 & 0 & 0 & 1.000 & 1.000 \\\\"
   }
 }

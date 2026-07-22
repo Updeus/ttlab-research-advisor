@@ -27,7 +27,9 @@ human/AI actor when exercising real review-state transitions.
 - `TTLAB_PUBLIC_BASE_URL` uses HTTPS;
 - the public hostname is in `TTLAB_TRUSTED_HOSTS`;
 - all CORS origins use HTTPS; and
-- insecure local-demo bypass is disabled.
+- insecure local-demo bypass is disabled;
+- `TTLAB_SERVICE_ROLE=api` and synchronization is disabled; and
+- `TTLAB_API_WORKER_COUNT=1` while the built-in process-local limiter is used.
 
 Interactive OpenAPI/ReDoc endpoints are disabled in production.
 
@@ -76,14 +78,17 @@ the digest, restart all workers, and inspect request/audit logs for the actor.
 
 ## Authorization contract
 
-- Public: publication metadata, bounded eligible-source snippets, search,
-  aggregate diagnostics/evaluation, transient Ask, and transient Extension
-  Finder.
+- Public: only explicitly published metadata and rights-cleared/searchable
+  source snippets, search, aggregate diagnostics/evaluation, transient Ask, and
+  transient Extension Finder. Technical eligibility alone grants no public
+  access.
 - Reviewer/admin: histories/items containing submitted questions/profiles,
-  admin overview/queues/events, full extracted chunks, one-paper persisted
-  artifact generation, and review/correction mutations.
-- Human admin only: administrative approval/rejection. Batch artifact generation
-  requires the `admin` role (including an explicitly labeled demo service actor).
+  admin overview/queues/events, the `NOT PUBLIC` publication preview, full
+  extracted chunks, one-paper persisted artifact generation, and distinct
+  review/correction mutations.
+- Human admin only: administrative approval/rejection and publication/rights/
+  access decisions. Batch artifact generation requires the `admin` role
+  (including an explicitly labeled demo service actor).
 - AI reviewer: must record `ai_reviewed`; it cannot represent human review or
   administrative approval.
 
@@ -93,9 +98,10 @@ event updates/deletes. This is application/database-process immutability, not a
 claim that a machine/database owner cannot rewrite the SQLite file.
 
 Any metadata, generated-artifact, or recommendation correction is a new
-reviewable version and is therefore forced back to `needs_review`. A correction
-cannot preserve or acquire `reviewed`, `ai_reviewed`, `approved`, or `rejected`
-status in the same request; a subsequent attributed review decision is required.
+reviewable version and is therefore forced back to `needs_review`. Correction
+and review use separate endpoints; a correction cannot preserve or acquire
+`reviewed`, `ai_reviewed`, `approved`, or `rejected` in the same request. Public
+serialization uses a correction only after a subsequent human-admin approval.
 Submitting the same final status does not bypass role/type checks.
 
 ## Network and provider allowlists
@@ -106,9 +112,28 @@ Default LLM providers are local/offline:
 export TTLAB_ALLOWED_LLM_PROVIDERS='["offline_extractive", "ollama"]'
 ```
 
-Adding `openai` is a separate privacy/data-transfer decision. The current
-adapter is non-required; do not enable an external provider without an approved
-purpose, contract, retention assessment, and UI notice.
+The incomplete OpenAI adapter has been removed from supported configuration.
+Adding any future external provider is a separate privacy/data-transfer design
+requiring an approved purpose, contract, retention assessment, full provider
+contract, tests, and UI notice.
+
+Ollama model names are not sufficient provenance because tags are mutable.
+Configure an exact name-to-digest allowlist and verify it against `/api/tags`:
+
+```bash
+export TTLAB_OLLAMA_ALLOWED_MODEL_DIGESTS='{"qwen3:4b-instruct-2507-q4_K_M":"<64-hex-digest>"}'
+```
+
+An absent, mismatched, or unapproved digest fails closed or produces an explicit
+offline fallback record; it is never silently treated as the requested model.
+The provider verifies the installed tag digest immediately before and after a
+generation call. Ollama's standard generation response may report only the tag,
+not a digest. Such an answer may be returned after both checks, but its effective
+model is the mutable tag, `generation_time_digest_verified` remains false, and a
+warning explains that the checks are not an immutable generation-time
+attestation. Only a response-reported matching digest permits the digest-bound
+effective model identity. A different response tag/digest or a tag change
+during the call fails to the explicitly recorded offline provider.
 
 PDF download destinations default to the TTLAB hosts used by the curated
 ingestion workflow:
@@ -119,12 +144,23 @@ export TTLAB_ALLOWED_PDF_HOSTS='["lab.tt", "temp.lab.tt"]'
 
 An allowlist entry authorizes network contact, not trust in the file. Keep it
 narrow. Downloader controls and residual risks are listed in `THREAT_MODEL.md`.
+Automated acquisition/promotion is disabled in every service role because an
+atomic multi-artifact generation switch is not implemented. Explicit
+operator-run staging still carries DNS rebinding TOCTOU and hostile-parser risk;
+egress isolation, parser sandboxing, CPU/memory/time limits, and malware
+handling remain external controls.
 
 ## Input, browser, and response controls
 
 - Default request-body cap: 1 MiB (`TTLAB_MAX_REQUEST_BYTES`).
 - Public-generation limit: 20 requests/minute per process/client/path
   (`TTLAB_PUBLIC_GENERATION_REQUESTS_PER_MINUTE`).
+- Public-generation work cap: at most two in-flight requests and four queued
+  requests per API process by default
+  (`TTLAB_PUBLIC_GENERATION_MAX_CONCURRENCY=2` and
+  `TTLAB_PUBLIC_GENERATION_MAX_QUEUE=4`); a queued request waits at most two
+  seconds by default (`TTLAB_PUBLIC_GENERATION_QUEUE_TIMEOUT_SECONDS=2.0`)
+  before rejection.
 - Default PDF cap: 25 MiB and 1,000 pages.
 - Exact CORS origins; no credentialed CORS; explicit trusted hosts.
 - `nosniff`, frame denial, no-referrer, restrictive permissions policy,
@@ -134,9 +170,11 @@ narrow. Downloader controls and residual risks are listed in `THREAT_MODEL.md`.
   corrections until the corrected artifact receives a subsequent human-admin
   approval. Chunk/artifact evidence for non-eligible papers is protected.
 
-The in-process rate limiter is a backstop, not distributed abuse prevention.
-The reverse proxy must enforce body, connection, request-rate, and timeout
-limits for every worker.
+The in-process rate and generation concurrency/queue limiters are backstops, not
+distributed abuse prevention or workload isolation. Production validation
+therefore accepts only the declared single-API-worker topology. Any larger
+deployment needs reverse-proxy/distributed request and concurrency controls plus
+body, connection, queue, request-rate, execution-time, and response-time limits.
 
 ## Vulnerability and dependency procedure
 
@@ -144,14 +182,19 @@ Before a release:
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m pytest
-.venv/bin/python -m pip install pip-audit
-.venv/bin/python -m pip_audit -r backend/requirements.txt
-(cd frontend && npm audit --omit=dev)
+PYTHONPATH=backend .venv/bin/python -m app.reproducibility.environment \
+  --lock backend/requirements-lock.txt
+.venv/bin/python -m pip check
+.venv/bin/python -m pip_audit --skip-editable --vulnerability-service osv --strict
+npm --prefix frontend audit --audit-level=high
 ```
 
-Record tool versions, timestamps, findings, accepted risks, and remediation in
-the release evidence. Do not silently ignore advisories merely because a
-dependency is transitively installed.
+The environment validator checks the resolved installed environment against all
+95 exact current lock pins; the audit then examines that resolved environment,
+not the looser direct-input requirements file. Record tool versions, timestamps,
+findings, accepted risks, and remediation in the release evidence. Do not
+silently ignore advisories merely because a dependency is transitively
+installed.
 
 For a suspected incident: isolate the service, revoke affected tokens/provider
 keys, preserve read-only copies of logs/database/manifests, determine affected

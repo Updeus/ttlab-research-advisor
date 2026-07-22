@@ -10,11 +10,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "TTLAB Research Intelligence Platform"
     database_url: str = "sqlite:///./data/papers.db"
+    admin_review_lock_dir: Path = Path("data/runtime/review_locks")
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     frontend_url: str = "http://127.0.0.1:5173"
     ttlab_publications_url: str = "https://lab.tt/index.php/category/pub/"
     ollama_base_url: str = "http://localhost:11434"
     ollama_default_model: str = "qwen3:4b-instruct-2507-q4_K_M"
+    # Ollama tags are mutable.  A model is runnable only when an operator pins
+    # its exact digest here (model name -> 64-hex digest or sha256:<digest>).
+    ollama_allowed_model_digests: dict[str, str] = {}
     ollama_timeout_seconds: float = 20.0
     ollama_num_ctx: int = 4096
     ollama_keep_alive: str = "10m"
@@ -32,7 +36,12 @@ class Settings(BaseSettings):
     public_base_url: str | None = None
     max_request_bytes: int = 1_048_576
     public_generation_requests_per_minute: int = 20
+    public_generation_max_concurrency: int = Field(default=2, ge=1, le=32)
+    public_generation_max_queue: int = Field(default=4, ge=0, le=128)
+    public_generation_queue_timeout_seconds: float = Field(default=2.0, gt=0, le=60)
+    api_worker_count: int = Field(default=1, ge=1, le=128)
     allowed_llm_providers: list[str] = ["offline_extractive", "ollama"]
+    default_llm_provider: Literal["offline_extractive", "ollama"] = "offline_extractive"
 
     # Downloader controls are an operator-maintained allowlist.  Hosts outside
     # this list are never contacted by the PDF downloader.
@@ -40,12 +49,14 @@ class Settings(BaseSettings):
     max_pdf_download_bytes: int = 25 * 1024 * 1024
     max_pdf_pages: int = 1_000
     max_pdf_redirects: int = 4
+    service_role: Literal["api", "offline_worker"] = "api"
 
     # The scheduler runs in a separate project-owned worker process.  The cron
     # expression is intentionally restricted to one daily UTC/local-time run;
     # this keeps the deployment deterministic without adding a scheduler
     # dependency or allowing every API worker to launch ingestion.
     sync_enabled: bool = False
+    sync_execution_mode: Literal["disabled", "offline_single_writer"] = "disabled"
     sync_cron: str = "0 2 * * *"
     sync_timezone: str = "America/La_Paz"
     sync_run_on_startup: bool = False
@@ -55,7 +66,7 @@ class Settings(BaseSettings):
     sync_download_pdfs: bool = True
     sync_dense_index_policy: Literal["if_present", "always", "never"] = "if_present"
     sync_allow_dense_model_download: bool = False
-    sync_seed_path: Path = Path("data/seed/ttlab_publications_discovered.json")
+    sync_seed_path: Path = Path("data/runtime/ttlab_publications_discovered.json")
 
     model_config = SettingsConfigDict(env_prefix="TTLAB_", env_file=".env")
 

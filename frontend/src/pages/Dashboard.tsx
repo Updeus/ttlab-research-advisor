@@ -17,7 +17,7 @@ type MetricItem = {
 export function Dashboard({ stats, papers }: DashboardProps) {
   const withPdf = stats?.with_pdf_url ?? papers.filter((paper) => paper.pdf_url).length;
   const primaryMetrics: MetricItem[] = [
-    { label: "Papers imported", value: stats?.papers ?? papers.length, note: "TTLAB archive records", tone: "primary" },
+    { label: "Published papers", value: stats?.papers ?? papers.length, note: "approved public catalogue", tone: "primary" },
     { label: "Extracted PDFs", value: stats?.extracted_pdfs ?? papers.filter((paper) => paper.pdf_text_status === "extracted").length, note: "full papers with text" },
     { label: "Searchable chunks", value: stats?.searchable_chunks ?? stats?.total_chunks ?? 0, note: "indexed source passages" },
     { label: "Topics", value: stats?.topic_count ?? 0, note: `${stats?.author_count ?? 0} authors indexed` },
@@ -30,24 +30,24 @@ export function Dashboard({ stats, papers }: DashboardProps) {
   ];
   const intelligenceMetrics: MetricItem[] = [
     { label: "Keyword indexed", value: stats?.keyword_indexed_chunks ?? 0 },
-    { label: "Feature-hashing baseline", value: stats?.feature_hashing_indexed_chunks ?? stats?.semantic_indexed_chunks ?? 0, note: stats?.feature_hashing_index_status ?? "status unavailable" },
-    { label: "Dense semantic", value: stats?.dense_indexed_chunks ?? 0, note: stats?.dense_index_status ?? "status unavailable" },
-    { label: "Ask answers", value: stats?.total_ask_answers ?? 0 },
-    { label: "Extension ideas", value: stats?.total_extension_ideas ?? 0 },
-    { label: "Papers with artifacts", value: stats?.papers_with_artifacts ?? 0 },
-    { label: "Podcast scripts", value: stats?.podcast_scripts_generated ?? 0 },
+    { label: "Feature-hashing baseline", value: stats?.feature_hashing_indexed_chunks ?? 0, note: stats?.index_health.feature_hashing.projection_status ?? "status unavailable" },
+    { label: "Dense semantic", value: stats?.dense_indexed_chunks ?? 0, note: stats?.index_health.dense.projection_status ?? "status unavailable" },
+    { label: "Ask answers", value: "Not published" },
+    { label: "Extension ideas", value: "Not published" },
+    { label: "Papers with artifacts", value: "Not published" },
+    { label: "Podcast scripts", value: "Not published" },
   ];
   const reviewMetrics: MetricItem[] = [
-    { label: "Admin review queue", value: stats?.admin_review_queue_count ?? 0, tone: "warning" },
-    { label: "Artifacts needing review", value: stats?.artifacts_needing_review ?? 0, tone: "warning" },
-    { label: "Review events", value: stats?.total_review_events ?? 0 },
+    { label: "Admin review queue", value: "Protected", note: "Open Admin Review with reviewer access" },
+    { label: "Artifacts needing review", value: "Protected", note: "Not exposed by public statistics" },
+    { label: "Review events", value: "Protected", note: "Append-only history is reviewer-only" },
     { label: "Evaluation state", value: stats?.evaluation_status === "available" ? `${Object.values(stats.evaluation_files_present).filter(Boolean).length} result files` : "Not run", note: stats?.evaluation_last_run_at ? `Last run ${new Date(stats.evaluation_last_run_at).toLocaleString()}` : "No evaluated timestamp" },
   ];
 
   return (
     <section className="page-section" aria-labelledby="dashboard-title">
       <h2 id="dashboard-title" className="sr-only">Research intelligence dashboard</h2>
-      {stats && (stats.feature_hashing_index_status !== "ready" || stats.keyword_indexed_chunks !== stats.searchable_chunks) ? (
+      {stats && (!isReadyIndexStatus(stats.index_health.keyword.projection_status) || !isReadyIndexStatus(stats.index_health.feature_hashing.projection_status)) ? (
         <p className="notice notice--warning" role="status">The search snapshot is incomplete or stale for the currently eligible corpus. Index counts below are diagnostics, not retrieval-quality measurements.</p>
       ) : null}
       <div className="dashboard-hero">
@@ -77,6 +77,9 @@ export function Dashboard({ stats, papers }: DashboardProps) {
                 <StatusBadge label={paper.pdf_text_status} />
               </article>
             ))}
+            {!(stats?.recent_papers ?? papers.slice(0, 5)).length ? (
+              <EmptyState title="No papers are approved for public display yet" body="Publication and rights review must pass before a record appears here." />
+            ) : null}
           </div>
         </section>
 
@@ -95,13 +98,17 @@ export function Dashboard({ stats, papers }: DashboardProps) {
                 ))}
               </div>
             ) : (
-              <EmptyState title="No top topic summary available" body="Use Topic/Author Explorer for the full deterministic topic index." />
+              <EmptyState title="No approved public topic summary yet" body="Topic counts remain empty until public paper records are approved and searchable." />
             )}
           </div>
         </section>
       </div>
     </section>
   );
+}
+
+function isReadyIndexStatus(status: string | null | undefined): boolean {
+  return status === "public_projection_ready";
 }
 
 function MetricGroup({ title, metrics }: { title: string; metrics: MetricItem[] }) {
@@ -118,10 +125,11 @@ function MetricGroup({ title, metrics }: { title: string; metrics: MetricItem[] 
 }
 
 function MetricCard({ metric, large = false }: { metric: MetricItem; large?: boolean }) {
+  const compactValue = typeof metric.value === "string" && metric.value.length > 6;
   return (
     <article className={`metric ${large ? "metric--large" : "metric--compact"} ${metric.tone ? `metric--${metric.tone}` : ""}`}>
       <span className="metric__label">{metric.label}</span>
-      <strong>{metric.value}</strong>
+      <strong className={compactValue ? "metric__small" : undefined}>{metric.value}</strong>
       {metric.note ? <span className="metric__note">{metric.note}</span> : null}
     </article>
   );

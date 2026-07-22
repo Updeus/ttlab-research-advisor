@@ -24,6 +24,7 @@ CORE_TABLES = (
     "paperartifact",
     "reviewevent",
 )
+SQLITE_SIDECAR_SUFFIXES = ("-wal", "-shm", "-journal")
 
 
 class SourceDatabaseChangedError(RuntimeError):
@@ -40,6 +41,10 @@ def sha256_path(path: Path) -> str:
 
 def _read_only_uri(path: Path) -> str:
     return f"{path.resolve().as_uri()}?mode=ro"
+
+
+def _immutable_read_only_uri(path: Path) -> str:
+    return f"{path.resolve().as_uri()}?mode=ro&immutable=1"
 
 
 def _journal_mode(connection: sqlite3.Connection) -> str:
@@ -73,6 +78,25 @@ def _core_table_counts(connection: sqlite3.Connection) -> tuple[dict[str, int | 
 def _fsync_file(path: Path) -> None:
     with path.open("rb") as handle:
         os.fsync(handle.fileno())
+
+
+def _sqlite_sidecars(path: Path) -> tuple[Path, ...]:
+    return tuple(Path(f"{path}{suffix}") for suffix in SQLITE_SIDECAR_SUFFIXES)
+
+
+def _checkpoint_and_remove_snapshot_sidecars(path: Path) -> None:
+    """Checkpoint a copied WAL database and remove temp-name sidecars."""
+
+    with sqlite3.connect(path, timeout=30.0) as connection:
+        if _journal_mode(connection) == "wal":
+            checkpoint = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+            if not checkpoint or int(checkpoint[0]) != 0:
+                raise RuntimeError("Snapshot WAL checkpoint did not complete")
+    wal_path = Path(f"{path}-wal")
+    if wal_path.exists() and wal_path.stat().st_size != 0:
+        raise RuntimeError("Snapshot WAL remained non-empty after checkpoint")
+    for sidecar in _sqlite_sidecars(path):
+        sidecar.unlink(missing_ok=True)
 
 
 def _publish_without_overwrite(temporary: Path, target: Path) -> None:
@@ -136,6 +160,8 @@ def snapshot_database(source: Path, target: Path, evidence: Path) -> dict[str, A
             with sqlite3.connect(temporary, timeout=30.0) as target_connection:
                 source_connection.backup(target_connection)
 
+            _checkpoint_and_remove_snapshot_sidecars(temporary)
+
             source_sha256_after = sha256_path(source)
             source_bytes_after = source.stat().st_size
             source_journal_mode_after = _journal_mode(source_connection)
@@ -152,7 +178,7 @@ def snapshot_database(source: Path, target: Path, evidence: Path) -> dict[str, A
                 "Source database changed while the SQLite backup was running; snapshot was not published"
             )
 
-        with sqlite3.connect(_read_only_uri(temporary), uri=True, timeout=30.0) as snapshot_connection:
+        with sqlite3.connect(_immutable_read_only_uri(temporary), uri=True, timeout=30.0) as snapshot_connection:
             integrity_rows = _integrity_check(snapshot_connection)
             if integrity_rows != ["ok"]:
                 raise RuntimeError(f"Snapshot integrity_check failed: {integrity_rows[:5]}")
@@ -202,6 +228,8 @@ def snapshot_database(source: Path, target: Path, evidence: Path) -> dict[str, A
         return result
     finally:
         temporary.unlink(missing_ok=True)
+        for sidecar in _sqlite_sidecars(temporary):
+            sidecar.unlink(missing_ok=True)
 
 
 def build_parser() -> argparse.ArgumentParser:

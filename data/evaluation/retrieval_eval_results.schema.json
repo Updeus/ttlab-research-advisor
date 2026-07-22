@@ -24,7 +24,7 @@
       "type": "object",
       "required": ["mode", "top_k", "retrieval_depth", "cutoffs", "evaluated_case_ids_sha256", "filters", "bootstrap_repetitions", "bootstrap_seed", "retain_bootstrap_replicates", "observed_vector_providers", "requested_vector_provider", "retriever_config", "corpus"],
       "properties": {
-        "mode": {"enum": ["keyword", "feature_hashing", "dense", "semantic", "hybrid"]},
+        "mode": {"enum": ["keyword", "feature_hashing", "dense", "hybrid"]},
         "top_k": {"type": "integer", "minimum": 10},
         "retrieval_depth": {"type": "integer", "minimum": 10},
         "cutoffs": {"type": "array", "items": {"type": "integer", "minimum": 1}, "uniqueItems": true},

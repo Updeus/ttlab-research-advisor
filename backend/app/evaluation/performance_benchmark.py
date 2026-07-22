@@ -550,7 +550,14 @@ def _retrieval(database: Path, mode: str) -> tuple[int, str, dict[str, Any]]:
     counts: list[int] = []
     with Session(_engine(database)) as session:
         for query in QUERY_WORKLOAD:
-            response = retrieve(session, query, mode=mode, top_k=10, include_text=False)
+            response = retrieve(
+                session,
+                query,
+                mode=mode,
+                top_k=10,
+                include_text=False,
+                scope="technical",
+            )
             counts.append(int(response["result_count"]))
     return len(QUERY_WORKLOAD), "queries", {"mode": mode, "result_counts": counts}
 
@@ -586,6 +593,7 @@ def probe_answer(database: Path, _limit: int | None, _temporary: Path) -> tuple[
                 top_k=5,
                 provider_name="offline_extractive",
                 persist=False,
+                retrieval_scope="technical",
             )
             status = str(response["grounding_status"])
             statuses[status] = statuses.get(status, 0) + 1
@@ -605,7 +613,7 @@ def probe_recommendation(database: Path, _limit: int | None, _temporary: Path) -
     counts: list[int] = []
     with Session(_engine(database)) as session:
         for request in requests:
-            response = recommend_extensions(session, request, persist=False)
+            response = recommend_extensions(session, request, persist=False, retrieval_scope="technical")
             counts.append(len(response["recommendations"]))
     return len(requests), "student profiles", {"recommendation_counts": counts, "persistence": False}
 

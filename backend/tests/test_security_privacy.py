@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
+import threading
 from collections.abc import Generator
 from pathlib import Path
 
 import fitz
 import httpx
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.exc import DatabaseError
@@ -16,11 +18,13 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import Settings, get_settings
+from app.api.admin import admin_review_lock, admin_review_lock_path, serialize_admin_review_requests
 from app.db import get_session
+from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.ingestion.pdf_downloader import DownloadRecord, download_pdfs, validate_remote_pdf_url
 from app.ingestion.pdf_parser import extract_pdf_text, safe_output_path
 from app.main import app, readiness_index_checks
-from app.middleware import PublicRateLimitMiddleware
+from app.middleware import PublicGenerationConcurrencyMiddleware, PublicRateLimitMiddleware
 from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
 from app.security import parse_actor_records, validate_security_configuration
 
@@ -28,6 +32,7 @@ from app.security import parse_actor_records, validate_security_configuration
 ADMIN_TOKEN = "TEST_ONLY_ADMIN_" + ("a" * 32)
 REVIEWER_TOKEN = "TEST_ONLY_REVIEWER_" + ("b" * 32)
 AI_TOKEN = "TEST_ONLY_AI_REVIEWER_" + ("c" * 32)
+EXTRACTION_GENERATION = "a" * 64
 
 
 def digest(token: str) -> str:
@@ -64,6 +69,15 @@ def security_settings() -> Settings:
     )
 
 
+def offline_worker_security_settings() -> Settings:
+    return security_settings().model_copy(
+        update={
+            "service_role": "offline_worker",
+            "sync_execution_mode": "offline_single_writer",
+        }
+    )
+
+
 def build_security_engine():
     test_engine = create_engine(
         "sqlite:///:memory:",
@@ -72,20 +86,45 @@ def build_security_engine():
     )
     SQLModel.metadata.create_all(test_engine)
     with Session(test_engine) as session:
-        session.add(
-            Paper(
-                paper_id="secure-paper",
-                title="Secure Paper",
-                authors=["A. Researcher"],
-                source_url="https://lab.tt/paper",
-                pdf_url="https://lab.tt/paper.pdf",
-                local_pdf_path="/private/workspace/data/pdfs/paper.pdf",
-                extracted_json_path="/private/workspace/data/extracted/paper.json",
-                extracted_text_path="/private/workspace/data/extracted/paper.txt",
-                corpus_eligibility_status="eligible",
-                review_status="needs_review",
-            )
+        paper = Paper(
+            paper_id="secure-paper",
+            title="Secure Paper",
+            authors=["A. Researcher"],
+            source_url="https://lab.tt/paper",
+            pdf_url="https://lab.tt/paper.pdf",
+            local_pdf_path="/private/workspace/data/pdfs/paper.pdf",
+            extracted_json_path="/private/workspace/data/extracted/paper.json",
+            extracted_text_path="/private/workspace/data/extracted/paper.txt",
+            pdf_text_status="extracted",
+            page_count=1,
+            pages_with_text=1,
+            chunk_count=1,
+            corpus_eligibility_status="eligible",
+            review_status="needs_review",
+            extraction_review_status="approved",
+            publication_status="published",
+            rights_status="cleared",
+            public_access_level="searchable",
+            extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_extraction_generation_id=EXTRACTION_GENERATION,
         )
+        chunk = Chunk(
+            chunk_id="secure-paper-chunk",
+            paper_id="secure-paper",
+            chunk_index=0,
+            page_start=1,
+            page_end=1,
+            section="Abstract",
+            text="Secure source text for the approved public paper fixture.",
+            source_hash="secure-source",
+            extraction_generation_id=EXTRACTION_GENERATION,
+        )
+        session.add(paper)
+        session.add(chunk)
+        session.flush()
+        paper.chunk_generation_id = canonical_chunks_sha256(db_chunk_payload([chunk]))
+        paper.public_index_generation_id = paper.chunk_generation_id
+        session.add(paper)
         session.commit()
     return test_engine
 
@@ -100,6 +139,15 @@ def session_override(test_engine):
 
 def auth(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+def approve_secure_paper(test_engine) -> None:
+    with Session(test_engine) as session:
+        paper = session.get(Paper, "secure-paper")
+        assert paper is not None
+        paper.review_status = "approved"
+        session.add(paper)
+        session.commit()
 
 
 def test_actor_configuration_accepts_only_hashed_unique_records() -> None:
@@ -156,7 +204,7 @@ def test_production_configuration_fails_closed_without_admin_or_https() -> None:
 def test_admin_routes_require_token_enforce_roles_and_attribute_events() -> None:
     test_engine = build_security_engine()
     app.dependency_overrides[get_session] = session_override(test_engine)
-    app.dependency_overrides[get_settings] = security_settings
+    app.dependency_overrides[get_settings] = offline_worker_security_settings
     try:
         client = TestClient(app)
         assert client.get("/api/admin/overview").status_code == 401
@@ -166,14 +214,13 @@ def test_admin_routes_require_token_enforce_roles_and_attribute_events() -> None
         assert reviewer_sync.json()["manual_trigger_allowed"] is False
         assert client.post("/api/admin/ingestion-sync/request", headers=auth(REVIEWER_TOKEN)).status_code == 403
         queued_sync = client.post("/api/admin/ingestion-sync/request", headers=auth(ADMIN_TOKEN))
-        assert queued_sync.status_code == 202
-        assert queued_sync.json()["accepted"] is True
+        assert queued_sync.status_code == 409
+        assert "atomic_generation_promotion_not_implemented" in str(queued_sync.json()["detail"])
         assert client.get("/api/admin/ingestion-sync", headers=auth(ADMIN_TOKEN)).json()[
             "manual_trigger_allowed"
-        ] is True
+        ] is False
         duplicate_sync = client.post("/api/admin/ingestion-sync/request", headers=auth(ADMIN_TOKEN))
-        assert duplicate_sync.status_code == 202
-        assert duplicate_sync.json()["accepted"] is False
+        assert duplicate_sync.status_code == 409
 
         forbidden = client.patch(
             "/api/admin/papers/secure-paper",
@@ -271,10 +318,9 @@ def test_correction_reopens_review_and_same_approved_status_cannot_bypass_role()
         assert metadata_correction.json()["review_event"]["action"] == "corrected"
 
         artifact_correction = client.patch(
-            "/api/admin/artifacts/artifact-one/review",
+            "/api/admin/artifacts/artifact-one/correction",
             headers=auth(ADMIN_TOKEN),
             json={
-                "review_status": "approved",
                 "reviewer_notes": "Draft correction must be reviewed again.",
                 "corrected_text": "New correction",
             },
@@ -284,15 +330,46 @@ def test_correction_reopens_review_and_same_approved_status_cannot_bypass_role()
         assert artifact_correction.json()["review_event"]["new_status"] == "needs_review"
 
         recommendation_correction = client.patch(
-            "/api/admin/recommendations/recommendation-one/review",
+            "/api/admin/recommendations/recommendation-one/correction",
             headers=auth(ADMIN_TOKEN),
             json={
-                "review_status": "approved",
-                "corrected_recommendations_json": [{"title": "New"}],
+                "corrected_recommendations_json": [
+                    {
+                        "paper_id": "secure-paper",
+                        "paper_title": "Secure Paper",
+                        "extension_title": "New",
+                        "extension_summary": "A bounded corrected recommendation.",
+                        "mvp_scope": "Build one bounded prototype.",
+                        "evaluation_plan": "Compare against a reviewed baseline.",
+                        "difficulty": "medium",
+                        "risk_level": "medium",
+                        "citations": [{"chunk_id": "forged-recommendation-source"}],
+                        "identified_gap": {
+                            "text": "Unverified gap",
+                            "citations": [{"chunk_id": "forged-nested-source"}],
+                        },
+                    }
+                ],
             },
         )
         assert recommendation_correction.status_code == 200
         assert recommendation_correction.json()["recommendation"]["review_status"] == "needs_review"
+        assert recommendation_correction.json()["recommendation"]["corrected_recommendations_json"]["items"][0]["citations"] == []
+        approved_recommendation = client.patch(
+            "/api/admin/recommendations/recommendation-one/review",
+            headers=auth(ADMIN_TOKEN),
+            json={"review_status": "approved"},
+        )
+        assert approved_recommendation.status_code == 200
+        effective_recommendation = client.get(
+            "/api/recommendations/extensions/recommendation-one",
+            headers=auth(REVIEWER_TOKEN),
+        )
+        assert effective_recommendation.status_code == 200
+        serialized_effective = json.dumps(effective_recommendation.json()["effective_recommendations_json"])
+        assert "forged-recommendation-source" not in serialized_effective
+        assert "forged-nested-source" not in serialized_effective
+        assert effective_recommendation.json()["effective_recommendations_json"]["items"][0]["citations"] == []
     finally:
         app.dependency_overrides.clear()
 
@@ -333,7 +410,7 @@ def test_resource_mutations_provider_allowlist_and_input_bounds_are_enforced() -
     assert anonymous_generation.status_code == 401
     assert reviewer_generation.status_code == 404
     assert reviewer_batch.status_code == 403
-    assert disabled_provider.status_code == 400
+    assert disabled_provider.status_code == 422
     assert excessive_question.status_code == 422
     assert invalid_url.status_code == 422
 
@@ -398,6 +475,7 @@ def test_public_ask_and_finder_do_not_persist_profile_or_question(monkeypatch) -
 
 def test_public_paper_payloads_redact_local_paths_and_full_text_requires_auth() -> None:
     test_engine = build_security_engine()
+    approve_secure_paper(test_engine)
     app.dependency_overrides[get_session] = session_override(test_engine)
     app.dependency_overrides[get_settings] = security_settings
     try:
@@ -428,6 +506,10 @@ def test_public_paper_payloads_redact_local_paths_and_full_text_requires_auth() 
 def test_public_artifacts_hide_review_workspace_and_noneligible_evidence() -> None:
     test_engine = build_security_engine()
     with Session(test_engine) as session:
+        paper = session.get(Paper, "secure-paper")
+        assert paper is not None
+        paper.review_status = "approved"
+        session.add(paper)
         session.add(
             PaperArtifact(
                 artifact_id="draft-artifact",
@@ -473,21 +555,45 @@ def test_public_artifacts_hide_review_workspace_and_noneligible_evidence() -> No
     try:
         client = TestClient(app)
         public_draft = client.get("/api/papers/secure-paper/artifacts/public_summary")
-        assert public_draft.status_code == 200
-        assert not {
-            "reviewer_notes",
-            "reviewed_by",
-            "corrected_text",
-            "corrected_json",
-        }.intersection(public_draft.json())
+        assert public_draft.status_code == 404
 
-        protected_draft = client.get(
-            "/api/papers/secure-paper/artifacts/public_summary",
+        protected_preview = client.get(
+            "/api/admin/publication-preview/papers/secure-paper",
             headers=auth(REVIEWER_TOKEN),
         )
-        assert protected_draft.status_code == 200
-        assert protected_draft.json()["reviewer_notes"] == "Private reviewer note"
-        assert protected_draft.json()["corrected_text"] == "Unapproved correction"
+        assert protected_preview.status_code == 200
+        protected_draft = next(
+            item for item in protected_preview.json()["artifacts"] if item["artifact_id"] == "draft-artifact"
+        )
+        assert protected_draft["reviewer_notes"] == "Private reviewer note"
+        assert protected_draft["corrected_text"] == "Unapproved correction"
+
+        blocked_legacy_approval = client.patch(
+            "/api/admin/artifacts/draft-artifact/review",
+            headers=auth(ADMIN_TOKEN),
+            json={"review_status": "approved", "reviewer_notes": "Private approval note"},
+        )
+        assert blocked_legacy_approval.status_code == 409
+        assert blocked_legacy_approval.json()["detail"]["code"] == "artifact_correction_inconsistent"
+
+        correction = client.patch(
+            "/api/admin/artifacts/draft-artifact/correction",
+            headers=auth(ADMIN_TOKEN),
+            json={
+                "corrected_json": {
+                    "text": "Approved canonical correction",
+                    "citations": [{"chunk_id": "forged-top-level"}],
+                    "nested": {"citations": [{"chunk_id": "forged-nested"}]},
+                },
+                "reviewer_notes": "Canonical reviewer correction without inherited citations.",
+            },
+        )
+        assert correction.status_code == 200
+        assert correction.json()["artifact"]["corrected_json"] == {
+            "text": "Approved canonical correction",
+            "citations": [],
+        }
+        assert correction.json()["artifact"]["corrected_text"] == "Approved canonical correction"
 
         approved = client.patch(
             "/api/admin/artifacts/draft-artifact/review",
@@ -497,29 +603,76 @@ def test_public_artifacts_hide_review_workspace_and_noneligible_evidence() -> No
         assert approved.status_code == 200
         public_approved = client.get("/api/papers/secure-paper/artifacts/public_summary")
         assert public_approved.status_code == 200
-        assert public_approved.json()["corrected_text"] == "Unapproved correction"
-        assert public_approved.json()["corrected_json"] == {"text": "Unapproved correction"}
+        assert public_approved.json()["effective_text"] == "Approved canonical correction"
+        assert public_approved.json()["effective_json"] == {
+            "text": "Approved canonical correction",
+            "citations": [],
+        }
+        assert public_approved.json()["citations"] == []
+        paper_detail_artifacts = client.get("/api/papers/secure-paper/artifacts")
+        assert paper_detail_artifacts.status_code == 200
+        assert paper_detail_artifacts.json()[0]["effective_json"] == public_approved.json()["effective_json"]
+        assert "forged-top-level" not in json.dumps(paper_detail_artifacts.json())
+        assert "forged-nested" not in json.dumps(paper_detail_artifacts.json())
         assert "reviewer_notes" not in public_approved.json()
         assert "reviewed_by" not in public_approved.json()
 
         assert client.get("/api/papers/needs-review-paper/chunks").status_code == 404
         assert client.get("/api/papers/needs-review-paper/artifacts").status_code == 404
-        assert (
-            client.get(
-                "/api/papers/needs-review-paper/chunks",
-                headers=auth(REVIEWER_TOKEN),
-            ).status_code
-            == 200
+        protected_nonpublic = client.get(
+            "/api/admin/publication-preview/papers/needs-review-paper",
+            headers=auth(REVIEWER_TOKEN),
         )
-        assert (
-            client.get(
-                "/api/papers/needs-review-paper/artifacts",
-                headers=auth(REVIEWER_TOKEN),
-            ).status_code
-            == 200
-        )
+        assert protected_nonpublic.status_code == 200
+        assert protected_nonpublic.json()["chunks"][0]["chunk_id"] == "needs-review-chunk"
+        assert protected_nonpublic.json()["artifacts"][0]["artifact_id"] == "needs-review-artifact"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_admin_review_lock_is_database_scoped_and_refuses_symlink(tmp_path: Path) -> None:
+    lock_dir = tmp_path / "review-locks"
+    first = Settings(database_url="sqlite:///first.db", admin_review_lock_dir=lock_dir)
+    second = Settings(database_url="sqlite:///second.db", admin_review_lock_dir=lock_dir)
+    first_path = admin_review_lock_path(first)
+    assert first_path != admin_review_lock_path(second)
+
+    symlink_target = tmp_path / "attacker-controlled"
+    symlink_target.write_text("do not follow", encoding="utf-8")
+    first_path.symlink_to(symlink_target)
+    with pytest.raises(HTTPException) as exc_info:
+        with admin_review_lock(first):
+            pass
+    assert getattr(exc_info.value, "status_code", None) == 503
+    assert symlink_target.read_text(encoding="utf-8") == "do not follow"
+
+
+def test_admin_review_dependency_can_exit_on_a_different_worker_thread(tmp_path: Path) -> None:
+    settings = Settings(
+        database_url="sqlite:///thread-handoff.db",
+        admin_review_lock_dir=tmp_path / "review-locks",
+    )
+    dependency = serialize_admin_review_requests(settings)
+    errors: list[BaseException] = []
+
+    def advance_dependency() -> None:
+        try:
+            next(dependency)
+        except StopIteration:
+            pass
+        except BaseException as exc:  # pragma: no cover - asserted below
+            errors.append(exc)
+
+    enter_thread = threading.Thread(target=advance_dependency)
+    enter_thread.start()
+    enter_thread.join(timeout=5)
+    assert not enter_thread.is_alive()
+
+    exit_thread = threading.Thread(target=advance_dependency)
+    exit_thread.start()
+    exit_thread.join(timeout=5)
+    assert not exit_thread.is_alive()
+    assert errors == []
 
 
 def test_public_llm_status_omits_internal_endpoint_and_raw_error(monkeypatch) -> None:
@@ -646,6 +799,62 @@ def test_public_generation_rate_limiter_is_bounded_per_path() -> None:
     assert limited.headers["Retry-After"] == "60"
 
 
+def test_public_generation_concurrency_rejects_when_bounded_queue_is_full() -> None:
+    async def scenario() -> None:
+        entered = asyncio.Event()
+        release = asyncio.Event()
+
+        async def slow_app(scope, receive, send) -> None:
+            entered.set()
+            await release.wait()
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            await send({"type": "http.response.body", "body": b"ok"})
+
+        middleware = PublicGenerationConcurrencyMiddleware(
+            slow_app,
+            max_concurrency=1,
+            max_queue=0,
+            queue_timeout_seconds=0.1,
+        )
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0"},
+            "http_version": "1.1",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/api/ask",
+            "raw_path": b"/api/ask",
+            "query_string": b"",
+            "headers": [],
+            "client": ("127.0.0.1", 12345),
+            "server": ("testserver", 80),
+        }
+
+        async def receive() -> dict[str, object]:
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        async def request() -> list[dict[str, object]]:
+            messages: list[dict[str, object]] = []
+
+            async def send(message) -> None:
+                messages.append(message)
+
+            await middleware(scope, receive, send)
+            return messages
+
+        first = asyncio.create_task(request())
+        await entered.wait()
+        rejected = await request()
+        assert rejected[0]["status"] == 503
+        assert (b"retry-after", b"1") in rejected[0]["headers"]
+
+        release.set()
+        completed = await first
+        assert completed[0]["status"] == 200
+
+    asyncio.run(scenario())
+
+
 def test_ssrf_validation_blocks_private_resolution_and_redirect_before_following(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="non-public"):
         validate_remote_pdf_url(
@@ -669,6 +878,7 @@ def test_ssrf_validation_blocks_private_resolution_and_redirect_before_following
             client=client,
             allowed_hosts=["lab.tt"],
             resolver=lambda *_args, **_kwargs: ["93.184.216.34"],
+            settings_override=offline_worker_security_settings(),
         )
     finally:
         client.close()
@@ -699,6 +909,7 @@ def test_pdf_download_byte_limit_is_streamed_and_atomic(tmp_path: Path) -> None:
             allowed_hosts=["lab.tt"],
             max_bytes=1_048_576,
             resolver=lambda *_args, **_kwargs: ["93.184.216.34"],
+            settings_override=offline_worker_security_settings(),
         )
     finally:
         client.close()

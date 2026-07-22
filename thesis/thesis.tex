@@ -6,6 +6,7 @@
 \begin{document}
 
 \frontmatter
+\hypersetup{pageanchor=false}
 \begin{titlepage}
   \centering
   \vspace*{18mm}
@@ -25,10 +26,11 @@
   \vspace{3mm}
   {\large\studentcountry\par}
   \vfill
-  {\small Evidence snapshot \texttt{\CorpusSnapshotId}; editable manuscript and generated metrics are version controlled.\par}
+  {\small Editable manuscript sources, evidence manifests, and generated metrics are version controlled.\par}
 \end{titlepage}
+\hypersetup{pageanchor=true}
 
-\include{chapters/00_abstract}
+\input{chapters/00_abstract}
 
 \chapter*{Statement of Scope and AI Assistance}
 \addcontentsline{toc}{chapter}{Statement of Scope and AI Assistance}
@@ -36,7 +38,10 @@ This thesis reports software engineering, document processing, controlled offlin
 
 \tableofcontents
 \listoffigures
+\begingroup
+\singlespacing
 \listoftables
+\endgroup
 
 \chapter*{List of Abbreviations}
 \addcontentsline{toc}{chapter}{List of Abbreviations}
@@ -59,28 +64,32 @@ This thesis reports software engineering, document processing, controlled offlin
 \end{description}
 
 \mainmatter
-\include{chapters/01_introduction}
-\include{chapters/02_problem_statement}
-\include{chapters/03_research_questions_objectives}
-\include{chapters/04_literature_review}
-\include{chapters/05_methodology}
-\include{chapters/06_architecture_design}
-\include{chapters/07_data_collection_processing}
-\include{chapters/08_implementation}
-\include{chapters/09_experimental_design}
-\include{chapters/10_results}
-\include{chapters/11_discussion}
-\include{chapters/12_limitations_ethics_validity}
-\include{chapters/13_conclusion_future_work}
+\input{chapters/01_introduction}
+\input{chapters/02_problem_statement}
+\input{chapters/03_research_questions_objectives}
+\input{chapters/04_literature_review}
+\input{chapters/05_methodology}
+\input{chapters/06_architecture_design}
+\input{chapters/07_data_collection_processing}
+\input{chapters/08_implementation}
+\input{chapters/09_experimental_design}
+\input{chapters/10_results}
+\input{chapters/11_discussion}
+\input{chapters/12_limitations_ethics_validity}
+\input{chapters/13_conclusion_future_work}
 
 \appendix
-\include{chapters/A_traceability}
-\include{chapters/B_reproducibility}
-\include{chapters/C_schema_api}
-\include{chapters/D_review_instruments}
+\input{chapters/A_traceability}
+\input{chapters/B_reproducibility}
+\input{chapters/C_schema_api}
+\input{chapters/D_review_instruments}
 
 \backmatter
+\begingroup
+\singlespacing
+\setlength{\parskip}{0pt}
 \bibliographystyle{IEEEtran}
 \bibliography{references}
+\endgroup
 
 \end{document}

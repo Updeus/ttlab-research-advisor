@@ -364,7 +364,12 @@ def review_recommendation(session: Session, record: ThesisRecommendation) -> Rev
     fresh_response: dict[str, Any] | None = None
     try:
         request = ExtensionFinderRequest.model_validate(record.request_json)
-        fresh_response = recommend_extensions(session, request, persist=False)
+        fresh_response = recommend_extensions(
+            session,
+            request,
+            persist=False,
+            retrieval_scope="technical",
+        )
         recommendations = list(fresh_response["recommendations"] or [])
     except Exception as exc:  # fail closed while retaining the original output for audit
         regeneration_error = f"{type(exc).__name__}: {exc}"
@@ -591,13 +596,52 @@ def record_for_decision(session: Session, decision: ReviewDecision) -> Any:
 
 
 def existing_version_event(session: Session, decision: ReviewDecision) -> ReviewEvent | None:
-    return session.exec(
+    events = session.exec(
         select(ReviewEvent)
         .where(ReviewEvent.item_type == decision.item_type)
         .where(ReviewEvent.item_id == decision.item_id)
         .where(ReviewEvent.reviewer_id == REVIEWER_ID)
         .where(ReviewEvent.request_id == REVIEW_REQUEST_ID)
-    ).first()
+        .order_by(desc(ReviewEvent.created_at), desc(ReviewEvent.review_event_id))
+    ).all()
+    # A review-version identifier describes the protocol, not the immutable
+    # generated payload.  Reusing an event after that payload (or the resulting
+    # decision) changed would suppress a necessary append-only review event and
+    # can falsely report status drift.  Idempotence therefore requires an exact
+    # match on protocol, payload hash, and decision.
+    for event in events:
+        diff = event.diff_json if isinstance(event.diff_json, dict) else {}
+        if (
+            diff.get("content_sha256") == decision.content_sha256
+            and event.new_status == decision.target_status
+        ):
+            record = record_for_decision(session, decision)
+            if record is None:
+                return None
+            if record.review_status == event.new_status:
+                return event
+
+            latest_item_event = session.exec(
+                select(ReviewEvent)
+                .where(ReviewEvent.item_type == decision.item_type)
+                .where(ReviewEvent.item_id == decision.item_id)
+                .order_by(desc(ReviewEvent.created_at), desc(ReviewEvent.review_event_id))
+                .limit(1)
+            ).first()
+            externally_attributed = bool(record.reviewed_by) and record.reviewed_by != REVIEWER_ID
+            later_attributed_event = (
+                latest_item_event is not None
+                and latest_item_event.review_event_id != event.review_event_id
+            )
+            if externally_attributed or later_attributed_event or record.reviewed_at is not None:
+                raise RuntimeError(
+                    f"Review status changed after recorded event: {decision.item_type}/{decision.item_id}"
+                )
+            # Deterministic regeneration resets review fields without deleting
+            # append-only history.  The unchanged payload must receive a fresh
+            # event rather than reusing the pre-regeneration event.
+            return None
+    return None
 
 
 def make_review_event(
@@ -737,6 +781,25 @@ def database_engine(path: Path) -> Any:
     return create_engine(f"sqlite:///{path.resolve()}", connect_args={"check_same_thread": False})
 
 
+def checkpoint_database(engine: Any, database: Path) -> dict[str, Any]:
+    """Materialize committed WAL pages before hashing or freezing the database."""
+    engine.dispose()
+    with sqlite3.connect(database) as connection:
+        journal_mode = str(connection.execute("PRAGMA journal_mode").fetchone()[0]).lower()
+        checkpoint_row = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+    busy, log_frames, checkpointed_frames = (int(value) for value in checkpoint_row)
+    if busy:
+        raise RuntimeError(f"SQLite WAL checkpoint remained busy for {database}")
+    return {
+        "status": "PASS",
+        "journal_mode": journal_mode,
+        "busy": busy,
+        "log_frames_remaining": log_frames,
+        "checkpointed_frames": checkpointed_frames,
+        "wal_exists_after_close": database.with_name(f"{database.name}-wal").exists(),
+    }
+
+
 def status_counts(decisions: list[ReviewDecision]) -> dict[str, Any]:
     return {
         "total": len(decisions),
@@ -809,6 +872,7 @@ def write_outputs(
     apply_result: dict[str, Any] | None,
     idempotence: dict[str, Any],
     compatibility: dict[str, Any],
+    database_checkpoint: dict[str, Any],
     database_hash_before: str,
     database_hash_after: str,
 ) -> dict[str, Any]:
@@ -846,6 +910,7 @@ def write_outputs(
         "review_code_sha256": sha256_file(Path(__file__)),
         "database_sha256_before": database_hash_before,
         "database_sha256_after": database_hash_after,
+        "database_checkpoint": database_checkpoint,
         "database_bytes_redistributed": False,
         "reviewer_type": REVIEWER_TYPE,
         "human_validation": False,
@@ -877,6 +942,11 @@ def run(database: Path, *, apply_live: bool, output_dir: Path) -> dict[str, Any]
                 key: second[key]
                 for key in ("created_events", "changed_records", "skipped_existing", "review_event_integrity")
             }
+    database_checkpoint = (
+        checkpoint_database(engine, database)
+        if apply_live
+        else {"status": "not_required", "reason": "audit_only"}
+    )
     after_hash = sha256_file(database)
     manifest = write_outputs(
         output_dir,
@@ -884,6 +954,7 @@ def run(database: Path, *, apply_live: bool, output_dir: Path) -> dict[str, Any]
         result,
         idempotence,
         compatibility,
+        database_checkpoint,
         before_hash,
         after_hash,
     )
@@ -893,6 +964,7 @@ def run(database: Path, *, apply_live: bool, output_dir: Path) -> dict[str, Any]
         "counts": status_counts(decisions),
         "apply_result": result,
         "idempotence": idempotence,
+        "database_checkpoint": database_checkpoint,
         "manifest": manifest,
     }
 

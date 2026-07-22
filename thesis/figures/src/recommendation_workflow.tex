@@ -12,7 +12,7 @@
 
   \node[datastore, text width=28mm, below=15mm of verify] (persist) {Thesis\\Recommendation\\partial, grounded,\\unsupported; needs review};
   \node[flowbox, right=of persist] (ui) {Ranked, cited output or\\evidence-only paper/passages};
-  \node[flowbox, right=of ui, fill=PaleTeal, draw=Teal!80!black] (proxy) {28-profile AI proxy review\\with source rationales};
+  \node[flowbox, right=of ui, fill=PaleTeal, draw=Teal!80!black] (proxy) {Paired AI-proxy review\\with source rationales};
 
   \draw[arrow] (profile) -- (query);
   \draw[arrow] (query) -- (retrieve);

@@ -16,12 +16,13 @@ deployment.
 
 ## Included capabilities
 
-- archive discovery, idempotent seed import, and a separately deployed daily
-  synchronization worker with persisted run status and an admin trigger;
+- archive discovery, idempotent seed import, and persisted synchronization
+  diagnostics whose worker/admin trigger fail closed until whole-snapshot
+  atomic promotion is implemented;
 - allowlisted PDF acquisition, identity checks, page extraction, scan
   diagnostics, optional OCR, and conservative section-aware chunking;
 - explicit corpus eligibility and authoritative keyword/feature-hashing/dense
-  index manifests;
+  immutable index generations/manifests with fail-closed current pointers;
 - keyword, deterministic feature-hashing, pinned learned-dense, and hybrid
   retrieval;
 - Search and transient Ask TTLAB with paper/chunk/page evidence;
@@ -37,7 +38,7 @@ deployment.
 - a validated bounded full-profile performance baseline plus reproduction/
   release, security/privacy, and document-build tooling.
 
-The frozen experimental boundary contains 96 eligible papers and 719 eligible
+The historical-v1 frozen experimental boundary contains 96 eligible papers and 719 eligible
 chunks from 134 catalogue records. Thirty-six no-text records and two
 metadata/PDF mismatches are visible but excluded from corpus-dependent
 experiments.
@@ -46,6 +47,11 @@ experiments.
 
 - Public Ask questions and student profiles are transient by default; there is
   no public opt-in history endpoint.
+- Technical eligibility is an evaluation predicate, not a publication or
+  redistribution decision. Public metadata/source-text routes require separate
+  approved review, publication, rights, access, extraction, and current-
+  generation states; an empty public projection never falls back to technical
+  data.
 - Local/offline providers are supported. External providers are an explicit
   allowlist/privacy decision and are not required for the artefact.
 - The product offers a loopback-only insecure demo bypass, but production
@@ -65,6 +71,11 @@ experiments.
   regression evidence, not WCAG or assistive-technology conformance.
 - The full performance profile is a single-host, concurrency-one baseline; it
   does not establish capacity, scaling, endurance, or production service levels.
+- The production configuration is one API worker with corpus synchronization
+  and PDF parsing disabled. TLS/reverse proxy, distributed rate control,
+  egress/DNS pinning, hostile-PDF process isolation, monitoring, backup/restore,
+  retention, correction/appeal contacts, and incident handling remain operator
+  or institutional controls.
 
 ## Research evaluation boundary
 
@@ -75,13 +86,25 @@ ablations, sensitivity, and failure taxonomies. It does not recruit
 participants or report human usability, satisfaction, usefulness, or
 supervisor approval.
 
+A prospective remediation-v2 protocol additionally freezes source-first Ask,
+synthetic Finder, positive-only topic, and deterministic OCR-fixture cases
+before execution. Its two shuffled passes remain the same AI procedure, not
+independent human raters. It evaluates technical scope only and cannot support
+public-projection, entailment, usefulness, feasibility, novelty, or corpus OCR-
+accuracy claims. Final result status is authoritative only in the validated
+canonical package under `artifacts/peer_review_remediation/v2/`.
+
 ## Remaining work versus future work
 
-The current manuscript sources produce an 8-Letter-page IEEEtran paper and a
-74-A4-page thesis. Exact-final-commit acceptance uses the full reproduction and
-clean sanitized release gates before tag/push. Those fail-loud gates rebuild
-and preflight the documents; neither the validated performance run nor the
-existing standalone manuscript builds substitutes for them.
+The current manuscript sources satisfy the local paper maximum of six pages and
+thesis minimum of 75 substantive pages. Exact page/reference counts are recorded
+for the candidate rather than maintained here. Acceptance binds the clean
+source-candidate commit/tree exercised by the full reproduction and sanitized-
+release gates. A later evidence commit may add only the resulting validated
+artifacts, attestations, PDFs, and closure records; it is not the reproduced
+source candidate. Any change to source, protocol, cases, application, or
+manuscripts requires a new candidate run. Neither historical performance nor a
+standalone manuscript build substitutes for these fail-loud gates.
 
 Potential future extensions outside the current evidence include:
 
@@ -93,5 +116,7 @@ Potential future extensions outside the current evidence include:
 - audio/TTS generation after script review; and
 - production load/capacity testing.
 
-See `docs/METHODOLOGY.md` and `docs/FINAL_STATUS.md` for the executed study and
-current closure state.
+See `docs/METHODOLOGY.md` for the executed study and
+`docs/peer_review_readiness/FINAL_READINESS_REPORT.md` for the current closure
+state. `docs/FINAL_STATUS.md` is retained only as a superseded historical-v1
+checkpoint.

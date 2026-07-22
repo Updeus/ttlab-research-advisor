@@ -14,7 +14,8 @@ from app.ingestion.sync import (
     release_sync_lease,
     request_manual_sync,
 )
-from app.ingestion.sync_worker import next_scheduled_run, scheduled_sync_due
+from app.ingestion import sync_worker as sync_worker_module
+from app.ingestion.sync_worker import next_scheduled_run, run_worker, scheduled_sync_due
 from app.models import IngestionRun, Paper
 
 
@@ -47,12 +48,20 @@ def discovered_record() -> dict[str, object]:
     }
 
 
+def offline_worker_settings(**overrides: object) -> Settings:
+    return Settings(
+        service_role="offline_worker",
+        sync_execution_mode="offline_single_writer",
+        **overrides,
+    )
+
+
 def test_daily_schedule_waits_until_due_and_runs_at_most_once_per_boundary() -> None:
     engine = build_engine()
-    settings = Settings(sync_enabled=True, sync_cron="0 2 * * *", sync_timezone="UTC")
+    settings = offline_worker_settings(sync_enabled=True, sync_cron="0 2 * * *", sync_timezone="UTC")
     with Session(engine) as session:
         assert not scheduled_sync_due(settings, session, datetime(2026, 7, 20, 1, 0, tzinfo=UTC))
-        assert scheduled_sync_due(settings, session, datetime(2026, 7, 20, 3, 0, tzinfo=UTC))
+        assert not scheduled_sync_due(settings, session, datetime(2026, 7, 20, 3, 0, tzinfo=UTC))
         state, _accepted = request_manual_sync(session, "admin")
         state.manual_requested_at = None
         state.manual_requested_by = None
@@ -92,7 +101,7 @@ def test_manual_request_is_idempotent_until_worker_claims_it() -> None:
 
 def test_sync_imports_only_changes_and_rebuilds_indexes_only_for_new_chunks(tmp_path, monkeypatch) -> None:
     engine = build_engine()
-    settings = Settings(
+    settings = offline_worker_settings(
         sync_seed_path=tmp_path / "ttlab-discovered.json",
         sync_dense_index_policy="never",
         sync_download_pdfs=True,
@@ -158,21 +167,19 @@ def test_sync_imports_only_changes_and_rebuilds_indexes_only_for_new_chunks(tmp_
         runs = list(session.exec(select(IngestionRun)).all())
         state = get_sync_state(session)
 
-    assert first["status"] == "succeeded"
-    assert first["created_count"] == 1
-    assert second["status"] == "succeeded"
-    assert second["created_count"] == 0
-    assert second["unchanged_count"] == 1
-    assert paper is not None and paper.review_status == "needs_review"
-    assert len(runs) == 2
-    assert calls == {"download": 1, "extract": 1, "chunk": 1, "keyword": 1, "index": 1, "topics": 1}
-    assert settings.sync_seed_path.read_text(encoding="utf-8").endswith("\n")
-    assert state is not None and state.lock_owner is None
+    assert first["status"] == "disabled"
+    assert first["reason"] == "atomic_generation_promotion_not_implemented"
+    assert second == first
+    assert paper is None
+    assert runs == []
+    assert calls == {"download": 0, "extract": 0, "chunk": 0, "keyword": 0, "index": 0, "topics": 0}
+    assert not settings.sync_seed_path.exists()
+    assert state is None
 
 
 def test_unchanged_failed_download_is_retried(tmp_path, monkeypatch) -> None:
     engine = build_engine()
-    settings = Settings(sync_seed_path=tmp_path / "retry.json", sync_dense_index_policy="never")
+    settings = offline_worker_settings(sync_seed_path=tmp_path / "retry.json", sync_dense_index_policy="never")
     record = discovered_record()
     retry_calls: list[list[str]] = []
 
@@ -200,14 +207,14 @@ def test_unchanged_failed_download_is_retried(tmp_path, monkeypatch) -> None:
             discoverer=lambda _url, _pages, _check: [record],
         )
 
-    assert result["status"] == "succeeded"
-    assert result["unchanged_count"] == 1
-    assert retry_calls == [["scheduled-paper"]]
+    assert result["status"] == "disabled"
+    assert result["reason"] == "atomic_generation_promotion_not_implemented"
+    assert retry_calls == []
 
 
 def test_empty_discovery_fails_without_replacing_existing_corpus(tmp_path) -> None:
     engine = build_engine()
-    settings = Settings(sync_seed_path=tmp_path / "empty.json")
+    settings = offline_worker_settings(sync_seed_path=tmp_path / "empty.json")
     with Session(engine) as session:
         session.add(Paper(paper_id="existing", title="Existing paper"))
         session.commit()
@@ -220,8 +227,35 @@ def test_empty_discovery_fails_without_replacing_existing_corpus(tmp_path) -> No
         state = get_sync_state(session)
         existing = session.get(Paper, "existing")
 
-    assert result["status"] == "failed"
-    assert "returned no publications" in str(result["error_message"])
+    assert result["status"] == "disabled"
+    assert result["reason"] == "atomic_generation_promotion_not_implemented"
     assert existing is not None
     assert not settings.sync_seed_path.exists()
-    assert state is not None and state.lock_owner is None
+    assert state is None
+
+
+def test_disabled_worker_exits_before_loop_or_database_mutation(monkeypatch, capsys) -> None:
+    settings = offline_worker_settings(sync_enabled=True)
+    calls = {"create": 0, "execute": 0, "sleep": 0}
+    monkeypatch.setattr(
+        sync_worker_module,
+        "create_db_and_tables",
+        lambda: calls.__setitem__("create", calls["create"] + 1),
+    )
+    monkeypatch.setattr(
+        sync_worker_module,
+        "execute_ttlab_sync",
+        lambda *_args, **_kwargs: calls.__setitem__("execute", calls["execute"] + 1),
+    )
+    monkeypatch.setattr(
+        sync_worker_module.time,
+        "sleep",
+        lambda *_args, **_kwargs: calls.__setitem__("sleep", calls["sleep"] + 1),
+    )
+
+    run_worker(settings)
+    output = capsys.readouterr().out
+
+    assert calls == {"create": 0, "execute": 0, "sleep": 0}
+    assert '"event": "sync_worker_disabled"' in output
+    assert '"reason": "atomic_generation_promotion_not_implemented"' in output

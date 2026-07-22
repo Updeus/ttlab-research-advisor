@@ -5,8 +5,8 @@
   \node[flowbox, right=of prepare] (retrieve) {Keyword FTS, 256-d hashing,\\384-d pinned dense, or hybrid};
   \node[flowbox, right=of retrieve] (rerank) {Optional metadata, section, evidence,\\topic and diversity adjustments};
 
-  \node[datastore, below=14mm of retrieve] (chunks) {Retrieved chunks\\paper, page, section, hash};
-  \node[decision, left=12mm of chunks] (provider) {Answer\\provider};
+  \node[datastore, below=14mm of retrieve] (chunks) {Scope-filtered chunks\\paper, page, section, hash};
+  \node[decision, left=12mm of chunks] (provider) {Evidence\\answerable?};
   \node[flowbox, left=12mm of provider] (compose) {Offline extractive or\\local Ollama composition};
   \node[flowbox, left=of compose] (cite) {Return answer plus citations,\\snippets and retrieved chunks};
 
@@ -26,6 +26,6 @@
   \draw[arrow] (verify) -- (status);
   \draw[arrow] (status) -- (persist);
   \draw[arrow] (persist) -- (display);
-  \draw[dashedarrow] (provider.south) -- ++(0,-6mm) node[below,font=\scriptsize,align=center]{Provider unavailability is visible;\\Ollama may fall back to extraction};
+  \draw[dashedarrow] (provider.south) -- ++(0,-6mm) node[below,font=\scriptsize,align=center]{Insufficient coverage abstains; provider failure\\is explicit and may fall back to extraction};
 \end{tikzpicture}
 \endgroup

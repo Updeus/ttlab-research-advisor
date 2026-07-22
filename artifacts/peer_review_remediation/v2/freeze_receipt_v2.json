@@ -1,0 +1,2540 @@
+{
+  "bootstrap": {
+    "cluster_units": {
+      "ask": "named source paper",
+      "finder": "profile family; sensitivity-only variants excluded from the primary estimate",
+      "topics": "paper"
+    },
+    "corpus_selection_uncertainty_included": false,
+    "label_uncertainty_included": false,
+    "method": "cluster_level_percentile_bootstrap",
+    "replicates": 5000,
+    "seed": 20260720
+  },
+  "corpus_snapshot": {
+    "chunk_rows": 735,
+    "paper_chunk_logical_sha256": "b4faaddae71ec60a56057c4bacdc68b0a124736eea361d3e2d20a95266946653",
+    "paper_rows": 134,
+    "sqlite_integrity_check": "ok",
+    "sqlite_schema_sha256": "541f4174ad55cfebf83babbb417edb62be9d12bd601fc7fbf87381428b4a8471",
+    "technical_eligible_chunks": 719,
+    "technical_eligible_papers": 96
+  },
+  "evaluation_source_commit": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+  "files": {
+    "artifacts/phase3/qa/qa_faithfulness_metrics_v1.json": {
+      "bytes": 24841,
+      "sha256": "e0bd8cc758f0e12a34632e3655c11496360a9196f1b1e4e261e1d1b289d67bdc"
+    },
+    "artifacts/phase4/recommendation_proxy_v1/aggregate_results.json": {
+      "bytes": 56578,
+      "sha256": "e4a58170a988aec69b41e9596e635279f186919ddc2710f8986ced1ff7da1917"
+    },
+    "artifacts/phase4/topic_author/topic_metrics.json": {
+      "bytes": 124314,
+      "sha256": "320fc86fb6497158bb58f51c71fa322dcd5ac0bb8fdea83856a8a46bdea44a4d"
+    },
+    "backend/app/__init__.py": {
+      "bytes": 51,
+      "sha256": "0dfd1832f9e948fc08e5db2cd2070b3b76d4b03a34c3e4ca9683b3a4d8fae004"
+    },
+    "backend/app/api/__init__.py": {
+      "bytes": 82,
+      "sha256": "ac2959ce915381e2b2d018c2b8c15bbcd1eb96353a23ad3e12fde12e7e66124e"
+    },
+    "backend/app/api/admin.py": {
+      "bytes": 102572,
+      "sha256": "9287df5836f732d09f33bd91a476587ef01918cae3971dbd1be7fd147b88a666"
+    },
+    "backend/app/api/artifacts.py": {
+      "bytes": 4720,
+      "sha256": "52b77e0b0fc8c045563ec90f6e1cbbe2e1731d227c5e8c5275039e4c2a2661ed"
+    },
+    "backend/app/api/ask.py": {
+      "bytes": 5166,
+      "sha256": "0b81e99c57b7e671cc02fdc170f003bfb0905f177e18d900071f3a0fba20cd28"
+    },
+    "backend/app/api/evaluation.py": {
+      "bytes": 1454,
+      "sha256": "7fabe6bd9a76c00f0b3b806e348f9aa914bb2310199b9b6ebc20abec13d097a2"
+    },
+    "backend/app/api/explorer.py": {
+      "bytes": 2245,
+      "sha256": "67f2d2d070c6424180716b02fff2b99d7f6cb12a5ad324c1a7c154a504eb85ac"
+    },
+    "backend/app/api/index_health.py": {
+      "bytes": 2354,
+      "sha256": "55679ccd82fddfede193ffbae79819cbb30b4e12a473ba1ab45d8d304f121899"
+    },
+    "backend/app/api/llms.py": {
+      "bytes": 1665,
+      "sha256": "a834a444dfbd6b2160cc2d4a850909cfeb0807c8a3019f1f8f6f1b682653e499"
+    },
+    "backend/app/api/papers.py": {
+      "bytes": 12363,
+      "sha256": "9aebe7c381d8f0d39a0580db6299597718ba70db1332144a93460f8d37ee5518"
+    },
+    "backend/app/api/public.py": {
+      "bytes": 671,
+      "sha256": "f152618aad9495a84b31df054d8b966d8bf23b3c1835184e24371a97e17d8b2a"
+    },
+    "backend/app/api/recommendations.py": {
+      "bytes": 1963,
+      "sha256": "b9b30814ccbc557d987af210480e06b538fce71e0e78e9dc3bb78b885c5f301b"
+    },
+    "backend/app/api/search.py": {
+      "bytes": 2519,
+      "sha256": "dfd572c8573b1569ecf7b2c9233b196c54ee4d1b4816b6089dfed01963bf562a"
+    },
+    "backend/app/config.py": {
+      "bytes": 4857,
+      "sha256": "cae10f35d7898303273423f770a03537218a70a4b03a80fdc6f5de58d84ecfb6"
+    },
+    "backend/app/db.py": {
+      "bytes": 23245,
+      "sha256": "9eb383487366cfa94b73b1a72c55928bbe8b0464882980815138b88212d0c10c"
+    },
+    "backend/app/demo/__init__.py": {
+      "bytes": 38,
+      "sha256": "b339c21ad9a5cdf69e23a981b2462587ce804b0572a9e68c7bea91b2497516ae"
+    },
+    "backend/app/demo/prepare_demo.py": {
+      "bytes": 7292,
+      "sha256": "a610cc453f868d3e35ed7e0e2f43389aef2535c2cb67145dbe26738aefce5048"
+    },
+    "backend/app/demo/smoke_check.py": {
+      "bytes": 6943,
+      "sha256": "27fbc6153f5da12667c3fa3c6c3ada55397cc0cba2f46a2cc4a476f810fa4db8"
+    },
+    "backend/app/evaluation/__init__.py": {
+      "bytes": 87,
+      "sha256": "8bfd2b846d1a75ac9ef965958c7ed93bef96bf6dd3700b3a2af1180a3585a95b"
+    },
+    "backend/app/evaluation/artifact_eval.py": {
+      "bytes": 5570,
+      "sha256": "ee8130197a3366e2714e3fa62737a9fae680606df11220c8b4a7f31d4dcac076"
+    },
+    "backend/app/evaluation/compare_retrieval_runs.py": {
+      "bytes": 6419,
+      "sha256": "d35bb8c1e22b6c4d5ba7ec1aca06d83e1b7aa350d661a137b50109007a0f737e"
+    },
+    "backend/app/evaluation/dashboard.py": {
+      "bytes": 43263,
+      "sha256": "7e6c57abc1b1b01d645057fbbe85b2742e73e7f34c8c545eb1bd7c78a64e1728"
+    },
+    "backend/app/evaluation/extension_eval.py": {
+      "bytes": 6286,
+      "sha256": "6d4c21fc7821a3201650524cb40d32f09c4e1125c6f6dc65e02542e68438733a"
+    },
+    "backend/app/evaluation/external_sanity.py": {
+      "bytes": 12187,
+      "sha256": "684535b4145df4d32bbd0427c6016ffb04a06ae79e868c044cf3c35b29ac3691"
+    },
+    "backend/app/evaluation/generated_output_review.py": {
+      "bytes": 44073,
+      "sha256": "e4fdc23ac2f7857d3926ce4b45ca427768477b182c912223bded4ccf85d6a650"
+    },
+    "backend/app/evaluation/ollama_benchmark.py": {
+      "bytes": 11187,
+      "sha256": "92eedc46abec2bcf9a72edccf81d0375110f2732b85ed6d0891acfc08f87a3e1"
+    },
+    "backend/app/evaluation/performance_benchmark.py": {
+      "bytes": 49768,
+      "sha256": "462e660a30ea1ee5cf98090c986ed97338df6d151419c37c770aa04932ae7e6a"
+    },
+    "backend/app/evaluation/performance_validator.py": {
+      "bytes": 20988,
+      "sha256": "8c041e5c708b9cc5d744c259cfaa2743e0763ceb63c8a5024974c5eb0abfada4"
+    },
+    "backend/app/evaluation/qa_eval.py": {
+      "bytes": 3405,
+      "sha256": "e805841c18922cbd7ce4bb82d109ccfa900b86452f1dc7462fc6bad60b6aa670"
+    },
+    "backend/app/evaluation/qa_faithfulness_eval.py": {
+      "bytes": 24827,
+      "sha256": "079eafa1e538494b86305005bfc4bfd2ef39436dc2644426bfa38691dd80fdb7"
+    },
+    "backend/app/evaluation/recommendation_proxy_eval.py": {
+      "bytes": 56089,
+      "sha256": "650254bf4b965a8ef0a24527e6f2b007b0c6cbaa636b95223cd386bcd3669991"
+    },
+    "backend/app/evaluation/retrieval_eval.py": {
+      "bytes": 27131,
+      "sha256": "a581975f007d46977440b00c527ee7a1883a5db53797545ae66ff06a2e233d05"
+    },
+    "backend/app/evaluation/retrieval_experiment.py": {
+      "bytes": 33811,
+      "sha256": "d96e48c3e9bc675d6356548e5486924b6e7a3c907cfbc29a383a416841aa86be"
+    },
+    "backend/app/evaluation/statistics.py": {
+      "bytes": 12129,
+      "sha256": "0f3e7a727211cdf2ebe7abdee9ac80cbb5965762d52247f111df86d98b34323c"
+    },
+    "backend/app/evaluation/topic_author_eval.py": {
+      "bytes": 29503,
+      "sha256": "99b575ed389ad0567c8025052b925603a1c31668f28c8dccb9bb48943556eb46"
+    },
+    "backend/app/indexing/__init__.py": {
+      "bytes": 83,
+      "sha256": "224d667304cd948c8770b8b16b8235b4ac590f817ca4c33438a31d3eca036ffc"
+    },
+    "backend/app/indexing/chunker.py": {
+      "bytes": 35312,
+      "sha256": "f3e7b81212ba7bba0bdf5369afad42605035cc02292ac3e866bc592b252fca86"
+    },
+    "backend/app/indexing/embedder.py": {
+      "bytes": 52037,
+      "sha256": "aaac3bc7196f52551eb1bc3fa783c687f4af136de1839428a0df61f4f7abbd76"
+    },
+    "backend/app/indexing/keyword_search.py": {
+      "bytes": 14753,
+      "sha256": "3fc4e563805786803c5f9d1044b3a97495109719283d37afbbfe856e435b73a3"
+    },
+    "backend/app/indexing/retriever.py": {
+      "bytes": 30554,
+      "sha256": "9b1369e38d19c6b69dd9c7aba93852a701ddbf10ff63d186ce753258756d0bd6"
+    },
+    "backend/app/indexing/vector_store.py": {
+      "bytes": 8045,
+      "sha256": "651dbf764adc85c477d4fb1fcae08bffb36b741bde8b2926ca88d31a1efce891"
+    },
+    "backend/app/ingestion/__init__.py": {
+      "bytes": 75,
+      "sha256": "dc559b6f5e5ca01a65c8b780d977ad61507bede86c56d4685a4ca4e7284bfe76"
+    },
+    "backend/app/ingestion/generation_reconciler.py": {
+      "bytes": 15141,
+      "sha256": "2f4a1790375ea71a697efe57d99204cb272998a62756d4a696c7eb478214d1c7"
+    },
+    "backend/app/ingestion/manual_import.py": {
+      "bytes": 17956,
+      "sha256": "76b414b47ade1ea5964f660651fff0e72c10deeec965734dcb3745bf119a645d"
+    },
+    "backend/app/ingestion/metadata_cleaner.py": {
+      "bytes": 19329,
+      "sha256": "58992b08996b813189e3cb5af66fd1a2a3050418fd09833dcf43b0e889bcb939"
+    },
+    "backend/app/ingestion/ocr.py": {
+      "bytes": 9520,
+      "sha256": "44585e22d5f552abb4e57bbd0eeda76fd63c6c50018f479143b72fec5468569c"
+    },
+    "backend/app/ingestion/pdf_downloader.py": {
+      "bytes": 22757,
+      "sha256": "b50310bcda6a3bf4eb87b8b6818d548c0f6c449009ff1104b27de46d7a7d6984"
+    },
+    "backend/app/ingestion/pdf_parser.py": {
+      "bytes": 34044,
+      "sha256": "718b87fb0ff8371d305fe79afefed743571a7b6691a722d0bb2a60d010e841f4"
+    },
+    "backend/app/ingestion/sync.py": {
+      "bytes": 19702,
+      "sha256": "b4e5459a47ac869c767c974b5321e9196910a35a64853dca593904b860426e00"
+    },
+    "backend/app/ingestion/sync_worker.py": {
+      "bytes": 8169,
+      "sha256": "1b1ea8265a5e2e0279f2c21c2a23a201396d72b10df07be1b21a2045937bc719"
+    },
+    "backend/app/ingestion/ttlab_page.py": {
+      "bytes": 14144,
+      "sha256": "78f26338c30371ccf2f3c77cf2c09fbeced730e20d2a2d853270545f56268eb7"
+    },
+    "backend/app/intelligence/__init__.py": {
+      "bytes": 86,
+      "sha256": "36a86595a387bd0fc658f77c8ef328d907eba92acd8fe93fbcafb19b340d6b52"
+    },
+    "backend/app/intelligence/artifact_verifier.py": {
+      "bytes": 5985,
+      "sha256": "5c7e55af2bc1d87b9457ceb77f5352c4a2205a90ddafb4530efbef1a94c65836"
+    },
+    "backend/app/intelligence/citation_verifier.py": {
+      "bytes": 6293,
+      "sha256": "f3e4cde6a373c16174466181ada0be8ece6ef1bdd2af3879ebccbb441dc3d3a2"
+    },
+    "backend/app/intelligence/extension_recommender.py": {
+      "bytes": 57992,
+      "sha256": "fc4032eb7e1724aaf46a37a97106edcc9a1af0225b9a8ffb41e20c3899104167"
+    },
+    "backend/app/intelligence/llm_provider.py": {
+      "bytes": 30991,
+      "sha256": "42ab3f6e1ee5252c2e612a7d2a109d1cbba35eed01a11617817d9fe0ff39b56a"
+    },
+    "backend/app/intelligence/local_llms.py": {
+      "bytes": 8123,
+      "sha256": "0d18e64de95f5ea11f2b491ba664a3d409ecbc15d7e39b8865b2e60a631032c4"
+    },
+    "backend/app/intelligence/paper_artifact_generator.py": {
+      "bytes": 50414,
+      "sha256": "016c4a33c508c49f07165176f9b815ab73edd4f2532a06bb3f01973d440beb85"
+    },
+    "backend/app/intelligence/podcast_script_generator.py": {
+      "bytes": 4839,
+      "sha256": "a6177af1ee09755c5fe8b549ee39bca00e7a090bf2b08f7f24d2299872cf95ab"
+    },
+    "backend/app/intelligence/rag_answerer.py": {
+      "bytes": 22262,
+      "sha256": "772524a2b6c264ecd7324bf38ead5262b88d62167a493e47f6a10608293b2b41"
+    },
+    "backend/app/intelligence/recommendation_verifier.py": {
+      "bytes": 4369,
+      "sha256": "f150ec57f622fadc386d5fc67bb00e75cd27e009f5eacbf16a8204e33e2137b8"
+    },
+    "backend/app/intelligence/topic_explorer.py": {
+      "bytes": 45147,
+      "sha256": "a8f3c07f477e5c588464d808766e942d21a6f7ddb5a5371ff7aa14165fd5a24d"
+    },
+    "backend/app/io_utils.py": {
+      "bytes": 1289,
+      "sha256": "51881a16a79c9279556554e3b1bb3de5a0309cd8a861951457d5be7fdc41192d"
+    },
+    "backend/app/main.py": {
+      "bytes": 7622,
+      "sha256": "ad5a7db428f9aaef1b53c11673007aa8c4241920b3d03bdbb4cf2d2b65f6912d"
+    },
+    "backend/app/middleware.py": {
+      "bytes": 9544,
+      "sha256": "215b7b02493ee1f3aa08fcacdec4dcb8de4280d072bd80605879b1110646bef6"
+    },
+    "backend/app/models/__init__.py": {
+      "bytes": 685,
+      "sha256": "d0e485119448c4cce3aef48f58b194860e8f0cd8d6024f40c87a7b7baad7bb26"
+    },
+    "backend/app/models/artifact.py": {
+      "bytes": 2099,
+      "sha256": "7d748c8f6fdfb325dd18e6edc409b8e9064768ac698d611b07047f750ac1842f"
+    },
+    "backend/app/models/author.py": {
+      "bytes": 1978,
+      "sha256": "8e8b6aae33d56382a5759ba6141e5efd99bed9487b6db1e3bfd3c1f72386a861"
+    },
+    "backend/app/models/chunk.py": {
+      "bytes": 829,
+      "sha256": "cb10058f49124007aefb72b1205496a4100ebde4e3a2c033a47a0054ccbb47e6"
+    },
+    "backend/app/models/ingestion.py": {
+      "bytes": 1806,
+      "sha256": "c3c5fc152e63cbda95bef929717bec98a2a69db4b1b396d6f0b582ab8f2ff516"
+    },
+    "backend/app/models/paper.py": {
+      "bytes": 4979,
+      "sha256": "95bf598dc01cba19b241b58cdc74a22437b12d26d22fb2ebcb2655b43d8faa35"
+    },
+    "backend/app/models/rag.py": {
+      "bytes": 1999,
+      "sha256": "7e13368cc9de768f6c2acd5938a8d9ba0b092eb7d6ebe8d76647ea35aa121433"
+    },
+    "backend/app/models/recommendation.py": {
+      "bytes": 2145,
+      "sha256": "d6ea026a50c1b2c8d3b287ea558d9355b884a6378be397a7bd0b8e4899fb54ff"
+    },
+    "backend/app/models/review.py": {
+      "bytes": 3496,
+      "sha256": "f017329e1f3785eb84aa127a7a24b8bb66d93e5abbf02c2c26777bac68ed6c88"
+    },
+    "backend/app/models/topic.py": {
+      "bytes": 2175,
+      "sha256": "8f1b46691d9a99e6bd87035d467e05d34efddcf2f0814d0573acc1c293672a88"
+    },
+    "backend/app/publication.py": {
+      "bytes": 6045,
+      "sha256": "ceb5e808dd3f99c2aa3ec5408bae18ea33c26a1005f9c587f939b16575713755"
+    },
+    "backend/app/reproducibility/__init__.py": {
+      "bytes": 50,
+      "sha256": "3f9f62ffadf031a796276c25931e9458086e19ca8e7eb184323860a94c9d6cc3"
+    },
+    "backend/app/reproducibility/database_snapshot.py": {
+      "bytes": 9848,
+      "sha256": "b65115bef737b4e8f45871672d17855d994afc2cc82cc868e4ba64ee3abb558f"
+    },
+    "backend/app/reproducibility/environment.py": {
+      "bytes": 3697,
+      "sha256": "1a48cb68be54b8463902f00c0058f0438166415285b040a372687df262b8a23f"
+    },
+    "backend/app/reproducibility/manifest.py": {
+      "bytes": 9537,
+      "sha256": "fc773d1938c7b38c90be3c5e2e25aeb98449d7d75c0529c4c82bdf5fd29de13e"
+    },
+    "backend/app/reproducibility/release.py": {
+      "bytes": 46460,
+      "sha256": "4f5a73a453de91858b218a4490d0a49e299492e1453b22e2316c3bd4a1423e3a"
+    },
+    "backend/app/runtime_provenance.py": {
+      "bytes": 9205,
+      "sha256": "2fb19ff053c88041e77b207de21c48755d680a118244089818eebc24e2d52ce4"
+    },
+    "backend/app/security.py": {
+      "bytes": 13252,
+      "sha256": "53f456f1b3df672c33794a159cbbc8ace1ff55075a2c4c29e4cda2b804e01e53"
+    },
+    "backend/requirements-lock.txt": {
+      "bytes": 2088,
+      "sha256": "93e43a941f8ca2bd25124c83360b54ff6f2109e575f3abefb211a7383b8058eb"
+    },
+    "data/chunks/a-comparison-of-data-driven-and-traditional-approaches-to-employee-perfo-b0c92e9f.json": {
+      "bytes": 48656,
+      "sha256": "949cd255d1ef23f010df486647968a53ccc2d3a4ceadc927e6d12f12ab76ba9c"
+    },
+    "data/chunks/a-comparison-of-data-driven-and-traditional-approaches-to-employee-perfo-b0c92e9f.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "7284bf2616e5f3e68795440dabe5c0ee8cba95596c795df66d89ec99473dd226"
+    },
+    "data/chunks/a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0.json": {
+      "bytes": 38298,
+      "sha256": "074c65823391ff0a47ef3f8e11973373d199e36dcfbf710f67625ca8d9188841"
+    },
+    "data/chunks/a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "5344efd209baed900d10efbafb868c5543d73fb84eb2ab9d18f09c999279eb9c"
+    },
+    "data/chunks/a-consumer-focused-open-data-platform-8fd2a9df.json": {
+      "bytes": 40078,
+      "sha256": "eaf89adcad73edf199c83e15ee871b69a7a1391436c9dde98d2b852ad858810e"
+    },
+    "data/chunks/a-consumer-focused-open-data-platform-8fd2a9df.json.manifest.json": {
+      "bytes": 1273,
+      "sha256": "42d28327de3d3e34d5a02d4142ba475d9eaa805dbfca7bfae02edff1aceacae7"
+    },
+    "data/chunks/a-data-centric-approach-to-school-discipline-1b433321.json": {
+      "bytes": 31565,
+      "sha256": "7288952c74e812081338b3db99a49d175929ad2615518785ae829b164b13fa39"
+    },
+    "data/chunks/a-data-centric-approach-to-school-discipline-1b433321.json.manifest.json": {
+      "bytes": 1166,
+      "sha256": "157e9458631766c396c89ff5c50fcf341ca1bf7e1ae133deda5684928c093731"
+    },
+    "data/chunks/a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81.json": {
+      "bytes": 62343,
+      "sha256": "1d8c4238401b237f46c0c07422aa061c1b39a017fd3b96a62cc2382f4f5549ef"
+    },
+    "data/chunks/a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81.json.manifest.json": {
+      "bytes": 2041,
+      "sha256": "9a90d11f3814efdfa9330371e149a72b51206921aee4224565e585742abc819d"
+    },
+    "data/chunks/a-decision-tree-approach-to-customer-surveys-8f7fac4b.json": {
+      "bytes": 52033,
+      "sha256": "4049f1a192c5328ba3945988aec2e25bd652877877dba5c6bf473b0d64fe3836"
+    },
+    "data/chunks/a-decision-tree-approach-to-customer-surveys-8f7fac4b.json.manifest.json": {
+      "bytes": 1507,
+      "sha256": "0dc211ad5b3a297d33d0d714f0dd5317282f140387dc5c399528cfc881cb6840"
+    },
+    "data/chunks/a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f.json": {
+      "bytes": 42455,
+      "sha256": "9f976cba9a9931d5acf96ffb3d0b860081f6fb17b26f47626c23ee403b3d6bd7"
+    },
+    "data/chunks/a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "a6790c1f8d278c0ca0c4aeba965ed1838258b5b686527c5719398cae7a0b79dd"
+    },
+    "data/chunks/a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562.json": {
+      "bytes": 47231,
+      "sha256": "08f35383a03b2590eb6d58dc6e23187e83e3f521943aba0288a3883f557fe73d"
+    },
+    "data/chunks/a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "81df660d57cddb77e2ef2daccc8f2ea080db9c8c9620d6f3976adc61fcb05999"
+    },
+    "data/chunks/a-method-for-learning-representations-of-signed-networks-1e492890.json": {
+      "bytes": 58904,
+      "sha256": "93da9d67573a0f93dc9b4f65b81ac114b6feda38516f55043eed15fde70083cf"
+    },
+    "data/chunks/a-method-for-learning-representations-of-signed-networks-1e492890.json.manifest.json": {
+      "bytes": 1736,
+      "sha256": "82ed800e9e9489286dcc51b9199419387f506a883a7436c2d775b3c71864fe6f"
+    },
+    "data/chunks/a-personalized-overdraft-protection-framework-7d1549da.json": {
+      "bytes": 58689,
+      "sha256": "e3ca8383d7a2ed911aca02f3d41eeada34881473deae03a2e22b350f6c8e1b5d"
+    },
+    "data/chunks/a-personalized-overdraft-protection-framework-7d1549da.json.manifest.json": {
+      "bytes": 1604,
+      "sha256": "026be7fcfabb04b263c44d9a767bf0c239540092fc8cbcaaa0cc0be1b13b7297"
+    },
+    "data/chunks/a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7.json": {
+      "bytes": 43967,
+      "sha256": "03e18ff74ed691f3f3596d6f0b9f6d950d531dd365cfb99b90565716be74e569"
+    },
+    "data/chunks/a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7.json.manifest.json": {
+      "bytes": 1561,
+      "sha256": "d14b4677d62fff7dbd256d95a3aeec1d7f53829915e542796ac1552bc27702d6"
+    },
+    "data/chunks/a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6.json": {
+      "bytes": 23519,
+      "sha256": "96508cde1d342f13a16057ec60f223f0e6b3b7072c4343fb53f36fc83a151565"
+    },
+    "data/chunks/a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6.json.manifest.json": {
+      "bytes": 1249,
+      "sha256": "02a28676ddc249e0fc08906659ca8289fe67583e9ec4b427dda5407b96952280"
+    },
+    "data/chunks/a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea.json": {
+      "bytes": 38499,
+      "sha256": "3ba3c23373dc5fab7353ff8b3d9c2a30a9033f88edcb07fbe516c3d906081727"
+    },
+    "data/chunks/a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "ac2de6441189c2bd29d1580fc464686cfb6b525d90bbf409c7b5ffeee66feddb"
+    },
+    "data/chunks/a-simple-approach-to-synthetic-time-series-generation-66bcf71f.json": {
+      "bytes": 25292,
+      "sha256": "c6a3eef0c7964bc0d9e89594c39b72dbd9c45aafdc5722fe00c1d431cc767c46"
+    },
+    "data/chunks/a-simple-approach-to-synthetic-time-series-generation-66bcf71f.json.manifest.json": {
+      "bytes": 1135,
+      "sha256": "568e8252c842e298b76c18c2e49c3c9d1a63ea3603c21bae00373cf392cdd678"
+    },
+    "data/chunks/a-smart-shuffle-approach-to-playlist-shuffling-with-user-defined-constra-2ef8bb64.json": {
+      "bytes": 47375,
+      "sha256": "79e99817182be788472de2707c721d0eefda7834576069cabb95664de2a4e266"
+    },
+    "data/chunks/a-smart-shuffle-approach-to-playlist-shuffling-with-user-defined-constra-2ef8bb64.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "2e446a67e677423962d0b9f8a44e8f5d399b2ac26bf94773cde915379acc57fc"
+    },
+    "data/chunks/a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b.json": {
+      "bytes": 45168,
+      "sha256": "c246b19e9c76284a68ac27a8b4bd8597e690a8162e04898a7cf3c95b700863c0"
+    },
+    "data/chunks/a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "f0d5966ea38e8581293a1caebe51259a334829a6e76fc8ac6bcd0a9a3b0ad877"
+    },
+    "data/chunks/a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc.json": {
+      "bytes": 20000,
+      "sha256": "2383b7bf43ed9dffc4bd40f0c1ac26cd8e8b38c22f92953644878e2c763317ca"
+    },
+    "data/chunks/a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc.json.manifest.json": {
+      "bytes": 1136,
+      "sha256": "532e1e248a2232bbb0b9939e8c8c61a3ffdcf0d78cec1859315583f36cce7afd"
+    },
+    "data/chunks/a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b.json": {
+      "bytes": 23856,
+      "sha256": "c7f1785bb10461b32b4039c1cb09e54670f02ea69967550132361372abc69489"
+    },
+    "data/chunks/a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b.json.manifest.json": {
+      "bytes": 1249,
+      "sha256": "abc0303fb2b164b65d816cf4231bc978ac50d5fd30ebd8ddc6421a29d2d96709"
+    },
+    "data/chunks/above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb.json": {
+      "bytes": 57337,
+      "sha256": "975a7a83465550c500725bd0973af59c93cfaf44d0ab46b124d763ebfc1e1cb1"
+    },
+    "data/chunks/above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb.json.manifest.json": {
+      "bytes": 1928,
+      "sha256": "aba121ae7878f5c7752a163aa04f2a933f8e203c4e9a109c096d0a74a382f11f"
+    },
+    "data/chunks/ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4.json": {
+      "bytes": 46622,
+      "sha256": "450524a04173a3bebfae1941efb5031930b6db04d7fda1b7c98a1fb82cbbeb6e"
+    },
+    "data/chunks/ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "968fd7594c009607b2120ffc25c01a42b2b5bc032023c42a7e029720307cf18d"
+    },
+    "data/chunks/an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541.json": {
+      "bytes": 48601,
+      "sha256": "b45933d00d79f5de47cf5b21c7b49a2c91259475df211f8696df58c5598a4bf9"
+    },
+    "data/chunks/an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "78079428f61633b90b52fff70d5cd9cee5ad11e54e8d6906d57284da64ba6387"
+    },
+    "data/chunks/an-open-dataset-of-labelled-tropical-crops-9b1b8d0e.json": {
+      "bytes": 34761,
+      "sha256": "4dadfef2cd42d2642cfe03a485a59842c0c67193a35c6b82164e3095680f11f5"
+    },
+    "data/chunks/an-open-dataset-of-labelled-tropical-crops-9b1b8d0e.json.manifest.json": {
+      "bytes": 1235,
+      "sha256": "26d1295784512b77e3fb2a359fa4c7760fedd512b7f8e7fb629a950e874fc687"
+    },
+    "data/chunks/an-open-source-real-time-data-portal-c0f8823f.json": {
+      "bytes": 32430,
+      "sha256": "d7d0e540ee022b1f58e26e24a001d40a432c20b77faf1e502825b59352178beb"
+    },
+    "data/chunks/an-open-source-real-time-data-portal-c0f8823f.json.manifest.json": {
+      "bytes": 1110,
+      "sha256": "c8cdd37f30eeaf451223cd4c73b03e5ba99de9ddf21609f536d3bcea16084c6f"
+    },
+    "data/chunks/application-for-the-detection-of-dangerous-driving-and-an-associated-gam-89c35dfe.json": {
+      "bytes": 38630,
+      "sha256": "e46496e089d4e8237ba02d9190c6f769b8220d3d19a560fca23faa4f7bc614ac"
+    },
+    "data/chunks/application-for-the-detection-of-dangerous-driving-and-an-associated-gam-89c35dfe.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "d6bf03f300d550a545a0cbfec5ac1c9ac5a73d3f195c3bfba5f11e525902b3b9"
+    },
+    "data/chunks/association-rule-mining-of-household-electrical-energy-usage-91e53f3a.json": {
+      "bytes": 36653,
+      "sha256": "7388049742aa2660ccfff1bebd50384c640f3d8dd2bf1d57404b18ffc03663f4"
+    },
+    "data/chunks/association-rule-mining-of-household-electrical-energy-usage-91e53f3a.json.manifest.json": {
+      "bytes": 1379,
+      "sha256": "379eeaf5664fc0975b44ea2916c9bd7b186a82e9c43164039d1d07493c17dd94"
+    },
+    "data/chunks/automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a.json": {
+      "bytes": 43674,
+      "sha256": "9f0e577897e3f43497185315950a4c49f5d99376a49fe4f30dc7b493cd6910b9"
+    },
+    "data/chunks/automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "a1964fc6bac2fd24b37494b4a140cc91a56792dfddac5a70fe4429ff1e014a64"
+    },
+    "data/chunks/bilingual-dialect-classification-using-nlp-f02e3cc3.json": {
+      "bytes": 27042,
+      "sha256": "561ba0c6455cabeacf2c6b0507be970caa42650f97b4c483f923767aff9ebdab"
+    },
+    "data/chunks/bilingual-dialect-classification-using-nlp-f02e3cc3.json.manifest.json": {
+      "bytes": 1069,
+      "sha256": "bd36ae6f28c11042b1a2d2bbd798d3553d3b4a4f75dc0e7a36e313422d4f8a0e"
+    },
+    "data/chunks/can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb.json": {
+      "bytes": 63126,
+      "sha256": "86a0bc2977bb4592ee2fc6082100c01ee7a9dc3132f9531ccf90d6d60c5b768b"
+    },
+    "data/chunks/can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb.json.manifest.json": {
+      "bytes": 2041,
+      "sha256": "8c53266fee264bfa17b35ff726c7e7a5832725728c8f11bbc42ed282b31480e7"
+    },
+    "data/chunks/congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353.json": {
+      "bytes": 76463,
+      "sha256": "326f395f20286deb3bf33368a4526c4415f7d3e3bc7d98c724442b2d6be64754"
+    },
+    "data/chunks/congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353.json.manifest.json": {
+      "bytes": 2267,
+      "sha256": "7390c4858993600719f30de881742c4d249532331b4cdceb2fff944325123205"
+    },
+    "data/chunks/constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541.json": {
+      "bytes": 31790,
+      "sha256": "30020cda5bdc9f8df2c519f324cb63ec6cf17cde6f81580f7bd27526205a6ee4"
+    },
+    "data/chunks/constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541.json.manifest.json": {
+      "bytes": 1362,
+      "sha256": "7ef7fa551238f49c8fa3f8d76b0875d04af6d5361413ee92843a1c07948086a2"
+    },
+    "data/chunks/crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71.json": {
+      "bytes": 37830,
+      "sha256": "5000d07d0f597cdeeba6fd53008c3027221205de58afb20c75f6e80879e5a202"
+    },
+    "data/chunks/crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "41a95b73988681aa4204059248a37c312ca9512b4d6589926eeb297006f86483"
+    },
+    "data/chunks/csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32.json": {
+      "bytes": 14663,
+      "sha256": "3fc143554c53460b2b9222b0b38890d8deba1ab2dfe672d62813d2c40ea3c5b7"
+    },
+    "data/chunks/csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32.json.manifest.json": {
+      "bytes": 1015,
+      "sha256": "3e0093ae67b3466dec7b578807d45bbb9521c642889f6b0dbe6d0f436914df9e"
+    },
+    "data/chunks/cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8.json": {
+      "bytes": 43818,
+      "sha256": "58672cc3c2f21ebf2b288a8a5cb6e61770f6c478ce6f6f39c882956982dc7d73"
+    },
+    "data/chunks/cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "56d5945d437a129a8754dfe373ed8772901093f6cd49f594410943e3df5e4c5b"
+    },
+    "data/chunks/cyclic-beam-switching-for-smart-grid-networks-009fe57c.json": {
+      "bytes": 20526,
+      "sha256": "7202d9826154dff812b4cc6b619af24620b373357c1e38fa862d23f3acae4e7b"
+    },
+    "data/chunks/cyclic-beam-switching-for-smart-grid-networks-009fe57c.json.manifest.json": {
+      "bytes": 1001,
+      "sha256": "b77ecba9c221ff2bef6fbc1591aae76c437bf4fabaf6b05bbe83f74fc1ba7cd3"
+    },
+    "data/chunks/data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24.json": {
+      "bytes": 43219,
+      "sha256": "4a099f688d1a6211addaf53c2a7d8648c050a9deaafe6ac51f3f1269179d0ddd"
+    },
+    "data/chunks/data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "560cb4d45ef6523b76a092fc7e7c1326b32508477d63230c34536ba5681884d9"
+    },
+    "data/chunks/data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482.json": {
+      "bytes": 41210,
+      "sha256": "e41f00c8338fc04d9aafbfa3ac31fd290e577a5b3510cebf408902ff513a182e"
+    },
+    "data/chunks/data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "f4c32a84e91aa7e218991a4dabb3e6457d27f78e1d77f3df25cc8eeffd9baffe"
+    },
+    "data/chunks/design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce.json": {
+      "bytes": 41573,
+      "sha256": "1a2fbf9a4ca13b17bf12ca888b6962b260a6fa9aff2c94643e5e3a8b65443237"
+    },
+    "data/chunks/design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "947c35912382d7bba923be3ccd8e098e774f538915a0e4f6de0e62bc371e344e"
+    },
+    "data/chunks/design-and-specifications-of-a-repository-for-real-time-open-data-be5e53d0.json": {
+      "bytes": 30709,
+      "sha256": "afcbb39df9acac34488f1372de11f5eca878d0f297c35a18fdd93a2519fb64be"
+    },
+    "data/chunks/design-and-specifications-of-a-repository-for-real-time-open-data-be5e53d0.json.manifest.json": {
+      "bytes": 1313,
+      "sha256": "3681291d7538e2b2eb49f1370ae3166f8985472473cdefa8453ebcf5e2fc9166"
+    },
+    "data/chunks/developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18.json": {
+      "bytes": 27601,
+      "sha256": "ece346f1bed303f56b226409775ef1fcdc8d914de86f6b359480bbf9ad9b6e1b"
+    },
+    "data/chunks/developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18.json.manifest.json": {
+      "bytes": 1249,
+      "sha256": "c772ce5e44e63209a45a21b0ead3a5f25e8fc8282438f9a036e30c92db464609"
+    },
+    "data/chunks/dynamic-group-formation-in-an-online-social-network-a8e55b98.json": {
+      "bytes": 62605,
+      "sha256": "cd0824d933205ab5c28f5af33cee4809216d04e0e6178cad830fe778ffd692b9"
+    },
+    "data/chunks/dynamic-group-formation-in-an-online-social-network-a8e55b98.json.manifest.json": {
+      "bytes": 1768,
+      "sha256": "7b6914d011db34509703f5b8717f3b6cfb1d603b77dadf11ec86bfb790769987"
+    },
+    "data/chunks/efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c.json": {
+      "bytes": 38230,
+      "sha256": "b90909dde77cdf3cb3fa0047f8f36edc7953879721a274a556b85af3e6d36915"
+    },
+    "data/chunks/efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "aebd1797777401f16d6bba041969e9f826b270f5c78adee0aac65f2adb435496"
+    },
+    "data/chunks/efficient-m-commerce-platform-for-developing-countries-f6fc2409.json": {
+      "bytes": 43587,
+      "sha256": "77f04da4189233ec467c5bdfba82498f840e6f5bad8157ad1a0a5cd67d0c5919"
+    },
+    "data/chunks/efficient-m-commerce-platform-for-developing-countries-f6fc2409.json.manifest.json": {
+      "bytes": 1426,
+      "sha256": "d46cef2c487b62a8dff6d00230a375c3881999238345d15e2eab229b58c927d1"
+    },
+    "data/chunks/efficient-sentiment-classification-of-twitter-feeds-8390d8a8.json": {
+      "bytes": 37205,
+      "sha256": "5519e0b16d083dddcd620ea6b153d42f203b69f001d91736cfceec2096889834"
+    },
+    "data/chunks/efficient-sentiment-classification-of-twitter-feeds-8390d8a8.json.manifest.json": {
+      "bytes": 1307,
+      "sha256": "2890467fb1e28624f836a6fe36d6349c6741a90c3792fcf8dc4fa8fa069aae10"
+    },
+    "data/chunks/emerging-network-technologies-and-network-neutrality-conformance-2af0cd47.json": {
+      "bytes": 43140,
+      "sha256": "3ea4445e6d91aae50f67ceaaab755c1881653151f971685beb6216cc02cc543c"
+    },
+    "data/chunks/emerging-network-technologies-and-network-neutrality-conformance-2af0cd47.json.manifest.json": {
+      "bytes": 1516,
+      "sha256": "ae726bfefb83d53ab1cba630c564ef2659acc30ca2f3f7445c689bfe13b51dce"
+    },
+    "data/chunks/estimating-deforestation-using-machine-learning-algorithms-3f48cc99.json": {
+      "bytes": 35976,
+      "sha256": "76e8804ab256599c0c6b204d4cd4cc7b97e4ac620532254ee35d2304e70f9dec"
+    },
+    "data/chunks/estimating-deforestation-using-machine-learning-algorithms-3f48cc99.json.manifest.json": {
+      "bytes": 1363,
+      "sha256": "1cb48e0ebd56d725fbc47681a08c263014cd6e7a88741e011ca40a0a26a3eac9"
+    },
+    "data/chunks/estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e.json": {
+      "bytes": 71100,
+      "sha256": "58703450251307bf39f6c2f122dde36bd7348975e130fba5b07f61d63d217680"
+    },
+    "data/chunks/estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e.json.manifest.json": {
+      "bytes": 2084,
+      "sha256": "dfbbb395c3475aa9cddbe96517551853f43ee2f759612a9ba1c03d283c1d5c2b"
+    },
+    "data/chunks/event-scheduling-with-soft-constraints-and-on-demand-re-optimization-224f19ec.json": {
+      "bytes": 35190,
+      "sha256": "593fca1f14e699570e237a69d5bfd01853debabe5c0c8e075ac77382f64fcdd3"
+    },
+    "data/chunks/event-scheduling-with-soft-constraints-and-on-demand-re-optimization-224f19ec.json.manifest.json": {
+      "bytes": 1443,
+      "sha256": "1745edfb2b8c4217fe50726d86b4b84e26204c325e77bee6ea53ead4c917ed6e"
+    },
+    "data/chunks/exploiting-gaussian-word-embeddings-for-document-clustering-863ee9e7.json": {
+      "bytes": 25787,
+      "sha256": "1e9e4b401aa2bdc517775a11e3f11039f6917398b76a8e74215e4c2f51b3d6ab"
+    },
+    "data/chunks/exploiting-gaussian-word-embeddings-for-document-clustering-863ee9e7.json.manifest.json": {
+      "bytes": 1171,
+      "sha256": "55ad33b6e22cf3aa385bf4644f87e93862752adfa8b64d2eaec58222115ec9bd"
+    },
+    "data/chunks/exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038.json": {
+      "bytes": 74083,
+      "sha256": "e1f2e0cd9eb68c6630a481891a2556333d37f3b0aa4edeffcd10b86af4c3cea6"
+    },
+    "data/chunks/exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038.json.manifest.json": {
+      "bytes": 2267,
+      "sha256": "4e27900c4db340dc3bb5700c4950c3f1ccb5e5d97ec3134d3b29d1695247b353"
+    },
+    "data/chunks/figure-of-merit-for-a-multi-generation-network-32f902ce.json": {
+      "bytes": 33952,
+      "sha256": "95482d8bb0ba1d3d0d4dfa6b160679b6cdc285e5b6279384d7cf3ca41e7aaff2"
+    },
+    "data/chunks/figure-of-merit-for-a-multi-generation-network-32f902ce.json.manifest.json": {
+      "bytes": 1267,
+      "sha256": "298292e7cc2061ac424e376c1483e510b51bc60b3176ee982e3f8a1b17cf4e97"
+    },
+    "data/chunks/generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982.json": {
+      "bytes": 46032,
+      "sha256": "3061966606935fc4ac42bcf847dc61e9de26cd026f16bed8484f4d1b7a8ceb2c"
+    },
+    "data/chunks/generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "0a6182883abc36452589db038c1d77d0f9410c55be14a655c2bad87a6898adfc"
+    },
+    "data/chunks/generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f.json": {
+      "bytes": 40391,
+      "sha256": "132175782bf67808afc4e9cb8082ec0c4ca376cf9147ee8cab2ba59d93179160"
+    },
+    "data/chunks/generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "387dc5091283e42896902ce38656f82e0910f143f0b4250190897f268af53a1f"
+    },
+    "data/chunks/heuristics-for-advertising-revenue-optimization-in-online-social-network-85ddf731.json": {
+      "bytes": 37301,
+      "sha256": "9a88b9ee0d4e9b9a201ced1dda4be0c297ce06fe0da83c679206f2f3785feb55"
+    },
+    "data/chunks/heuristics-for-advertising-revenue-optimization-in-online-social-network-85ddf731.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "48f80bd1a0c1cb19ea61e72c8cffde2e9e7fdcef85d1e7f1f27772a55a7170fa"
+    },
+    "data/chunks/improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29.json": {
+      "bytes": 29166,
+      "sha256": "db9cd08863eb11ee1a1c879075347f2b699f9f9441cda97dede512d3c7104bc9"
+    },
+    "data/chunks/improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29.json.manifest.json": {
+      "bytes": 1306,
+      "sha256": "b0a5a6cdd9508cff2d798a800b9773ae5d7d1b7dbe1e278aebd4ed44e332c273"
+    },
+    "data/chunks/instant-message-summarization-with-emoji-unicode-characterset-support-96db0872.json": {
+      "bytes": 38474,
+      "sha256": "5f794affa336fbd5b4ca7b173656d3a1009cb26db5bfe307e4151fa515aad347"
+    },
+    "data/chunks/instant-message-summarization-with-emoji-unicode-characterset-support-96db0872.json.manifest.json": {
+      "bytes": 1451,
+      "sha256": "634318dc90f4ffcb16b1d4e3c61dd1601f32a717a56aaf58d3a6e00f10a4da4e"
+    },
+    "data/chunks/load-forecasting-using-deep-neural-networks-31644fac.json": {
+      "bytes": 32204,
+      "sha256": "9f3d436a67ad2f20fb03576842a98b73a925ae2bf0237f99133e0ebbbd07cc70"
+    },
+    "data/chunks/load-forecasting-using-deep-neural-networks-31644fac.json.manifest.json": {
+      "bytes": 1159,
+      "sha256": "fd47338164eb308768b101f6188bb29f47c47fd0be55fa0230a9e7ee7dcf0372"
+    },
+    "data/chunks/location-obfuscation-using-smart-meter-readings-5bfe1825.json": {
+      "bytes": 34475,
+      "sha256": "a8b650be5706b7bbb98cd135d3fd5387279a8b06a1d6c6a382f28dc5a9e99635"
+    },
+    "data/chunks/location-obfuscation-using-smart-meter-readings-5bfe1825.json.manifest.json": {
+      "bytes": 1275,
+      "sha256": "23e1a5665f8f7b6dc8256df3b84c91d9608c8864ec9e27587d43d285ef8556a7"
+    },
+    "data/chunks/marketing-channel-recommendations-in-banking-3deb0e4b.json": {
+      "bytes": 35372,
+      "sha256": "0b1a54a95f688138cb9f982e21b5655d5545786f5ec2a41ac64d574a8cfc8463"
+    },
+    "data/chunks/marketing-channel-recommendations-in-banking-3deb0e4b.json.manifest.json": {
+      "bytes": 1251,
+      "sha256": "e420f6155272c166a49d641b680981581929ceb0d1455b6850507e81c34abf2c"
+    },
+    "data/chunks/material-and-cost-estimation-of-a-customized-product-based-on-the-custom-ade2050d.json": {
+      "bytes": 35237,
+      "sha256": "b6a2e0188f83bbfdbcd87be706ce65492dd6f176544fa0c6ca81838e185e819c"
+    },
+    "data/chunks/material-and-cost-estimation-of-a-customized-product-based-on-the-custom-ade2050d.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "1b036a828d8a90be84137c0c1827b7340ed3e1725e74880f8a213a8a63da465e"
+    },
+    "data/chunks/network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c.json": {
+      "bytes": 43014,
+      "sha256": "1e8e52fa070b58edc6c5ae882e1aaf048e671294a48953dbfa7f8da9c422c77d"
+    },
+    "data/chunks/network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "c33553cd5f3d333c79d60669922d9901206af48a511144425ba3f638beaf2feb"
+    },
+    "data/chunks/office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b.json": {
+      "bytes": 44340,
+      "sha256": "a39d3444af486ce51c0d198d5d4a95d1b693fac4eff3ec84114632d04b31fe9e"
+    },
+    "data/chunks/office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "fa400c2cafd9f5cb20b03d0158ab370f50ce3aaaa28c2456d516bbcbc605e7c0"
+    },
+    "data/chunks/on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898.json": {
+      "bytes": 41962,
+      "sha256": "2b9ec0bdcb2b80fa0f5990e893fe7b605b0846931de48e3a11edfff3bcdb38df"
+    },
+    "data/chunks/on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "e360fc4b56a1713a7c44b4289289452985be7b1e189e8d956387d57cfc98c880"
+    },
+    "data/chunks/on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01.json": {
+      "bytes": 26008,
+      "sha256": "faf525ae1a73913e18677d4de3f9474133c1d3b3627b35c90aab0539b9d00e00"
+    },
+    "data/chunks/on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01.json.manifest.json": {
+      "bytes": 1249,
+      "sha256": "321c597d777a2b1b35ddd24f87c84d8bbe09f4f3021325619ed4739396b88554"
+    },
+    "data/chunks/on-the-distributed-optimization-of-calendar-events-0f95bb66.json": {
+      "bytes": 41868,
+      "sha256": "6995ac13e73f1e191202f98f65095c9d16a5e9e8ff096c462d7b6c8ce5c5216c"
+    },
+    "data/chunks/on-the-distributed-optimization-of-calendar-events-0f95bb66.json.manifest.json": {
+      "bytes": 1390,
+      "sha256": "6575e924d695532d189b4828ebc7d430d3fcb6f31efc0d13f3eca386ff058f07"
+    },
+    "data/chunks/on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3.json": {
+      "bytes": 37427,
+      "sha256": "0fb4e296cb14738b0a87d45f90cdebdc3e6385baef4cae9d3a8f7ddf13da80ab"
+    },
+    "data/chunks/on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3.json.manifest.json": {
+      "bytes": 1411,
+      "sha256": "08795960ac437ea99a8d662123631af26423d118fe4dfe99bff4c580512ed123"
+    },
+    "data/chunks/on-the-multi-stage-influence-maximization-problem-d33cee35.json": {
+      "bytes": 45235,
+      "sha256": "33d23b0b01e4edc585e2df8d599ea88b11a5051fdb51bf2a53657737ae6716f7"
+    },
+    "data/chunks/on-the-multi-stage-influence-maximization-problem-d33cee35.json.manifest.json": {
+      "bytes": 1471,
+      "sha256": "40f46170a0fcb21dc5fc5f65b813d1f83a9a7e4196966508bca994aad568963b"
+    },
+    "data/chunks/on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056.json": {
+      "bytes": 45579,
+      "sha256": "a82acae35a34dcef18916433122fc267c610a7900713da232624edaef682aa57"
+    },
+    "data/chunks/on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056.json.manifest.json": {
+      "bytes": 1611,
+      "sha256": "24cfdbbe5896df88b9f44e226ee51fa5b9e121051008fb54d9c0858acc255f85"
+    },
+    "data/chunks/on-the-optimal-baseline-auto-insurance-premium-4f352d23.json": {
+      "bytes": 21023,
+      "sha256": "6929ec41bba9fa13143ed25d7140cf1f63b1097c07de09fc83e5082ad24ddf56"
+    },
+    "data/chunks/on-the-optimal-baseline-auto-insurance-premium-4f352d23.json.manifest.json": {
+      "bytes": 1006,
+      "sha256": "dc7e812cce68d0a61a8f1994f9c518377d0f4168e2533e51ad82657e17ad77c3"
+    },
+    "data/chunks/on-the-prediction-of-possibly-forgotten-shopping-basket-items-1550b8a9.json": {
+      "bytes": 45822,
+      "sha256": "df0810b8a1e33d63db4d7fbd1585192fd319d34a940bde8afac6012a81e43f38"
+    },
+    "data/chunks/on-the-prediction-of-possibly-forgotten-shopping-basket-items-1550b8a9.json.manifest.json": {
+      "bytes": 1591,
+      "sha256": "a929f68e4dba630ec2d4cb245719bd1758ac92b32e595c27f973ba2cca07acf2"
+    },
+    "data/chunks/on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88.json": {
+      "bytes": 43229,
+      "sha256": "67f8420fd4b8913f5866161f37e125d227a21d2cc5ffc3ea266196908f9f24b3"
+    },
+    "data/chunks/on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "6993a6c5917facf18070a72500e619eb55fad1f77f4ede16b7d7220ab35826bf"
+    },
+    "data/chunks/optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a.json": {
+      "bytes": 34841,
+      "sha256": "dfc040fb37f001c7e14d32a05648b0582c463c09a5a04e4d5f041181dca8877f"
+    },
+    "data/chunks/optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "d46aa8546fd398fb27f61e0127ea7bf8209efc27fef48e4ad4cdf3728504129d"
+    },
+    "data/chunks/optical-lens-inventory-optimization-model-0f6a1d23.json": {
+      "bytes": 41747,
+      "sha256": "7752c625bc26f94e0ef3284b9eab55f837f3cbcd36c4fe8dccb2d94c8437aecc"
+    },
+    "data/chunks/optical-lens-inventory-optimization-model-0f6a1d23.json.manifest.json": {
+      "bytes": 1309,
+      "sha256": "0262abad01ebbe46f1392cd25789cacaa7c73af3f0343e28fff039a4e399ed5a"
+    },
+    "data/chunks/optimizing-car-imports-in-small-island-states-6abab515.json": {
+      "bytes": 30342,
+      "sha256": "2415d12105dc4e4c2f7e314a618da23834285d00b3422d95f49091a076790077"
+    },
+    "data/chunks/optimizing-car-imports-in-small-island-states-6abab515.json.manifest.json": {
+      "bytes": 1173,
+      "sha256": "4781f53903698e8a6b4616b55b580229a5a78cea1b7d9839c9399a932923a926"
+    },
+    "data/chunks/performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd.json": {
+      "bytes": 31097,
+      "sha256": "fbfbbacbcce7675b5513dcc0ac60f06b0b421eabf83348ef72f1aedc9100baea"
+    },
+    "data/chunks/performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd.json.manifest.json": {
+      "bytes": 1327,
+      "sha256": "2218d2a0a37873f1bd270f4e3224145c7edf1d2805aae3cdc51720df3b02d6e3"
+    },
+    "data/chunks/playlist-shuffling-given-user-defined-constraints-on-song-sequencing-2ecc20c8.json": {
+      "bytes": 47071,
+      "sha256": "b68e4417b3396a003dd3ab08b85fbc2cb66ddb3d0a7be8662777a690f342c922"
+    },
+    "data/chunks/playlist-shuffling-given-user-defined-constraints-on-song-sequencing-2ecc20c8.json.manifest.json": {
+      "bytes": 1661,
+      "sha256": "210dc01524f443f62dc4cf2f1030fc13bc9b7489d82eb546e5ee9c21753df4f0"
+    },
+    "data/chunks/power-grid-fault-detection-using-an-amr-network-0c474959.json": {
+      "bytes": 31846,
+      "sha256": "bca79faedbe22ff1b40f190b9a4409d85b255ade87d32f671c862eebc3f9c27a"
+    },
+    "data/chunks/power-grid-fault-detection-using-an-amr-network-0c474959.json.manifest.json": {
+      "bytes": 1187,
+      "sha256": "03db7d806682d14e6b33b00d6b1ff2c60215ccd071457a71268cbd99a329b1c1"
+    },
+    "data/chunks/predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0.json": {
+      "bytes": 34899,
+      "sha256": "b761169c2b8b764b1d7daf0e989a6fdcd7ffea702cedae44215b24e852dbad13"
+    },
+    "data/chunks/predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "b28b0209b8c64cde81eec6412e744c8c76dab5a92406503a830370bfd9a4db83"
+    },
+    "data/chunks/predicting-the-probability-of-critical-illness-claims-ffffb207.json": {
+      "bytes": 41347,
+      "sha256": "42cbecf432ac2b44972d0460b4107e10cf793bc7e9216a392f5201c9aa4ff3e6"
+    },
+    "data/chunks/predicting-the-probability-of-critical-illness-claims-ffffb207.json.manifest.json": {
+      "bytes": 1417,
+      "sha256": "8794a9d2c48ed36e22e43bb55dd9360309e4d6f93438d59045d20c47cabe9c46"
+    },
+    "data/chunks/premium-rate-services-fraud-detection-37e69fcf.json": {
+      "bytes": 39498,
+      "sha256": "3643b635d00c1f58138e0cdbd35656c0dcedf3589e244e2e27a70165ef255213"
+    },
+    "data/chunks/premium-rate-services-fraud-detection-37e69fcf.json.manifest.json": {
+      "bytes": 1273,
+      "sha256": "777b2f580b3da48e559f4abfcf5940f62aa2dba5615cd60df29f21c7766ebeab"
+    },
+    "data/chunks/pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f.json": {
+      "bytes": 40573,
+      "sha256": "4d3973a04fc8110925371f8b104eeb294a9d01d167b3c3554f4f2b48b5cfa4ea"
+    },
+    "data/chunks/pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f.json.manifest.json": {
+      "bytes": 1480,
+      "sha256": "cb84411f0417ea0536aa27693c3fc9ea89c18ab463c89bc05908ef4695101f98"
+    },
+    "data/chunks/quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95.json": {
+      "bytes": 31163,
+      "sha256": "b7229003d6988846f2c4fe2f72687fa8bdcce07925783cc43a67cf5d634cb7d9"
+    },
+    "data/chunks/quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95.json.manifest.json": {
+      "bytes": 1362,
+      "sha256": "5fc245b56bad6f08047d30be3da7350f8faf5a82638acb75ab5482658327e4b6"
+    },
+    "data/chunks/quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd.json": {
+      "bytes": 30989,
+      "sha256": "dc2bfbbc226d8f008bb6c65d2a62ea1691d3dbe3baf237a1cd3e682cad981d65"
+    },
+    "data/chunks/quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd.json.manifest.json": {
+      "bytes": 1362,
+      "sha256": "528e6afba9dfb5a85dba4259113de3dbf2eed2e2bf58670685650d28c6239781"
+    },
+    "data/chunks/recommendations-for-long-term-profit-optimization-8d7956bc.json": {
+      "bytes": 30094,
+      "sha256": "dcc939b5d9e3a18ef2876dfc0fa61348c7d4872c9c66de55ba82a357e840ecba"
+    },
+    "data/chunks/recommendations-for-long-term-profit-optimization-8d7956bc.json.manifest.json": {
+      "bytes": 1201,
+      "sha256": "9bfd61a09d1979e066a1899006706022902aba58c5e87eaeee4b2e4dac1fd414"
+    },
+    "data/chunks/regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3.json": {
+      "bytes": 34936,
+      "sha256": "982041000fbdc383d203f818e2f4d8becb96298cffdc8d42849bf23f1a297c59"
+    },
+    "data/chunks/regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "d25a4d0652743242f226a1c59f9e3495eb6bad06cffd0032b7f45045d6db0a7c"
+    },
+    "data/chunks/spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842.json": {
+      "bytes": 26991,
+      "sha256": "6fd22464ff599d4edcb2149be852b5463a2ba784fb12c21c78b7ff2a851bab4d"
+    },
+    "data/chunks/spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842.json.manifest.json": {
+      "bytes": 1249,
+      "sha256": "efae6f0bbbaa797ab9f746969145bc693b0f2834677a67435efa70b36c0ac910"
+    },
+    "data/chunks/stochastic-dynamic-programming-model-for-revenue-optimization-in-social--07bec3e0.json": {
+      "bytes": 44869,
+      "sha256": "a80e7fa5338a169941b1472f95ec18d01e084e0ba124bf762819237895ff5f02"
+    },
+    "data/chunks/stochastic-dynamic-programming-model-for-revenue-optimization-in-social--07bec3e0.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "67e5f3b766c4023de9a7b1071c172c38ddc834edd4d6f6b2b4eaf71e71886c57"
+    },
+    "data/chunks/the-impact-of-low-electricity-prices-on-renewable-energy-production-196d2368.json": {
+      "bytes": 30655,
+      "sha256": "57997a7f4384a85401a708633a0d9d7bcd248cbccc3a3cb7223119f4c5fbd755"
+    },
+    "data/chunks/the-impact-of-low-electricity-prices-on-renewable-energy-production-196d2368.json.manifest.json": {
+      "bytes": 1327,
+      "sha256": "bfa1f0d34247222ca0b9dcb7e3216be0a3d8a684aadb77f8caf3b65f4fb5ef82"
+    },
+    "data/chunks/using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d.json": {
+      "bytes": 29408,
+      "sha256": "9371b88db55c464f793a4e02d040b879998073cdac4b101ac4311e4dfadad24a"
+    },
+    "data/chunks/using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d.json.manifest.json": {
+      "bytes": 1362,
+      "sha256": "c5cacb03f328ec13003b1302aeb1152d539cfd6f694394fc8aa4b273d65347d1"
+    },
+    "data/chunks/using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b.json": {
+      "bytes": 38066,
+      "sha256": "92dac1bc2023100e8d43acfe35dc3bc674f79bb643f1fc2187dab396e8bb2cdb"
+    },
+    "data/chunks/using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b.json.manifest.json": {
+      "bytes": 1475,
+      "sha256": "9f6b46a7d86d64669f5ee0c6d7317c24db2415ef6a45888dff0fca6eac38fe7b"
+    },
+    "data/chunks/using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af.json": {
+      "bytes": 30389,
+      "sha256": "683bf50b0077a7761dd234236b44574d2fce5bd3ef0bf054777e24593645e8e9"
+    },
+    "data/chunks/using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af.json.manifest.json": {
+      "bytes": 1362,
+      "sha256": "8019d90cb8097944f38f794cf1304d259013533388d80934172b62683bba2d86"
+    },
+    "data/chunks/using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c.json": {
+      "bytes": 21474,
+      "sha256": "e3494c82a1ab5f44a1a6b95e8e277af5588fd5bd712d839038d7dbc8637b2adb"
+    },
+    "data/chunks/using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c.json.manifest.json": {
+      "bytes": 1111,
+      "sha256": "df5e67a241ec29e71fc844f07763026594322ea78af28a3984e1f78a3a52bf58"
+    },
+    "data/chunks/using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6.json": {
+      "bytes": 46748,
+      "sha256": "277dbfa310b8a3fed95edc8b0702e4196209e1ee544c87d8387a5c967701b03b"
+    },
+    "data/chunks/using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6.json.manifest.json": {
+      "bytes": 1701,
+      "sha256": "87b3052453ca386d55d369c90fcb220bd870bd75a5e82dd0cfabc0e72361f47b"
+    },
+    "data/chunks/using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36.json": {
+      "bytes": 30454,
+      "sha256": "0e1084f458744ab717a74fb0145e2a3d07ada29651f37674891a6dbb81df38cf"
+    },
+    "data/chunks/using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36.json.manifest.json": {
+      "bytes": 1362,
+      "sha256": "b0b91d03582ed14fb26f5fb438afe8da053a4ae2cad7554caa7b56a4f335cada"
+    },
+    "data/chunks/using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db.json": {
+      "bytes": 42681,
+      "sha256": "c2faf8d2aa3e77855c34c0c45c451be5844ff45b2f3c1623612405a53d4e819d"
+    },
+    "data/chunks/using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db.json.manifest.json": {
+      "bytes": 1588,
+      "sha256": "95080c6d22177c7e5b2a366b8538023e088b686b92bfbcfe79009c9f1d3b81b2"
+    },
+    "data/chunks/vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8.json": {
+      "bytes": 41375,
+      "sha256": "3f1f428dc3fc21ba4768d5495e8bf19801687988cb9cc739304ed7a94bd9b83e"
+    },
+    "data/chunks/vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8.json.manifest.json": {
+      "bytes": 1561,
+      "sha256": "61e317c30a6e847120a687077ef9733f391b61e083b381f3eed641d55525038d"
+    },
+    "data/chunks/web-application-for-power-grid-fault-management-70b8c821.json": {
+      "bytes": 32470,
+      "sha256": "aaaed48156761711d5a8e5110e01f20732fe00a12b245ee9ea77150ba6179283"
+    },
+    "data/chunks/web-application-for-power-grid-fault-management-70b8c821.json.manifest.json": {
+      "bytes": 1187,
+      "sha256": "5a023a554b2d9d7b12e3c78c1ccc61f69ea4ea357640bff3afccf9cdb1b9bc59"
+    },
+    "data/chunks/weed-and-water-stress-detection-using-drone-video-03885d3b.json": {
+      "bytes": 29527,
+      "sha256": "77da2d289302aab50f0e339977cdb6e8ca6de5786b447f4849558bc7f4ba15b4"
+    },
+    "data/chunks/weed-and-water-stress-detection-using-drone-video-03885d3b.json.manifest.json": {
+      "bytes": 1201,
+      "sha256": "8dfaa63563f36230d1e0094e104adcb34b6af0d68da0095855afccb8efefeec7"
+    },
+    "data/chunks/weighted-eligibility-based-product-recommendation-system-11db29fb.json": {
+      "bytes": 41187,
+      "sha256": "ac299a5a000bd94dcaad946a6d85a5884b918fa8d1a94f9d2559e32321673a2a"
+    },
+    "data/chunks/weighted-eligibility-based-product-recommendation-system-11db29fb.json.manifest.json": {
+      "bytes": 1444,
+      "sha256": "92d4fcd7ac1acd81aba3d1fe1f612095fa78521f5788d8024e8ea4575e53a8a7"
+    },
+    "data/evaluation/finder_proxy_profiles_v2.jsonl": {
+      "bytes": 8706,
+      "sha256": "c157904d3762f109bf2ac60614f500f25914b688dde91a5e7b30f5187f4fd7a3"
+    },
+    "data/evaluation/ocr_scanned_fixture_v2.json": {
+      "bytes": 1393,
+      "sha256": "00a9d709114e8bf585e593d80fa7a3ac6baefe3e774ec116cf11b85a64e3d809"
+    },
+    "data/evaluation/ocr_scanned_fixture_v2.pdf": {
+      "bytes": 61888,
+      "sha256": "e0d2805d619f194b4ed5a552ee07f9df2c74dc3609cd25fdf83285d3372cd380"
+    },
+    "data/evaluation/peer_review_remediation_v2_protocol.json": {
+      "bytes": 12756,
+      "sha256": "0d7e39b951d1f6e09d84d2cc3736e642e22afc8716500ac42a139c5d32a34d12"
+    },
+    "data/evaluation/qa_selective_response_v2.jsonl": {
+      "bytes": 17395,
+      "sha256": "4abd2dc648be53ece2779371cf78a8a6f22397a6ebd844044894cbf88a1ed15a"
+    },
+    "data/evaluation/run_peer_review_remediation_v2.py": {
+      "bytes": 157267,
+      "sha256": "ce4466564ed7fa19c95b9b8f348bf4fb43c522836de3008f10a70ab8ffc90b44"
+    },
+    "data/evaluation/topic_source_labels_v2.jsonl": {
+      "bytes": 6471,
+      "sha256": "8934a5a95baaca11f5399b0786904a1f66dd8595163414f383f31dfda979ab3e"
+    },
+    "data/evaluation/validate_peer_review_remediation_v2.py": {
+      "bytes": 75599,
+      "sha256": "1de537ad8a0a2b052f485e52f7fd681680311bfe398990ef818e1860cfc210ca"
+    },
+    "data/extracted_text/a-comparison-of-data-driven-and-traditional-approaches-to-employee-perfo-b0c92e9f.json": {
+      "bytes": 47735,
+      "sha256": "db63c9811e2d99e738316c4e4945a6c123f4f33627e8abcb95e6d3b42337d88e"
+    },
+    "data/extracted_text/a-comparison-of-data-driven-and-traditional-approaches-to-employee-perfo-b0c92e9f.txt": {
+      "bytes": 37705,
+      "sha256": "856d8b7eac582a8463afdffac6d42ab0c8765c7d97596aadf2645e264914db37"
+    },
+    "data/extracted_text/a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0.json": {
+      "bytes": 37707,
+      "sha256": "09e2062e79628c852eb10752f68cae4e337d1fc07ebbdb4e075e617d9a43e0c0"
+    },
+    "data/extracted_text/a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0.txt": {
+      "bytes": 29483,
+      "sha256": "b39992e3a4475942595f6a0e26e70dadfc3f0d02b511a6259c24780c37dabb36"
+    },
+    "data/extracted_text/a-consumer-focused-open-data-platform-8fd2a9df.json": {
+      "bytes": 38582,
+      "sha256": "f9def973bf130b36abaa546e58674a821ed77d588d54e549a5994a0487f2aec3"
+    },
+    "data/extracted_text/a-consumer-focused-open-data-platform-8fd2a9df.txt": {
+      "bytes": 30940,
+      "sha256": "d7bfe1f90bbc1732aaf48e8edb56462b0b744868b472b892599b0636faf9930c"
+    },
+    "data/extracted_text/a-data-centric-approach-to-school-discipline-1b433321.json": {
+      "bytes": 32624,
+      "sha256": "3b0e1ac51083488914901456aaa5ceae76e342e257ecd499445c1da2aa54b718"
+    },
+    "data/extracted_text/a-data-centric-approach-to-school-discipline-1b433321.txt": {
+      "bytes": 25062,
+      "sha256": "d232be0cb7be647b9f1d45c6310b2362187f0fc440a40ffe570a87a5ad51721e"
+    },
+    "data/extracted_text/a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81.json": {
+      "bytes": 61613,
+      "sha256": "dcc40308700ee6a3d1ee09cefe71e990b93134a867819a8e8df45f6ec75f961b"
+    },
+    "data/extracted_text/a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81.txt": {
+      "bytes": 47907,
+      "sha256": "ce566d6217de9e1908b0fd32118f6cf8cc4953409275e4ef90815366e0d77876"
+    },
+    "data/extracted_text/a-decision-tree-approach-to-customer-surveys-8f7fac4b.json": {
+      "bytes": 50070,
+      "sha256": "5fd446559f5d4801131a0f0fd5ec8e37d38d19683b17d2d6b7be58c226449875"
+    },
+    "data/extracted_text/a-decision-tree-approach-to-customer-surveys-8f7fac4b.txt": {
+      "bytes": 40243,
+      "sha256": "b43fc39afd680acc6e91f8d60778b13f72656125200b15b61dbb60c4aee602ef"
+    },
+    "data/extracted_text/a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f.json": {
+      "bytes": 40238,
+      "sha256": "6977cd86148a2ac8aca29e37513370af93f834b2f71c7d42be4a0482701ef27f"
+    },
+    "data/extracted_text/a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f.txt": {
+      "bytes": 32151,
+      "sha256": "db6e79a0ae80668286b22193474a8d8ffe6af28ed1e8ce66d708d29f5b55697b"
+    },
+    "data/extracted_text/a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562.json": {
+      "bytes": 43792,
+      "sha256": "d612cbe4f71d32c5d66ccd8bf303bf23737b3e0c6e1ed4d577caa7fa3eafa477"
+    },
+    "data/extracted_text/a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562.txt": {
+      "bytes": 35503,
+      "sha256": "c5facae5e5f9e4c8660cca8cdaa4b04f4489219cc535108205734fee94580ecb"
+    },
+    "data/extracted_text/a-method-for-learning-representations-of-signed-networks-1e492890.json": {
+      "bytes": 55195,
+      "sha256": "b8f080c082e893f5f9a66bc0f8c7f3a16aec9eeda5b829f055442d122e7c0844"
+    },
+    "data/extracted_text/a-method-for-learning-representations-of-signed-networks-1e492890.txt": {
+      "bytes": 45306,
+      "sha256": "e3d688b15530584b49bd17d7428464bda387d7023358507c286367baec09d386"
+    },
+    "data/extracted_text/a-personalized-overdraft-protection-framework-7d1549da.json": {
+      "bytes": 55158,
+      "sha256": "cf7c12b1b8918cb0f62679267f46ba23d18d68d671c83dd0e8157eb1bd6aa53e"
+    },
+    "data/extracted_text/a-personalized-overdraft-protection-framework-7d1549da.txt": {
+      "bytes": 45519,
+      "sha256": "058cb2bd81eaf9e14acc4179aeb249a5363eeea1d7d0a8b6c828342a7bd93cf3"
+    },
+    "data/extracted_text/a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7.json": {
+      "bytes": 43685,
+      "sha256": "9a9166222844a6d35ab18ea751a0c2eedf0e4020f437407a7255a568941ca559"
+    },
+    "data/extracted_text/a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7.txt": {
+      "bytes": 34585,
+      "sha256": "361d78f7361a064ccda111cdefbcbbe63ac67534bf60b83a05a5fdbb7ac04b82"
+    },
+    "data/extracted_text/a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6.json": {
+      "bytes": 24187,
+      "sha256": "46941ae1f20f2fbc03d2c6b5f681c84145bf170a22569ab113ca91e4c1b348d3"
+    },
+    "data/extracted_text/a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6.txt": {
+      "bytes": 18093,
+      "sha256": "51b945e8e4cd799921d4e7f0480111b16552596ac66e7d7a18302577e3376fa9"
+    },
+    "data/extracted_text/a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea.json": {
+      "bytes": 37617,
+      "sha256": "c8baf035649965ae61f877bcbb3d9495aefd88ac5d716c6d02613ca531e7cee7"
+    },
+    "data/extracted_text/a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea.txt": {
+      "bytes": 29455,
+      "sha256": "15111d78de0296e77a12ad5f5288d233491534979f4600efded44b4b1370a4c8"
+    },
+    "data/extracted_text/a-simple-approach-to-synthetic-time-series-generation-66bcf71f.json": {
+      "bytes": 27056,
+      "sha256": "730a6380a653ce41c104e6c48646714dd451cce09befb639539abd68eec2825d"
+    },
+    "data/extracted_text/a-simple-approach-to-synthetic-time-series-generation-66bcf71f.txt": {
+      "bytes": 19983,
+      "sha256": "6e694d103999d8095bc176f5b56d9b74ada201c28ce704a30008db30f34a9b06"
+    },
+    "data/extracted_text/a-smart-shuffle-approach-to-playlist-shuffling-with-user-defined-constra-2ef8bb64.json": {
+      "bytes": 48546,
+      "sha256": "3f1db149696fe61b837931c7b30c2fe4c123849bc73c0d32a0926a68b9228571"
+    },
+    "data/extracted_text/a-smart-shuffle-approach-to-playlist-shuffling-with-user-defined-constra-2ef8bb64.txt": {
+      "bytes": 37176,
+      "sha256": "8ac42fe2883a06b6aa1bed96049f49afc192669279492fe4db3e52c488585090"
+    },
+    "data/extracted_text/a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b.json": {
+      "bytes": 44489,
+      "sha256": "801dd984a9813048b598418cc8f2f802379e43bd30795a14b261e92b69348197"
+    },
+    "data/extracted_text/a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b.txt": {
+      "bytes": 35371,
+      "sha256": "e0d1023496ed3a9a949543e37f40d3ed7dd83f692607c621f867b7aacc8ae131"
+    },
+    "data/extracted_text/a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc.json": {
+      "bytes": 22795,
+      "sha256": "063617b981d3d51e570447d996ec5ab707d5145e2772295abe1eb43f229cfb94"
+    },
+    "data/extracted_text/a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc.txt": {
+      "bytes": 15617,
+      "sha256": "1c27a15ded71d4a39c41422524cd53d4b7240f3cd7f558579b894aaf08e02d46"
+    },
+    "data/extracted_text/a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b.json": {
+      "bytes": 24346,
+      "sha256": "e231c584a095509ca16a99b513bd53825c9618eb352c712fe61b98bb82df81a6"
+    },
+    "data/extracted_text/a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b.txt": {
+      "bytes": 18069,
+      "sha256": "99a471889a0796d06dd2808836bb9caf083252cea2004bc5f348a365c0a983ca"
+    },
+    "data/extracted_text/above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb.json": {
+      "bytes": 53633,
+      "sha256": "288400847acce84157ee89c739bb750f9d51cfda3b44c8dc541832a326e1cf46"
+    },
+    "data/extracted_text/above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb.txt": {
+      "bytes": 43647,
+      "sha256": "1dd231f5cf4ac7928d8757215e2136e3f5703a008b6e4aee1e00cbee146d8fe2"
+    },
+    "data/extracted_text/ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4.json": {
+      "bytes": 42620,
+      "sha256": "6a488f7ae951ca370f9d6a0c3846a47588b9c5502745268cea09c80a8332d352"
+    },
+    "data/extracted_text/ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4.txt": {
+      "bytes": 34331,
+      "sha256": "4efd3fbc1c010badb784132ee8dd453bd7da1fc2783e3482eb301f1cdf71735d"
+    },
+    "data/extracted_text/an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541.json": {
+      "bytes": 47942,
+      "sha256": "333e22115c11242ff5c5793cc10d40a1de96afda571c024a9ed2ef16e057bf7d"
+    },
+    "data/extracted_text/an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541.txt": {
+      "bytes": 37986,
+      "sha256": "87b2f02c6f925838a2f50cd7c67d95cc12c72ae52e48e0cd31cba22bb5808346"
+    },
+    "data/extracted_text/an-open-dataset-of-labelled-tropical-crops-9b1b8d0e.json": {
+      "bytes": 38451,
+      "sha256": "57f22e3d767740cc74024798b7b223166a35bdda17f7dc10a4b2f4d3c1043d2c"
+    },
+    "data/extracted_text/an-open-dataset-of-labelled-tropical-crops-9b1b8d0e.txt": {
+      "bytes": 27047,
+      "sha256": "60c2dc44bce53e0b6836d1cb94052c09dc40d79a3acd3832634504b5a80cdcbf"
+    },
+    "data/extracted_text/an-open-source-real-time-data-portal-c0f8823f.json": {
+      "bytes": 39866,
+      "sha256": "5be0495f8bb9bbe1286201878508ac888778645db931c6c8894b4019531f3783"
+    },
+    "data/extracted_text/an-open-source-real-time-data-portal-c0f8823f.txt": {
+      "bytes": 26044,
+      "sha256": "a073fccf85ee42b4064c92ce82a0c5becd1a6df1e97d0ff21eb40a9af62b9c62"
+    },
+    "data/extracted_text/application-for-the-detection-of-dangerous-driving-and-an-associated-gam-89c35dfe.json": {
+      "bytes": 38252,
+      "sha256": "40974aeea45cb0a972a19c024355ce3a3501fa9b5e1bfabcc56baa59a6577984"
+    },
+    "data/extracted_text/application-for-the-detection-of-dangerous-driving-and-an-associated-gam-89c35dfe.txt": {
+      "bytes": 30083,
+      "sha256": "c9a2bf0879de3eb0e02241ceba557f992f7d532273f1e5599ec115889a803837"
+    },
+    "data/extracted_text/association-rule-mining-of-household-electrical-energy-usage-91e53f3a.json": {
+      "bytes": 35669,
+      "sha256": "a8143553680a0ea561771a8ff7244f0fd748b417ce15427408b16018e1b58a5d"
+    },
+    "data/extracted_text/association-rule-mining-of-household-electrical-energy-usage-91e53f3a.txt": {
+      "bytes": 28565,
+      "sha256": "54938048860cf9c21659667568b785cd3ae7affea12db2ad9c6bec885ea06239"
+    },
+    "data/extracted_text/automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a.json": {
+      "bytes": 41502,
+      "sha256": "9972ea0f9ef9caad3448f383b9eb9382987cfee15663ce2f9be383294013ee5b"
+    },
+    "data/extracted_text/automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a.txt": {
+      "bytes": 33402,
+      "sha256": "9df68258ebaa3956fc1cc70cacce9da3339e4e137f1c4a417dcc6e9484a51758"
+    },
+    "data/extracted_text/bilingual-dialect-classification-using-nlp-f02e3cc3.json": {
+      "bytes": 30651,
+      "sha256": "a2634c73121c0e50d1f4cc46e41ce23e4bb0ebd036dcc0e250388484a3e45da1"
+    },
+    "data/extracted_text/bilingual-dialect-classification-using-nlp-f02e3cc3.txt": {
+      "bytes": 21636,
+      "sha256": "559ce910080637afc5eddfe56280e7d44eac0e486415847508e9c6893144429c"
+    },
+    "data/extracted_text/can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb.json": {
+      "bytes": 66638,
+      "sha256": "ea0bb51c9a6fc60a99d529860eaad368790d1a98f6671e443252064bfae586b8"
+    },
+    "data/extracted_text/can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb.txt": {
+      "bytes": 47650,
+      "sha256": "2e0d1afb978695be8cd08c3c0120255a3d02e9971f95ed16e856a276d885ec71"
+    },
+    "data/extracted_text/congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353.json": {
+      "bytes": 71499,
+      "sha256": "ea083c9e2a4667392c01baa98a4f1ba476ecfd30be177e0a870732855dbe9d85"
+    },
+    "data/extracted_text/congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353.txt": {
+      "bytes": 58528,
+      "sha256": "aa733dfc11c87e3e0070782a50df656ae8a01dbd14a21230f10479a74e7f8c84"
+    },
+    "data/extracted_text/constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541.json": {
+      "bytes": 32372,
+      "sha256": "318654a755eb453b8540afe2ee82e64ea1b44da19982d30c028dd8beb728bac1"
+    },
+    "data/extracted_text/constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541.txt": {
+      "bytes": 25003,
+      "sha256": "c96e4356dc82bbb9de6fda1a36bddde3f071babd02283439c324188ab37b2879"
+    },
+    "data/extracted_text/crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71.json": {
+      "bytes": 36920,
+      "sha256": "779989c3a99a58fa16d4a8a8a19741516353652d8fe29b1a6ca6cbe594b8c3c9"
+    },
+    "data/extracted_text/crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71.txt": {
+      "bytes": 29538,
+      "sha256": "679e40f259fbb5c035d5e3a68b507156928594836d014ce31a5be7fca5ba445b"
+    },
+    "data/extracted_text/csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32.json": {
+      "bytes": 16201,
+      "sha256": "d628c35904c4fbea45631d78716dca679e112ec8d6bb8fe1ccca67e48cd59bc0"
+    },
+    "data/extracted_text/csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32.txt": {
+      "bytes": 11675,
+      "sha256": "49608192b1ca6696ec6f4cb1e0f9340bda59bf7f1ef8c2f05e782a234b9af01d"
+    },
+    "data/extracted_text/cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8.json": {
+      "bytes": 45881,
+      "sha256": "45d14ad43d0aef3acf5da083183493cfd2a3f4eac00a60aaa299108e4d5dec4a"
+    },
+    "data/extracted_text/cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8.txt": {
+      "bytes": 35446,
+      "sha256": "6c6e5222cba401698823cfc73e2cbc67d2f89ed1ea313d23a927b9ad6c5922e4"
+    },
+    "data/extracted_text/cyclic-beam-switching-for-smart-grid-networks-009fe57c.json": {
+      "bytes": 22464,
+      "sha256": "0e3ec8cdccb20af68141d917890c2f37bfd994fec6127a0fc02f390ae1463bcc"
+    },
+    "data/extracted_text/cyclic-beam-switching-for-smart-grid-networks-009fe57c.txt": {
+      "bytes": 16541,
+      "sha256": "3929b85df15df5c078f8b8f7718cc796523550d846c999bc0e17e86225e9ca09"
+    },
+    "data/extracted_text/data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24.json": {
+      "bytes": 41252,
+      "sha256": "873144a1fcec8ac27b8c4923da69d40779ee7c3775eadfb62e5d1620aca88996"
+    },
+    "data/extracted_text/data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24.txt": {
+      "bytes": 32864,
+      "sha256": "8a8a54463acf020bd38149d70f2b81d3e70a4ee68e33031b63f2291feaa00293"
+    },
+    "data/extracted_text/data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482.json": {
+      "bytes": 39349,
+      "sha256": "ff115f65e48079861778103313beea08e508fa5937b76b1b513478ff341392ee"
+    },
+    "data/extracted_text/data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482.txt": {
+      "bytes": 31245,
+      "sha256": "10404815dd51de097d740011b7df4a9d9a7e19c63b1c6c74580f9dac2302cde3"
+    },
+    "data/extracted_text/design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce.json": {
+      "bytes": 38852,
+      "sha256": "fa8841d4cfe86097fc3c95fbc20f28624a318d0217bcdeeef79d4ebabd58d5eb"
+    },
+    "data/extracted_text/design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce.txt": {
+      "bytes": 30705,
+      "sha256": "f1666b1650369c9596a88b78c5cd8f49adb157152bfe5a9af45d5deb3abecd1f"
+    },
+    "data/extracted_text/design-and-specifications-of-a-repository-for-real-time-open-data-be5e53d0.json": {
+      "bytes": 31849,
+      "sha256": "bf63fdaef9b41d18d6bf36b5b35396aa3f4657c033f222642a846731b74772d1"
+    },
+    "data/extracted_text/design-and-specifications-of-a-repository-for-real-time-open-data-be5e53d0.txt": {
+      "bytes": 23877,
+      "sha256": "fe31038cc3cc3fabb7c552ea4841c259402dd53227f4158b24087da4e8860851"
+    },
+    "data/extracted_text/developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18.json": {
+      "bytes": 30079,
+      "sha256": "7090fd797eef98062ef000ea79aa45ea22d41ddba537469a593cfe831d2876d4"
+    },
+    "data/extracted_text/developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18.txt": {
+      "bytes": 22139,
+      "sha256": "608c425c8de224645fdb5eb70a4c8a7f74795f0288673fbfac99287b7eaf4bde"
+    },
+    "data/extracted_text/dynamic-group-formation-in-an-online-social-network-a8e55b98.json": {
+      "bytes": 59198,
+      "sha256": "868ca0b2fe2a270a7e9634fd92c79612e4d22979a439e554be30ef3e36ed82a1"
+    },
+    "data/extracted_text/dynamic-group-formation-in-an-online-social-network-a8e55b98.txt": {
+      "bytes": 48794,
+      "sha256": "f9454b8213765bcc81855fec4e22a5e85799b2fbc1c2a79d8431d253e161ed2e"
+    },
+    "data/extracted_text/efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c.json": {
+      "bytes": 38133,
+      "sha256": "12364e9a4ad200541dca49f18cd6ff8d6090843cdde467cb04249c93dd14a8b4"
+    },
+    "data/extracted_text/efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c.txt": {
+      "bytes": 29691,
+      "sha256": "fe1cd9fb4c8acf0f78dc4656df2cb99d1eb9f28713db04b630b90f90620ddf68"
+    },
+    "data/extracted_text/efficient-m-commerce-platform-for-developing-countries-f6fc2409.json": {
+      "bytes": 48776,
+      "sha256": "510a28d59deca15d4865201cb346d915f721bbb547b59996558d5b046e06fd87"
+    },
+    "data/extracted_text/efficient-m-commerce-platform-for-developing-countries-f6fc2409.txt": {
+      "bytes": 34672,
+      "sha256": "8f07327579958059e6b6f7fa4cc37cf8b07a4961b542bdeedd2e6b03e164dc1c"
+    },
+    "data/extracted_text/efficient-sentiment-classification-of-twitter-feeds-8390d8a8.json": {
+      "bytes": 36158,
+      "sha256": "301c25196e3a33cf7b44853740e519e1eb5ccfa01a53d4fdb29474046fcb8235"
+    },
+    "data/extracted_text/efficient-sentiment-classification-of-twitter-feeds-8390d8a8.txt": {
+      "bytes": 29145,
+      "sha256": "7b1f068499aab5c4abafe65bbec2b8d65ab5572f692a2764d63bd2ba762ed490"
+    },
+    "data/extracted_text/emerging-network-technologies-and-network-neutrality-conformance-2af0cd47.json": {
+      "bytes": 41364,
+      "sha256": "6263a61c73bc0b49b98621aa62feaca11e0c6ca883745c6c421cdc4c12f0824d"
+    },
+    "data/extracted_text/emerging-network-technologies-and-network-neutrality-conformance-2af0cd47.txt": {
+      "bytes": 33437,
+      "sha256": "06dc7b2d7a48a12f1e906f7aab6d1b372c11ff57de87c5f249e7a9b7ccfce966"
+    },
+    "data/extracted_text/estimating-deforestation-using-machine-learning-algorithms-3f48cc99.json": {
+      "bytes": 35687,
+      "sha256": "f5aafdb55a706d21e37094fd48e3f7603b159b5646a3a3fcc57ee86993cc59c9"
+    },
+    "data/extracted_text/estimating-deforestation-using-machine-learning-algorithms-3f48cc99.txt": {
+      "bytes": 27862,
+      "sha256": "702343961a2106d0c0186c49ce3b12c7f957fda4747d3fc50ced9505743d3ce9"
+    },
+    "data/extracted_text/estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e.json": {
+      "bytes": 73908,
+      "sha256": "ef29797dc50d389ed184eae959b24c408eabcd4da2b63dd78532c13ae2ec45f7"
+    },
+    "data/extracted_text/estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e.txt": {
+      "bytes": 55391,
+      "sha256": "05ff6730db6c29c69d0db842b114e482bb8615185e1c98fd48cf229321c50f34"
+    },
+    "data/extracted_text/event-scheduling-with-soft-constraints-and-on-demand-re-optimization-224f19ec.json": {
+      "bytes": 34369,
+      "sha256": "d5a9cf348f4c67e718d57bf932af15d1ebfd4b2cfa1b559edb0c5056f575cf1f"
+    },
+    "data/extracted_text/event-scheduling-with-soft-constraints-and-on-demand-re-optimization-224f19ec.txt": {
+      "bytes": 27095,
+      "sha256": "eaf4e206aa4e3f2feb60f9a5e785dce4d72609eaa2d6476ad3bfc127332fe54e"
+    },
+    "data/extracted_text/exploiting-gaussian-word-embeddings-for-document-clustering-863ee9e7.json": {
+      "bytes": 26480,
+      "sha256": "df7b06ca7124bc610e4b5a3cd6995617609354428668112b63f4843e490fee44"
+    },
+    "data/extracted_text/exploiting-gaussian-word-embeddings-for-document-clustering-863ee9e7.txt": {
+      "bytes": 20186,
+      "sha256": "dbac281b3537880ea6dbbbce7f21ed14987199abeb0f6526a9d536db72e04bfb"
+    },
+    "data/extracted_text/exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038.json": {
+      "bytes": 72901,
+      "sha256": "5d8f73916e9696b82b28fbcf4e1d5ecc343d7ca32a23e5039803f12ffea76e2f"
+    },
+    "data/extracted_text/exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038.txt": {
+      "bytes": 55969,
+      "sha256": "07b840e956fd860ba34771440ccd7ba5fd0cc6c369f030e483d79e3514c807b4"
+    },
+    "data/extracted_text/figure-of-merit-for-a-multi-generation-network-32f902ce.json": {
+      "bytes": 34147,
+      "sha256": "b7c2bc3e3bf80667a765f16c26e4c40c52c370545595037690a9886539ad02b1"
+    },
+    "data/extracted_text/figure-of-merit-for-a-multi-generation-network-32f902ce.txt": {
+      "bytes": 26166,
+      "sha256": "11ebcd052467989630eb7d3fdee42233247a67ebebc19847568b7e1c0c1b6b5e"
+    },
+    "data/extracted_text/generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982.json": {
+      "bytes": 42850,
+      "sha256": "f473dfdd978680a5bcd75e5bd171056f2fef44d850f2744a3ddd8fc091c910eb"
+    },
+    "data/extracted_text/generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982.txt": {
+      "bytes": 34726,
+      "sha256": "a94029f025e54bae427efbe00175a47ee007862af629555e92fe0ca39e4d443c"
+    },
+    "data/extracted_text/generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f.json": {
+      "bytes": 37590,
+      "sha256": "93b0ee13faa7ed73b057387e1dadb95840e46f198c0d67f98fa98d1fc1610fc5"
+    },
+    "data/extracted_text/generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f.txt": {
+      "bytes": 30152,
+      "sha256": "cba58e8ef76f77b5cedc56bf766f2f318bb82066b10e7662c900dc9b86f6bd9e"
+    },
+    "data/extracted_text/heuristics-for-advertising-revenue-optimization-in-online-social-network-85ddf731.json": {
+      "bytes": 36733,
+      "sha256": "d8b106808bcd6570f913aa21694d37fb9820679d03f751526a94a4563351bb1e"
+    },
+    "data/extracted_text/heuristics-for-advertising-revenue-optimization-in-online-social-network-85ddf731.txt": {
+      "bytes": 29322,
+      "sha256": "61151335d4cd172d38f6a17b73baba64628474bbd2d8f47584bd6a8ada6b4e10"
+    },
+    "data/extracted_text/improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29.json": {
+      "bytes": 29433,
+      "sha256": "a0ffcfc18a55ee709ff61af45feef96c2d6a9ec6768aafda212841fc0e802ebd"
+    },
+    "data/extracted_text/improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29.txt": {
+      "bytes": 22215,
+      "sha256": "12770d6bf98cebaf1f43b442bc48e87d0a065a638f6f602deef8d42ab71d1d49"
+    },
+    "data/extracted_text/instant-message-summarization-with-emoji-unicode-characterset-support-96db0872.json": {
+      "bytes": 42100,
+      "sha256": "72902364b0427a808c6ccfe5999301bd678f3045682bf2f9adea6f5b156182fa"
+    },
+    "data/extracted_text/instant-message-summarization-with-emoji-unicode-characterset-support-96db0872.txt": {
+      "bytes": 30101,
+      "sha256": "eb8f0f89b6221e20dfea6f2b551c5989604c2aedd96e1c9447486a7a7a063491"
+    },
+    "data/extracted_text/load-forecasting-using-deep-neural-networks-31644fac.json": {
+      "bytes": 32677,
+      "sha256": "ab93b424837deb8e9954aece1b2c865d2d900f0713f24029bda094bb824f9f41"
+    },
+    "data/extracted_text/load-forecasting-using-deep-neural-networks-31644fac.txt": {
+      "bytes": 25659,
+      "sha256": "38f645cbea7f53c47b379a5b946190d1c872cdab01cd813f33a5c35c58b2ed8e"
+    },
+    "data/extracted_text/location-obfuscation-using-smart-meter-readings-5bfe1825.json": {
+      "bytes": 33360,
+      "sha256": "133918473e3b42114733ff58fad0290e59e4981a7e43c0a16e883df27cd631b1"
+    },
+    "data/extracted_text/location-obfuscation-using-smart-meter-readings-5bfe1825.txt": {
+      "bytes": 26394,
+      "sha256": "7bfad50e681c2107c65bad5a5f219ce5a479c5fddd3b7e79dc81a873d5503ac7"
+    },
+    "data/extracted_text/marketing-channel-recommendations-in-banking-3deb0e4b.json": {
+      "bytes": 34955,
+      "sha256": "c1a7f1d6e36ad582c2d6b3f5d4024c4289ca792ccd50a03f31ce5bb48029929e"
+    },
+    "data/extracted_text/marketing-channel-recommendations-in-banking-3deb0e4b.txt": {
+      "bytes": 27315,
+      "sha256": "d410bd9d69fc0423cc78afda24a718294fa90a0ada843db613059d61268df631"
+    },
+    "data/extracted_text/material-and-cost-estimation-of-a-customized-product-based-on-the-custom-ade2050d.json": {
+      "bytes": 35830,
+      "sha256": "722cfe951e79147db43c770eb81f1ed754f1d915ceaf5d5663a07307d1d20277"
+    },
+    "data/extracted_text/material-and-cost-estimation-of-a-customized-product-based-on-the-custom-ade2050d.txt": {
+      "bytes": 26892,
+      "sha256": "8c7b7dd6d48fab636faa2c3a7481162f7c6b284461efa10c41a9441da79f2e01"
+    },
+    "data/extracted_text/network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c.json": {
+      "bytes": 44914,
+      "sha256": "56ffd41e617525836727621746944eda4f5fe5a66a18c1a1afa76d910f0e6584"
+    },
+    "data/extracted_text/network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c.txt": {
+      "bytes": 33644,
+      "sha256": "44ca60925aaf0205960b51a335d29eff1dae8fab7cc6f9a4b086acebc36de0c5"
+    },
+    "data/extracted_text/office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b.json": {
+      "bytes": 43508,
+      "sha256": "d3bc72ede62242a09214d9bd22f23d6b867e73d844a5dc07d679b149f31741a7"
+    },
+    "data/extracted_text/office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b.txt": {
+      "bytes": 34319,
+      "sha256": "f5813a2e29b456e38409a0ff1ae57d2c23c14e77df02e78abb2a33793dd2f783"
+    },
+    "data/extracted_text/on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898.json": {
+      "bytes": 40844,
+      "sha256": "1e4cd5254185b6af3c7b14b6f634771d2fbdb0d7db3e90e292d17be86e155a89"
+    },
+    "data/extracted_text/on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898.txt": {
+      "bytes": 32508,
+      "sha256": "2e2a0a6a6f46a87b5d810f2ea070c45d9762430f25ec1a0f7af590230f838f5e"
+    },
+    "data/extracted_text/on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01.json": {
+      "bytes": 31473,
+      "sha256": "d4cf8770c1e40da35b42e12636503feed8a90d69ca286570476c7799e0cf080f"
+    },
+    "data/extracted_text/on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01.txt": {
+      "bytes": 20433,
+      "sha256": "2b3bcaf01cce512c00cc3b781ca33afc4e1dc645f4249d1dff7eb5be0a19384e"
+    },
+    "data/extracted_text/on-the-distributed-optimization-of-calendar-events-0f95bb66.json": {
+      "bytes": 40711,
+      "sha256": "b99500c78fcaee43de874808e6a5fb1b60782d8a2e00c02aba51e0cd12d242e2"
+    },
+    "data/extracted_text/on-the-distributed-optimization-of-calendar-events-0f95bb66.txt": {
+      "bytes": 32860,
+      "sha256": "9dd41e45187b9189c44f6d8a1cae5c708aa1bc6d4f4ff4cf1364fafc18039092"
+    },
+    "data/extracted_text/on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3.json": {
+      "bytes": 35521,
+      "sha256": "306304ee6f791e04306d61d922ab30c5a8be699d5655725cc9788d3f9061a256"
+    },
+    "data/extracted_text/on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3.txt": {
+      "bytes": 28446,
+      "sha256": "f9a86e2b0fd12bc5e8ed937358ed01e593958973cfc93017405f89f3da3bfad1"
+    },
+    "data/extracted_text/on-the-multi-stage-influence-maximization-problem-d33cee35.json": {
+      "bytes": 42929,
+      "sha256": "125526760b05d500862cef7af351a1e8f79885de1d1d54690681862812012f8c"
+    },
+    "data/extracted_text/on-the-multi-stage-influence-maximization-problem-d33cee35.txt": {
+      "bytes": 34751,
+      "sha256": "f1cf90e127d27921910055d911aeeadbc77ec99c19818d370f2dea38c9347b7e"
+    },
+    "data/extracted_text/on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056.json": {
+      "bytes": 45013,
+      "sha256": "6e2f3496b4e996baf01426c201327343867118d126f6386a2a9a68a065a5534d"
+    },
+    "data/extracted_text/on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056.txt": {
+      "bytes": 35099,
+      "sha256": "ff4d83e5ed14115278e98049363273fc02be60931d6e1fe8cf1f9aeb74e0df5e"
+    },
+    "data/extracted_text/on-the-optimal-baseline-auto-insurance-premium-4f352d23.json": {
+      "bytes": 23512,
+      "sha256": "a8c03f10075374d9bd0e4fa82f4e5638a1593f3c5779048d2063c5387f5cbec4"
+    },
+    "data/extracted_text/on-the-optimal-baseline-auto-insurance-premium-4f352d23.txt": {
+      "bytes": 16928,
+      "sha256": "11cdddffe5af3edf351e75e9f48709312ae2a756f924f457e50f476c4606748e"
+    },
+    "data/extracted_text/on-the-prediction-of-possibly-forgotten-shopping-basket-items-1550b8a9.json": {
+      "bytes": 48991,
+      "sha256": "e8c77712cd0a5bb715444293ef54e1cca0922eaf7c530db21e0a6ae35816b63e"
+    },
+    "data/extracted_text/on-the-prediction-of-possibly-forgotten-shopping-basket-items-1550b8a9.txt": {
+      "bytes": 35323,
+      "sha256": "40ae9b628326b3f47221463578015c3bfee14fb29f4a5b3f9e7f64d9c0ac2cb6"
+    },
+    "data/extracted_text/on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88.json": {
+      "bytes": 40904,
+      "sha256": "f91bef780588acea08a320b3f0f30149cf2d72067de4f891778f1f1750a0de12"
+    },
+    "data/extracted_text/on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88.txt": {
+      "bytes": 32751,
+      "sha256": "39d590f360c58bf64b66be11aa283ca883b3245595bb1ffd6f3a06b5df53844a"
+    },
+    "data/extracted_text/optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a.json": {
+      "bytes": 35788,
+      "sha256": "875881c2b0bca657f8054133d49c349a6d747cec8c1e94982ce31225fe2423fc"
+    },
+    "data/extracted_text/optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a.txt": {
+      "bytes": 27332,
+      "sha256": "32fa71563d9a2f7a3816a2991cf8992ff5ed025472df09006a9a576261f0cc31"
+    },
+    "data/extracted_text/optical-lens-inventory-optimization-model-0f6a1d23.json": {
+      "bytes": 39793,
+      "sha256": "ededddecf9d04ec274a884c3d564edf7cda8cf4adea84f221fe57099abd89066"
+    },
+    "data/extracted_text/optical-lens-inventory-optimization-model-0f6a1d23.txt": {
+      "bytes": 31937,
+      "sha256": "10f863a7db08215e6b4638c9afab5033da082370654d78ec987dcfa5728fadfd"
+    },
+    "data/extracted_text/optimizing-car-imports-in-small-island-states-6abab515.json": {
+      "bytes": 35476,
+      "sha256": "bf0f781490a151d6177fe71c1accf57277471a60bd88563580d25de38972dee3"
+    },
+    "data/extracted_text/optimizing-car-imports-in-small-island-states-6abab515.txt": {
+      "bytes": 23933,
+      "sha256": "452d4116b511abc43b3c4b9bc7214e32fbff38baa4301aac80cd09d8daff79a0"
+    },
+    "data/extracted_text/performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd.json": {
+      "bytes": 33975,
+      "sha256": "3a422e1bcd25bff6fc02d403f55ca6f77ed261bbb044c84f59a1a48202ec058f"
+    },
+    "data/extracted_text/performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd.txt": {
+      "bytes": 24214,
+      "sha256": "205b3bbe9a58f63ad3a0e305949e3445706991c0ab24e4144b7d86ffd3b03b99"
+    },
+    "data/extracted_text/playlist-shuffling-given-user-defined-constraints-on-song-sequencing-2ecc20c8.json": {
+      "bytes": 57541,
+      "sha256": "172145618b4763ef5d69b371054dd33d2b5fcfca697d8fb46fa3e4a8ecbd31a9"
+    },
+    "data/extracted_text/playlist-shuffling-given-user-defined-constraints-on-song-sequencing-2ecc20c8.txt": {
+      "bytes": 37049,
+      "sha256": "81ea51d5c200f7bb573fc1c0942917b4b4c1bae15a4f0040f43f6d5c48326abc"
+    },
+    "data/extracted_text/power-grid-fault-detection-using-an-amr-network-0c474959.json": {
+      "bytes": 32607,
+      "sha256": "2a81c5fe3a5e5159058725f8a711146eb4256dd1538fc5fca4d4c3bfbd5a2c1b"
+    },
+    "data/extracted_text/power-grid-fault-detection-using-an-amr-network-0c474959.txt": {
+      "bytes": 25676,
+      "sha256": "d3d24b18fffcbc840cf473958797db4cb3032cfb7d2c1b8b85820d731f7d9284"
+    },
+    "data/extracted_text/predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0.json": {
+      "bytes": 34175,
+      "sha256": "3fa8f34f724c32f917644612ec21882ad1769dfb179eae50917ea46c64fed9fe"
+    },
+    "data/extracted_text/predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0.txt": {
+      "bytes": 26053,
+      "sha256": "2de3a057796365ed4d9f0306c80b11a2ef917d807a4d770d31cdc886bd497973"
+    },
+    "data/extracted_text/predicting-the-probability-of-critical-illness-claims-ffffb207.json": {
+      "bytes": 39515,
+      "sha256": "6115c25533860a6f0e5af694626ee00530f4dfaf438f4c941fe5a0002e63b32a"
+    },
+    "data/extracted_text/predicting-the-probability-of-critical-illness-claims-ffffb207.txt": {
+      "bytes": 31531,
+      "sha256": "e794f6eeac37022907be813e16d040e9ba5d8683714a802971100c40ff90a28b"
+    },
+    "data/extracted_text/premium-rate-services-fraud-detection-37e69fcf.json": {
+      "bytes": 39047,
+      "sha256": "3cff81ccc84b1ebc3ad49b9a12df600bead5cd7ffbe131637aef19193744a8d3"
+    },
+    "data/extracted_text/premium-rate-services-fraud-detection-37e69fcf.txt": {
+      "bytes": 30445,
+      "sha256": "58073f225155c9f06f98e259ad363df941c3ffb90bd32886af6cbfe72d983f29"
+    },
+    "data/extracted_text/pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f.json": {
+      "bytes": 39898,
+      "sha256": "89500efcc5522b84e0777835ee996fa798b2073e6a485f9b11e393d9a9f771f6"
+    },
+    "data/extracted_text/pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f.txt": {
+      "bytes": 31006,
+      "sha256": "5210c7480a7b98d0671cc57d715d0a362e32db28aae114018cfe08c2c4f10d90"
+    },
+    "data/extracted_text/quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95.json": {
+      "bytes": 32879,
+      "sha256": "530f3b14d78e17339e2974760a11e6e05526718529dfdc829fe6e40eb3023fc9"
+    },
+    "data/extracted_text/quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95.txt": {
+      "bytes": 24218,
+      "sha256": "ab789c8f031119d16014b3881f3801a7246768cab2877bc205bcbdbcdfb6a2e7"
+    },
+    "data/extracted_text/quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd.json": {
+      "bytes": 32335,
+      "sha256": "c32a76ca376098ff14f518decd7a149321b46247d4c16fafd042218018c2816e"
+    },
+    "data/extracted_text/quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd.txt": {
+      "bytes": 24946,
+      "sha256": "9dedaf1679a2781d4dd614572063e123bcc4e55fc2392cd3d60a1ccfd3e23a02"
+    },
+    "data/extracted_text/recommendations-for-long-term-profit-optimization-8d7956bc.json": {
+      "bytes": 30404,
+      "sha256": "bbd8f8671128af2bc29cfbd8cd15115df2a7e7305e5cd3212bd19f7a1c7527df"
+    },
+    "data/extracted_text/recommendations-for-long-term-profit-optimization-8d7956bc.txt": {
+      "bytes": 23342,
+      "sha256": "bb8709b0f2d4e61b13c1f86696d0c43a0d50aff324b2798d925f4b5a0cac9caf"
+    },
+    "data/extracted_text/regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3.json": {
+      "bytes": 34753,
+      "sha256": "27ed1a7baef11e8d04e3ebf1d60b7c7040011a7bf57f089ab984bde171fbdeb5"
+    },
+    "data/extracted_text/regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3.txt": {
+      "bytes": 26410,
+      "sha256": "edd24301d3d4f739e3102030179222a2cf7afca64f6b4675a52d1b120e6fc382"
+    },
+    "data/extracted_text/spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842.json": {
+      "bytes": 31890,
+      "sha256": "4bc52582b41d15b214d1f82d983f0126020d671b6d4b34165e64336ab5eca8e3"
+    },
+    "data/extracted_text/spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842.txt": {
+      "bytes": 21592,
+      "sha256": "572e39efa7db30cc3a51e184c286646c9031ba13d7a127d37da0b4efcadf2be0"
+    },
+    "data/extracted_text/stochastic-dynamic-programming-model-for-revenue-optimization-in-social--07bec3e0.json": {
+      "bytes": 42562,
+      "sha256": "ac1f88b3e1080c7d2dfc191ebd7b57ab1358c5c2edb55c88ee833cf2bdf94965"
+    },
+    "data/extracted_text/stochastic-dynamic-programming-model-for-revenue-optimization-in-social--07bec3e0.txt": {
+      "bytes": 34200,
+      "sha256": "7e3550853be83052f9fd6c88a256fa911d04cb5c05f9d16c11dab55535f3682d"
+    },
+    "data/extracted_text/the-impact-of-low-electricity-prices-on-renewable-energy-production-196d2368.json": {
+      "bytes": 30870,
+      "sha256": "50145b218fb09195c3f1a42e1238407e54c7050192cbd055b2d6c8daa7a745ae"
+    },
+    "data/extracted_text/the-impact-of-low-electricity-prices-on-renewable-energy-production-196d2368.txt": {
+      "bytes": 23619,
+      "sha256": "30108e6e2ae078834d49ff850299269c1bf8c2e53d45ad13292a103b3d92d737"
+    },
+    "data/extracted_text/using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d.json": {
+      "bytes": 28656,
+      "sha256": "d0e8ec42c2451557052ab205105bf665b7910af5cb4c39655adffdc57a96b2ff"
+    },
+    "data/extracted_text/using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d.txt": {
+      "bytes": 22359,
+      "sha256": "b2aa79eedfbba75cbd56281d9f5023f29cd1383fb747f24863059e7b133a39b9"
+    },
+    "data/extracted_text/using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b.json": {
+      "bytes": 38759,
+      "sha256": "7a37a03dbdd8f97585179ffec43210ed284629895b312c464d41224944b370a4"
+    },
+    "data/extracted_text/using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b.txt": {
+      "bytes": 29724,
+      "sha256": "cc41d3ece10074894bc19666c71ce174f79888943d33815fe944f0a072ba2706"
+    },
+    "data/extracted_text/using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af.json": {
+      "bytes": 30517,
+      "sha256": "64c3f535f18e3885e33430c7c489c03e57bbf81922d7ddf1c3895132f6db8331"
+    },
+    "data/extracted_text/using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af.txt": {
+      "bytes": 23384,
+      "sha256": "de706c53b33a0bcb52cc863345ba3e6320a1ddb03e85c1872bdebc61ca878622"
+    },
+    "data/extracted_text/using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c.json": {
+      "bytes": 23342,
+      "sha256": "91c4df536c67ef8ba6ad39d16c4b7a91377f21c772fcd380963d8fe05d4b52fe"
+    },
+    "data/extracted_text/using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c.txt": {
+      "bytes": 17179,
+      "sha256": "92b59fd2742781c5ffe02f206ec9100fd33fb685ec71eb780404ffadc594a1bb"
+    },
+    "data/extracted_text/using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6.json": {
+      "bytes": 44065,
+      "sha256": "5c9fd149f67a515cd1e3d55e4305917ac5d84508dd2d32c7f267cdfa7f6c2641"
+    },
+    "data/extracted_text/using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6.txt": {
+      "bytes": 35831,
+      "sha256": "8c98168d1d34f981d1459d6eb09b1b489272d42229def40370dffd1ab72713da"
+    },
+    "data/extracted_text/using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36.json": {
+      "bytes": 30471,
+      "sha256": "cab89dff9669ec4f2719fe7efc65ef2380255a59b26199cd8011ec70c324cb93"
+    },
+    "data/extracted_text/using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36.txt": {
+      "bytes": 23314,
+      "sha256": "0348de63bccbe0a98d85b3cc161da5c287620c545a1b0557113faa87e6c08fe5"
+    },
+    "data/extracted_text/using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db.json": {
+      "bytes": 40030,
+      "sha256": "4c4957f6a542d1a729fccff537dba41d4a596c04e41d9b2f8dffc443a05729f2"
+    },
+    "data/extracted_text/using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db.txt": {
+      "bytes": 31796,
+      "sha256": "80182b8c07ba96deaa8c3e01b000cbff9994d6cc45e91d10b1a259b04d90d7c2"
+    },
+    "data/extracted_text/vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8.json": {
+      "bytes": 40207,
+      "sha256": "080008a47e77f977d2e6c97a51277a08da697e1cc4e76592f7f911bd44107c8a"
+    },
+    "data/extracted_text/vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8.txt": {
+      "bytes": 31897,
+      "sha256": "966bc8d9240b337595065576eb95a6d2fff18b27f5a14190d47daae7ae16a0f3"
+    },
+    "data/extracted_text/web-application-for-power-grid-fault-management-70b8c821.json": {
+      "bytes": 32728,
+      "sha256": "a0a2d50c23213fff192c4e4a588a4c85f9ff08a161d74f2c01d3e11c640befe8"
+    },
+    "data/extracted_text/web-application-for-power-grid-fault-management-70b8c821.txt": {
+      "bytes": 25903,
+      "sha256": "f80a0210b474ce064f9a8b306d0732280fef1e2f1a0c698ac201cfc528059970"
+    },
+    "data/extracted_text/weed-and-water-stress-detection-using-drone-video-03885d3b.json": {
+      "bytes": 33624,
+      "sha256": "997f5cccecddbf4012ceb2b3d51789f4dba075b0ac79bdf15b75bd814cc4bcfa"
+    },
+    "data/extracted_text/weed-and-water-stress-detection-using-drone-video-03885d3b.txt": {
+      "bytes": 22907,
+      "sha256": "5fd1d8b1aa20a9f7c716f4e76a9dcc7928cdc7243439516f82744d4a3ec4341f"
+    },
+    "data/extracted_text/weighted-eligibility-based-product-recommendation-system-11db29fb.json": {
+      "bytes": 38888,
+      "sha256": "a6dd6c94f5bdbe5982dd0a376292151afef8c8796fc39990a34b73cef575ad89"
+    },
+    "data/extracted_text/weighted-eligibility-based-product-recommendation-system-11db29fb.txt": {
+      "bytes": 30882,
+      "sha256": "efd3b3de5d3a78527a3a872e027c035a61a490c28e42e98599f31e6deb1bba48"
+    },
+    "data/papers.db": {
+      "bytes": 17256448,
+      "sha256": "5ea480590fe588b2539d06a5c438d195b80dff4abdb81923b6c900f6450ac291"
+    },
+    "data/pdfs/a-comparison-of-data-driven-and-traditional-approaches-to-employee-perfo-b0c92e9f.pdf": {
+      "bytes": 222388,
+      "sha256": "9470ee273d338a5dcb95af740a71a48bd48e29358959d7368c7ffe1ba1b7ae3f"
+    },
+    "data/pdfs/a-comparison-of-large-language-models-in-a-retrieval-augmented-generatio-61f51db0.pdf": {
+      "bytes": 196920,
+      "sha256": "056a985a74fdeb891d08120c8408ab07db4dda51e17d26561f1df948b314542c"
+    },
+    "data/pdfs/a-consumer-focused-open-data-platform-8fd2a9df.pdf": {
+      "bytes": 152646,
+      "sha256": "748b95fd93c8287f11059b25457d022a18bcf4e2631eb2b59db56327bef9c817"
+    },
+    "data/pdfs/a-data-centric-approach-to-school-discipline-1b433321.pdf": {
+      "bytes": 463748,
+      "sha256": "a72836979326d49de6d126f512f619b06155d56ec4f9ec7439479058f6a17aa4"
+    },
+    "data/pdfs/a-data-science-approach-to-risk-assessment-for-automobile-insurance-poli-afea8a81.pdf": {
+      "bytes": 360884,
+      "sha256": "59fbd26257f33cd68c8a48f6b27ea06ca415d35942a90d45422aee26ff754884"
+    },
+    "data/pdfs/a-decision-tree-approach-to-customer-surveys-8f7fac4b.pdf": {
+      "bytes": 1400997,
+      "sha256": "0466d80e5ea3f81acc5b91c27158f8c0626b48bd650d1f737c03b123972909b5"
+    },
+    "data/pdfs/a-decision-tree-approach-to-the-collection-of-data-for-sustainable-devel-c61e037f.pdf": {
+      "bytes": 189785,
+      "sha256": "6c67d05c4f22b6913e4f89d3ab708d22477158c002cb13eb86e6c7b528a7c2a1"
+    },
+    "data/pdfs/a-global-hierarchical-llm-framework-for-precise-responses-through-subscr-4c7c8562.pdf": {
+      "bytes": 146228,
+      "sha256": "56e361ca69c8cc38045855b08f7b4a043e0ab62d5c35b639eb148ee59c7689fb"
+    },
+    "data/pdfs/a-method-for-learning-representations-of-signed-networks-1e492890.pdf": {
+      "bytes": 264271,
+      "sha256": "f1f32f680a2bf209ebfdcdd231058f50aad1a0b01aa5bf4fd1cb7347c240b202"
+    },
+    "data/pdfs/a-personalized-overdraft-protection-framework-7d1549da.pdf": {
+      "bytes": 190655,
+      "sha256": "c4d4f717e04e2eab101dc46e27989dfa5d2eec5c9d649a6df23ddc3b9ad881cc"
+    },
+    "data/pdfs/a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7.pdf": {
+      "bytes": 1108381,
+      "sha256": "f7a7ab998d772543d2367fa99493755949ef4d74ed94144fc1fe86fb67da8325"
+    },
+    "data/pdfs/a-review-of-human-body-shape-detection-techniques-and-their-application--4264e4f6.pdf": {
+      "bytes": 145849,
+      "sha256": "52294a8fc3afbe27c1e85d6eb6092cf26da6346977e4411e250c6dc7369a3b5e"
+    },
+    "data/pdfs/a-self-contained-spatio-temporal-anomaly-detection-application-for-trave-056e92ea.pdf": {
+      "bytes": 131326,
+      "sha256": "d4939f5862644c65c7e2102a2030454b5d0cb217b39165e00bfac5197a3eba5e"
+    },
+    "data/pdfs/a-simple-approach-to-synthetic-time-series-generation-66bcf71f.pdf": {
+      "bytes": 155216,
+      "sha256": "9485a1217823bfd801b40ee9b9d7993bb13bce6869bd29e0235ba6dd5727c58d"
+    },
+    "data/pdfs/a-smart-shuffle-approach-to-playlist-shuffling-with-user-defined-constra-2ef8bb64.pdf": {
+      "bytes": 514232,
+      "sha256": "c290aa76275f5d97ca9f3a00fd7ee92acff8c6de1558ecca377441c4835edcdf"
+    },
+    "data/pdfs/a-study-of-qos-support-performance-and-pricing-of-mobile-data-plans-in-t-8bb51c9b.pdf": {
+      "bytes": 354277,
+      "sha256": "3735a34f7c12e4a1dd0b64dbf62e5e6a99aeec6696489263164709af0d6628d7"
+    },
+    "data/pdfs/a-successive-quadratic-approximation-approach-for-tuning-parameters-in-a-a237a1cc.pdf": {
+      "bytes": 118580,
+      "sha256": "637bf3763cbe16d13ef68ce514f2a42f57aa5a851536272b5449dccb140408ef"
+    },
+    "data/pdfs/a-unique-approach-to-demand-side-management-of-electric-vehicle-charging-270fd54b.pdf": {
+      "bytes": 96764,
+      "sha256": "e520dbde1716a2e6bccf0e32224ec911f02678a957868f63154ed570c2596c22"
+    },
+    "data/pdfs/above-ground-biomass-estimation-of-a-cocoa-plantation-using-machine-lear-7dfebebb.pdf": {
+      "bytes": 252709,
+      "sha256": "d5dd25bd67c70a2be971e09fb090a8798958523fa0c2a9708ec4f11530b1a1f2"
+    },
+    "data/pdfs/ai-driven-personalization-as-a-disruptive-strategy-for-the-creation-of-n-fe2bc5a4.pdf": {
+      "bytes": 219115,
+      "sha256": "e7fa1b588e00d56097c78a27792a2eae60238c80ec6411900d6f56312ad4c2a9"
+    },
+    "data/pdfs/an-integer-programming-approach-to-chick-placement-at-a-broiler-producti-0b44d541.pdf": {
+      "bytes": 244777,
+      "sha256": "f4047b69b4fb5bb7cb42f808b6889cb6c221f09fa2d1d8010264e7ecbb137640"
+    },
+    "data/pdfs/an-open-dataset-of-labelled-tropical-crops-9b1b8d0e.pdf": {
+      "bytes": 340319,
+      "sha256": "a1647a97e1f0e42f3ea0bbd80b3fd82ceebb3912fbe34d1adef96bd90aa77ed3"
+    },
+    "data/pdfs/an-open-source-real-time-data-portal-c0f8823f.pdf": {
+      "bytes": 164995,
+      "sha256": "a634e9fbfc66661aa7fb94a5aa4e27aeee549963584e084f52513f0bb4ad35a0"
+    },
+    "data/pdfs/application-for-the-detection-of-dangerous-driving-and-an-associated-gam-89c35dfe.pdf": {
+      "bytes": 248363,
+      "sha256": "4498b09b7006234d6a2188c65e840f630de6f048d5cd603e7cf73e2d7c37aa4c"
+    },
+    "data/pdfs/association-rule-mining-of-household-electrical-energy-usage-91e53f3a.pdf": {
+      "bytes": 166068,
+      "sha256": "327ab142d0812609d46728597da05df3f38a911e5ee130af1d4b01e0c2a9846c"
+    },
+    "data/pdfs/automating-the-collection-display-summarization-and-podcasting-of-academ-498c837a.pdf": {
+      "bytes": 233651,
+      "sha256": "74666ea0d72c7b85aadb3743ede18cb9e978fdc908d128e3d533aaa771678ee8"
+    },
+    "data/pdfs/bilingual-dialect-classification-using-nlp-f02e3cc3.pdf": {
+      "bytes": 174328,
+      "sha256": "b6c2bf6615a8cb756506bfb4557a123f484a8b1531e2c20afdf7ef59126e7b53"
+    },
+    "data/pdfs/can-foreign-datasets-help-improve-plankton-classification-performance-fo-01e5c8cb.pdf": {
+      "bytes": 447950,
+      "sha256": "88aa6adf1492e2d8ffeb103ddcbda6a022561553b9d34b5f07a548271f3df12d"
+    },
+    "data/pdfs/congestion-detection-for-qos-enabled-wireless-networks-and-its-potential-25cd8353.pdf": {
+      "bytes": 326561,
+      "sha256": "3d850bf6dbf105afd8f385a0987671a9f863700553ceb9b067758e3c495d660d"
+    },
+    "data/pdfs/constant-time-fixed-memory-zero-false-negative-error-logging-for-low-pow-94e78541.pdf": {
+      "bytes": 88505,
+      "sha256": "419d9128531c01be74544d27088bf9ef09cd3bd264d2363aa2ded79a85a40b38"
+    },
+    "data/pdfs/crop-price-prediction-a-comparison-of-the-recursive-and-direct-forecasti-5e0aaa71.pdf": {
+      "bytes": 72467,
+      "sha256": "5f87f4418965f1b2030cfa12cb3c2319d5606542e5c168c898995ce511c78225"
+    },
+    "data/pdfs/csp-customer-satisfaction-based-pricing-for-advanced-cellular-networks-152e8f32.pdf": {
+      "bytes": 83587,
+      "sha256": "6f166b3b008866f7f74585ade0d7fe8d8178cef077c0339e053b2752ddce64b4"
+    },
+    "data/pdfs/cybersecurity-threat-analysis-for-an-energy-rich-small-island-developing-5d061ce8.pdf": {
+      "bytes": 303394,
+      "sha256": "3bd903fcdf739901e4968a08ff3dada96b1c74f45347c0c7e39e11d798840b88"
+    },
+    "data/pdfs/cyclic-beam-switching-for-smart-grid-networks-009fe57c.pdf": {
+      "bytes": 124849,
+      "sha256": "94498446ce15224c17d04c83f2d22197e45553c90ed79c1413f34ede81c65977"
+    },
+    "data/pdfs/data-driven-weighting-for-coastal-vulnerability-assessment-in-small-isla-0141fa24.pdf": {
+      "bytes": 123864,
+      "sha256": "b448b1cd3324d33a8f6fa5645e97edb5071973643a6961298c33d04ad5ad1b88"
+    },
+    "data/pdfs/data4good-an-established-framework-for-supporting-civil-society-organiza-597c7482.pdf": {
+      "bytes": 153292,
+      "sha256": "0f47fd6d096fa7f192ec06e4fb298271451f32f645bc63b129288ec9a2f97979"
+    },
+    "data/pdfs/design-and-evaluation-of-a-mobile-medication-management-system-for-vulne-2c0301ce.pdf": {
+      "bytes": 132955,
+      "sha256": "4953ebf8af979b335461c02793fe3621c4d086ca013c0602ea99a44ad62f5416"
+    },
+    "data/pdfs/design-and-specifications-of-a-repository-for-real-time-open-data-be5e53d0.pdf": {
+      "bytes": 172076,
+      "sha256": "d69f157d40ad2c496a2e03249467e489bb08ce3b6092544251125189a4b7ae99"
+    },
+    "data/pdfs/developing-an-algorithm-for-generating-a-tabla-accompaniment-for-hindust-0303df18.pdf": {
+      "bytes": 591609,
+      "sha256": "2f08e2534adfb02fb09112428373599011dd764d61123c66059626f41e5672aa"
+    },
+    "data/pdfs/dynamic-group-formation-in-an-online-social-network-a8e55b98.pdf": {
+      "bytes": 464302,
+      "sha256": "278c082827a2a31539b72c132315aebe010850a311c70f24e832c7ce1b620b35"
+    },
+    "data/pdfs/efficient-hyperparameter-tuning-of-the-regression-method-by-training-dat-4d1aad5c.pdf": {
+      "bytes": 140000,
+      "sha256": "08ed8d4555c5b844ca72238c162a48e96c437a573ef64c1942a961201d7aed19"
+    },
+    "data/pdfs/efficient-m-commerce-platform-for-developing-countries-f6fc2409.pdf": {
+      "bytes": 477577,
+      "sha256": "2095033f858580b927287278ad3f4ec4e69acb0133f9624d04d7bcdbe50f3468"
+    },
+    "data/pdfs/efficient-sentiment-classification-of-twitter-feeds-8390d8a8.pdf": {
+      "bytes": 202420,
+      "sha256": "62f292714da732f43463747386b55238531398b2a39a88dbcaee4b2a6ce3581b"
+    },
+    "data/pdfs/emerging-network-technologies-and-network-neutrality-conformance-2af0cd47.pdf": {
+      "bytes": 199518,
+      "sha256": "b4d113485fc97fece35339be80331ef2e98957cc728bc364b53d986af4c5b516"
+    },
+    "data/pdfs/estimating-deforestation-using-machine-learning-algorithms-3f48cc99.pdf": {
+      "bytes": 254634,
+      "sha256": "9efd4d0dbf7af6a38380cde5f7ead6d6eb80a83b3c8d8038916e8363d6dfead2"
+    },
+    "data/pdfs/estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e.pdf": {
+      "bytes": 1619181,
+      "sha256": "9da7cf9473c1765556d7cb8812d3e34e420ddfa5eba68ea7045c25237a563b38"
+    },
+    "data/pdfs/event-scheduling-with-soft-constraints-and-on-demand-re-optimization-224f19ec.pdf": {
+      "bytes": 172766,
+      "sha256": "293547b91c511a80b8cf55fd756a7086624011437b3f2c6ebbe45c7dda753712"
+    },
+    "data/pdfs/exploiting-gaussian-word-embeddings-for-document-clustering-863ee9e7.pdf": {
+      "bytes": 80055,
+      "sha256": "b7d108e31a27b6b99b39cfca63193e8fdaeff89f43b4cb77564598435d5238e3"
+    },
+    "data/pdfs/exploring-supervised-machine-learning-for-multi-phase-identification-and-3b9ea038.pdf": {
+      "bytes": 497676,
+      "sha256": "c51344f4d10fb8a81aff3ab8c4037df050c8de2bcff4e9167be46b89bc4d7989"
+    },
+    "data/pdfs/figure-of-merit-for-a-multi-generation-network-32f902ce.pdf": {
+      "bytes": 193514,
+      "sha256": "df0296819ac50927ca75edf63ad5139a40d05d7e1c869a5cafd3dc9eafb90ea7"
+    },
+    "data/pdfs/generating-personalized-news-podcasts-from-print-media-for-those-on-the--11532982.pdf": {
+      "bytes": 116776,
+      "sha256": "507d8403c13d828f0fdadb6b4a443f91b01d63935a3d0a41853a05a510a822d3"
+    },
+    "data/pdfs/generative-ai-and-multi-agent-systems-approach-to-psychometric-evaluatio-720fdd0f.pdf": {
+      "bytes": 267992,
+      "sha256": "bae88210c04cf2b49e36433961db36b337d12b9bbb4e65d8dc978001e2b2cf65"
+    },
+    "data/pdfs/heuristics-for-advertising-revenue-optimization-in-online-social-network-85ddf731.pdf": {
+      "bytes": 98229,
+      "sha256": "09197bb7328a69684ed3c95ac483bf9f4f5dffcaf4de4e93109c704bda9d37f6"
+    },
+    "data/pdfs/improving-power-generation-efficiency-using-deep-neural-networks-a98f1c29.pdf": {
+      "bytes": 101836,
+      "sha256": "f284adb727c05912794332413b48571b5833d5d604be11fb5fb540702b7cd99d"
+    },
+    "data/pdfs/instant-message-summarization-with-emoji-unicode-characterset-support-96db0872.pdf": {
+      "bytes": 280564,
+      "sha256": "11a8aa7a383c621ebce1522ee9833767844fbce091c6be47a4d3f9e16a197dd7"
+    },
+    "data/pdfs/load-forecasting-using-deep-neural-networks-31644fac.pdf": {
+      "bytes": 116932,
+      "sha256": "427b90ee2df2e13b0e31be3e8fb2b0ed87d669e16c61a147dc5957db61d49993"
+    },
+    "data/pdfs/location-obfuscation-using-smart-meter-readings-5bfe1825.pdf": {
+      "bytes": 108298,
+      "sha256": "81c4ac76a31c4eeb623306edb907a5a0edf6a25bfc7b8f23781d492be22bdc1f"
+    },
+    "data/pdfs/marketing-channel-recommendations-in-banking-3deb0e4b.pdf": {
+      "bytes": 1399301,
+      "sha256": "905f3665671121aebe79c69e1f2b66850f2e2dc258f72fd4d06e751b95555498"
+    },
+    "data/pdfs/material-and-cost-estimation-of-a-customized-product-based-on-the-custom-ade2050d.pdf": {
+      "bytes": 1804091,
+      "sha256": "80e2c7ff9a1158809c21f720cd0b6ad33f06dcd873797931bee86064822e5872"
+    },
+    "data/pdfs/network-neutrality-violation-detection-for-streaming-media-traffic-in-wi-0506f67c.pdf": {
+      "bytes": 451682,
+      "sha256": "21e99630066ad5c1708d269e231e7671fbe74793fe9c06f7ff2d7ebf4ddfeb1a"
+    },
+    "data/pdfs/office-scheduling-of-a-hybrid-workforce-with-fairness-and-group-collabor-38c14f1b.pdf": {
+      "bytes": 107727,
+      "sha256": "6512011869aa2f602a27c8adca0e1832bb3a085d5e97933d08d1b9ccf1d23613"
+    },
+    "data/pdfs/on-gpu-acceleration-of-the-vector-quantization-image-compression-algorit-c70cc898.pdf": {
+      "bytes": 146303,
+      "sha256": "40a08367e6d1f3229b36ed73e5e239fbf932fd03f194abe6132c66ca8cca693f"
+    },
+    "data/pdfs/on-the-dependence-of-drop-out-rates-on-cohort-size-in-public-universitie-4a6c9a01.pdf": {
+      "bytes": 215071,
+      "sha256": "a2551cb4df8c4f102bc43a2a6845da1b9ffa372de1971f654811af13b0098511"
+    },
+    "data/pdfs/on-the-distributed-optimization-of-calendar-events-0f95bb66.pdf": {
+      "bytes": 151242,
+      "sha256": "402de58ede4f0fa87a21f00d1a26bd9599b3a62684381f2f23876e521a4c4971"
+    },
+    "data/pdfs/on-the-forecasting-of-market-prices-for-agricultural-commodities-45842bc3.pdf": {
+      "bytes": 147672,
+      "sha256": "1840cb23cee2f555d7db7406a4aecfb0f5084d11eaf1f5d10600741e701a1a76"
+    },
+    "data/pdfs/on-the-multi-stage-influence-maximization-problem-d33cee35.pdf": {
+      "bytes": 109741,
+      "sha256": "cda9b54958db3e18eb7f011a7fe85cd74d713a8356810f8461e96c6dfbd08fa3"
+    },
+    "data/pdfs/on-the-optimal-allocation-of-resources-for-a-marketing-campaign-867de056.pdf": {
+      "bytes": 179074,
+      "sha256": "4509dfa69cb2689e38d377f557454b0d1bb238264414f452c4cae57dcd5ca62c"
+    },
+    "data/pdfs/on-the-optimal-baseline-auto-insurance-premium-4f352d23.pdf": {
+      "bytes": 86010,
+      "sha256": "b5dfb612f1cf5348b16ac87ca4c3184f24223296bf0532e76f217662137f79ea"
+    },
+    "data/pdfs/on-the-prediction-of-possibly-forgotten-shopping-basket-items-1550b8a9.pdf": {
+      "bytes": 155246,
+      "sha256": "d83ae99b05c9745d2ec6eb260430e2c816752004740bbf4dcf935bd54ce425a0"
+    },
+    "data/pdfs/on-the-socio-economic-factors-affecting-fertility-rate-decline-in-a-smal-6f46fa88.pdf": {
+      "bytes": 156248,
+      "sha256": "acf515ed58e45be5a136bd9d34b5791f143ce9a441c210cdff943cd650369b0d"
+    },
+    "data/pdfs/optesim-optimal-cellular-prepaid-plans-for-a-customer-base-with-esim-cap-13511a8a.pdf": {
+      "bytes": 164568,
+      "sha256": "fa5066b36d6229bd0362cb22659c790d30bffc91878e6989c1bbedac5e33fdbe"
+    },
+    "data/pdfs/optical-lens-inventory-optimization-model-0f6a1d23.pdf": {
+      "bytes": 90501,
+      "sha256": "6795c1d7341d54c52cfea0e603e37cc0629ddcd664cd9764ba46defacb6fa78f"
+    },
+    "data/pdfs/optimizing-car-imports-in-small-island-states-6abab515.pdf": {
+      "bytes": 356397,
+      "sha256": "c5abaf060ee5277d8c2175bd1419628d91740ac4d537c5fb47cb2d0354a89427"
+    },
+    "data/pdfs/performance-evaluation-and-comparison-of-a-new-regression-algorithm-6c1084dd.pdf": {
+      "bytes": 137671,
+      "sha256": "4ca073ce8565275f4cd917db8a22dcb2d0e2883ef0bb84eeea363e2ef475eed2"
+    },
+    "data/pdfs/playlist-shuffling-given-user-defined-constraints-on-song-sequencing-2ecc20c8.pdf": {
+      "bytes": 505734,
+      "sha256": "b15ebad18f00dd19058c4107c4de4d154eea99a0cdf2d52dbb9231f9321cd984"
+    },
+    "data/pdfs/power-grid-fault-detection-using-an-amr-network-0c474959.pdf": {
+      "bytes": 201012,
+      "sha256": "a120f31ca6a4c5cf708842f0f94bd980917352f5775c3b66670306e56b300db8"
+    },
+    "data/pdfs/predicting-foreign-exchange-rates-for-an-oil-rich-country-using-energy-b-febd3fb0.pdf": {
+      "bytes": 401920,
+      "sha256": "4e616d0564a22478fa377e89ab71af4723aef4ff60bc2bcd01381100861aca37"
+    },
+    "data/pdfs/predicting-the-probability-of-critical-illness-claims-ffffb207.pdf": {
+      "bytes": 462069,
+      "sha256": "31759bdb339b50844a01583bf1adab69f4ec596e085d403ac1497688346c79f8"
+    },
+    "data/pdfs/premium-rate-services-fraud-detection-37e69fcf.pdf": {
+      "bytes": 1052845,
+      "sha256": "e98bb74042f0bb550a255b2ded9bb4528a86e1325412bf23f4ab1d5f73d8aeed"
+    },
+    "data/pdfs/pricing-esim-services-ecosystem-challenges-and-opportunities-93b2f94f.pdf": {
+      "bytes": 160737,
+      "sha256": "ac6c6c4bc9e70a21ecd4d92375654829abe5bff290a946b2821a557418b71d7a"
+    },
+    "data/pdfs/quality-of-service-framework-for-supporting-next-generation-mobile-servi-de82cc95.pdf": {
+      "bytes": 200886,
+      "sha256": "52208f300868a6c81a5902fe6d1b37e2fef5964f6a7d834142b94ad9c971efe7"
+    },
+    "data/pdfs/quality-of-service-support-for-high-performance-computing-on-mobile-devi-74995efd.pdf": {
+      "bytes": 273486,
+      "sha256": "e9ede330bf638af5ae97c39319389ce1821b1ac48391efa0cdde7f42b1ddd013"
+    },
+    "data/pdfs/recommendations-for-long-term-profit-optimization-8d7956bc.pdf": {
+      "bytes": 123688,
+      "sha256": "eb5a92e43ced8ba4e8a15c0c7582bd98a1f15bee434aa977dce92779135e8b54"
+    },
+    "data/pdfs/regularized-gradient-descent-for-hyper-parameter-tuning-in-the-kappa-eta-8df3c6b3.pdf": {
+      "bytes": 278888,
+      "sha256": "882fdb24c3cf56b6f843bfcbd1dace280b358ae787daf1b0734b0cd3ce00e505"
+    },
+    "data/pdfs/spatio-temporal-clustering-for-optimizing-time-sensitive-product-deliver-3a81a842.pdf": {
+      "bytes": 392650,
+      "sha256": "c5dc13886292d20ada8f255ba3409530c33a0b33085fcaffc1dc325f7373d035"
+    },
+    "data/pdfs/stochastic-dynamic-programming-model-for-revenue-optimization-in-social--07bec3e0.pdf": {
+      "bytes": 107188,
+      "sha256": "8113e2373c9ad8aa1eb0a65c0196765f0fde78be95decfbd45946b93a7e0b56f"
+    },
+    "data/pdfs/the-impact-of-low-electricity-prices-on-renewable-energy-production-196d2368.pdf": {
+      "bytes": 74683,
+      "sha256": "f4b5ee4c32b5c135def989b4e8f0835d598d455ba26368e6c1d52a0d327c3cab"
+    },
+    "data/pdfs/using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d.pdf": {
+      "bytes": 97615,
+      "sha256": "a38165d9c1d06cbc3289a1c24ad9cf865dbb6a34ac2a947b16ca05cd98b3d3ad"
+    },
+    "data/pdfs/using-continual-learning-on-edge-devices-for-cost-effective-efficient-li-dc788e5b.pdf": {
+      "bytes": 136883,
+      "sha256": "6c495eae3ff155e93dd6684a696eb0adfe18bfcb289eb9155e61e71c5d60d225"
+    },
+    "data/pdfs/using-edge-devices-and-machine-learning-for-controlled-access-to-a-smart-5db1d0af.pdf": {
+      "bytes": 163883,
+      "sha256": "efe41a3444abe14c86a5d4165d6f5bb1c77aa8f818267a465fb439306fab3ed9"
+    },
+    "data/pdfs/using-mapreduce-for-impression-allocation-in-online-social-networks-6898c11c.pdf": {
+      "bytes": 98612,
+      "sha256": "cd21b8664beb35d9290a0ca95eb3b885bf42b6b1652ac19bfd5a9b367f79bb23"
+    },
+    "data/pdfs/using-natural-language-processing-to-correlate-university-curricula-with-6838a3b6.pdf": {
+      "bytes": 265967,
+      "sha256": "cd6f0bfbd6958418831b7991f307ed2ceed13c9013c75f5e74be5997438afba5"
+    },
+    "data/pdfs/using-recurrent-neural-networks-to-approximate-orientation-with-accelero-518f6a36.pdf": {
+      "bytes": 1393390,
+      "sha256": "5c47c5ae9f233615fee8051b34516a3717daec488b7c99d654751ed9fedf6d29"
+    },
+    "data/pdfs/using-retrieval-augmented-generation-for-fault-prediction-and-maintenanc-b842c0db.pdf": {
+      "bytes": 269874,
+      "sha256": "fe0d2b566e6e963d6588621f02ecbc9c1cd10f5cd25aee97f596ca7e62f58ec4"
+    },
+    "data/pdfs/vector-search-performance-enhancements-on-limited-memory-edge-devices-cdd944e8.pdf": {
+      "bytes": 203650,
+      "sha256": "07b6c1318386258d044f0fd4d0ca947db7b87c2cdb25274f10cd767f600f8a99"
+    },
+    "data/pdfs/web-application-for-power-grid-fault-management-70b8c821.pdf": {
+      "bytes": 227790,
+      "sha256": "39363bc3b3619a86447028a535b7270aa7ddae850fed65b115e66f3771bba366"
+    },
+    "data/pdfs/weed-and-water-stress-detection-using-drone-video-03885d3b.pdf": {
+      "bytes": 345058,
+      "sha256": "137c3bf7ab3c5822775cddc4fedc16f201e5ce2c8c883e30f328a4a173b12279"
+    },
+    "data/pdfs/weighted-eligibility-based-product-recommendation-system-11db29fb.pdf": {
+      "bytes": 150234,
+      "sha256": "6cf826a71e4b5ed56087531092905a5e2a692ebb3330be3d57b45c9ac6654c72"
+    },
+    "scripts/reproduce_all.sh": {
+      "bytes": 25386,
+      "sha256": "d08385c28404679eab03c90f58ba84773a99c7b3485d61e10f00fb0182dbc6b6"
+    }
+  },
+  "freeze_id": "peer-review-remediation-v2-freeze",
+  "frozen_at": "2026-07-21T20:55:45.081801+00:00",
+  "frozen_dataset_identity": {
+    "ask": {
+      "case_count": 18,
+      "dataset_path": "data/evaluation/qa_selective_response_v2.jsonl",
+      "dataset_sha256": "4abd2dc648be53ece2779371cf78a8a6f22397a6ebd844044894cbf88a1ed15a",
+      "id_field": "case_id",
+      "splits": {
+        "dev": [
+          "qa-v2-a01",
+          "qa-v2-a03",
+          "qa-v2-a06",
+          "qa-v2-a08",
+          "qa-v2-n01",
+          "qa-v2-n02"
+        ],
+        "test": [
+          "qa-v2-a02",
+          "qa-v2-a04",
+          "qa-v2-a05",
+          "qa-v2-a07",
+          "qa-v2-a09",
+          "qa-v2-a10",
+          "qa-v2-a11",
+          "qa-v2-a12",
+          "qa-v2-n03",
+          "qa-v2-n04",
+          "qa-v2-n05",
+          "qa-v2-n06"
+        ]
+      }
+    },
+    "finder": {
+      "case_count": 10,
+      "dataset_path": "data/evaluation/finder_proxy_profiles_v2.jsonl",
+      "dataset_sha256": "c157904d3762f109bf2ac60614f500f25914b688dde91a5e7b30f5187f4fd7a3",
+      "id_field": "profile_id",
+      "splits": {
+        "dev": [
+          "finder-v2-d01",
+          "finder-v2-d02",
+          "finder-v2-d03",
+          "finder-v2-d04"
+        ],
+        "sensitivity": [
+          "finder-v2-t02"
+        ],
+        "test": [
+          "finder-v2-t01",
+          "finder-v2-t03",
+          "finder-v2-t04",
+          "finder-v2-t05",
+          "finder-v2-t06"
+        ]
+      }
+    },
+    "topics": {
+      "case_count": 12,
+      "dataset_path": "data/evaluation/topic_source_labels_v2.jsonl",
+      "dataset_sha256": "8934a5a95baaca11f5399b0786904a1f66dd8595163414f383f31dfda979ab3e",
+      "id_field": "case_id",
+      "splits": {
+        "dev": [
+          "topic-v2-d01",
+          "topic-v2-d02",
+          "topic-v2-d03",
+          "topic-v2-d04"
+        ],
+        "test": [
+          "topic-v2-t01",
+          "topic-v2-t02",
+          "topic-v2-t03",
+          "topic-v2-t04",
+          "topic-v2-t05",
+          "topic-v2-t06",
+          "topic-v2-t07",
+          "topic-v2-t08"
+        ]
+      }
+    }
+  },
+  "generation_artifact_inventory": {
+    "directories": [
+      "data/pdfs",
+      "data/extracted_text",
+      "data/chunks"
+    ],
+    "file_count": 490,
+    "inventory_sha256": "e86538a32eab1e306805cabf24d5ada7f479d685fe91ae6ac2f77e58429d529a"
+  },
+  "git": {
+    "dirty": true,
+    "evaluation_code_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evaluation_sources_clean_and_committed": true,
+    "head": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+    "note": "Executable/backend/protocol inputs are clean and committed. Run-generated data and manuscript outputs may be dirty and are governed by their own hashes.",
+    "status_sha256": "306dc94a4c94828ff23a20e1b2820e8002c8a2505ddd8f258c58aa1283478ab7"
+  },
+  "historical_v1_interpretation": "immutable_historical_post_selection_descriptive",
+  "locked_validator_identity": {
+    "lock_path": "backend/requirements-lock.txt",
+    "lock_sha256": "93e43a941f8ca2bd25124c83360b54ff6f2109e575f3abefb211a7383b8058eb",
+    "locked_package_count": 95,
+    "python_version": "3.12.3",
+    "runner_path": "data/evaluation/run_peer_review_remediation_v2.py",
+    "runner_sha256": "ce4466564ed7fa19c95b9b8f348bf4fb43c522836de3008f10a70ab8ffc90b44",
+    "status": "locked_environment_valid",
+    "validator_path": "data/evaluation/validate_peer_review_remediation_v2.py",
+    "validator_sha256": "1de537ad8a0a2b052f485e52f7fd681680311bfe398990ef818e1860cfc210ca"
+  },
+  "protocol_id": "peer-review-remediation-v2",
+  "provider_environment_overrides": {
+    "TTLAB_ALLOWED_LLM_PROVIDERS": "[\"offline_extractive\"]",
+    "TTLAB_DEFAULT_LLM_PROVIDER": "offline_extractive"
+  },
+  "public_projection_evaluated": false,
+  "public_selection_predicate_recorded_not_tested": "review_status approved AND publication_status published AND rights_status cleared AND public_access_level searchable AND corpus_eligibility_status eligible AND extraction_review_status approved AND extraction_generation_id IS NOT NULL AND chunk_generation_id IS NOT NULL AND chunk_extraction_generation_id == extraction_generation_id AND public_index_generation_id == chunk_generation_id AND chunk_count > 0 AND Chunk.extraction_generation_id == Paper.extraction_generation_id",
+  "retrieval_scope": "technical",
+  "reviewer": {
+    "entailment_verified": false,
+    "human_review": false,
+    "independent_human_raters": 0,
+    "label_tier": "ai_silver",
+    "pass_interpretation": "same_ai_procedure_repeatability_not_inter_rater_reliability",
+    "reviewer_id": "codex-ai-review",
+    "reviewer_type": "ai"
+  },
+  "runtime": {
+    "host_locale_before_ocr_override": "LANG=C.UTF-8\nLANGUAGE=\nLC_CTYPE=\"C.UTF-8\"\nLC_NUMERIC=\"C.UTF-8\"\nLC_TIME=\"C.UTF-8\"\nLC_COLLATE=\"C.UTF-8\"\nLC_MONETARY=\"C.UTF-8\"\nLC_MESSAGES=\"C.UTF-8\"\nLC_PAPER=\"C.UTF-8\"\nLC_NAME=\"C.UTF-8\"\nLC_ADDRESS=\"C.UTF-8\"\nLC_TELEPHONE=\"C.UTF-8\"\nLC_MEASUREMENT=\"C.UTF-8\"\nLC_IDENTIFICATION=\"C.UTF-8\"\nLC_ALL=C.UTF-8",
+    "ocr_identity": {
+      "configuration": {
+        "config": "--oem 3 --psm 6",
+        "environment": {
+          "LANG": "C.UTF-8",
+          "LC_ALL": "C.UTF-8",
+          "OMP_THREAD_LIMIT": "1"
+        },
+        "language": "eng",
+        "language_data": {
+          "language": "eng",
+          "reason": null,
+          "resolved_path_recorded": false,
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "status": "available"
+        },
+        "render_dpi": 144,
+        "render_scale": 2.0
+      },
+      "packages": {
+        "pillow": "12.3.0",
+        "pymupdf": "1.28.0",
+        "pytesseract": "0.3.13"
+      },
+      "tesseract": "tesseract 5.3.4\n leptonica-1.82.0\n  libgif 5.2.1 : libjpeg 8d (libjpeg-turbo 2.1.5) : libpng 1.6.43 : libtiff 4.5.1 : zlib 1.3 : libwebp 1.3.2 : libopenjp2 2.5.0\n Found AVX2\n Found AVX\n Found FMA\n Found SSE4.1\n Found OpenMP 201511\n Found libarchive 3.7.2 zlib/1.3 liblzma/5.4.5 bz2lib/1.0.8 liblz4/1.9.4 libzstd/1.5.5\n Found libcurl/8.5.0 OpenSSL/3.0.13 zlib/1.3 brotli/1.1.0 zstd/1.5.5 libidn2/2.3.7 libpsl/0.21.2 (+libidn2/2.3.7) libssh/0.10.6/openssl/zlib nghttp2/1.59.0 librtmp/2.3 OpenLDAP/2.6.7"
+    },
+    "platform": "linux",
+    "python": "3.12.3",
+    "sqlmodel": "0.0.22"
+  },
+  "source_database_open_mode_for_execution": "read_source_via_sqlite_backup_then_mutate_temporary_copy_only",
+  "static_validation_report_sha256": "856c69a88f0bb6b7468d0871d972f28342b128cf7b89bda8bec1a9a75f1c852b",
+  "status": "frozen_before_execution",
+  "technical_selection_predicate": "Paper.corpus_eligibility_status == eligible AND Paper.extraction_generation_id IS NOT NULL AND Paper.chunk_generation_id IS NOT NULL AND Paper.chunk_extraction_generation_id == Paper.extraction_generation_id AND Chunk.extraction_generation_id == Paper.extraction_generation_id",
+  "temporary_keyword_index_rebuild_required": true,
+  "threshold_tuning": false
+}

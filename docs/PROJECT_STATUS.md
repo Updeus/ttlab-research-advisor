@@ -2,17 +2,18 @@
 
 The project has progressed beyond the earlier eight-phase demo description.
 Authoritative current status is maintained in
-[`FINAL_STATUS.md`](FINAL_STATUS.md); executed methods and evidence are in
+`docs/peer_review_readiness/FINAL_READINESS_REPORT.md`; executed methods and evidence are in
 [`METHODOLOGY.md`](METHODOLOGY.md) and
-[`EVALUATION_PROTOCOL.md`](EVALUATION_PROTOCOL.md).
+[`EVALUATION_PROTOCOL.md`](EVALUATION_PROTOCOL.md). `FINAL_STATUS.md` is a
+superseded historical-v1 checkpoint, not current checkout status.
 
 ## Current implemented state
 
 - full-paper acquisition/extraction with identity, scan, optional OCR, and
   eligibility diagnostics;
-- a dedicated-server synchronization worker with a fixed daily timezone
-  schedule, overlap lease, new/changed/incomplete processing, persisted run
-  history, and protected admin trigger;
+- operator-run corpus staging with deterministic generation manifests; the
+  scheduled worker and protected trigger fail closed until a whole-snapshot
+  atomic promotion exists;
 - authoritative complete keyword, feature-hashing, and learned-dense
   representations over 96 eligible papers/719 eligible chunks;
 - route-based Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer,
@@ -28,6 +29,8 @@ Authoritative current status is maintained in
 
 ## Evidence-calibrated status
 
+The following outcomes are retained historical-v1 AI-assisted evidence, not
+measurements of the remediated current runtime or prospective v2 protocol.
 Keyword was the strongest observed held-out retrieval MRR baseline; tuned hybrid
 superiority was not demonstrated. The offline answerer produced highly
 source-supported extractive claims but low answer-point coverage and no
@@ -49,12 +52,16 @@ broad external-validity evidence. Automated accessibility checks likewise do
 not establish WCAG or assistive-technology conformance.
 
 No human usefulness/usability study, broad external validation, or production-
-scale capacity claim exists. The current editable sources compile to an
-8-Letter-page IEEEtran paper and a 74-A4-page thesis. Their standalone builds
-are present; they are not pending research results. Exact-final-commit full
-reproduction and the clean sanitized release are fail-loud delivery acceptance
-gates executed before tag/push; they rebuild and preflight those documents
-rather than inherit success from the earlier benchmark or document build.
+scale capacity claim exists. The editable paper and thesis satisfy the local
+six-page-maximum and 75-page-minimum manuscript gates; the exact page and
+reference counts belong to the final candidate report rather than this
+long-lived status overview. Full reproduction and the clean sanitized release
+bind the source-candidate commit/tree they actually execute. The later evidence
+commit records validated outputs and attestations but is not relabeled as the
+reproduced source; any source, protocol, case, application, or manuscript change
+requires a fresh candidate run. These fail-loud gates rebuild and preflight the
+documents rather than inherit success from an earlier benchmark or standalone
+document build.
 
 ## Local demo
 

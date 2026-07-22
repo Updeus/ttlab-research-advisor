@@ -26,6 +26,10 @@ class RAGAnswer(SQLModel, table=True):
     unsupported_claims_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
     warnings_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
     retrieved_chunks_json: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    generation_metadata_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    runtime_provenance_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    claim_support_json: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    answerability_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     review_status: str = Field(default="needs_review", index=True)
     reviewer_notes: Optional[str] = None
     reviewed_at: Optional[datetime] = None

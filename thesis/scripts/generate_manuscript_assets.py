@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
 import json
 import re
 import subprocess
 from pathlib import Path
+import sys
 from typing import Any
 
 from app.evaluation.performance_validator import (
@@ -19,6 +21,14 @@ from app.evaluation.performance_validator import (
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "thesis" / "generated"
+SCRIPTS_DIR = ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from manuscript_v2_package import load_manuscript_v2_package
+from recommendation_manuscript_metrics import derive_recommendation_manuscript_metrics
+
+V2_HELPER = SCRIPTS_DIR / "manuscript_v2_package.py"
+RECOMMENDATION_HELPER = SCRIPTS_DIR / "recommendation_manuscript_metrics.py"
 SOURCES = {
     "evidence_snapshot": ROOT / "thesis" / "generated" / "evidence_snapshot.json",
     "phase1": ROOT / "artifacts" / "phase1" / "phase1_evidence.json",
@@ -119,8 +129,40 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None
         writer.writerows(rows)
 
 
-def main() -> None:
+def topic_binding_counts(
+    topics: dict[str, Any], *, allow_layout_fallback: bool
+) -> dict[str, Any]:
+    """Return current-snapshot binding counts, or explicit WIP placeholders."""
+
+    binding = topics.get("evidence_binding")
+    if binding is None:
+        if allow_layout_fallback:
+            return {"exact": "--", "rebound": "--", "drift": "--", "layout_fallback": True}
+        raise ValueError(
+            "Final thesis assets require topic_metrics.json evidence_binding from the current "
+            "topic-silver binding receipt"
+        )
+    resolutions = binding.get("resolution_counts")
+    if not isinstance(resolutions, dict):
+        raise ValueError("Topic evidence_binding is missing resolution_counts")
+    exact = int(resolutions.get("exact_chunk_id", 0))
+    rebound = int(resolutions.get("stable_paper_chunk_page_section_locator", 0))
+    drift = int(binding.get("source_snapshot_drift_count", 0))
+    if exact < 0 or rebound < 0 or drift < 0 or drift > exact + rebound:
+        raise ValueError("Topic evidence_binding contains impossible counts")
+    return {"exact": exact, "rebound": rebound, "drift": drift, "layout_fallback": False}
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--allow-v2-not-run",
+        action="store_true",
+        help="Generate explicit non-submission layout placeholders before the canonical v2 run.",
+    )
+    args = parser.parse_args(argv)
     data = load_sources()
+    v2 = load_manuscript_v2_package(ROOT, allow_not_run=args.allow_v2_not_run)
     phase1 = data["phase1"]
     evidence_snapshot = data["evidence_snapshot"]
     retrieval = data["retrieval"]
@@ -155,6 +197,22 @@ def main() -> None:
     qa_ci = qa["confidence_intervals"]["metrics"]
     rec_metrics = recommendation["metrics"]
     rec_comparison = rec_metrics["arm_comparison"]
+    recommendation_metrics = derive_recommendation_manuscript_metrics(
+        recommendation, allow_layout_fallback=args.allow_v2_not_run
+    )
+    recommendation_full = recommendation_metrics["arms"]["full_finder"]
+    recommendation_evidence = recommendation_metrics["arms"]["evidence_only"]
+    recommendation_criteria = recommendation_full["criteria"]
+    topic_binding = topic_binding_counts(
+        topics, allow_layout_fallback=args.allow_v2_not_run
+    )
+    qa_response_count = int(qa["counts"]["answerable_responses"]) + (
+        int(qa["counts"]["unanswerable_cases"])
+        - int(qa["counts"]["unanswerable_abstentions"])
+    )
+    qa_abstention_count = int(qa["case_count"]) - qa_response_count
+    if not 0 <= qa_response_count <= int(qa["case_count"]):
+        raise ValueError("QA response counts are inconsistent with the case count")
     lexical_topic = topics["methods"]["controlled_lexical"]["test"]
     dense_topic = topics["methods"]["dense_prototype"]["test"]
     database = evidence_snapshot["database"]
@@ -209,10 +267,20 @@ def main() -> None:
         "QaPartiallySupportedClaimCount": qa["counts"]["partially_supported_claims"],
         "QaUnsupportedClaimCount": qa["counts"]["unsupported_claims"],
         "QaCorrectCitationCount": qa["counts"]["correct_citation_links"],
+        "QaPartialCitationCount": qa["counts"]["partial_citation_links"],
+        "QaIncorrectCitationCount": qa["counts"]["incorrect_citation_links"],
         "QaAnswerPointCount": qa["counts"]["answer_point_count"],
         "QaCoveredAnswerPointCount": qa["counts"]["covered_answer_points"],
+        "QaPartiallyCoveredAnswerPointCount": qa["counts"]["partially_covered_answer_points"],
+        "QaMissingAnswerPointCount": qa["counts"]["answer_point_count"]
+        - qa["counts"]["covered_answer_points"]
+        - qa["counts"]["partially_covered_answer_points"],
+        "QaReturnedCitationCount": qa["counts"]["returned_citations"],
+        "QaUsedReturnedCitationCount": qa["counts"]["used_returned_citations"],
         "QaUnanswerableCaseCount": qa["counts"]["unanswerable_cases"],
         "QaUnanswerableAbstentionCount": qa["counts"]["unanswerable_abstentions"],
+        "QaResponseCount": qa_response_count,
+        "QaAbstentionCount": qa_abstention_count,
         "QaSupportedClaimRate": number(qa_metrics["supported_claim_rate"]),
         "QaSupportedClaimRateLow": number(qa_ci["supported_claim_rate"]["ci_lower"]),
         "QaSupportedClaimRateHigh": number(qa_ci["supported_claim_rate"]["ci_upper"]),
@@ -220,15 +288,21 @@ def main() -> None:
         "QaCitationCorrectnessLow": number(qa_ci["citation_precision_correctness"]["ci_lower"]),
         "QaCitationCorrectnessHigh": number(qa_ci["citation_precision_correctness"]["ci_upper"]),
         "QaCitationCompleteness": number(qa_metrics["citation_completeness"]),
-        "QaAnswerPointCoverage": number(qa_metrics["answer_point_coverage"]),
+        "QaAnswerPointCoverage": number(qa_metrics["answer_point_coverage"], 4),
         "QaAnswerPointCoverageLow": number(qa_ci["answer_point_coverage"]["ci_lower"]),
         "QaAnswerPointCoverageHigh": number(qa_ci["answer_point_coverage"]["ci_upper"]),
         "QaUnanswerableAbstentionRate": number(qa_metrics["unanswerable_abstention_rate"]),
+        "QaUnanswerableAbstentionRateLow": number(
+            qa_ci["unanswerable_abstention_rate"]["ci_lower"]
+        ),
+        "QaUnanswerableAbstentionRateHigh": number(
+            qa_ci["unanswerable_abstention_rate"]["ci_upper"]
+        ),
         "QaAbstentionAccuracy": number(qa_metrics["abstention_accuracy"]),
         "QaAbstentionAccuracyLow": number(qa_ci["abstention_accuracy"]["ci_lower"]),
         "QaAbstentionAccuracyHigh": number(qa_ci["abstention_accuracy"]["ci_upper"]),
         "QaCitationUtilization": number(qa_metrics["returned_citation_utilization"]),
-        "RecommendationProfileCount": recommendation["profile_coverage"]["profile_count"],
+        "RecommendationProfileCount": recommendation_metrics["profile_count"],
         "RecommendationEvidenceRelevance": number(rec_comparison["baseline_mean_relevance_score"]),
         "RecommendationFullRelevance": number(rec_comparison["full_finder_mean_relevance_score"]),
         "RecommendationRelevanceDifference": number(rec_comparison["full_minus_baseline_relevance"]["estimate"]),
@@ -238,10 +312,55 @@ def main() -> None:
         "RecommendationEvidenceRelevanceHigh": number(rec_metrics["evidence_only"]["criteria"]["paper_relevance"]["weighted_score_ci"]["ci_upper"]),
         "RecommendationFullRelevanceLow": number(rec_metrics["full_finder"]["criteria"]["paper_relevance"]["weighted_score_ci"]["ci_lower"]),
         "RecommendationFullRelevanceHigh": number(rec_metrics["full_finder"]["criteria"]["paper_relevance"]["weighted_score_ci"]["ci_upper"]),
-        "RecommendationItemCountPerArm": rec_metrics["evidence_only"]["reviewed_items"],
-        "RecommendationFeasibilityPartialCount": rec_metrics["full_finder"]["criteria"]["skills_time_data_feasibility"]["counts"]["partial"],
-        "RecommendationEvaluationPlanPassCount": rec_metrics["full_finder"]["criteria"]["evaluation_plan_quality"]["counts"]["pass"],
-        "RecommendationEvaluationPlanPartialCount": rec_metrics["full_finder"]["criteria"]["evaluation_plan_quality"]["counts"]["partial"],
+        "RecommendationRequestedSlotCount": recommendation_metrics["requested_slots_per_arm"],
+        "RecommendationEvidenceReturnedCount": recommendation_evidence["returned_items"],
+        "RecommendationFullReturnedCount": recommendation_full["returned_items"],
+        "RecommendationFullMissingCount": recommendation_full["missing_slots"],
+        "RecommendationFullReturnCoverage": number(recommendation_full["return_coverage"]),
+        "RecommendationFullProfilesAtCutoff": recommendation_full["profiles_at_cutoff"],
+        "RecommendationFullShortProfileCount": recommendation_full["short_profile_count"],
+        "RecommendationSeparationPassCount": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["pass"],
+        "RecommendationSeparationPartialCount": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["partial"],
+        "RecommendationSeparationFailCount": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["fail"],
+        "RecommendationFeasibilityPassCount": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["pass"],
+        "RecommendationFeasibilityPartialCount": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["partial"],
+        "RecommendationFeasibilityFailCount": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["fail"],
+        "RecommendationMvpPassCount": recommendation_criteria["mvp_scope"]["pass"],
+        "RecommendationMvpPartialCount": recommendation_criteria["mvp_scope"]["partial"],
+        "RecommendationMvpFailCount": recommendation_criteria["mvp_scope"]["fail"],
+        "RecommendationEvaluationPlanPassCount": recommendation_criteria[
+            "evaluation_plan_quality"
+        ]["pass"],
+        "RecommendationEvaluationPlanPartialCount": recommendation_criteria[
+            "evaluation_plan_quality"
+        ]["partial"],
+        "RecommendationEvaluationPlanFailCount": recommendation_criteria[
+            "evaluation_plan_quality"
+        ]["fail"],
+        "RecommendationUsefulnessPassCount": recommendation_criteria[
+            "usefulness_as_ai_proxy"
+        ]["pass"],
+        "RecommendationUsefulnessPartialCount": recommendation_criteria[
+            "usefulness_as_ai_proxy"
+        ]["partial"],
+        "RecommendationUsefulnessFailCount": recommendation_criteria[
+            "usefulness_as_ai_proxy"
+        ]["fail"],
+        "RecommendationLayoutFallback": str(
+            recommendation_metrics["layout_fallback_used"]
+        ).lower(),
         "RecommendationReviewAgreement": number(rec_metrics["repeatability"]["exact_agreement"]),
         "RecommendationCriterionCount": rec_metrics["repeatability"]["criterion_judgments_compared"],
         "TopicCaseCount": (
@@ -258,6 +377,14 @@ def main() -> None:
         "TopicDenseRecall": number(dense_topic["micro"]["recall"]),
         "TopicDenseFone": number(dense_topic["micro"]["f1"]),
         "TopicDenseCoverage": number(dense_topic["coverage"]),
+        "TopicVocabularyCount": len(topics["labels"]),
+        "TopicSupportedTestLabelCount": lexical_topic["macro_supported_label_count"],
+        "TopicZeroGoldTestLabelCount": sum(
+            row["tp"] + row["fn"] == 0 for row in lexical_topic["per_label"].values()
+        ),
+        "TopicExactBindingCount": topic_binding["exact"],
+        "TopicReboundBindingCount": topic_binding["rebound"],
+        "TopicBindingDriftCount": topic_binding["drift"],
         "RawAuthorRowCount": phase1["metadata_identity"]["author_count"],
         "CanonicalAuthorCount": authors["active_canonical_identity_count"],
         "PossibleAuthorMergeCount": len(authors["possible_same_person_pairs_not_merged"]),
@@ -269,6 +396,20 @@ def main() -> None:
         "GeneratedAiReviewedCount": review_counts["by_target_status"]["ai_reviewed"],
         "GeneratedNeedsReprocessCount": review_counts["by_target_status"]["needs_reprocess"],
         "GeneratedReviewEventCount": generated_review["apply_result"]["created_events"],
+        "GeneratedReviewChangedCount": generated_review["apply_result"]["changed_records"],
+        "GeneratedReviewReusedCount": generated_review["apply_result"]["skipped_existing"],
+        "GeneratedReviewVerifiedEventCount": generated_review["apply_result"][
+            "review_event_integrity"
+        ]["verified_events"],
+        "GeneratedReviewSecondPassCreatedCount": generated_review["apply_result"][
+            "live_second_pass"
+        ]["created_events"],
+        "GeneratedReviewSecondPassChangedCount": generated_review["apply_result"][
+            "live_second_pass"
+        ]["changed_records"],
+        "GeneratedReviewSecondPassSkippedCount": generated_review["apply_result"][
+            "live_second_pass"
+        ]["skipped_existing"],
         "ExternalSanityDocumentCount": external_sanity["sanity_check"]["case_count"],
         "ExternalSanityTopOneCount": external_sanity["sanity_check"]["top_1_matches"],
         "ExternalSanityChunkCount": sum(document["chunk_count"] for document in external_sanity["documents"]),
@@ -428,9 +569,27 @@ def main() -> None:
         },
     ]
 
+    topic_label_rows: list[str] = []
+    topic_display = {
+        "agriculture": "Agriculture",
+        "ai": "AI",
+        "clustering": "Clustering",
+        "energy": "Energy",
+        "networks": "Networks",
+        "rag": "RAG",
+    }
+    for label, display in topic_display.items():
+        row = lexical_topic["per_label"][label]
+        topic_label_rows.append(
+            f"{display} & {row['tp']} & {row['fp']} & {row['fn']} & "
+            f"{number(row['precision'])} & {number(row['recall'])} \\\\"
+        )
+    values["TopicLabelErrorRows"] = "\n".join(topic_label_rows)
+
     OUT.mkdir(parents=True, exist_ok=True)
     macro_text = "% Generated by thesis/scripts/generate_manuscript_assets.py; do not edit.\n"
     macro_text += "\n".join(macro(name, value) for name, value in sorted(values.items())) + "\n"
+    macro_text += v2["macro_text"]
     (OUT / "evidence_macros.tex").write_text(macro_text, encoding="utf-8")
     write_csv(
         OUT / "retrieval_results.csv",
@@ -455,15 +614,41 @@ def main() -> None:
         ["stage", "label", "cold_median", "cold_p95", "warm_median", "warm_p95", "failure_count"],
     )
 
+    source_manifest = {
+        name: {"path": str(path.relative_to(ROOT)), "sha256": sha256(path)}
+        for name, path in SOURCES.items()
+        if path.is_file()
+    }
+    source_manifest["v2_manuscript_package_helper"] = {
+        "path": str(V2_HELPER.relative_to(ROOT)),
+        "sha256": sha256(V2_HELPER),
+    }
+    source_manifest["recommendation_manuscript_metrics_helper"] = {
+        "path": str(RECOMMENDATION_HELPER.relative_to(ROOT)),
+        "sha256": sha256(RECOMMENDATION_HELPER),
+    }
+    source_manifest.update(v2["sources"])
     manifest = {
         "schema_version": 2,
         "generator": "thesis/scripts/generate_manuscript_assets.py",
         "generation_provenance": generation_provenance(),
-        "sources": {
-            name: {"path": str(path.relative_to(ROOT)), "sha256": sha256(path)}
-            for name, path in SOURCES.items()
-            if path.is_file()
+        "remediation_v2": {
+            "status": v2["status"],
+            "completed": v2["completed"],
+            "layout_only": v2["layout_only"],
+            "manifest_sha256": v2["manifest_sha256"],
+            "validation_attestation_sha256": v2["validation_attestation_sha256"],
+            "macro_attestation_cycle_avoided": (
+                "Canonical v2 macros exclude manifest/attestation hashes; this downstream manifest "
+                "binds both after completed-package validation."
+            ),
         },
+        "recommendation_coverage": {
+            "source": recommendation_metrics["coverage_source"],
+            "layout_fallback_used": recommendation_metrics["layout_fallback_used"],
+            "final_evidence_eligible": recommendation_metrics["final_evidence_eligible"],
+        },
+        "sources": source_manifest,
         "outputs": {
             name: {"path": str(path.relative_to(ROOT)), "sha256": sha256(path)}
             for name, path in {
@@ -482,6 +667,7 @@ def main() -> None:
     )
     print(f"macros={OUT / 'evidence_macros.tex'}")
     print(f"manifest={OUT / 'manuscript_metrics_manifest.json'}")
+    print(f"remediation_v2={v2['status']}")
 
 
 if __name__ == "__main__":

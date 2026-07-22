@@ -17,8 +17,9 @@ import httpx
 from sqlmodel import Session, select
 
 from app.db import create_db_and_tables, engine
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.models import Paper
+from app.security import require_offline_pdf_worker
 
 USER_AGENT = "TTLABResearchIntelligence/0.1 (+https://lab.tt)"
 PDF_UNAVAILABILITY_REASONS = {
@@ -354,8 +355,11 @@ def download_pdfs(
     max_bytes: int | None = None,
     max_redirects: int | None = None,
     resolver: Callable[..., Any] | None = None,
+    settings_override: Settings | None = None,
 ) -> dict[str, int]:
-    settings = get_settings()
+    settings = settings_override or get_settings()
+    if download:
+        require_offline_pdf_worker(settings, "Live PDF acquisition")
     allowed_hosts = tuple(allowed_hosts or settings.allowed_pdf_hosts)
     max_bytes = max_bytes or settings.max_pdf_download_bytes
     max_redirects = settings.max_pdf_redirects if max_redirects is None else max_redirects

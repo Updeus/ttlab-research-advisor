@@ -28,8 +28,8 @@ NS = {
 }
 
 TITLE = (
-    "An AI-Based Platform for Content Summarization and Idea Generation "
-    "using a Research Lab’s Output"
+    "Source-Traceable Research Intelligence: Evidence-Grounded Discovery, "
+    "Question Answering, and Thesis-Extension Support"
 )
 AUTHOR = "Jarod Esareesingh"
 SUBJECT = (
@@ -239,7 +239,7 @@ def validate(docx: Path, render: bool, render_dir: Path | None) -> dict[str, obj
     fail(errors, tables == 11, f"Expected 11 editable tables, found {tables}")
     fail(errors, len(figure_captions) == 11, "Expected 11 figure captions")
     fail(errors, len(table_captions) == 11, "Expected 11 table captions")
-    fail(errors, len(bibliography) == 32, "Expected 32 IEEE bibliography entries")
+    fail(errors, len(bibliography) == 38, "Expected 38 IEEE bibliography entries")
     fail(errors, equations >= 2, "Expected at least two display equations")
     fail(errors, len(by_style.get("SourceCode", [])) == 4, "Expected four code listings")
     fail(errors, len(by_style.get("DefinitionTerm", [])) == 25, "Definition-list labels were lost")

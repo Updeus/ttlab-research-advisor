@@ -1,0 +1,26 @@
+{
+  "claim_boundary": "Strict structural/package validation passed in the frozen locked environment. This is AI-silver technical evidence, not human, entailment, public, feasibility, or rights approval.",
+  "evaluation_id": "peer-review-remediation-v2",
+  "evaluation_source_commit": "0d4b9bdcb657034beab5c288ab174983eb0760e3",
+  "freeze_receipt_sha256": "00c7d2541a9a88e3092cece6f3bb4fb239700c79c2fcb307f9e43b23d709d9f3",
+  "locked_validator_identity": {
+    "lock_path": "backend/requirements-lock.txt",
+    "lock_sha256": "93e43a941f8ca2bd25124c83360b54ff6f2109e575f3abefb211a7383b8058eb",
+    "locked_package_count": 95,
+    "python_version": "3.12.3",
+    "runner_path": "data/evaluation/run_peer_review_remediation_v2.py",
+    "runner_sha256": "ce4466564ed7fa19c95b9b8f348bf4fb43c522836de3008f10a70ab8ffc90b44",
+    "status": "locked_environment_valid",
+    "validator_path": "data/evaluation/validate_peer_review_remediation_v2.py",
+    "validator_sha256": "1de537ad8a0a2b052f485e52f7fd681680311bfe398990ef818e1860cfc210ca"
+  },
+  "manifest_path": "artifacts/peer_review_remediation/v2/manifest_v2.json",
+  "manifest_sha256": "bdc8e8b289d36834479f7bcc1c2efc9857b9812171dd3d4df7f2bff6680e18d9",
+  "restricted_raw_files_required_for_this_validation": true,
+  "rights_sensitive_raw_text_in_versionable_package": false,
+  "schema_version": 1,
+  "status": "completed_package_validated",
+  "validated_at": "2026-07-21T21:02:48.068625+00:00",
+  "validation_report_sha256": "392761d37d4c55787e41174f921bba1fe38b2a33f743866956b912d5596b61de",
+  "versionable_output_inventory_sha256": "2d8c636d2626286918da45ed99307dc7d2b02dfc3d1987366267cab370afd87c"
+}

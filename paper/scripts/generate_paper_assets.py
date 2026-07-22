@@ -3,16 +3,26 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "paper" / "generated"
+SCRIPTS_DIR = ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from manuscript_v2_package import load_manuscript_v2_package
+from recommendation_manuscript_metrics import derive_recommendation_manuscript_metrics
+
+V2_HELPER = SCRIPTS_DIR / "manuscript_v2_package.py"
+RECOMMENDATION_HELPER = SCRIPTS_DIR / "recommendation_manuscript_metrics.py"
 REQUIRED = {
     "phase1": ROOT / "artifacts" / "phase1" / "phase1_evidence.json",
     "section_metrics": ROOT / "artifacts" / "phase1" / "section_quality_metrics.json",
@@ -23,6 +33,7 @@ REQUIRED = {
     "author_audit": ROOT / "artifacts" / "phase4" / "topic_author" / "author_identity_audit.json",
     "review": ROOT / "artifacts" / "phase4" / "generated_output_review" / "generated_output_review_summary.json",
     "retrieval_error": ROOT / "artifacts" / "phase2" / "retrieval" / "error_taxonomy.json",
+    "external_sanity": ROOT / "artifacts" / "phase6" / "external_sanity" / "external_sanity_manifest.json",
 }
 SECTION_CASES = ROOT / "data" / "evaluation" / "section_quality_silver_v1.jsonl"
 PERFORMANCE_CANDIDATES = (
@@ -70,10 +81,77 @@ def ci(metric: dict[str, Any]) -> str:
     return f"[{fmt(metric['ci_lower'])}, {fmt(metric['ci_upper'])}]"
 
 
-def main() -> None:
+def topic_binding_counts(
+    topics: dict[str, Any], *, allow_layout_fallback: bool
+) -> dict[str, Any]:
+    """Return current-snapshot binding counts, or explicit WIP placeholders."""
+
+    binding = topics.get("evidence_binding")
+    if binding is None:
+        if allow_layout_fallback:
+            return {"exact": "--", "rebound": "--", "drift": "--", "layout_fallback": True}
+        raise ValueError(
+            "Final paper assets require topic_metrics.json evidence_binding from the current "
+            "topic-silver binding receipt"
+        )
+    resolutions = binding.get("resolution_counts")
+    if not isinstance(resolutions, dict):
+        raise ValueError("Topic evidence_binding is missing resolution_counts")
+    exact = int(resolutions.get("exact_chunk_id", 0))
+    rebound = int(resolutions.get("stable_paper_chunk_page_section_locator", 0))
+    drift = int(binding.get("source_snapshot_drift_count", 0))
+    if exact < 0 or rebound < 0 or drift < 0 or drift > exact + rebound:
+        raise ValueError("Topic evidence_binding contains impossible counts")
+    return {"exact": exact, "rebound": rebound, "drift": drift, "layout_fallback": False}
+
+
+def generation_provenance() -> dict[str, Any]:
+    """Describe the committed base and the pre-generation working-tree boundary."""
+
+    def git_value(*arguments: str) -> str:
+        return subprocess.run(
+            ["git", *arguments], cwd=ROOT, check=True, capture_output=True, text=True
+        ).stdout.strip()
+
+    status_lines = [
+        line
+        for line in git_value("status", "--porcelain=v1", "--untracked-files=all").splitlines()
+        if line.strip()
+    ]
+    return {
+        "committed_base": {
+            "commit": git_value("rev-parse", "HEAD"),
+            "tree": git_value("rev-parse", "HEAD^{tree}"),
+        },
+        "working_tree": {
+            "dirty": bool(status_lines),
+            "status_porcelain_before_generation": status_lines,
+        },
+        "expected_generated_output_boundary": [
+            "paper/generated/**",
+            "build/ieee-paper.pdf",
+        ],
+        "semantics": (
+            "The commit and tree identify the committed repository base. Frozen evidence and the exact "
+            "generator are bound separately by SHA-256. A dirty working tree means the PDF is a candidate "
+            "built from that base plus local changes; it is not represented as a clean committed release. "
+            "The status list is captured before this generator rewrites its own outputs."
+        ),
+    }
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--allow-v2-not-run",
+        action="store_true",
+        help="Generate explicit non-submission layout placeholders before the canonical v2 run.",
+    )
+    args = parser.parse_args(argv)
     missing = [str(path.relative_to(ROOT)) for path in (*REQUIRED.values(), SECTION_CASES) if not path.is_file()]
     if missing:
         raise FileNotFoundError("Missing required paper evidence: " + ", ".join(missing))
+    v2 = load_manuscript_v2_package(ROOT, allow_not_run=args.allow_v2_not_run)
     data = {name: load(path) for name, path in REQUIRED.items()}
     phase1 = data["phase1"]
     retrieval = data["retrieval"]
@@ -84,6 +162,24 @@ def main() -> None:
     author_audit = data["author_audit"]
     review = data["review"]
     retrieval_error = data["retrieval_error"]
+    external_sanity = data["external_sanity"]
+    provenance = generation_provenance()
+    recommendation_metrics = derive_recommendation_manuscript_metrics(
+        rec, allow_layout_fallback=args.allow_v2_not_run
+    )
+    recommendation_full = recommendation_metrics["arms"]["full_finder"]
+    recommendation_evidence = recommendation_metrics["arms"]["evidence_only"]
+    recommendation_criteria = recommendation_full["criteria"]
+    topic_binding = topic_binding_counts(
+        topics, allow_layout_fallback=args.allow_v2_not_run
+    )
+    qa_answered_count = int(qa["counts"]["answerable_responses"]) + (
+        int(qa["counts"]["unanswerable_cases"])
+        - int(qa["counts"]["unanswerable_abstentions"])
+    )
+    qa_abstention_count = int(qa["case_count"]) - qa_answered_count
+    if not 0 <= qa_answered_count <= int(qa["case_count"]):
+        raise ValueError("QA response counts are inconsistent with the case count")
     if section_metrics["dataset_sha256"] != sha256(SECTION_CASES):
         raise ValueError("Section-quality metrics do not match the committed silver dataset")
     if section_metrics["prediction_source"] != "current_database":
@@ -130,19 +226,60 @@ def main() -> None:
         ),
         "PaperQaCaseCount": qa["case_count"],
         "PaperQaClaimCount": qa["counts"]["claim_count"],
+        "PaperQaSupportedClaimCount": qa["counts"]["supported_claims"],
+        "PaperQaPartialClaimCount": qa["counts"]["partially_supported_claims"],
+        "PaperQaUnsupportedClaimCount": qa["counts"]["unsupported_claims"],
         "PaperQaCitationAttachedCount": qa["counts"]["claims_with_citation"],
+        "PaperQaCorrectCitationLinkCount": qa["counts"]["correct_citation_links"],
+        "PaperQaPartialCitationLinkCount": qa["counts"]["partial_citation_links"],
+        "PaperQaIncorrectCitationLinkCount": qa["counts"]["incorrect_citation_links"],
+        "PaperQaAnswerPointCount": qa["counts"]["answer_point_count"],
+        "PaperQaCoveredAnswerPointCount": qa["counts"]["covered_answer_points"],
+        "PaperQaPartialAnswerPointCount": qa["counts"]["partially_covered_answer_points"],
+        "PaperQaMissingAnswerPointCount": qa["counts"]["answer_point_count"]
+        - qa["counts"]["covered_answer_points"]
+        - qa["counts"]["partially_covered_answer_points"],
+        "PaperQaReturnedCitationCount": qa["counts"]["returned_citations"],
+        "PaperQaUsedReturnedCitationCount": qa["counts"]["used_returned_citations"],
         "PaperQaUnanswerableCount": qa["counts"]["unanswerable_cases"],
+        "PaperQaAnsweredCount": qa_answered_count,
+        "PaperQaAbstentionCount": qa_abstention_count,
         "PaperQaAnswerProvider": tex_escape(qa["answer_provider"]),
         "PaperQaAnswerModel": tex_escape(qa["answer_model"]),
         "PaperQaRetrievalMode": tex_escape(qa["retrieval_mode"]),
-        "PaperRecommendationProfileCount": rec["profile_coverage"]["profile_count"],
-        "PaperRecommendationItemsPerArm": rec["metrics"]["evidence_only"]["reviewed_items"],
-        "PaperRecommendationFeasibilityPartialCount": rec["metrics"]["full_finder"]["criteria"][
+        "PaperRecommendationProfileCount": recommendation_metrics["profile_count"],
+        "PaperRecommendationRequestedSlotCount": recommendation_metrics["requested_slots_per_arm"],
+        "PaperRecommendationEvidenceReturnedCount": recommendation_evidence["returned_items"],
+        "PaperRecommendationFullReturnedCount": recommendation_full["returned_items"],
+        "PaperRecommendationFullMissingCount": recommendation_full["missing_slots"],
+        "PaperRecommendationFullReturnCoverage": fmt(recommendation_full["return_coverage"]),
+        "PaperRecommendationFullProfilesAtCutoff": recommendation_full["profiles_at_cutoff"],
+        "PaperRecommendationFullShortProfileCount": recommendation_full["short_profile_count"],
+        "PaperRecommendationSeparationPass": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["pass"],
+        "PaperRecommendationSeparationFail": recommendation_criteria[
+            "fact_future_gap_suggestion_separation"
+        ]["fail"],
+        "PaperRecommendationFeasibilityPass": recommendation_criteria[
             "skills_time_data_feasibility"
-        ]["counts"]["partial"],
-        "PaperRecommendationPlanPartialCount": rec["metrics"]["full_finder"]["criteria"][
-            "evaluation_plan_quality"
-        ]["counts"]["partial"],
+        ]["pass"],
+        "PaperRecommendationFeasibilityPartial": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["partial"],
+        "PaperRecommendationFeasibilityFail": recommendation_criteria[
+            "skills_time_data_feasibility"
+        ]["fail"],
+        "PaperRecommendationMvpPass": recommendation_criteria["mvp_scope"]["pass"],
+        "PaperRecommendationMvpPartial": recommendation_criteria["mvp_scope"]["partial"],
+        "PaperRecommendationMvpFail": recommendation_criteria["mvp_scope"]["fail"],
+        "PaperRecommendationPlanPass": recommendation_criteria["evaluation_plan_quality"]["pass"],
+        "PaperRecommendationPlanPartial": recommendation_criteria["evaluation_plan_quality"]["partial"],
+        "PaperRecommendationPlanFail": recommendation_criteria["evaluation_plan_quality"]["fail"],
+        "PaperRecommendationUsefulnessFail": recommendation_criteria["usefulness_as_ai_proxy"]["fail"],
+        "PaperRecommendationLayoutFallback": str(
+            recommendation_metrics["layout_fallback_used"]
+        ).lower(),
         "PaperRecommendationPerturbationCount": len(rec["sensitivity_summary"]) - 1,
         "PaperRecommendationConfigurationCount": len(rec["sensitivity_summary"]),
         "PaperTopicCaseCount": topics["methods"]["controlled_lexical"]["dev"]["case_count"]
@@ -150,6 +287,17 @@ def main() -> None:
         "PaperTopicDevCount": topics["methods"]["controlled_lexical"]["dev"]["case_count"],
         "PaperTopicTestCount": topics["methods"]["controlled_lexical"]["test"]["case_count"],
         "PaperTopicControlledLabelCount": len(topics["labels"]) - 1,
+        "PaperTopicVocabularyCount": len(topics["labels"]),
+        "PaperTopicSupportedTestLabelCount": topics["methods"]["controlled_lexical"]["test"][
+            "macro_supported_label_count"
+        ],
+        "PaperTopicZeroGoldTestLabelCount": sum(
+            row["tp"] + row["fn"] == 0
+            for row in topics["methods"]["controlled_lexical"]["test"]["per_label"].values()
+        ),
+        "PaperTopicBindingExactCount": topic_binding["exact"],
+        "PaperTopicBindingReboundCount": topic_binding["rebound"],
+        "PaperTopicBindingDriftCount": topic_binding["drift"],
         "PaperPossibleAuthorPairCount": len(author_audit["possible_same_person_pairs_not_merged"]),
         "PaperReviewEventCount": review["counts"]["total"],
         "PaperAiReviewedCount": review["counts"]["by_target_status"]["ai_reviewed"],
@@ -157,6 +305,14 @@ def main() -> None:
         "PaperReviewAnswerCount": review["counts"]["by_item_type"]["rag_answer"],
         "PaperReviewRecommendationCount": review["counts"]["by_item_type"]["thesis_recommendation"],
         "PaperReviewArtifactCount": review["counts"]["by_item_type"]["paper_artifact"],
+        "PaperExternalDocumentCount": len(external_sanity["documents"]),
+        "PaperExternalTopOneCount": external_sanity["sanity_check"]["top_1_matches"],
+        "PaperSourceCommit": tex_escape(provenance["committed_base"]["commit"][:12]),
+        "PaperSourceTree": tex_escape(provenance["committed_base"]["tree"][:12]),
+        "PaperWorkingTreeDirty": str(provenance["working_tree"]["dirty"]).lower(),
+        "PaperAiLabelBoundary": tex_escape(
+            "AI-reviewed silver labels; no human inter-rater reliability or label-noise interval"
+        ),
     }
 
     for mode, prefix in {
@@ -204,6 +360,7 @@ def main() -> None:
     }.items():
         values[f"Paper{suffix}"] = fmt(qa_metrics[key])
         values[f"Paper{suffix}Ci"] = ci(qa_intervals[key])
+    values["PaperQaAnswerCoverage"] = fmt(qa_metrics["answer_point_coverage"], 4)
 
     comparison = rec["metrics"]["arm_comparison"]
     delta = comparison["full_minus_baseline_relevance"]
@@ -273,7 +430,8 @@ def main() -> None:
     metrics_path.write_text(
         "% Generated by paper/scripts/generate_paper_assets.py; do not edit.\n"
         + "\n".join(macro(name, value) for name, value in sorted(values.items()))
-        + "\n",
+        + "\n"
+        + v2["macro_text"],
         encoding="utf-8",
     )
 
@@ -294,22 +452,33 @@ def main() -> None:
         )
     (OUT / "retrieval_rows.tex").write_text("\n".join(retrieval_rows) + "\n", encoding="utf-8")
 
+    topic_rows = []
+    topic_test_rows = topics["methods"]["controlled_lexical"]["test"]["per_label"]
+    for label in ("agriculture", "ai", "clustering", "energy", "networks", "rag"):
+        row = topic_test_rows[label]
+        topic_rows.append(
+            f"{tex_escape(label.title())} & {row['tp']} & {row['fp']} & {row['fn']} & "
+            f"{fmt(row['precision'])} & {fmt(row['recall'])} \\tabularnewline"
+        )
+    topic_rows_path = OUT / "topic_error_rows.tex"
+    topic_rows_path.write_text(
+        "% Generated topic error rows; do not edit.\n"
+        "\\newcommand{\\PaperTopicErrorRows}{%\n"
+        + "\n".join(topic_rows)
+        + "\n}\n",
+        encoding="utf-8",
+    )
+
     performance_summary = OUT / "performance_summary.tex"
     if performance_present:
         assert performance_path is not None
         performance = load(performance_path)
         selected = (
-            ("Discovery (network)", "discovery"),
+            ("Discovery", "discovery"),
             ("PDF extraction", "pdf_extraction"),
-            ("Chunking", "chunking"),
-            ("Dense indexing", "dense_index"),
-            ("Keyword retrieval", "retrieval_keyword"),
-            ("Dense retrieval", "retrieval_dense"),
+            ("Dense index", "dense_index"),
             ("Hybrid retrieval", "retrieval_hybrid"),
-            ("Extractive answer", "answer_offline"),
-            ("Recommendation", "recommendation_offline"),
-            ("ASGI endpoints", "api_asgi"),
-            ("Frontend build", "frontend_build"),
+            ("Offline answer", "answer_offline"),
             ("Rendered routes", "frontend_page_load"),
         )
         rows: list[str] = []
@@ -332,36 +501,35 @@ def main() -> None:
             ]
             rss = max(rss_values) if rss_values else None
             rows.append(
-                f"{label} & {tex_escape(sample['units']) if sample else '--'} & {fmt_optional(cold['elapsed_seconds']['median'])} & "
-                f"{fmt_optional(cold['elapsed_seconds']['p95'])} & {fmt_optional(warm['elapsed_seconds']['median'])} & "
-                f"{fmt_optional(warm['elapsed_seconds']['p95'])} & {fmt_optional(rss / 1024 if rss else None, 1)} & "
-                f"{cold['failures'] + warm['failures']} \\\\"
+                f"{label} & {fmt_optional(cold['elapsed_seconds']['median'])} & "
+                f"{fmt_optional(warm['elapsed_seconds']['median'])} & "
+                f"{fmt_optional(rss / 1024 if rss else None, 1)} \\\\"
             )
         summary_text = (
-            "The full profile measured \\PaperPerformanceStageCount{} stages with "
-            "\\PaperPerformanceRepetitions{} process-cold and warm repetitions at concurrency one on "
-            "\\PaperCpuModel{} (\\PaperLogicalCpuCount{} logical CPUs, \\PaperMemoryGiB{}~GiB RAM). "
-            "The artifact is bound to source commit \\texttt{\\PaperPerformanceSourceCommit{}} and "
-            "provenance digest \\texttt{\\PaperPerformanceProvenance{}}. "
-            "Cold means a fresh Python process; operating-system caches were not flushed. "
-            "Across the reported samples, \\PaperPerformanceFailedSamples{} executions failed. "
-            "Table~\\ref{tab:performance} reports elapsed wall time and process peak RSS; it is a "
-            "single-user characterization, not a saturation or capacity test.\n\n"
-            "\\begin{table*}[t]\n"
-            "\\caption{Full-corpus performance on documented local hardware. Times are seconds; RSS is MiB.}\n"
+            "\\begin{table}[t]\n"
+            "\\caption{Selected local stage medians (s) and peak RSS (MiB).}\n"
             "\\label{tab:performance}\n"
             "\\centering\n\\scriptsize\n"
-            "\\begin{tabular}{@{}lrrrrrrr@{}}\n"
-            "\\toprule\nStage & Units & Cold med. & Cold p95 & Warm med. & Warm p95 & Peak RSS & Fail. \\\\\n"
+            "\\begin{tabular}{@{}lrrr@{}}\n"
+            "\\toprule\nStage & Cold & Warm & RSS \\\\\n"
             "\\midrule\n"
             + "\n".join(rows)
-            + "\n\\bottomrule\n\\end{tabular}\n\\end{table*}\n"
+            + "\n\\bottomrule\n\\end{tabular}\n\\end{table}\n"
         )
         performance_summary.write_text(summary_text, encoding="utf-8")
     elif performance_summary.exists():
         performance_summary.unlink()
 
     sources = {name: {"path": str(path.relative_to(ROOT)), "sha256": sha256(path)} for name, path in REQUIRED.items()}
+    sources["v2_manuscript_package_helper"] = {
+        "path": str(V2_HELPER.relative_to(ROOT)),
+        "sha256": sha256(V2_HELPER),
+    }
+    sources["recommendation_manuscript_metrics_helper"] = {
+        "path": str(RECOMMENDATION_HELPER.relative_to(ROOT)),
+        "sha256": sha256(RECOMMENDATION_HELPER),
+    }
+    sources.update(v2["sources"])
     sources["section_cases"] = {
         "path": str(SECTION_CASES.relative_to(ROOT)),
         "sha256": sha256(SECTION_CASES),
@@ -373,15 +541,55 @@ def main() -> None:
             "sha256": sha256(performance_path),
         }
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generator": "paper/scripts/generate_paper_assets.py",
         "generator_sha256": sha256(Path(__file__).resolve()),
+        "generation_provenance": provenance,
+        "corpus_boundary": {
+            "snapshot_id": dense_manifest["corpus"]["snapshot_id"],
+            "eligible_papers": corpus["eligible_paper_count"],
+            "eligible_chunks": corpus["eligible_chunk_count"],
+            "ordered_chunk_hash": dense_manifest["corpus"].get("ordered_chunk_hash"),
+        },
+        "evidence_boundary": {
+            "kind": "frozen committed experiment artefacts plus independently hashed generator outputs",
+            "ai_label_status": (
+                "Retrieval, QA, recommendation, section, topic, and generated-output judgments are "
+                "AI-reviewed silver evidence, not recruited-human ground truth. Reported intervals do not "
+                "model AI-label uncertainty."
+            ),
+            "qa_claim_labels": {
+                "supported": qa["counts"]["supported_claims"],
+                "partial": qa["counts"]["partially_supported_claims"],
+                "unsupported": qa["counts"]["unsupported_claims"],
+            },
+            "recommendation_coverage": {
+                "source": recommendation_metrics["coverage_source"],
+                "layout_fallback_used": recommendation_metrics["layout_fallback_used"],
+                "final_evidence_eligible": recommendation_metrics["final_evidence_eligible"],
+            },
+        },
+        "remediation_v2": {
+            "status": v2["status"],
+            "completed": v2["completed"],
+            "layout_only": v2["layout_only"],
+            "manifest_sha256": v2["manifest_sha256"],
+            "validation_attestation_sha256": v2["validation_attestation_sha256"],
+            "macro_attestation_cycle_avoided": (
+                "Canonical v2 macros exclude manifest/attestation hashes; this downstream manifest "
+                "binds both after completed-package validation."
+            ),
+        },
         "sources": sources,
         "outputs": {
             "metrics": {"path": str(metrics_path.relative_to(ROOT)), "sha256": sha256(metrics_path)},
             "retrieval_rows": {
                 "path": "paper/generated/retrieval_rows.tex",
                 "sha256": sha256(OUT / "retrieval_rows.tex"),
+            },
+            "topic_error_rows": {
+                "path": "paper/generated/topic_error_rows.tex",
+                "sha256": sha256(topic_rows_path),
             },
             **(
                 {
@@ -397,7 +605,10 @@ def main() -> None:
         "performance_included": performance_present,
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    print(f"generated={OUT.relative_to(ROOT)} performance={performance_present}")
+    print(
+        f"generated={OUT.relative_to(ROOT)} performance={performance_present} "
+        f"v2={v2['status']}"
+    )
 
 
 if __name__ == "__main__":

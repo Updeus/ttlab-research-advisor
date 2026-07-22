@@ -1,8 +1,8 @@
 \begin{tikzpicture}[node distance=5mm]
   \node[layerbox] (ui) {\textbf{Presentation layer} \hfill React 19 + Vite + TypeScript\\Route-based Dashboard; Paper Browser/Detail; Search; Ask; Extension Finder; Explorer; Evaluation; protected Admin; provenance, freshness, privacy and review notices};
-  \node[layerbox, below=of ui, fill=PaleTeal, draw=Teal!80!black] (api) {\textbf{API and security layer} \hfill FastAPI\\Public read/transient generation; authenticated reviewer/admin mutation; input/rate limits; exact CORS/hosts; redacted logs; readiness; append-only attributed review events};
+  \node[layerbox, below=of ui, fill=PaleTeal, draw=Teal!80!black] (api) {\textbf{API and security layer} \hfill FastAPI\\Fail-closed public projection and transient generation; protected technical/review operations; input/rate limits; exact CORS/hosts; redacted logs; readiness};
   \node[layerbox, below=of api, fill=PaleGold, draw=Gold!80!black] (logic) {\textbf{Research-intelligence and evaluation layer}\\Discovery, safe PDF acquisition, native/OCR-aware parsing and chunking; keyword, feature-hashing, pinned learned-dense and hybrid retrieval; QA; evidence-only/full recommendation; controlled topics; generated artefacts; offline evaluation};
-  \node[layerbox, below=of logic, fill=gray!8, draw=Slate] (data) {\textbf{Persistence and evidence layer} \hfill SQLite + local files\\Source/provenance entities; permitted PDFs and derived text; atomic indexes plus hash-validated manifests; silver labels; raw rankings, claims and reviews; experiment/release manifests};
+  \node[layerbox, below=of logic, fill=gray!8, draw=Slate] (data) {\textbf{Persistence and evidence layer} \hfill SQLite + immutable generation directories\\Source/provenance entities; permitted PDFs and derived text; current pointers plus hash-validated manifests; silver labels; raw rankings, claims and reviews};
   \draw[arrow] (ui) -- node[right,font=\scriptsize]{JSON/HTTP} (api);
   \draw[arrow] (api) -- (logic);
   \draw[arrow] (logic) -- node[right,font=\scriptsize]{SQLModel + atomic files} (data);

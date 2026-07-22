@@ -29,6 +29,11 @@ class PaperArtifact(SQLModel, table=True):
     reviewed_by: Optional[str] = None
     corrected_text: Optional[str] = None
     corrected_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    correction_grounding_status: str = Field(default="not_applicable", index=True)
+    correction_source_chunk_ids_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    correction_citations_json: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    correction_runtime_provenance_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     warnings_json: list[str] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    runtime_provenance_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

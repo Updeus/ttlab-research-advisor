@@ -3,17 +3,21 @@ from typing import Generator
 
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.db import get_session
 from app.api import search as search_api_module
 from app.evaluation.retrieval_eval import calculate_metrics, evaluate_ranked_query, evaluate_retrieval
 from app.indexing.embedder import HashingEmbeddingProvider, index_chunks
+from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.indexing.keyword_search import make_snippet, rebuild_keyword_index, search_keyword
 from app.indexing.retriever import diversify_ranked_entries, expand_query, has_rag_signal, retrieve
 from app.indexing.vector_store import search_vector_store
 from app.main import app
 from app.models import Chunk, Paper
+
+EXTRACTION_GENERATION = "a" * 64
+CHUNK_GENERATION = "b" * 64
 
 
 def build_test_session() -> tuple[Session, object]:
@@ -24,8 +28,45 @@ def build_test_session() -> tuple[Session, object]:
     )
     SQLModel.metadata.create_all(engine)
     session = Session(engine)
-    session.add(Paper(paper_id="rag-paper", title="RAG Paper", authors=["Asha Singh"], year=2025, pdf_url="https://example.test/rag.pdf"))
-    session.add(Paper(paper_id="traffic-paper", title="Traffic Paper", authors=["Ben Lee"], year=2024))
+    session.add(
+        Paper(
+            paper_id="rag-paper",
+            title="RAG Paper",
+            authors=["Asha Singh"],
+            year=2025,
+            pdf_url="https://example.test/rag.pdf",
+            corpus_eligibility_status="eligible",
+            review_status="approved",
+            extraction_review_status="approved",
+            publication_status="published",
+            rights_status="cleared",
+            public_access_level="searchable",
+            extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_generation_id=CHUNK_GENERATION,
+            public_index_generation_id=CHUNK_GENERATION,
+            chunk_count=1,
+        )
+    )
+    session.add(
+        Paper(
+            paper_id="traffic-paper",
+            title="Traffic Paper",
+            authors=["Ben Lee"],
+            year=2024,
+            corpus_eligibility_status="eligible",
+            review_status="approved",
+            extraction_review_status="approved",
+            publication_status="published",
+            rights_status="cleared",
+            public_access_level="searchable",
+            extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_extraction_generation_id=EXTRACTION_GENERATION,
+            chunk_generation_id=CHUNK_GENERATION,
+            public_index_generation_id=CHUNK_GENERATION,
+            chunk_count=1,
+        )
+    )
     session.add(
         Chunk(
             chunk_id="rag-chunk",
@@ -37,6 +78,7 @@ def build_test_session() -> tuple[Session, object]:
             text="Retrieval augmented generation combines search with grounded academic research systems.",
             word_count=10,
             source_hash="rag-hash",
+            extraction_generation_id=EXTRACTION_GENERATION,
         )
     )
     session.add(
@@ -50,8 +92,18 @@ def build_test_session() -> tuple[Session, object]:
             text="Highway congestion and carpool lane measurements describe empirical traffic behavior.",
             word_count=9,
             source_hash="traffic-hash",
+            extraction_generation_id=EXTRACTION_GENERATION,
         )
     )
+    session.flush()
+    for paper_id in ("rag-paper", "traffic-paper"):
+        chunks = list(session.exec(select(Chunk).where(Chunk.paper_id == paper_id)).all())
+        generation_id = canonical_chunks_sha256(db_chunk_payload(chunks))
+        paper = session.get(Paper, paper_id)
+        assert paper is not None
+        paper.chunk_generation_id = generation_id
+        paper.public_index_generation_id = generation_id
+        session.add(paper)
     session.commit()
     return session, engine
 
@@ -188,7 +240,10 @@ def test_api_search_and_diagnostics_work(tmp_path: Path, monkeypatch) -> None:
     try:
         client = TestClient(app)
         keyword = client.get("/api/search", params={"q": "retrieval", "mode": "keyword", "limit": 5})
-        semantic = client.get("/api/search", params={"q": "retrieval", "mode": "semantic", "limit": 5})
+        feature_hashing = client.get(
+            "/api/search",
+            params={"q": "retrieval", "mode": "feature_hashing", "limit": 5},
+        )
         diagnostics = client.get("/api/search/diagnostics")
         stats = client.get("/api/stats")
     finally:
@@ -196,8 +251,8 @@ def test_api_search_and_diagnostics_work(tmp_path: Path, monkeypatch) -> None:
 
     assert keyword.status_code == 200
     assert keyword.json()["results"][0]["paper_id"] == "rag-paper"
-    assert semantic.status_code == 200
-    assert "warnings" in semantic.json()
+    assert feature_hashing.status_code == 200
+    assert "warnings" in feature_hashing.json()
     assert diagnostics.status_code == 200
     assert diagnostics.json()["searchable_chunks"] == 2
     assert stats.status_code == 200

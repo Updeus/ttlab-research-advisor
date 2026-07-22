@@ -2,6 +2,7 @@ from pathlib import Path
 
 import httpx
 
+from app.config import Settings
 from app.ingestion.pdf_downloader import (
     DownloadRecord,
     classify_http_unavailability,
@@ -38,6 +39,10 @@ def test_pdf_unavailability_http_taxonomy_is_deterministic() -> None:
 
 
 def test_pdf_downloader_counts_forbidden_and_invalid_pdf(tmp_path: Path) -> None:
+    worker_settings = Settings(
+        service_role="offline_worker",
+        sync_execution_mode="offline_single_writer",
+    )
     forbidden_client = httpx.Client(
         transport=httpx.MockTransport(lambda request: httpx.Response(403, request=request)),
     )
@@ -59,6 +64,7 @@ def test_pdf_downloader_counts_forbidden_and_invalid_pdf(tmp_path: Path) -> None
             client=forbidden_client,
             allowed_hosts=["example.test"],
             resolver=lambda *_args, **_kwargs: ["93.184.216.34"],
+            settings_override=worker_settings,
         )
         invalid = download_pdfs(
             [DownloadRecord(paper_id="invalid", pdf_url="https://example.test/invalid.pdf")],
@@ -67,6 +73,7 @@ def test_pdf_downloader_counts_forbidden_and_invalid_pdf(tmp_path: Path) -> None
             client=invalid_client,
             allowed_hosts=["example.test"],
             resolver=lambda *_args, **_kwargs: ["93.184.216.34"],
+            settings_override=worker_settings,
         )
     finally:
         forbidden_client.close()

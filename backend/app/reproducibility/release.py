@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 from datetime import UTC, datetime
@@ -52,6 +53,7 @@ EXCLUDED_SUFFIXES = {".db", ".sqlite", ".sqlite3", ".pdf", ".pyc", ".pyo", ".pem
 EXCLUDED_NAMES = {".env", ".env.local", ".env.production", "narine-rtsi.pdf"}
 TEXT_BEARING_KEYS = {
     "answer",
+    "anchor",
     "baseline_work",
     "claim",
     "chunk_text",
@@ -76,7 +78,10 @@ TEXT_BEARING_KEYS = {
     "why_it_fits_student",
 }
 LOCAL_PATH_PATTERN = re.compile(
-    r"(?:/(?:mnt/[a-z]|home/[^/]+|Users/[^/]+|root|tmp)/|[A-Za-z]:\\Users\\)"
+    r"(?:file:///(?:home|mnt|tmp|root|Users|workspace|workspaces|Volumes|private/var/folders)/"
+    r"|(?<![A-Za-z0-9:])/(?:home|mnt|tmp|root|Users|workspace|workspaces|Volumes|private/var/folders)/"
+    r"|(?<![A-Za-z0-9])[A-Za-z]:[\\/]"
+    r"|\\\\[^\\/\s]+[\\/][^\\/\s]+)"
 )
 SECRET_PATTERNS = {
     "github_token": re.compile(r"\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b"),
@@ -87,6 +92,28 @@ SECRET_PATTERNS = {
 MAX_ARCHIVE_MEMBERS = 10_000
 MAX_ARCHIVE_FILE_BYTES = 50 * 1024 * 1024
 MAX_ARCHIVE_TOTAL_BYTES = 500 * 1024 * 1024
+CANONICAL_V2_PARTS = ("artifacts", "peer_review_remediation", "v2")
+CANONICAL_V2_RELEASE_FILES = frozenset(
+    {
+        "freeze_receipt_v2.json",
+        "qa_raw_outputs_v2.jsonl",
+        "qa_review_pass1_v2.jsonl",
+        "qa_review_pass2_v2.jsonl",
+        "qa_disagreements_v2.json",
+        "qa_metrics_v2.json",
+        "finder_raw_outputs_v2.jsonl",
+        "finder_review_pass1_v2.jsonl",
+        "finder_review_pass2_v2.jsonl",
+        "finder_disagreements_v2.json",
+        "finder_metrics_v2.json",
+        "topic_predictions_v2.jsonl",
+        "topic_metrics_v2.json",
+        "ocr_fixture_results_v2.json",
+        "manuscript_macros_v2.tex",
+        "manifest_v2.json",
+        "validation_attestation_v2.json",
+    }
+)
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -113,6 +140,214 @@ def tracked_paths(root: Path = ROOT) -> list[Path]:
     return [Path(value) for value in values if value]
 
 
+def committed_paths(root: Path = ROOT) -> list[Path]:
+    """Return paths present in HEAD rather than merely staged in the index."""
+
+    values = git("ls-tree", "-r", "--name-only", "-z", "HEAD", root=root).split("\0")
+    return [Path(value) for value in values if value]
+
+
+def canonical_v2_bytes_match_head(root: Path = ROOT) -> bool:
+    """Return whether every canonical package byte equals its HEAD blob."""
+
+    for filename in CANONICAL_V2_RELEASE_FILES:
+        relative = Path(*CANONICAL_V2_PARTS, filename)
+        completed = subprocess.run(
+            ["git", "show", f"HEAD:{relative.as_posix()}"],
+            cwd=root,
+            capture_output=True,
+            check=False,
+        )
+        source = root / relative
+        if completed.returncode != 0 or not source.is_file() or completed.stdout != source.read_bytes():
+            return False
+    return True
+
+
+def require_clean_git_index(root: Path = ROOT) -> None:
+    """Reject staged topology/content changes hidden behind a HEAD provenance claim."""
+
+    completed = subprocess.run(
+        ["git", "diff", "--cached", "--quiet", "HEAD", "--"],
+        cwd=root,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            "Validated-generated v2 inclusion requires the Git index to match HEAD exactly"
+        )
+
+
+def validate_canonical_v2_for_release(
+    tracked: list[Path],
+    *,
+    root: Path = ROOT,
+    committed: list[Path] | None = None,
+    include_validated_generated: bool = False,
+    committed_package_bytes_match: bool | None = None,
+    expected_evaluation_source_commit: str | None = None,
+) -> dict[str, Any]:
+    """Fail closed on noncanonical v2 material and attest a complete package.
+
+    Normal releases require all 17 files in the source commit. A full
+    reproduction may explicitly include the newly generated package after its
+    strict validator passes; that exception is recorded in the release
+    manifest and never inferred merely from a dirty worktree or staged index.
+    """
+
+    package_dir = root.joinpath(*CANONICAL_V2_PARTS)
+    filesystem_names: set[str] = set()
+    if package_dir.exists() or package_dir.is_symlink():
+        if package_dir.is_symlink() or not package_dir.is_dir():
+            raise RuntimeError("Canonical v2 package must be a real directory, not a symlink")
+        for entry in package_dir.iterdir():
+            if entry.is_symlink() or not entry.is_file():
+                raise RuntimeError(
+                    "Canonical v2 package must be flat and contain regular files only: "
+                    f"{entry.relative_to(root).as_posix()}"
+                )
+            filesystem_names.add(entry.name)
+
+    canonical = {
+        path.name
+        for path in tracked
+        if path.parts[:3] == CANONICAL_V2_PARTS and len(path.parts) == 4
+    }
+    committed_inventory = tracked if committed is None else committed
+    canonical_committed = {
+        path.name
+        for path in committed_inventory
+        if path.parts[:3] == CANONICAL_V2_PARTS and len(path.parts) == 4
+    }
+    for path in tracked:
+        parts = path.parts
+        v2_marker = any(
+            parts[index : index + 2] == ("peer_review_remediation", "v2")
+            for index in range(len(parts) - 1)
+        )
+        if "full_raw" in path.name.lower() and (v2_marker or "v2" in path.name.lower()):
+            raise RuntimeError(f"Release rejected rights-sensitive v2 raw output: {path.as_posix()}")
+        if parts[:3] == CANONICAL_V2_PARTS and (
+            len(parts) != 4 or path.name not in CANONICAL_V2_RELEASE_FILES
+        ):
+            raise RuntimeError(f"Release rejected unapproved canonical v2 artifact: {path.as_posix()}")
+        if v2_marker and parts[:3] != CANONICAL_V2_PARTS:
+            raise RuntimeError(f"Release rejected noncanonical v2 package path: {path.as_posix()}")
+    if canonical_committed and canonical_committed != CANONICAL_V2_RELEASE_FILES:
+        raise RuntimeError(
+            "Canonical v2 source-commit inventory is incomplete or unapproved: "
+            f"missing={sorted(CANONICAL_V2_RELEASE_FILES - canonical_committed)}, "
+            f"unexpected={sorted(canonical_committed - CANONICAL_V2_RELEASE_FILES)}"
+        )
+    if canonical and canonical != CANONICAL_V2_RELEASE_FILES:
+        raise RuntimeError(
+            "Canonical v2 Git-index inventory is incomplete or unapproved: "
+            f"missing={sorted(CANONICAL_V2_RELEASE_FILES - canonical)}, "
+            f"unexpected={sorted(canonical - CANONICAL_V2_RELEASE_FILES)}"
+        )
+    if not canonical_committed:
+        if filesystem_names and not include_validated_generated:
+            raise RuntimeError(
+                "Canonical v2 package exists but its files are not tracked in the source commit"
+            )
+        if include_validated_generated and not filesystem_names:
+            raise RuntimeError(
+                "Validated-generated v2 inclusion was requested but the canonical package is absent"
+            )
+        if not filesystem_names:
+            return {
+                "status": "not_present",
+                "package_source": None,
+                "tracked_in_source_commit": False,
+                "paths_present_in_source_commit": False,
+                "bytes_match_source_commit": False,
+                "versionable_no_sensitive_text_claimed": False,
+            }
+        package_source = "validated_generated_worktree"
+        tracked_in_source_commit = False
+        paths_present_in_source_commit = False
+        bytes_match_source_commit = False
+    else:
+        if canonical != CANONICAL_V2_RELEASE_FILES:
+            raise RuntimeError(
+                "Canonical v2 package is present in the source commit but missing from the Git index"
+            )
+        bytes_match = True if committed_package_bytes_match is None else committed_package_bytes_match
+        if bytes_match:
+            package_source = "source_commit_tracked"
+            tracked_in_source_commit = True
+            paths_present_in_source_commit = True
+            bytes_match_source_commit = True
+        elif include_validated_generated:
+            package_source = "validated_generated_worktree"
+            tracked_in_source_commit = False
+            paths_present_in_source_commit = True
+            bytes_match_source_commit = False
+        else:
+            raise RuntimeError(
+                "Canonical v2 working-tree bytes differ from the source commit; "
+                "explicit validated-generated inclusion is required"
+            )
+
+    if filesystem_names != CANONICAL_V2_RELEASE_FILES:
+        raise RuntimeError(
+            "Canonical v2 filesystem inventory is incomplete or unapproved: "
+            f"missing={sorted(CANONICAL_V2_RELEASE_FILES - filesystem_names)}, "
+            f"unexpected={sorted(filesystem_names - CANONICAL_V2_RELEASE_FILES)}"
+        )
+    validator = root / "data" / "evaluation" / "validate_peer_review_remediation_v2.py"
+    if not validator.is_file():
+        raise RuntimeError("Canonical v2 package exists but its validator is missing")
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = str(root / "backend")
+    completed = subprocess.run(
+        [sys.executable, str(validator), "--versionable-only"],
+        cwd=root,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip() or "no validator output"
+        raise RuntimeError(f"Canonical v2 package validation failed before release: {detail}")
+    try:
+        report = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("Canonical v2 package validator returned invalid JSON") from exc
+    if (
+        report.get("status") != "pass"
+        or report.get("mode") != "completed_versionable_package"
+        or report.get("package_file_count") != len(CANONICAL_V2_RELEASE_FILES)
+        or report.get("rights_sensitive_raw_text_in_versionable_package") is not False
+    ):
+        raise RuntimeError("Canonical v2 package validator did not establish the bounded release claim")
+    if (
+        package_source == "validated_generated_worktree"
+        and expected_evaluation_source_commit is not None
+        and report.get("evaluation_source_commit") != expected_evaluation_source_commit
+    ):
+        raise RuntimeError(
+            "Validated-generated v2 package was evaluated from a different source commit"
+        )
+    return {
+        "status": "validated",
+        "validator_mode": report["mode"],
+        "evaluation_source_commit": report.get("evaluation_source_commit"),
+        "package_file_count": report.get("package_file_count"),
+        "package_source": package_source,
+        "tracked_in_source_commit": tracked_in_source_commit,
+        "paths_present_in_source_commit": paths_present_in_source_commit,
+        "bytes_match_source_commit": bytes_match_source_commit,
+        "versionable_no_sensitive_text_claimed": True,
+        "restricted_raw_validation": (
+            "recorded by the strict full-validation attestation; not independently "
+            "rechecked during release validation"
+        ),
+    }
+
+
 def should_include(relative: Path) -> tuple[bool, str | None]:
     parts = relative.parts
     if not parts or parts[0] not in INCLUDED_TOP_LEVEL:
@@ -131,6 +366,14 @@ def should_include(relative: Path) -> tuple[bool, str | None]:
         return False, "local_baseline_environment"
     if parts[:3] == ("artifacts", "phase6", "release"):
         return False, "release_attestation_output"
+    if "full_raw" in relative.name.lower():
+        return False, "rights_sensitive_v2_raw_output"
+    if parts[:3] == CANONICAL_V2_PARTS:
+        if len(parts) != 4 or relative.name not in CANONICAL_V2_RELEASE_FILES:
+            return False, "unapproved_canonical_v2_artifact"
+        return True, None
+    if any(parts[index : index + 2] == ("peer_review_remediation", "v2") for index in range(len(parts) - 1)):
+        return False, "noncanonical_v2_artifact_path"
     return True, None
 
 
@@ -206,7 +449,11 @@ def sanitize_text_bytes(content: bytes) -> tuple[bytes, list[dict[str, Any]]]:
         return content, []
     events: list[dict[str, Any]] = []
     if LOCAL_PATH_PATTERN.search(text):
-        text = LOCAL_PATH_PATTERN.sub("<LOCAL_PATH_REDACTED>/", text)
+        # A Windows drive-root replacement can reveal a second path-shaped
+        # prefix (for example ``D:/Users`` -> ``/Users``). Iterate to a fixed
+        # point so the post-sanitization scanner cannot rediscover it.
+        while LOCAL_PATH_PATTERN.search(text):
+            text = LOCAL_PATH_PATTERN.sub("<LOCAL_PATH_REDACTED>/", text)
         events.append({"reason": "absolute_local_path"})
     return text.encode("utf-8"), events
 
@@ -293,6 +540,7 @@ def build_release(
     version: str = DEFAULT_VERSION,
     allow_dirty: bool = False,
     evidence_dir: Path | None = None,
+    include_validated_generated_v2: bool = False,
 ) -> dict[str, Any]:
     commit = git("rev-parse", "HEAD", root=root)
     short_commit = commit[:12]
@@ -301,6 +549,36 @@ def build_release(
     dirty_status = git("status", "--porcelain", root=root)
     if dirty_status and not allow_dirty:
         raise RuntimeError("Refusing to build a release from a dirty worktree; commit changes or pass --allow-dirty")
+    if include_validated_generated_v2:
+        require_clean_git_index(root)
+    tracked = tracked_paths(root)
+    committed = committed_paths(root)
+    canonical_committed = {
+        path.name
+        for path in committed
+        if path.parts[:3] == CANONICAL_V2_PARTS and len(path.parts) == 4
+    }
+    committed_package_bytes_match = (
+        canonical_v2_bytes_match_head(root)
+        if canonical_committed == CANONICAL_V2_RELEASE_FILES
+        else False
+    )
+    v2_validation = validate_canonical_v2_for_release(
+        tracked,
+        root=root,
+        committed=committed,
+        include_validated_generated=include_validated_generated_v2,
+        committed_package_bytes_match=committed_package_bytes_match,
+        expected_evaluation_source_commit=commit,
+    )
+    # Archive membership is derived from HEAD, never from a mutable Git index.
+    release_paths = list(committed)
+    if v2_validation.get("package_source") == "validated_generated_worktree":
+        release_paths.extend(
+            Path(*CANONICAL_V2_PARTS, filename)
+            for filename in sorted(CANONICAL_V2_RELEASE_FILES)
+            if Path(*CANONICAL_V2_PARTS, filename) not in release_paths
+        )
     release_name = f"ttlab-research-advisor-{version}-{short_commit}"
     output_root.mkdir(parents=True, exist_ok=True)
     archive_path = output_root / f"{release_name}.tar.gz"
@@ -314,7 +592,7 @@ def build_release(
     provenance: list[dict[str, Any]] = []
     total_redactions = 0
 
-    for relative in sorted(tracked_paths(root), key=lambda value: value.as_posix()):
+    for relative in sorted(release_paths, key=lambda value: value.as_posix()):
         include, reason = should_include(relative)
         if not include:
             excluded.append({"path": relative.as_posix(), "reason": reason or "excluded"})
@@ -325,7 +603,12 @@ def build_release(
         original = source.read_bytes()
         events: list[dict[str, Any]] = []
         output_relative = relative
-        if relative.parts[:2] == ("data", "seed") and relative.suffix == ".json":
+        if relative.parts[:3] == CANONICAL_V2_PARTS:
+            # This exact allowlisted package has already passed the strict
+            # versionable validator. Preserve its internal hash/attestation
+            # graph byte-for-byte; the payload scanner still runs below.
+            released = original
+        elif relative.parts[:2] == ("data", "seed") and relative.suffix == ".json":
             released, events = _sanitized_seed(original)
             output_relative = Path("data/seed") / f"sanitized_{relative.name}"
         elif relative.suffix.lower() in {".json", ".jsonl"}:
@@ -372,6 +655,7 @@ def build_release(
             "TTLAB project authorization is not blanket third-party PDF redistribution permission. "
             "Recipients must supply separately authorized corpus files."
         ),
+        "peer_review_remediation_v2": v2_validation,
         "included_file_count": len(entries) + 1,
         "excluded_tracked_files": excluded,
         "sanitization_event_count": total_redactions,
@@ -384,6 +668,7 @@ def build_release(
             "vector/keyword runtime indexes",
             "secrets and environment files",
             "private raw review prompts/inputs",
+            "rights-sensitive remediation-v2 full raw outputs",
             "raw Europe PMC XML cache",
             "source-bearing interface screenshots",
         ],
@@ -669,6 +954,56 @@ def _embedded_manifest_findings(payloads: dict[str, bytes], release_root: str) -
             described_row = next((row for row in rows if isinstance(row, dict) and row.get("path") == lock_path), None)
             if described_row is None or lock.get("source_sha256") != described_row.get("source_sha256"):
                 reject(f"dependency_lock_source_hash_mismatch:{name}")
+    v2_prefix = "artifacts/peer_review_remediation/v2/"
+    v2_payload_paths = {path for path in payloads if path.startswith(v2_prefix)}
+    expected_v2_payload_paths = {
+        f"{v2_prefix}{filename}" for filename in CANONICAL_V2_RELEASE_FILES
+    }
+    v2_validation = manifest.get("peer_review_remediation_v2")
+    if not isinstance(v2_validation, dict):
+        reject("peer_review_remediation_v2_validation_missing")
+    elif v2_payload_paths:
+        if v2_payload_paths != expected_v2_payload_paths:
+            reject("peer_review_remediation_v2_inventory_mismatch")
+        if (
+            v2_validation.get("status") != "validated"
+            or v2_validation.get("versionable_no_sensitive_text_claimed") is not True
+            or v2_validation.get("package_file_count") != len(CANONICAL_V2_RELEASE_FILES)
+            or v2_validation.get("package_source")
+            not in {"source_commit_tracked", "validated_generated_worktree"}
+            or not isinstance(v2_validation.get("tracked_in_source_commit"), bool)
+            or not isinstance(v2_validation.get("paths_present_in_source_commit"), bool)
+            or not isinstance(v2_validation.get("bytes_match_source_commit"), bool)
+        ):
+            reject("peer_review_remediation_v2_validation_invalid")
+        elif (
+            v2_validation.get("package_source") == "validated_generated_worktree"
+            and (
+                v2_validation.get("tracked_in_source_commit") is not False
+                or v2_validation.get("bytes_match_source_commit") is not False
+                or v2_validation.get("evaluation_source_commit") != manifest.get("source_commit")
+                or manifest.get("source_worktree_dirty") is not True
+            )
+        ):
+            reject("peer_review_remediation_v2_generated_source_boundary_invalid")
+        elif (
+            v2_validation.get("package_source") == "source_commit_tracked"
+            and (
+                v2_validation.get("tracked_in_source_commit") is not True
+                or v2_validation.get("paths_present_in_source_commit") is not True
+                or v2_validation.get("bytes_match_source_commit") is not True
+            )
+        ):
+            reject("peer_review_remediation_v2_commit_source_boundary_invalid")
+    elif (
+        v2_validation.get("status") != "not_present"
+        or v2_validation.get("versionable_no_sensitive_text_claimed") is not False
+        or v2_validation.get("package_source") is not None
+        or v2_validation.get("tracked_in_source_commit") is not False
+        or v2_validation.get("paths_present_in_source_commit") is not False
+        or v2_validation.get("bytes_match_source_commit") is not False
+    ):
+        reject("peer_review_remediation_v2_absence_claim_invalid")
     return findings
 
 
@@ -679,6 +1014,14 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument("--version", default=DEFAULT_VERSION)
     build.add_argument("--out-dir", type=Path, default=DEFAULT_OUTPUT_ROOT)
     build.add_argument("--allow-dirty", action="store_true")
+    build.add_argument(
+        "--include-validated-generated-v2",
+        action="store_true",
+        help=(
+            "include the exact untracked canonical v2 package after strict validation; "
+            "intended only for the post-evaluation full-reproduction bundle"
+        ),
+    )
     build.add_argument("--evidence-dir", type=Path, default=None)
     verify = subparsers.add_parser("verify")
     verify.add_argument("archive", type=Path)
@@ -695,6 +1038,7 @@ def main() -> None:
         version=args.version,
         allow_dirty=args.allow_dirty,
         evidence_dir=args.evidence_dir,
+        include_validated_generated_v2=args.include_validated_generated_v2,
     )
     print(json.dumps({"status": "valid", **manifest["archive"], "release_name": manifest["release_name"]}, indent=2))
 

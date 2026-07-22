@@ -28,7 +28,14 @@ def load_questions(path: Path) -> list[dict[str, Any]]:
 def evaluate_qa(session: Session, questions: list[dict[str, Any]], *, mode: str = "hybrid", top_k: int = 5) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     for question in questions:
-        response = ask_question(session, str(question["question"]), mode=mode, top_k=top_k, persist=False)
+        response = ask_question(
+            session,
+            str(question["question"]),
+            mode=mode,
+            top_k=top_k,
+            persist=False,
+            retrieval_scope="technical",
+        )
         cited_paper_ids = sorted({citation["paper_id"] for citation in response["citations"]})
         gold = set(str(paper_id) for paper_id in question["gold_paper_ids"])
         rows.append(
@@ -56,9 +63,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--questions", default="data/evaluation/qa_questions.jsonl")
     parser.add_argument(
         "--mode",
-        choices=["keyword", "feature_hashing", "dense", "hybrid", "semantic"],
+        choices=["keyword", "feature_hashing", "dense", "hybrid"],
         default="hybrid",
-        help="Use 'semantic' only as the deprecated compatibility alias for feature hashing.",
+        help="Choose an explicit keyword or vector retrieval implementation.",
     )
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--out", default="data/evaluation/qa_eval_results.json")

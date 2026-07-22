@@ -1,8 +1,45 @@
-# Final Remediation Status
+# Historical v1 Remediation Status
+
+> **Superseded checkpoint.** This file records the pre-peer-review-audit v1
+> evidence boundary and its then-current counts. It is retained because the
+> negative results and revision-specific measurements remain part of the
+> research record. It must not be used as current checkout status. Current
+> issue disposition, manuscript counts, commands, and candidate provenance are
+> reported in `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`.
+
+## Current manuscript evidence pointer
+
+The current paper and thesis do **not** consume the result values archived in
+the remainder of this file. Their v1-form measurements come from the exact
+post-remediation re-execution at commit
+`73092e48f173b74f726659bd5b98224545ac23bb` and technical snapshot
+`corpus-f4638c633bea82b0`:
+
+- held-out retrieval MRR: keyword 0.947368, learned dense 0.938596, and tuned
+  hybrid 0.912281;
+- QA: 334 claims (331 supported, three partial, none unsupported), citation
+  correctness 0.652695, returned-citation utilization 1.000000, strict answer-point
+  coverage 11/81 = 0.135802, and unanswerable abstention 1/4; and
+- Finder: 84 evidence-only items versus 67 full-Finder items, 17 missing
+  full-Finder counterparts, zero-filled relevance difference -0.035714 (95% CI
+  -0.119048 to 0.047619), and feasibility/usefulness failures for all 67
+  returned full-Finder items.
+
+By contrast, the archived checkpoint below belongs to the independent-audit
+baseline at `b561fa73c1de50569d7e76261b2aa37195524c21` and
+`corpus-04a010207327069a`. Its older values are intentionally retained as
+audit-baseline evidence, not silently rewritten or presented as current. The
+two revisions are descriptive evidence boundaries, not a paired before/after
+experiment. That audit baseline included tuned-hybrid MRR 0.8596; 400 QA
+claims, citation correctness 0.625, returned-citation utilization 0.592, strict
+answer-point coverage 0.1358, and 0/4 unanswerable abstentions; and a
+conditional 84-versus-84 Finder difference of 0.0238 (95% CI -0.0238 to
+0.0714).
 
 ## Closure boundary
 
-The July 2026 remediation is complete at the final-candidate level. The
+The earlier July 2026 remediation was reported complete at its v1 candidate
+boundary. The
 authoritative register contains 89 findings: 87 are `closed`, `RAG-01` is
 `mitigated by claim reduction`, and `PAPER-14` is `external-only`. No finding is
 silently omitted or described as closed by an invented experiment, metric,

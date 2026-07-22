@@ -15,12 +15,16 @@ from app.indexing.embedder import (
     DENSE_PROVIDER,
     FEATURE_HASHING_PROVIDER,
     canonical_provider_name,
+    eligible_chunks,
     index_diagnostics,
 )
 from app.indexing.keyword_search import SearchFilters, enrich_keyword_results, search_keyword
 from app.indexing.vector_store import search_vector_store
+from app.models import Paper
+from app.publication import is_public_content
 
-RetrievalMode = Literal["keyword", "feature_hashing", "dense", "hybrid", "semantic"]
+RetrievalMode = Literal["keyword", "feature_hashing", "dense", "hybrid"]
+RetrievalScope = Literal["public", "technical"]
 
 
 @dataclass(frozen=True)
@@ -155,7 +159,7 @@ def retrieve(
     session: Session,
     query: str,
     *,
-    mode: RetrievalMode = "hybrid",
+    mode: RetrievalMode = "keyword",
     top_k: int = 10,
     paper_id: str | None = None,
     author: str | None = None,
@@ -165,6 +169,7 @@ def retrieve(
     index_path: Path | None = None,
     include_text: bool = False,
     config: RetrieverConfig | Mapping[str, Any] | None = None,
+    scope: RetrievalScope = "public",
 ) -> dict[str, Any]:
     resolved_config = coerce_retriever_config(config)
     warnings: list[str] = []
@@ -184,11 +189,20 @@ def retrieve(
     warnings.extend(provider_warnings)
 
     candidate_k = max(top_k * resolved_config.candidate_multiplier, top_k)
+    if scope == "public":
+        # Ranking indexes are frozen over the technical evaluation corpus.
+        # Scan that bounded corpus before applying the independent publication
+        # projection, otherwise high-ranked non-public rows can starve a valid
+        # public top-k result. The current corpus is intentionally small (the
+        # authoritative snapshot is hundreds, not millions, of chunks).
+        candidate_k = max(candidate_k, len(eligible_chunks(session)))
+    elif scope != "technical":
+        raise ValueError(f"unknown retrieval scope: {scope}")
 
     if mode in {"keyword", "hybrid"}:
         raw_keyword = search_keyword(session, expanded_query, top_k=candidate_k, filters=filters)
         keyword_results = enrich_keyword_results(session, raw_keyword, filters=filters)
-    if mode in {"feature_hashing", "dense", "semantic", "hybrid"}:
+    if mode in {"feature_hashing", "dense", "hybrid"}:
         vector_results, vector_warnings = search_vector_store(
             session,
             expanded_query,
@@ -201,6 +215,12 @@ def retrieve(
             section=section,
         )
         warnings.extend(vector_warnings)
+
+    # Defense in depth for stale or externally supplied index files: remove
+    # non-public records before any rank fusion or re-ranking occurs.
+    if scope == "public":
+        keyword_results = filter_public_results(session, keyword_results)
+        vector_results = filter_public_results(session, vector_results)
 
     results = rank_retrieval_components(
         keyword_results,
@@ -220,11 +240,45 @@ def retrieve(
         "mode": mode,
         "result_count": len(results),
         "results": results,
-        "warnings": warnings,
+        "warnings": sanitize_public_retrieval_warnings(warnings) if scope == "public" else warnings,
         "vector_provider": vector_provider if mode != "keyword" else None,
         "retrieval_strategy": "explicit_config_v1",
         "retriever_config": resolved_config.to_dict(),
+        "retrieval_scope": scope,
     }
+
+
+def filter_public_results(session: Session, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    paper_ids = {str(result.get("paper_id") or "") for result in results}
+    allowed = {
+        paper.paper_id
+        for paper_id in paper_ids
+        if paper_id and (paper := session.get(Paper, paper_id)) is not None and is_public_content(session, paper)
+    }
+    return [result for result in results if str(result.get("paper_id") or "") in allowed]
+
+
+def sanitize_public_retrieval_warnings(warnings: list[str]) -> list[str]:
+    """Keep anonymous warnings useful without disclosing workstation paths."""
+
+    safe_known = {
+        "Complete learned-dense index unavailable; hybrid retrieval explicitly fell back to feature hashing.",
+        "The feature-hashing index is unavailable; no vector results were returned.",
+        "The learned-dense index is unavailable; no vector results were returned.",
+        "The learned-dense provider is unavailable; no vector results were returned.",
+    }
+    sanitized: list[str] = []
+    for warning in warnings:
+        value = str(warning)
+        if value in safe_known:
+            replacement = value
+        elif re.search(r"(?:^|\s)(?:/[^\s]+|[A-Za-z]:[\\/][^\s]+|\.\.?[/\\][^\s]+)", value):
+            replacement = "A retrieval component is unavailable; local configuration details are not exposed."
+        else:
+            replacement = value
+        if replacement not in sanitized:
+            sanitized.append(replacement)
+    return sanitized
 
 
 def rank_retrieval_components(
@@ -266,7 +320,7 @@ def rank_retrieval_components(
             )
             for rank, result in enumerate(keyword_results[:selection_k], start=1)
         ]
-    elif mode in {"feature_hashing", "dense", "semantic"}:
+    elif mode in {"feature_hashing", "dense"}:
         results = [
             format_result(
                 result,
@@ -308,12 +362,11 @@ def resolve_vector_backend(
     provider: str,
     index_path: Path | None,
 ) -> tuple[str, Path | None, list[str]]:
-    if mode == "semantic":
-        return (
-            FEATURE_HASHING_PROVIDER,
-            index_path or DEFAULT_INDEX_PATH,
-            ["Retrieval mode 'semantic' is a deprecated alias for the lexical feature-hashing baseline; use 'feature_hashing'."],
-        )
+    # Keyword retrieval does not use, and must not make readiness claims about,
+    # either vector index.  Resolve it before the provider auto-selection path
+    # so a missing dense index cannot influence a lexical-only request.
+    if mode == "keyword":
+        return FEATURE_HASHING_PROVIDER, None, []
     if mode == "feature_hashing":
         return FEATURE_HASHING_PROVIDER, index_path or DEFAULT_INDEX_PATH, []
     if mode == "dense":
@@ -495,7 +548,6 @@ def format_result(
         "snippet": result.get("snippet", ""),
         "scores": {
             "keyword": round(keyword, 6),
-            "semantic": round(semantic, 6),
             "vector": round(semantic, 6),
             "vector_provider": vector_provider,
             "metadata": round(metadata_score_value, 6),
@@ -520,13 +572,23 @@ def expand_query(query: str) -> tuple[str, list[str]]:
     lowered = query.lower()
     additions: list[str] = []
     for phrase, expansions in QUERY_EXPANSIONS.items():
-        if phrase in lowered:
+        if contains_phrase(lowered, phrase):
             for expansion in expansions:
-                if expansion not in lowered and expansion not in additions:
+                if not contains_phrase(lowered, expansion) and expansion not in additions:
                     additions.append(expansion)
     if not additions:
         return query, []
     return f"{query} {' '.join(additions)}", additions
+
+
+def contains_phrase(text: str, phrase: str) -> bool:
+    """Match controlled terms on token/phrase boundaries, never substrings."""
+
+    tokens = re.findall(r"[a-zA-Z0-9]+", phrase.lower())
+    if not tokens:
+        return False
+    pattern = r"(?<![a-z0-9])" + r"[\s-]+".join(re.escape(token) for token in tokens) + r"(?![a-z0-9])"
+    return re.search(pattern, text.lower()) is not None
 
 
 def query_tokens(query: str) -> set[str]:
@@ -621,8 +683,8 @@ def topical_alignment_score(result: dict[str, Any], query: str) -> float:
         ]
     ).lower()
     score = 0.0
-    if "rag" in lowered_query or "retrieval augmented generation" in lowered_query or "retrieval-augmented generation" in lowered_query:
-        has_rag_signal = any(term in text for term in ("rag", "retrieval augmented", "retrieval-augmented"))
+    if query_has_rag_constraint(lowered_query):
+        has_rag_signal = has_rag_text(text)
         score += 0.055 if has_rag_signal else -0.18
     if "agriculture" in lowered_query or "agricultural" in lowered_query:
         agriculture_terms = ("agriculture", "agricultural", "crop", "crops", "cocoa", "plantation", "biomass", "deforestation", "drone", "weed", "water stress")
@@ -652,8 +714,15 @@ def apply_topical_constraints(results: list[dict[str, Any]], query: str, *, top_
 
 
 def has_strong_topical_constraint(query: str) -> bool:
-    lowered_query = query.lower()
-    return "rag" in lowered_query or "retrieval augmented generation" in lowered_query or "retrieval-augmented generation" in lowered_query
+    return query_has_rag_constraint(query)
+
+
+def query_has_rag_constraint(query: str) -> bool:
+    return contains_phrase(query, "rag") or contains_phrase(query, "retrieval augmented generation")
+
+
+def has_rag_text(text: str) -> bool:
+    return contains_phrase(text, "rag") or contains_phrase(text, "retrieval augmented")
 
 
 def has_rag_signal(result: dict[str, Any]) -> bool:
@@ -664,7 +733,7 @@ def has_rag_signal(result: dict[str, Any]) -> bool:
             str(result.get("text") or "")[:1200],
         ]
     ).lower()
-    return bool(re.search(r"(?<![a-z0-9])rag(?![a-z0-9])", text)) or "retrieval augmented" in text or "retrieval-augmented" in text
+    return has_rag_text(text)
 
 
 def diversify_ranked_entries(
@@ -716,7 +785,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     search = subparsers.add_parser("search")
     search.add_argument("query")
-    search.add_argument("--mode", choices=["keyword", "feature_hashing", "dense", "hybrid", "semantic"], default="hybrid")
+    search.add_argument("--mode", choices=["keyword", "feature_hashing", "dense", "hybrid"], default="keyword")
     search.add_argument("--top-k", type=int, default=5)
     search.add_argument("--provider", choices=["auto", "feature_hashing", "hashing", "dense"], default="auto")
     return parser

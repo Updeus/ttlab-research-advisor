@@ -74,11 +74,17 @@ The interface must keep these modes distinct:
 - **Hybrid**: the backend-defined combination, including any explicit fallback
   warning returned by the API.
 
-The deprecated API value `semantic` may remain in TypeScript only for backward
-compatibility; it is not offered as a user-facing mode. Search diagnostics must
-show eligible/searchable counts, per-index status, and the latest available
-snapshot timestamp. Missing, invalid, partial, or stale indexes are states, not
-zero-valued success.
+The ambiguous legacy API value `semantic` is rejected. Callers must select
+`keyword`, `feature_hashing`, `dense`, or `hybrid` explicitly. Search
+diagnostics must show eligible/searchable counts, per-index status, and the
+latest available snapshot timestamp. Missing, invalid, partial, or stale
+indexes are states, not zero-valued success.
+Anonymous surfaces display each index's `projection_status`, not the underlying
+technical-index `status`: `public_projection_empty` remains unavailable even
+when the authoritative technical index is healthy. The underlying state is
+retained only as diagnostic context. Public statistics and Ask diagnostics do
+not expose stored answer, recommendation, artifact, review-queue, or reviewer
+activity counts.
 
 ## Evidence and generated-content contract
 
@@ -118,9 +124,36 @@ reload clears it. The header and admin route visibly distinguish an insecure
 loopback-only demo bypass from protected operation. Production must never
 enable the bypass.
 
-Public users can read existing reviewed/unreviewed artifacts with their status,
-but artifact generation and all review transitions require the role enforced
-by the API. The UI is not the security boundary.
+Public users can read only artifacts whose paper publication decision, source
+access class, rights state, and artifact review state are all public-eligible.
+Authenticated reviewers can preview non-public states, while artifact
+generation, correction, publication decisions, and review transitions require
+the capability enforced by the API. The UI is not the security boundary.
+
+Admin Review provides independently pageable queues for author identities,
+author aliases, topics, paper-topic links, and author-topic links. Each record
+shows its source/evidence locators, dependency states, unresolved or ambiguous
+identity state, and stable approval-blocker codes. Correction forms call a
+separate endpoint and always return changed records to `needs_review`; a
+correction control never doubles as approval. Approval actions are shown only
+when the actor capability is a human administrator and the record has no
+dependency blocker. The API rechecks both conditions to prevent an AI or
+service actor from impersonating human approval.
+All decision and correction controls for one review item are disabled while any
+mutation for that item is pending. This prevents concurrent review/correction
+requests from racing; the API remains responsible for authoritative transition
+and version checks.
+
+Keyword retrieval is the user-facing default for Search, Ask, and Finder
+because it is the supported baseline in the current evidence snapshot. Hybrid
+remains selectable but is explicitly labelled experimental and not validated
+as better. Finder renders an `unknown` difficulty as unverified feasibility,
+not as an easy/medium/hard estimate.
+
+Paper-detail deep links use the public per-paper endpoint when the shared
+catalogue snapshot is absent or failed. The route has its own loading,
+not-found, retryable-error, and success states; a catalogue outage is not
+treated as proof that the paper ID is missing.
 
 ## Required state model
 
@@ -177,9 +210,10 @@ detail routes. Visual inspection remains required after that machine gate.
   automated DOM assertions cannot prove a usable spoken experience.
 - Existing API evidence sometimes lacks a page or section. The UI displays an
   unknown marker and must not fabricate one.
-- Explorer provenance can only show fields returned by the current public API;
-  author identity disambiguation and human verification remain separate data
-  review tasks.
+- Explorer provenance remains limited to approved fields returned by the
+  public API. The protected admin workflow exposes identity disambiguation and
+  graph-link evidence, but final identity approval still requires a human
+  administrator and source checking.
 - Static-host SPA fallback and production TLS/security headers are deployment
   responsibilities and must be verified in the deployed environment.
 - Final manuscript screenshots must be captured only after the authoritative

@@ -14,6 +14,7 @@ from app.intelligence.paper_artifact_generator import (
     list_paper_artifacts,
 )
 from app.models import Paper
+from app.publication import is_public_content
 from app.security import AuthenticatedActor, get_optional_actor, require_admin, require_reviewer
 
 router = APIRouter(prefix="/api", tags=["artifacts"])
@@ -85,13 +86,12 @@ def generate_artifacts_for_paper(
 def get_artifacts_for_paper(
     paper_id: str,
     session: Annotated[Session, Depends(get_session)],
-    actor: Annotated[AuthenticatedActor | None, Depends(get_optional_actor)] = None,
 ) -> list[dict[str, object]]:
     paper = session.get(Paper, paper_id)
     if paper is None:
         raise HTTPException(status_code=404, detail="Paper not found")
-    require_eligible_public_paper(paper, actor)
-    return list_paper_artifacts(session, paper_id, public=actor is None)
+    require_eligible_public_paper(session, paper)
+    return list_paper_artifacts(session, paper_id, public=True)
 
 
 @router.get("/papers/{paper_id}/artifacts/{artifact_type}")
@@ -99,22 +99,24 @@ def get_artifact_for_paper(
     paper_id: str,
     artifact_type: str,
     session: Annotated[Session, Depends(get_session)],
-    actor: Annotated[AuthenticatedActor | None, Depends(get_optional_actor)] = None,
 ) -> dict[str, object]:
     paper = session.get(Paper, paper_id)
     if paper is None:
         raise HTTPException(status_code=404, detail="Paper not found")
-    require_eligible_public_paper(paper, actor)
+    require_eligible_public_paper(session, paper)
     if artifact_type not in ARTIFACT_TYPES:
         raise HTTPException(status_code=400, detail="Unsupported artifact type")
-    artifact = get_latest_paper_artifact(session, paper_id, artifact_type, public=actor is None)
+    artifact = get_latest_paper_artifact(session, paper_id, artifact_type, public=True)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
     return artifact
 
 
 @router.get("/artifacts/diagnostics")
-def diagnostics(session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
+def diagnostics(
+    session: Annotated[Session, Depends(get_session)],
+    _actor: Annotated[AuthenticatedActor, Depends(require_reviewer)],
+) -> dict[str, object]:
     return artifact_diagnostics(session)
 
 
@@ -125,8 +127,8 @@ def validate_artifact_types(artifact_types: list[str]) -> None:
 
 
 def require_eligible_public_paper(
+    session: Session,
     paper: Paper,
-    actor: AuthenticatedActor | None,
 ) -> None:
-    if actor is None and paper.corpus_eligibility_status != "eligible":
+    if not is_public_content(session, paper):
         raise HTTPException(status_code=404, detail="Paper artifacts are not publicly available")

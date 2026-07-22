@@ -15,7 +15,7 @@ supervisor assignment, academic approval, or proof of novelty/feasibility.
 
 | Data | Purpose | Default storage |
 |---|---|---|
-| Publication metadata, extracted text, chunks, citations | Search, discovery, grounding, evaluation | Local corpus/database according to corpus authorization and source rights |
+| Publication metadata, extracted text, chunks, citations | Protected technical search, discovery, grounding, and evaluation; anonymous projection only after explicit publication/rights/access decisions | Local corpus/database according to corpus authorization and source rights |
 | Ask question | Produce one source-grounded response | In-request only on the public endpoint |
 | Interests, skills, timeline, project type, constraints, preferences | Rank papers and construct extension suggestions | In-request only on the public endpoint |
 | Reviewer identity/role, corrections, notes, request ID | Accountability and correction history | SQLite append-only review events/application records |
@@ -32,6 +32,9 @@ authentication.
   response; the backend uses `persist=False`.
 - Public paper/extraction/search payloads omit local filesystem paths, raw seed
   records, extraction error details, and reviewer notes/identifiers.
+- Anonymous routes fail closed when publication, source-access, or rights state
+  is absent or unresolved. Technical corpus eligibility alone never makes a
+  record public.
 - Public artifact payloads likewise omit reviewer notes/identifiers. Draft
   corrected text/JSON stays protected until a separate human-admin approval;
   artifacts and source snippets for `needs_review` or otherwise non-eligible

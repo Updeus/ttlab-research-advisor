@@ -2,22 +2,22 @@
   "schema_version": 2,
   "status": "complete",
   "benchmark_id": "ttlab-performance-full-v1",
-  "generated_at": "2026-07-13T06:11:59.183355+00:00",
-  "updated_at": "2026-07-13T07:07:17.600686+00:00",
-  "completed_at": "2026-07-13T07:07:17.600686+00:00",
+  "generated_at": "2026-07-21T18:33:35.383890+00:00",
+  "updated_at": "2026-07-21T20:02:53.629662+00:00",
+  "completed_at": "2026-07-21T20:02:53.629662+00:00",
   "profile": "full",
-  "run_provenance_sha256": "61378b9aa78ae1c25a1172d62c8501b7603106d3c98142e8370c6c51fa282e8a",
+  "run_provenance_sha256": "2a71252db4f5722556cf1b03f8bbe3b2dee9b0d229b68de79fa20e8f4d2ed605",
   "run_provenance": {
     "source": {
-      "commit": "5ccf22ec39cb33bf179cdff6954bfc9e0ce8dbc4",
+      "commit": "73092e48f173b74f726659bd5b98224545ac23bb",
       "dirty": false,
       "dirty_paths": [],
       "dirty_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "benchmark_source_sha256": "f6fd1fb308419244fd39f108c4da77de699bcf4526f70f40b14a8af9e105bb9a",
+      "benchmark_source_sha256": "462e660a30ea1ee5cf98090c986ed97338df6d151419c37c770aa04932ae7e6a",
       "benchmark_source_path": "backend/app/evaluation/performance_benchmark.py"
     },
     "corpus": {
-      "database_sha256": "a8153f53fec2e97b6c9cdb31d2ab061e7e825eddfc550f9581a0903d170f35b4",
+      "database_sha256": "82b715d390c00943ab5ea3cabb5628a7816a54ad8a978af9d7bc571c1cb1cbf4",
       "database_bytes": 17256448,
       "paper_rows": 134,
       "eligible_papers": 96,
@@ -59,15 +59,15 @@
       "machine": "x86_64",
       "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
       "logical_cpu_count": 16,
-      "memory_total_kib": 4012360,
+      "memory_total_kib": 4012364,
       "python": "3.12.3",
-      "node": "v24.14.1",
-      "npm": "11.11.0",
+      "node": "v20.20.2",
+      "npm": "10.8.2",
       "dependency_locks": {
         "python": {
           "path": "backend/requirements-lock.txt",
-          "bytes": 2038,
-          "sha256": "b5bd4039083539c77e33c68d986a2efd0678841a0ed75cefefd35c1d211e69a6"
+          "bytes": 2088,
+          "sha256": "93e43a941f8ca2bd25124c83360b54ff6f2109e575f3abefb211a7383b8058eb"
         },
         "frontend": {
           "path": "frontend/package-lock.json",
@@ -76,11 +76,11 @@
         }
       },
       "resolved_environments": {
-        "python_package_count": 96,
+        "python_package_count": 100,
         "python_packages": {
           "annotated-doc": "0.0.4",
           "annotated-types": "0.7.0",
-          "anyio": "4.14.1",
+          "anyio": "4.14.2",
           "attrs": "26.1.0",
           "beautifulsoup4": "4.12.3",
           "boolean.py": "5.0",
@@ -99,8 +99,10 @@
           "h11": "0.16.0",
           "hf-xet": "1.5.1",
           "httpcore": "1.0.9",
+          "httpcore2": "2.7.0",
           "httptools": "0.8.0",
           "httpx": "0.28.1",
+          "httpx2": "2.7.0",
           "huggingface-hub": "1.23.0",
           "idna": "3.18",
           "iniconfig": "2.3.0",
@@ -134,10 +136,11 @@
           "pydantic-core": "2.46.4",
           "pydantic-settings": "2.7.1",
           "pygments": "2.20.0",
-          "pymupdf": "1.25.1",
+          "pymupdf": "1.28.0",
           "pyparsing": "3.3.2",
           "pypdf": "6.14.2",
           "pypdfium2": "5.11.0",
+          "pytesseract": "0.3.13",
           "pytest": "9.1.1",
           "python-dotenv": "1.2.2",
           "pyyaml": "6.0.3",
@@ -166,6 +169,7 @@
           "torch": "2.13.0+cpu",
           "tqdm": "4.68.4",
           "transformers": "5.13.1",
+          "truststore": "0.10.4",
           "typer": "0.26.8",
           "typing-extensions": "4.15.0",
           "typing-inspection": "0.4.2",
@@ -175,7 +179,7 @@
           "watchfiles": "1.2.0",
           "websockets": "16.0"
         },
-        "python_packages_sha256": "fcfc8cdabc3e37e49a65d1b64df4f45ff261fea2d346c9676ec35cb9216335d9",
+        "python_packages_sha256": "e174e349e67fb4978f4b4a895040ac88ecf6f1a83ab6453df221303fc3227763",
         "frontend_top_level_packages": {
           "@adobe/css-tools": "4.5.0",
           "@asamuzakjp/css-color": "5.1.11",
@@ -414,15 +418,15 @@
     "machine": "x86_64",
     "cpu_model": "AMD Ryzen 7 5800X 8-Core Processor",
     "logical_cpu_count": 16,
-    "memory_total_kib": 4012360,
+    "memory_total_kib": 4012364,
     "python": "3.12.3",
-    "node": "v24.14.1",
-    "npm": "11.11.0",
+    "node": "v20.20.2",
+    "npm": "10.8.2",
     "dependency_locks": {
       "python": {
         "path": "backend/requirements-lock.txt",
-        "bytes": 2038,
-        "sha256": "b5bd4039083539c77e33c68d986a2efd0678841a0ed75cefefd35c1d211e69a6"
+        "bytes": 2088,
+        "sha256": "93e43a941f8ca2bd25124c83360b54ff6f2109e575f3abefb211a7383b8058eb"
       },
       "frontend": {
         "path": "frontend/package-lock.json",
@@ -431,11 +435,11 @@
       }
     },
     "resolved_environments": {
-      "python_package_count": 96,
+      "python_package_count": 100,
       "python_packages": {
         "annotated-doc": "0.0.4",
         "annotated-types": "0.7.0",
-        "anyio": "4.14.1",
+        "anyio": "4.14.2",
         "attrs": "26.1.0",
         "beautifulsoup4": "4.12.3",
         "boolean.py": "5.0",
@@ -454,8 +458,10 @@
         "h11": "0.16.0",
         "hf-xet": "1.5.1",
         "httpcore": "1.0.9",
+        "httpcore2": "2.7.0",
         "httptools": "0.8.0",
         "httpx": "0.28.1",
+        "httpx2": "2.7.0",
         "huggingface-hub": "1.23.0",
         "idna": "3.18",
         "iniconfig": "2.3.0",
@@ -489,10 +495,11 @@
         "pydantic-core": "2.46.4",
         "pydantic-settings": "2.7.1",
         "pygments": "2.20.0",
-        "pymupdf": "1.25.1",
+        "pymupdf": "1.28.0",
         "pyparsing": "3.3.2",
         "pypdf": "6.14.2",
         "pypdfium2": "5.11.0",
+        "pytesseract": "0.3.13",
         "pytest": "9.1.1",
         "python-dotenv": "1.2.2",
         "pyyaml": "6.0.3",
@@ -521,6 +528,7 @@
         "torch": "2.13.0+cpu",
         "tqdm": "4.68.4",
         "transformers": "5.13.1",
+        "truststore": "0.10.4",
         "typer": "0.26.8",
         "typing-extensions": "4.15.0",
         "typing-inspection": "0.4.2",
@@ -530,7 +538,7 @@
         "watchfiles": "1.2.0",
         "websockets": "16.0"
       },
-      "python_packages_sha256": "fcfc8cdabc3e37e49a65d1b64df4f45ff261fea2d346c9676ec35cb9216335d9",
+      "python_packages_sha256": "e174e349e67fb4978f4b4a895040ac88ecf6f1a83ab6453df221303fc3227763",
       "frontend_top_level_packages": {
         "@adobe/css-tools": "4.5.0",
         "@asamuzakjp/css-color": "5.1.11",
@@ -727,7 +735,7 @@
     "device": "CPU"
   },
   "corpus": {
-    "database_sha256": "a8153f53fec2e97b6c9cdb31d2ab061e7e825eddfc550f9581a0903d170f35b4",
+    "database_sha256": "82b715d390c00943ab5ea3cabb5628a7816a54ad8a978af9d7bc571c1cb1cbf4",
     "database_bytes": 17256448,
     "paper_rows": 134,
     "eligible_papers": 96,
@@ -739,19 +747,19 @@
   },
   "execution_source": {
     "start": {
-      "commit": "5ccf22ec39cb33bf179cdff6954bfc9e0ce8dbc4",
+      "commit": "73092e48f173b74f726659bd5b98224545ac23bb",
       "dirty": false,
       "dirty_paths": [],
       "dirty_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "benchmark_source_sha256": "f6fd1fb308419244fd39f108c4da77de699bcf4526f70f40b14a8af9e105bb9a",
+      "benchmark_source_sha256": "462e660a30ea1ee5cf98090c986ed97338df6d151419c37c770aa04932ae7e6a",
       "benchmark_source_path": "backend/app/evaluation/performance_benchmark.py"
     },
     "end": {
-      "commit": "5ccf22ec39cb33bf179cdff6954bfc9e0ce8dbc4",
+      "commit": "73092e48f173b74f726659bd5b98224545ac23bb",
       "dirty": false,
       "dirty_paths": [],
       "dirty_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "benchmark_source_sha256": "f6fd1fb308419244fd39f108c4da77de699bcf4526f70f40b14a8af9e105bb9a",
+      "benchmark_source_sha256": "462e660a30ea1ee5cf98090c986ed97338df6d151419c37c770aa04932ae7e6a",
       "benchmark_source_path": "backend/app/evaluation/performance_benchmark.py"
     }
   },
@@ -764,25 +772,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 3.2403,
-            "p95": 3.916675,
-            "minimum": 3.089669,
-            "maximum": 3.991828
+            "median": 2.952448,
+            "p95": 3.03818,
+            "minimum": 2.713826,
+            "maximum": 3.047706
           },
           "seconds_per_unit": {
-            "median": 0.054920332,
-            "p95": 0.066384324
+            "median": 0.05004149,
+            "p95": 0.051494575
           },
-          "max_rss_kib": 56196
+          "max_rss_kib": 56100
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 3.991827983991243,
+            "elapsed_seconds": 3.047705681005027,
             "units": 59,
             "unit": "publication records",
-            "seconds_per_unit": 0.06765810142358039,
+            "seconds_per_unit": 0.05165602849161063,
             "details": {
               "source": "https://lab.tt/index.php/category/pub/",
               "pages": 1,
@@ -791,9 +799,12 @@
               "content_type": "text/html; charset=UTF-8",
               "etag": null,
               "last_modified": null,
-              "response_bytes": 263699,
-              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "response_bytes": 262035,
+              "response_sha256": "b73572453acb378258f9fbc499691bde489958114b805c0574c3492e9eb16392",
               "record_ids": [
+                "a-nlp-method-for-estimating-the-alignment-of-university-curricula-with-e-179108e7",
+                "predicting-motor-insurance-policy-lapse-a-multi-stage-pipeline-integrati-c407e97b",
+                "a-machine-learning-based-approach-to-leak-detection-in-water-distributio-5b692b19",
                 "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
                 "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
                 "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
@@ -849,23 +860,20 @@
                 "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
                 "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
                 "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
-                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
-                "premium-rate-services-fraud-detection-37e69fcf",
-                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
-                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98"
               ],
-              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "records_sha256": "994de90207c7a730775bcb2a4209690a96c3e52e380db7fd2e4ae67b7d3d2fcf",
               "next_page_present": true
             },
-            "max_rss_kib": 55912
+            "max_rss_kib": 56004
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 3.2402995619922876,
+            "elapsed_seconds": 2.9524478899984388,
             "units": 59,
             "unit": "publication records",
-            "seconds_per_unit": 0.054920331559191314,
+            "seconds_per_unit": 0.050041489660990486,
             "details": {
               "source": "https://lab.tt/index.php/category/pub/",
               "pages": 1,
@@ -874,9 +882,12 @@
               "content_type": "text/html; charset=UTF-8",
               "etag": null,
               "last_modified": null,
-              "response_bytes": 263699,
-              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "response_bytes": 262035,
+              "response_sha256": "b73572453acb378258f9fbc499691bde489958114b805c0574c3492e9eb16392",
               "record_ids": [
+                "a-nlp-method-for-estimating-the-alignment-of-university-curricula-with-e-179108e7",
+                "predicting-motor-insurance-policy-lapse-a-multi-stage-pipeline-integrati-c407e97b",
+                "a-machine-learning-based-approach-to-leak-detection-in-water-distributio-5b692b19",
                 "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
                 "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
                 "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
@@ -932,23 +943,20 @@
                 "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
                 "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
                 "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
-                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
-                "premium-rate-services-fraud-detection-37e69fcf",
-                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
-                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98"
               ],
-              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "records_sha256": "994de90207c7a730775bcb2a4209690a96c3e52e380db7fd2e4ae67b7d3d2fcf",
               "next_page_present": true
             },
-            "max_rss_kib": 55692
+            "max_rss_kib": 56100
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 3.0896689550136216,
+            "elapsed_seconds": 2.713825901999371,
             "units": 59,
             "unit": "publication records",
-            "seconds_per_unit": 0.05236727042395969,
+            "seconds_per_unit": 0.04599704918643002,
             "details": {
               "source": "https://lab.tt/index.php/category/pub/",
               "pages": 1,
@@ -957,9 +965,12 @@
               "content_type": "text/html; charset=UTF-8",
               "etag": null,
               "last_modified": null,
-              "response_bytes": 263699,
-              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "response_bytes": 262035,
+              "response_sha256": "b73572453acb378258f9fbc499691bde489958114b805c0574c3492e9eb16392",
               "record_ids": [
+                "a-nlp-method-for-estimating-the-alignment-of-university-curricula-with-e-179108e7",
+                "predicting-motor-insurance-policy-lapse-a-multi-stage-pipeline-integrati-c407e97b",
+                "a-machine-learning-based-approach-to-leak-detection-in-water-distributio-5b692b19",
                 "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
                 "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
                 "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
@@ -1015,15 +1026,12 @@
                 "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
                 "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
                 "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
-                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
-                "premium-rate-services-fraud-detection-37e69fcf",
-                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
-                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98"
               ],
-              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "records_sha256": "994de90207c7a730775bcb2a4209690a96c3e52e380db7fd2e4ae67b7d3d2fcf",
               "next_page_present": true
             },
-            "max_rss_kib": 56196
+            "max_rss_kib": 56028
           }
         ]
       },
@@ -1034,25 +1042,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 0.970021,
-            "p95": 2.833254,
-            "minimum": 0.95837,
-            "maximum": 3.04028
+            "median": 0.76,
+            "p95": 2.726094,
+            "minimum": 0.755036,
+            "maximum": 2.944549
           },
           "seconds_per_unit": {
-            "median": 0.016441033,
-            "p95": 0.048021248
+            "median": 0.012881359,
+            "p95": 0.046204989
           },
-          "max_rss_kib": 66812
+          "max_rss_kib": 66632
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 3.0402795170084573,
+            "elapsed_seconds": 2.944549288993585,
             "units": 59,
             "unit": "publication records",
-            "seconds_per_unit": 0.05153016130522809,
+            "seconds_per_unit": 0.04990761506768788,
             "details": {
               "source": "https://lab.tt/index.php/category/pub/",
               "pages": 1,
@@ -1061,9 +1069,12 @@
               "content_type": "text/html; charset=UTF-8",
               "etag": null,
               "last_modified": null,
-              "response_bytes": 263699,
-              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "response_bytes": 262035,
+              "response_sha256": "b73572453acb378258f9fbc499691bde489958114b805c0574c3492e9eb16392",
               "record_ids": [
+                "a-nlp-method-for-estimating-the-alignment-of-university-curricula-with-e-179108e7",
+                "predicting-motor-insurance-policy-lapse-a-multi-stage-pipeline-integrati-c407e97b",
+                "a-machine-learning-based-approach-to-leak-detection-in-water-distributio-5b692b19",
                 "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
                 "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
                 "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
@@ -1119,23 +1130,20 @@
                 "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
                 "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
                 "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
-                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
-                "premium-rate-services-fraud-detection-37e69fcf",
-                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
-                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98"
               ],
-              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "records_sha256": "994de90207c7a730775bcb2a4209690a96c3e52e380db7fd2e4ae67b7d3d2fcf",
               "next_page_present": true
             },
-            "max_rss_kib": 66812
+            "max_rss_kib": 66632
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 0.9583697990165092,
+            "elapsed_seconds": 0.7600001719983993,
             "units": 59,
             "unit": "publication records",
-            "seconds_per_unit": 0.016243555915534055,
+            "seconds_per_unit": 0.012881358847430496,
             "details": {
               "source": "https://lab.tt/index.php/category/pub/",
               "pages": 1,
@@ -1144,9 +1152,12 @@
               "content_type": "text/html; charset=UTF-8",
               "etag": null,
               "last_modified": null,
-              "response_bytes": 263699,
-              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "response_bytes": 262035,
+              "response_sha256": "b73572453acb378258f9fbc499691bde489958114b805c0574c3492e9eb16392",
               "record_ids": [
+                "a-nlp-method-for-estimating-the-alignment-of-university-curricula-with-e-179108e7",
+                "predicting-motor-insurance-policy-lapse-a-multi-stage-pipeline-integrati-c407e97b",
+                "a-machine-learning-based-approach-to-leak-detection-in-water-distributio-5b692b19",
                 "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
                 "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
                 "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
@@ -1202,23 +1213,20 @@
                 "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
                 "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
                 "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
-                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
-                "premium-rate-services-fraud-detection-37e69fcf",
-                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
-                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98"
               ],
-              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "records_sha256": "994de90207c7a730775bcb2a4209690a96c3e52e380db7fd2e4ae67b7d3d2fcf",
               "next_page_present": true
             },
-            "max_rss_kib": 66812
+            "max_rss_kib": 66632
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 0.9700209519942291,
+            "elapsed_seconds": 0.7550364940107102,
             "units": 59,
             "unit": "publication records",
-            "seconds_per_unit": 0.016441033084647953,
+            "seconds_per_unit": 0.012797228712045935,
             "details": {
               "source": "https://lab.tt/index.php/category/pub/",
               "pages": 1,
@@ -1227,9 +1235,12 @@
               "content_type": "text/html; charset=UTF-8",
               "etag": null,
               "last_modified": null,
-              "response_bytes": 263699,
-              "response_sha256": "0b362f499476a4f4642b7905229622673fa463bd6a0af7fb33ecc12d67e4893b",
+              "response_bytes": 262035,
+              "response_sha256": "b73572453acb378258f9fbc499691bde489958114b805c0574c3492e9eb16392",
               "record_ids": [
+                "a-nlp-method-for-estimating-the-alignment-of-university-curricula-with-e-179108e7",
+                "predicting-motor-insurance-policy-lapse-a-multi-stage-pipeline-integrati-c407e97b",
+                "a-machine-learning-based-approach-to-leak-detection-in-water-distributio-5b692b19",
                 "a-framework-to-assess-the-impact-of-matriculation-requirements-on-academ-ffd78f03",
                 "a-policy-framework-for-ai-centric-climate-resilience-action-plans-58c44801",
                 "evaluating-the-impact-of-carpool-lanes-on-highway-congestion-using-empir-afd5da4b",
@@ -1285,15 +1296,12 @@
                 "the-optimal-stopping-criteria-for-a-customer-contact-strategy-in-targete-16a561eb",
                 "estimating-the-carbon-content-of-oceans-using-satellite-sensor-data-1151734e",
                 "instant-message-summarization-with-emoji-unicode-characterset-support-96db0872",
-                "dynamic-group-formation-in-an-online-social-network-a8e55b98",
-                "premium-rate-services-fraud-detection-37e69fcf",
-                "a-recommender-system-for-the-upselling-of-telecommunications-products-8247baf7",
-                "using-chatbot-technologies-to-help-individuals-make-sound-personalized-f-febafb9d"
+                "dynamic-group-formation-in-an-online-social-network-a8e55b98"
               ],
-              "records_sha256": "330f28613ab0ad1ce491a067f2370cfac02bae9963cc62ae0c40b93ec7a85374",
+              "records_sha256": "994de90207c7a730775bcb2a4209690a96c3e52e380db7fd2e4ae67b7d3d2fcf",
               "next_page_present": true
             },
-            "max_rss_kib": 66812
+            "max_rss_kib": 66632
           }
         ]
       },
@@ -1314,68 +1322,74 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 5.514558,
-            "p95": 5.538043,
-            "minimum": 5.351609,
-            "maximum": 5.540653
+            "median": 6.578967,
+            "p95": 6.732145,
+            "minimum": 6.32674,
+            "maximum": 6.749165
           },
           "seconds_per_unit": {
-            "median": 0.041153419,
-            "p95": 0.041328682
+            "median": 0.049096768,
+            "p95": 0.050239889
           },
-          "max_rss_kib": 102604
+          "max_rss_kib": 114532
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 5.540652839001268,
+            "elapsed_seconds": 6.326739851996535,
             "units": 134,
             "unit": "publication records",
-            "seconds_per_unit": 0.041348155514934835,
+            "seconds_per_unit": 0.047214476507436834,
             "details": {
               "created": 134,
               "updated": 0,
               "skipped": 0,
               "missing_pdf": 34,
               "authors": 123,
+              "reviewed_field_conflicts": 0,
+              "descendants_invalidated": 0,
               "authors_recovered": 12
             },
-            "max_rss_kib": 102492
+            "max_rss_kib": 113816
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 5.514558141003363,
+            "elapsed_seconds": 6.578966868008138,
             "units": 134,
             "unit": "publication records",
-            "seconds_per_unit": 0.041153418962711664,
+            "seconds_per_unit": 0.04909676767170252,
             "details": {
               "created": 134,
               "updated": 0,
               "skipped": 0,
               "missing_pdf": 34,
               "authors": 123,
+              "reviewed_field_conflicts": 0,
+              "descendants_invalidated": 0,
               "authors_recovered": 12
             },
-            "max_rss_kib": 102604
+            "max_rss_kib": 114132
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 5.351609335979447,
+            "elapsed_seconds": 6.74916494700301,
             "units": 134,
             "unit": "publication records",
-            "seconds_per_unit": 0.03993738310432423,
+            "seconds_per_unit": 0.0503669025895747,
             "details": {
               "created": 134,
               "updated": 0,
               "skipped": 0,
               "missing_pdf": 34,
               "authors": 123,
+              "reviewed_field_conflicts": 0,
+              "descendants_invalidated": 0,
               "authors_recovered": 12
             },
-            "max_rss_kib": 102360
+            "max_rss_kib": 114532
           }
         ]
       },
@@ -1386,68 +1400,74 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 2.099371,
-            "p95": 4.968867,
-            "minimum": 2.035799,
-            "maximum": 5.2877
+            "median": 2.657302,
+            "p95": 6.249422,
+            "minimum": 2.644157,
+            "maximum": 6.648547
           },
           "seconds_per_unit": {
-            "median": 0.01566695,
-            "p95": 0.037081097
+            "median": 0.019830614,
+            "p95": 0.046637479
           },
-          "max_rss_kib": 107292
+          "max_rss_kib": 118460
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 5.287699909007642,
+            "elapsed_seconds": 6.648546608004835,
             "units": 134,
             "unit": "publication records",
-            "seconds_per_unit": 0.039460447082146584,
+            "seconds_per_unit": 0.04961601946272265,
             "details": {
               "created": 134,
               "updated": 0,
               "skipped": 0,
               "missing_pdf": 34,
               "authors": 123,
+              "reviewed_field_conflicts": 0,
+              "descendants_invalidated": 0,
               "authors_recovered": 12
             },
-            "max_rss_kib": 107292
+            "max_rss_kib": 118460
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 2.03579912398709,
+            "elapsed_seconds": 2.657302295003319,
             "units": 134,
             "unit": "publication records",
-            "seconds_per_unit": 0.01519253077602306,
+            "seconds_per_unit": 0.019830614141815816,
             "details": {
               "created": 134,
               "updated": 0,
               "skipped": 0,
               "missing_pdf": 34,
               "authors": 123,
+              "reviewed_field_conflicts": 0,
+              "descendants_invalidated": 0,
               "authors_recovered": 12
             },
-            "max_rss_kib": 107292
+            "max_rss_kib": 118460
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 2.0993712689960375,
+            "elapsed_seconds": 2.6441570469905855,
             "units": 134,
             "unit": "publication records",
-            "seconds_per_unit": 0.015666949768627147,
+            "seconds_per_unit": 0.019732515276049144,
             "details": {
               "created": 134,
               "updated": 0,
               "skipped": 0,
               "missing_pdf": 34,
               "authors": 123,
+              "reviewed_field_conflicts": 0,
+              "descendants_invalidated": 0,
               "authors_recovered": 12
             },
-            "max_rss_kib": 107292
+            "max_rss_kib": 118460
           }
         ]
       },
@@ -1468,62 +1488,62 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 15.465891,
-            "p95": 15.917322,
-            "minimum": 15.322214,
-            "maximum": 15.967481
+            "median": 8.974458,
+            "p95": 9.545139,
+            "minimum": 8.956981,
+            "maximum": 9.608547
           },
           "seconds_per_unit": {
-            "median": 0.161103035,
-            "p95": 0.165805435
+            "median": 0.093483936,
+            "p95": 0.099428526
           },
-          "max_rss_kib": 113852
+          "max_rss_kib": 125296
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 15.967480741004692,
+            "elapsed_seconds": 8.974457863994758,
             "units": 96,
             "unit": "PDF documents",
-            "seconds_per_unit": 0.16632792438546554,
+            "seconds_per_unit": 0.09348393608327872,
             "details": {
               "statuses": {
                 "extracted": 96
               },
               "ocr": false
             },
-            "max_rss_kib": 113660
+            "max_rss_kib": 125184
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 15.32221397900139,
+            "elapsed_seconds": 9.608547480005655,
             "units": 96,
             "unit": "PDF documents",
-            "seconds_per_unit": 0.1596063956145978,
+            "seconds_per_unit": 0.1000890362500589,
             "details": {
               "statuses": {
                 "extracted": 96
               },
               "ocr": false
             },
-            "max_rss_kib": 113592
+            "max_rss_kib": 125296
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 15.465891319006914,
+            "elapsed_seconds": 8.956981101000565,
             "units": 96,
             "unit": "PDF documents",
-            "seconds_per_unit": 0.1611030345729887,
+            "seconds_per_unit": 0.09330188646875588,
             "details": {
               "statuses": {
                 "extracted": 96
               },
               "ocr": false
             },
-            "max_rss_kib": 113852
+            "max_rss_kib": 124592
           }
         ]
       },
@@ -1534,62 +1554,62 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 12.873937,
-            "p95": 14.993162,
-            "minimum": 12.816012,
-            "maximum": 15.228632
+            "median": 5.357489,
+            "p95": 8.220702,
+            "minimum": 5.28131,
+            "maximum": 8.538837
           },
           "seconds_per_unit": {
-            "median": 0.134103509,
-            "p95": 0.156178772
+            "median": 0.05580718,
+            "p95": 0.085632315
           },
-          "max_rss_kib": 115296
+          "max_rss_kib": 126104
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 15.228631546982797,
+            "elapsed_seconds": 8.538837061001686,
             "units": 96,
             "unit": "PDF documents",
-            "seconds_per_unit": 0.15863157861440413,
+            "seconds_per_unit": 0.08894621938543423,
             "details": {
               "statuses": {
                 "extracted": 96
               },
               "ocr": false
             },
-            "max_rss_kib": 115296
+            "max_rss_kib": 126104
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 12.816011566988891,
+            "elapsed_seconds": 5.281310228005168,
             "units": 96,
             "unit": "PDF documents",
-            "seconds_per_unit": 0.1335001204894676,
+            "seconds_per_unit": 0.05501364820838717,
             "details": {
               "statuses": {
                 "extracted": 96
               },
               "ocr": false
             },
-            "max_rss_kib": 115296
+            "max_rss_kib": 126104
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 12.873936846008291,
+            "elapsed_seconds": 5.357489305009949,
             "units": 96,
             "unit": "PDF documents",
-            "seconds_per_unit": 0.13410350881258637,
+            "seconds_per_unit": 0.055807180260520305,
             "details": {
               "statuses": {
                 "extracted": 96
               },
               "ocr": false
             },
-            "max_rss_kib": 115296
+            "max_rss_kib": 126104
           }
         ]
       },
@@ -1610,22 +1630,22 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 2.632537,
-            "p95": 2.8382,
-            "minimum": 2.528622,
-            "maximum": 2.861051
+            "median": 2.935236,
+            "p95": 3.080592,
+            "minimum": 2.905669,
+            "maximum": 3.096743
           },
           "seconds_per_unit": {
             "median": null,
             "p95": null
           },
-          "max_rss_kib": 89268
+          "max_rss_kib": 100796
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 2.86105131500517,
+            "elapsed_seconds": 3.096742734996951,
             "units": 0,
             "unit": "OCR documents",
             "seconds_per_unit": null,
@@ -1633,12 +1653,12 @@
               "status": "not_applicable",
               "ocr_pages_completed": 0
             },
-            "max_rss_kib": 89096
+            "max_rss_kib": 100592
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 2.632537104014773,
+            "elapsed_seconds": 2.935235675002332,
             "units": 0,
             "unit": "OCR documents",
             "seconds_per_unit": null,
@@ -1646,12 +1666,12 @@
               "status": "not_applicable",
               "ocr_pages_completed": 0
             },
-            "max_rss_kib": 88996
+            "max_rss_kib": 100580
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 2.528621634992305,
+            "elapsed_seconds": 2.9056687650008826,
             "units": 0,
             "unit": "OCR documents",
             "seconds_per_unit": null,
@@ -1659,7 +1679,7 @@
               "status": "not_applicable",
               "ocr_pages_completed": 0
             },
-            "max_rss_kib": 89268
+            "max_rss_kib": 100796
           }
         ]
       },
@@ -1670,22 +1690,22 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 0.150742,
-            "p95": 2.293939,
-            "minimum": 0.149245,
-            "maximum": 2.532072
+            "median": 0.008462,
+            "p95": 2.607832,
+            "minimum": 0.008203,
+            "maximum": 2.896651
           },
           "seconds_per_unit": {
             "median": null,
             "p95": null
           },
-          "max_rss_kib": 92296
+          "max_rss_kib": 102924
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 2.5320718889997806,
+            "elapsed_seconds": 2.896650591996149,
             "units": 0,
             "unit": "OCR documents",
             "seconds_per_unit": null,
@@ -1693,12 +1713,12 @@
               "status": "not_applicable",
               "ocr_pages_completed": 0
             },
-            "max_rss_kib": 92296
+            "max_rss_kib": 102924
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 0.14924493999569677,
+            "elapsed_seconds": 0.008461641002213582,
             "units": 0,
             "unit": "OCR documents",
             "seconds_per_unit": null,
@@ -1706,12 +1726,12 @@
               "status": "not_applicable",
               "ocr_pages_completed": 0
             },
-            "max_rss_kib": 92296
+            "max_rss_kib": 102924
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 0.15074181501404382,
+            "elapsed_seconds": 0.008203097007935867,
             "units": 0,
             "unit": "OCR documents",
             "seconds_per_unit": null,
@@ -1719,7 +1739,7 @@
               "status": "not_applicable",
               "ocr_pages_completed": 0
             },
-            "max_rss_kib": 92296
+            "max_rss_kib": 102924
           }
         ]
       },
@@ -1740,53 +1760,53 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 10.40448,
-            "p95": 10.773374,
-            "minimum": 10.182584,
-            "maximum": 10.814362
+            "median": 11.58277,
+            "p95": 11.846443,
+            "minimum": 11.497607,
+            "maximum": 11.87574
           },
           "seconds_per_unit": {
-            "median": 0.108380002,
-            "p95": 0.112222643
+            "median": 0.120653849,
+            "p95": 0.123400445
           },
-          "max_rss_kib": 63184
+          "max_rss_kib": 112648
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 10.814361861004727,
+            "elapsed_seconds": 11.87573971200618,
             "units": 96,
             "unit": "extracted documents",
-            "seconds_per_unit": 0.11264960271879924,
+            "seconds_per_unit": 0.12370562200006437,
             "details": {
               "chunks_built": 719
             },
-            "max_rss_kib": 63184
+            "max_rss_kib": 112632
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 10.404480158991646,
+            "elapsed_seconds": 11.582769508007914,
             "units": 96,
             "unit": "extracted documents",
-            "seconds_per_unit": 0.10838000165616297,
+            "seconds_per_unit": 0.1206538490417491,
             "details": {
               "chunks_built": 719
             },
-            "max_rss_kib": 62732
+            "max_rss_kib": 112648
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 10.182583739981055,
+            "elapsed_seconds": 11.497606647011708,
             "units": 96,
             "unit": "extracted documents",
-            "seconds_per_unit": 0.10606858062480266,
+            "seconds_per_unit": 0.11976673590637195,
             "details": {
               "chunks_built": 719
             },
-            "max_rss_kib": 62792
+            "max_rss_kib": 112560
           }
         ]
       },
@@ -1797,53 +1817,53 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 8.279899,
-            "p95": 9.853491,
-            "minimum": 8.275378,
-            "maximum": 10.028335
+            "median": 8.130419,
+            "p95": 11.197908,
+            "minimum": 7.733216,
+            "maximum": 11.53874
           },
           "seconds_per_unit": {
-            "median": 0.086248948,
-            "p95": 0.102640532
+            "median": 0.084691866,
+            "p95": 0.116644877
           },
-          "max_rss_kib": 64004
+          "max_rss_kib": 115260
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 10.028334678994725,
+            "elapsed_seconds": 11.538740293995943,
             "units": 96,
             "unit": "extracted documents",
-            "seconds_per_unit": 0.10446181957286171,
+            "seconds_per_unit": 0.12019521139579108,
             "details": {
               "chunks_built": 719
             },
-            "max_rss_kib": 64004
+            "max_rss_kib": 115260
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 8.275378003017977,
+            "elapsed_seconds": 7.733216314998572,
             "units": 96,
             "unit": "extracted documents",
-            "seconds_per_unit": 0.08620185419810393,
+            "seconds_per_unit": 0.08055433661456846,
             "details": {
               "chunks_built": 719
             },
-            "max_rss_kib": 64004
+            "max_rss_kib": 115260
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 8.279898972978117,
+            "elapsed_seconds": 8.130419157008873,
             "units": 96,
             "unit": "extracted documents",
-            "seconds_per_unit": 0.08624894763518871,
+            "seconds_per_unit": 0.08469186621884243,
             "details": {
               "chunks_built": 719
             },
-            "max_rss_kib": 64004
+            "max_rss_kib": 115260
           }
         ]
       },
@@ -1864,74 +1884,74 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 2.280738,
-            "p95": 2.289659,
-            "minimum": 2.258618,
-            "maximum": 2.290651
+            "median": 2.169256,
+            "p95": 2.231736,
+            "minimum": 2.121971,
+            "maximum": 2.238678
           },
           "seconds_per_unit": {
-            "median": 0.003172098,
-            "p95": 0.003184505
+            "median": 0.003017046,
+            "p95": 0.003103944
           },
-          "max_rss_kib": 88040
+          "max_rss_kib": 76868
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 2.2586178119818214,
+            "elapsed_seconds": 2.2386776589992223,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.003141332144620058,
+            "seconds_per_unit": 0.0031135989694008655,
             "details": {
               "fts_available": true,
               "indexed_chunks": 719,
               "eligible_chunks": 719,
               "eligible_papers": 96,
-              "corpus_snapshot_id": "corpus-04a010207327069a",
-              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+              "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
               "completeness_status": "complete",
-              "last_indexed_at": "2026-07-13T06:15:24.477003+00:00"
+              "last_indexed_at": "2026-07-21T18:36:37.455398+00:00"
             },
-            "max_rss_kib": 88040
+            "max_rss_kib": 76756
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 2.280738242989173,
+            "elapsed_seconds": 2.1219707429991104,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.003172097695395234,
+            "seconds_per_unit": 0.0029512805883158697,
             "details": {
               "fts_available": true,
               "indexed_chunks": 719,
               "eligible_chunks": 719,
               "eligible_papers": 96,
-              "corpus_snapshot_id": "corpus-04a010207327069a",
-              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+              "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
               "completeness_status": "complete",
-              "last_indexed_at": "2026-07-13T06:15:26.986991+00:00"
+              "last_indexed_at": "2026-07-21T18:36:42.497275+00:00"
             },
-            "max_rss_kib": 87828
+            "max_rss_kib": 76540
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 2.290650659997482,
+            "elapsed_seconds": 2.169256409004447,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.003185884089009015,
+            "seconds_per_unit": 0.003017046465931081,
             "details": {
               "fts_available": true,
               "indexed_chunks": 719,
               "eligible_chunks": 719,
               "eligible_papers": 96,
-              "corpus_snapshot_id": "corpus-04a010207327069a",
-              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+              "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
               "completeness_status": "complete",
-              "last_indexed_at": "2026-07-13T06:15:29.523340+00:00"
+              "last_indexed_at": "2026-07-21T18:36:44.792945+00:00"
             },
-            "max_rss_kib": 87876
+            "max_rss_kib": 76868
           }
         ]
       },
@@ -1942,74 +1962,74 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 0.457034,
-            "p95": 2.07849,
-            "minimum": 0.435771,
-            "maximum": 2.258651
+            "median": 0.499676,
+            "p95": 2.150562,
+            "minimum": 0.489356,
+            "maximum": 2.333994
           },
           "seconds_per_unit": {
-            "median": 0.000635652,
-            "p95": 0.002890806
+            "median": 0.000694959,
+            "p95": 0.002991046
           },
-          "max_rss_kib": 91088
+          "max_rss_kib": 82764
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 2.258651418000227,
+            "elapsed_seconds": 2.3339937339915195,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.003141378884562207,
+            "seconds_per_unit": 0.003246166528500027,
             "details": {
               "fts_available": true,
               "indexed_chunks": 719,
               "eligible_chunks": 719,
               "eligible_papers": 96,
-              "corpus_snapshot_id": "corpus-04a010207327069a",
-              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+              "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
               "completeness_status": "complete",
-              "last_indexed_at": "2026-07-13T06:15:32.056503+00:00"
+              "last_indexed_at": "2026-07-21T18:36:47.245058+00:00"
             },
-            "max_rss_kib": 91088
+            "max_rss_kib": 82764
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 0.45703374399454333,
+            "elapsed_seconds": 0.48935552799957804,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.000635651938796305,
+            "seconds_per_unit": 0.0006806057413067844,
             "details": {
               "fts_available": true,
               "indexed_chunks": 719,
               "eligible_chunks": 719,
               "eligible_papers": 96,
-              "corpus_snapshot_id": "corpus-04a010207327069a",
-              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+              "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
               "completeness_status": "complete",
-              "last_indexed_at": "2026-07-13T06:15:32.513905+00:00"
+              "last_indexed_at": "2026-07-21T18:36:47.734712+00:00"
             },
-            "max_rss_kib": 91088
+            "max_rss_kib": 82764
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 0.4357707510062028,
+            "elapsed_seconds": 0.4996758720080834,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.0006060789304675977,
+            "seconds_per_unit": 0.0006949594881892675,
             "details": {
               "fts_available": true,
               "indexed_chunks": 719,
               "eligible_chunks": 719,
               "eligible_papers": 96,
-              "corpus_snapshot_id": "corpus-04a010207327069a",
-              "corpus_snapshot_hash": "04a010207327069a84d112b2aa065adb388e0ee7c129ba514db465057f22fbb5",
+              "corpus_snapshot_id": "corpus-f4638c633bea82b0",
+              "corpus_snapshot_hash": "f4638c633bea82b02df4e6ff5f8540020f3ca29bd7493a3465036a37582c7ab1",
               "completeness_status": "complete",
-              "last_indexed_at": "2026-07-13T06:15:32.949259+00:00"
+              "last_indexed_at": "2026-07-21T18:36:48.234816+00:00"
             },
-            "max_rss_kib": 91088
+            "max_rss_kib": 82764
           }
         ]
       },
@@ -2030,25 +2050,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 2.868915,
-            "p95": 2.900079,
-            "minimum": 2.835156,
-            "maximum": 2.903542
+            "median": 3.079036,
+            "p95": 3.121954,
+            "minimum": 3.029888,
+            "maximum": 3.126722
           },
           "seconds_per_unit": {
-            "median": 0.003990145,
-            "p95": 0.00403349
+            "median": 0.004282387,
+            "p95": 0.004342077
           },
-          "max_rss_kib": 96272
+          "max_rss_kib": 95224
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 2.90354212699458,
+            "elapsed_seconds": 3.0790359800012084,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.0040383061571551875,
+            "seconds_per_unit": 0.004282386620307661,
             "details": {
               "provider": "feature_hashing",
               "indexed_chunks": 719,
@@ -2057,15 +2077,15 @@
               "model_revision": "1",
               "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
             },
-            "max_rss_kib": 96272
+            "max_rss_kib": 94316
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 2.868914606020553,
+            "elapsed_seconds": 3.1267222390015377,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.003990145488206611,
+            "seconds_per_unit": 0.004348709650906172,
             "details": {
               "provider": "feature_hashing",
               "indexed_chunks": 719,
@@ -2074,15 +2094,15 @@
               "model_revision": "1",
               "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
             },
-            "max_rss_kib": 95752
+            "max_rss_kib": 95224
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 2.8351556609850377,
+            "elapsed_seconds": 3.0298884459916735,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.003943192852552208,
+            "seconds_per_unit": 0.004214031218347251,
             "details": {
               "provider": "feature_hashing",
               "indexed_chunks": 719,
@@ -2091,7 +2111,7 @@
               "model_revision": "1",
               "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
             },
-            "max_rss_kib": 96132
+            "max_rss_kib": 94460
           }
         ]
       },
@@ -2102,25 +2122,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 0.978415,
-            "p95": 2.601882,
-            "minimum": 0.936294,
-            "maximum": 2.782267
+            "median": 1.351389,
+            "p95": 2.890978,
+            "minimum": 1.346732,
+            "maximum": 3.062043
           },
           "seconds_per_unit": {
-            "median": 0.0013608,
-            "p95": 0.00361875
+            "median": 0.001879539,
+            "p95": 0.004020831
           },
-          "max_rss_kib": 98820
+          "max_rss_kib": 100412
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 2.782266693015117,
+            "elapsed_seconds": 3.0620432720024837,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.003869633787225476,
+            "seconds_per_unit": 0.004258752812242675,
             "details": {
               "provider": "feature_hashing",
               "indexed_chunks": 719,
@@ -2129,15 +2149,15 @@
               "model_revision": "1",
               "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
             },
-            "max_rss_kib": 98820
+            "max_rss_kib": 100412
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 0.9784153049986344,
+            "elapsed_seconds": 1.3467322409996996,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.001360800146034262,
+            "seconds_per_unit": 0.0018730629221136294,
             "details": {
               "provider": "feature_hashing",
               "indexed_chunks": 719,
@@ -2146,15 +2166,15 @@
               "model_revision": "1",
               "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
             },
-            "max_rss_kib": 98820
+            "max_rss_kib": 100412
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 0.9362937819969375,
+            "elapsed_seconds": 1.3513885040010791,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.0013022166648079799,
+            "seconds_per_unit": 0.0018795389485411393,
             "details": {
               "provider": "feature_hashing",
               "indexed_chunks": 719,
@@ -2163,7 +2183,7 @@
               "model_revision": "1",
               "model_artifact_sha256": "15e096c569e1270a1876b5414444a2028ddae8373bee0ed336d531918bb2dd39"
             },
-            "max_rss_kib": 98820
+            "max_rss_kib": 100412
           }
         ]
       },
@@ -2184,25 +2204,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 145.00531,
-            "p95": 145.020029,
-            "minimum": 143.995703,
-            "maximum": 145.021665
+            "median": 153.032877,
+            "p95": 154.314934,
+            "minimum": 151.860787,
+            "maximum": 154.457385
           },
           "seconds_per_unit": {
-            "median": 0.20167637,
-            "p95": 0.201696842
+            "median": 0.212841275,
+            "p95": 0.214624386
           },
-          "max_rss_kib": 744028
+          "max_rss_kib": 732404
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 145.0053098979988,
+            "elapsed_seconds": 151.86078657100734,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.20167636981641004,
+            "seconds_per_unit": 0.21121110788735373,
             "details": {
               "provider": "dense",
               "indexed_chunks": 719,
@@ -2211,15 +2231,15 @@
               "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
               "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
             },
-            "max_rss_kib": 740216
+            "max_rss_kib": 732404
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 143.99570296800812,
+            "elapsed_seconds": 154.45738466701005,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.20027218771628388,
+            "seconds_per_unit": 0.2148225099680251,
             "details": {
               "provider": "dense",
               "indexed_chunks": 719,
@@ -2228,15 +2248,15 @@
               "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
               "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
             },
-            "max_rss_kib": 744028
+            "max_rss_kib": 724736
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 145.0216646839981,
+            "elapsed_seconds": 153.03287690199795,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.2016991163894271,
+            "seconds_per_unit": 0.21284127524617238,
             "details": {
               "provider": "dense",
               "indexed_chunks": 719,
@@ -2245,7 +2265,7 @@
               "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
               "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
             },
-            "max_rss_kib": 741360
+            "max_rss_kib": 725032
           }
         ]
       },
@@ -2256,25 +2276,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 66.169363,
-            "p95": 134.066006,
-            "minimum": 65.891447,
-            "maximum": 141.610077
+            "median": 75.342572,
+            "p95": 146.30168,
+            "minimum": 72.053621,
+            "maximum": 154.186025
           },
           "seconds_per_unit": {
-            "median": 0.092029712,
-            "p95": 0.18646176
+            "median": 0.104788,
+            "p95": 0.203479388
           },
-          "max_rss_kib": 769552
+          "max_rss_kib": 755084
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 141.61007694801083,
+            "elapsed_seconds": 154.18602517399995,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.1969542099416006,
+            "seconds_per_unit": 0.2144450975994436,
             "details": {
               "provider": "dense",
               "indexed_chunks": 719,
@@ -2283,15 +2303,15 @@
               "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
               "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
             },
-            "max_rss_kib": 769552
+            "max_rss_kib": 755084
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 66.16936308599543,
+            "elapsed_seconds": 72.05362071799755,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.09202971221974329,
+            "seconds_per_unit": 0.10021365885674206,
             "details": {
               "provider": "dense",
               "indexed_chunks": 719,
@@ -2300,15 +2320,15 @@
               "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
               "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
             },
-            "max_rss_kib": 769552
+            "max_rss_kib": 755084
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 65.89144696900621,
+            "elapsed_seconds": 75.34257186499599,
             "units": 719,
             "unit": "eligible chunks",
-            "seconds_per_unit": 0.09164318076356914,
+            "seconds_per_unit": 0.10478799981223365,
             "details": {
               "provider": "dense",
               "indexed_chunks": 719,
@@ -2317,7 +2337,7 @@
               "model_revision": "826711e54e001c83835913827a843d8dd0a1def9",
               "model_artifact_sha256": "18309e334c0231266dcaba3f9b70f47e919b787190a3e5d22744b240048c0a7c"
             },
-            "max_rss_kib": 769552
+            "max_rss_kib": 755084
           }
         ]
       },
@@ -2338,25 +2358,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 9.808771,
-            "p95": 10.12629,
-            "minimum": 9.649595,
-            "maximum": 10.16157
+            "median": 5.389692,
+            "p95": 5.898393,
+            "minimum": 5.388533,
+            "maximum": 5.954916
           },
           "seconds_per_unit": {
-            "median": 1.634795195,
-            "p95": 1.68771497
+            "median": 0.898281995,
+            "p95": 0.983065551
           },
-          "max_rss_kib": 109732
+          "max_rss_kib": 120456
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 10.161569668998709,
+            "elapsed_seconds": 5.954915677997633,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.6935949448331182,
+            "seconds_per_unit": 0.9924859463329389,
             "details": {
               "mode": "keyword",
               "result_counts": [
@@ -2368,15 +2388,15 @@
                 10
               ]
             },
-            "max_rss_kib": 109732
+            "max_rss_kib": 120456
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 9.808771168987732,
+            "elapsed_seconds": 5.388533124001697,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.6347951948312887,
+            "seconds_per_unit": 0.8980888540002828,
             "details": {
               "mode": "keyword",
               "result_counts": [
@@ -2388,15 +2408,15 @@
                 10
               ]
             },
-            "max_rss_kib": 108964
+            "max_rss_kib": 119964
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 9.649594885995612,
+            "elapsed_seconds": 5.389691969990963,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.6082658143326019,
+            "seconds_per_unit": 0.8982819949984938,
             "details": {
               "mode": "keyword",
               "result_counts": [
@@ -2408,7 +2428,7 @@
                 10
               ]
             },
-            "max_rss_kib": 109548
+            "max_rss_kib": 119992
           }
         ]
       },
@@ -2419,25 +2439,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 8.091362,
-            "p95": 9.525965,
-            "minimum": 8.066776,
-            "maximum": 9.685365
+            "median": 1.638556,
+            "p95": 5.070841,
+            "minimum": 1.585301,
+            "maximum": 5.452206
           },
           "seconds_per_unit": {
-            "median": 1.348560257,
-            "p95": 1.587660751
+            "median": 0.273092622,
+            "p95": 0.845140231
           },
-          "max_rss_kib": 114472
+          "max_rss_kib": 122980
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 9.685364833014319,
+            "elapsed_seconds": 5.452206461006426,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.614227472169053,
+            "seconds_per_unit": 0.9087010768344044,
             "details": {
               "mode": "keyword",
               "result_counts": [
@@ -2449,15 +2469,15 @@
                 10
               ]
             },
-            "max_rss_kib": 114472
+            "max_rss_kib": 122980
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 8.066776264022337,
+            "elapsed_seconds": 1.6385557300091023,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.3444627106703895,
+            "seconds_per_unit": 0.2730926216681837,
             "details": {
               "mode": "keyword",
               "result_counts": [
@@ -2469,15 +2489,15 @@
                 10
               ]
             },
-            "max_rss_kib": 114472
+            "max_rss_kib": 122980
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 8.091361544007668,
+            "elapsed_seconds": 1.5853012549923733,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.3485602573346114,
+            "seconds_per_unit": 0.2642168758320622,
             "details": {
               "mode": "keyword",
               "result_counts": [
@@ -2489,7 +2509,7 @@
                 10
               ]
             },
-            "max_rss_kib": 114472
+            "max_rss_kib": 122980
           }
         ]
       },
@@ -2510,25 +2530,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 10.323142,
-            "p95": 10.369091,
-            "minimum": 10.304272,
-            "maximum": 10.374197
+            "median": 6.98356,
+            "p95": 7.528716,
+            "minimum": 6.887236,
+            "maximum": 7.589289
           },
           "seconds_per_unit": {
-            "median": 1.72052373,
-            "p95": 1.72818191
+            "median": 1.1639267,
+            "p95": 1.254786083
           },
-          "max_rss_kib": 102148
+          "max_rss_kib": 140452
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 10.374196916003712,
+            "elapsed_seconds": 6.9835601990052965,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.729032819333952,
+            "seconds_per_unit": 1.1639266998342161,
             "details": {
               "mode": "feature_hashing",
               "result_counts": [
@@ -2540,15 +2560,15 @@
                 10
               ]
             },
-            "max_rss_kib": 101524
+            "max_rss_kib": 137564
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 10.323142379987985,
+            "elapsed_seconds": 6.887235811998835,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.7205237299979974,
+            "seconds_per_unit": 1.1478726353331392,
             "details": {
               "mode": "feature_hashing",
               "result_counts": [
@@ -2560,15 +2580,15 @@
                 10
               ]
             },
-            "max_rss_kib": 102016
+            "max_rss_kib": 140452
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 10.304271951987175,
+            "elapsed_seconds": 7.589289416995598,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.7173786586645292,
+            "seconds_per_unit": 1.2648815694992663,
             "details": {
               "mode": "feature_hashing",
               "result_counts": [
@@ -2580,7 +2600,7 @@
                 10
               ]
             },
-            "max_rss_kib": 102148
+            "max_rss_kib": 140012
           }
         ]
       },
@@ -2591,25 +2611,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 8.13722,
-            "p95": 10.176257,
-            "minimum": 7.659391,
-            "maximum": 10.402817
+            "median": 3.106732,
+            "p95": 6.437772,
+            "minimum": 3.065462,
+            "maximum": 6.807887
           },
           "seconds_per_unit": {
-            "median": 1.356203278,
-            "p95": 1.696042899
+            "median": 0.517788673,
+            "p95": 1.07296199
           },
-          "max_rss_kib": 105204
+          "max_rss_kib": 143232
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 10.402817144000437,
+            "elapsed_seconds": 6.807887485992978,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.7338028573334061,
+            "seconds_per_unit": 1.134647914332163,
             "details": {
               "mode": "feature_hashing",
               "result_counts": [
@@ -2621,15 +2641,15 @@
                 10
               ]
             },
-            "max_rss_kib": 105204
+            "max_rss_kib": 143232
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 8.137219666998135,
+            "elapsed_seconds": 3.106732035987079,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.3562032778330224,
+            "seconds_per_unit": 0.5177886726645132,
             "details": {
               "mode": "feature_hashing",
               "result_counts": [
@@ -2641,15 +2661,15 @@
                 10
               ]
             },
-            "max_rss_kib": 105204
+            "max_rss_kib": 143232
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 7.659391250985209,
+            "elapsed_seconds": 3.0654624960006913,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.2765652084975347,
+            "seconds_per_unit": 0.5109104160001152,
             "details": {
               "mode": "feature_hashing",
               "result_counts": [
@@ -2661,7 +2681,7 @@
                 10
               ]
             },
-            "max_rss_kib": 105204
+            "max_rss_kib": 143232
           }
         ]
       },
@@ -2682,25 +2702,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 84.486818,
-            "p95": 86.265354,
-            "minimum": 84.140294,
-            "maximum": 86.462969
+            "median": 80.472815,
+            "p95": 80.579366,
+            "minimum": 77.558838,
+            "maximum": 80.591206
           },
           "seconds_per_unit": {
-            "median": 14.081136354,
-            "p95": 14.377558965
+            "median": 13.41213578,
+            "p95": 13.429894414
           },
-          "max_rss_kib": 574152
+          "max_rss_kib": 609728
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 86.46296886200435,
+            "elapsed_seconds": 80.4728146790003,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 14.410494810334058,
+            "seconds_per_unit": 13.412135779833383,
             "details": {
               "mode": "dense",
               "result_counts": [
@@ -2712,15 +2732,15 @@
                 10
               ]
             },
-            "max_rss_kib": 574152
+            "max_rss_kib": 608852
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 84.48681812599534,
+            "elapsed_seconds": 80.59120557100687,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 14.081136354332557,
+            "seconds_per_unit": 13.43186759516781,
             "details": {
               "mode": "dense",
               "result_counts": [
@@ -2732,15 +2752,15 @@
                 10
               ]
             },
-            "max_rss_kib": 573240
+            "max_rss_kib": 609500
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 84.14029375300743,
+            "elapsed_seconds": 77.55883777799318,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 14.023382292167904,
+            "seconds_per_unit": 12.926472962998863,
             "details": {
               "mode": "dense",
               "result_counts": [
@@ -2752,7 +2772,7 @@
                 10
               ]
             },
-            "max_rss_kib": 567116
+            "max_rss_kib": 609728
           }
         ]
       },
@@ -2763,25 +2783,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 12.214692,
-            "p95": 78.342303,
-            "minimum": 11.84906,
-            "maximum": 85.689816
+            "median": 4.580158,
+            "p95": 69.943214,
+            "minimum": 4.480587,
+            "maximum": 77.205776
           },
           "seconds_per_unit": {
-            "median": 2.035782013,
-            "p95": 13.057050529
+            "median": 0.76335974,
+            "p95": 11.657202391
           },
-          "max_rss_kib": 577028
+          "max_rss_kib": 613620
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 85.68981551998877,
+            "elapsed_seconds": 77.20577611100452,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 14.281635919998129,
+            "seconds_per_unit": 12.867629351834088,
             "details": {
               "mode": "dense",
               "result_counts": [
@@ -2793,15 +2813,15 @@
                 10
               ]
             },
-            "max_rss_kib": 577028
+            "max_rss_kib": 613620
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 12.214692075009225,
+            "elapsed_seconds": 4.580158440003288,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 2.0357820125015373,
+            "seconds_per_unit": 0.763359740000548,
             "details": {
               "mode": "dense",
               "result_counts": [
@@ -2813,15 +2833,15 @@
                 10
               ]
             },
-            "max_rss_kib": 577028
+            "max_rss_kib": 613620
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 11.849059982021572,
+            "elapsed_seconds": 4.4805871110002045,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 1.9748433303369286,
+            "seconds_per_unit": 0.7467645185000341,
             "details": {
               "mode": "dense",
               "result_counts": [
@@ -2833,7 +2853,7 @@
                 10
               ]
             },
-            "max_rss_kib": 577028
+            "max_rss_kib": 613620
           }
         ]
       },
@@ -2854,25 +2874,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 93.355339,
-            "p95": 93.616085,
-            "minimum": 92.125005,
-            "maximum": 93.645057
+            "median": 83.194993,
+            "p95": 85.775297,
+            "minimum": 82.099226,
+            "maximum": 86.061997
           },
           "seconds_per_unit": {
-            "median": 15.55922321,
-            "p95": 15.602680824
+            "median": 13.865832186,
+            "p95": 14.295882785
           },
-          "max_rss_kib": 578592
+          "max_rss_kib": 612668
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 93.3553392610047,
+            "elapsed_seconds": 86.0619971069973,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 15.55922321016745,
+            "seconds_per_unit": 14.343666184499549,
             "details": {
               "mode": "hybrid",
               "result_counts": [
@@ -2884,15 +2904,15 @@
                 10
               ]
             },
-            "max_rss_kib": 571708
+            "max_rss_kib": 611976
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 92.12500511299004,
+            "elapsed_seconds": 82.09922608399938,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 15.354167518831673,
+            "seconds_per_unit": 13.68320434733323,
             "details": {
               "mode": "hybrid",
               "result_counts": [
@@ -2904,15 +2924,15 @@
                 10
               ]
             },
-            "max_rss_kib": 578592
+            "max_rss_kib": 609968
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 93.64505668499623,
+            "elapsed_seconds": 83.19499311700929,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 15.607509447499373,
+            "seconds_per_unit": 13.865832186168214,
             "details": {
               "mode": "hybrid",
               "result_counts": [
@@ -2924,7 +2944,7 @@
                 10
               ]
             },
-            "max_rss_kib": 575472
+            "max_rss_kib": 612668
           }
         ]
       },
@@ -2935,25 +2955,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 20.325805,
-            "p95": 86.384963,
-            "minimum": 19.381599,
-            "maximum": 93.72487
+            "median": 9.084158,
+            "p95": 77.88178,
+            "minimum": 9.068322,
+            "maximum": 85.525961
           },
           "seconds_per_unit": {
-            "median": 3.38763418,
-            "p95": 14.397493898
+            "median": 1.514026303,
+            "p95": 12.980296737
           },
-          "max_rss_kib": 582544
+          "max_rss_kib": 613716
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 93.72486986598233,
+            "elapsed_seconds": 85.52596071099106,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 15.620811644330388,
+            "seconds_per_unit": 14.254326785165176,
             "details": {
               "mode": "hybrid",
               "result_counts": [
@@ -2965,15 +2985,15 @@
                 10
               ]
             },
-            "max_rss_kib": 582544
+            "max_rss_kib": 613716
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 20.32580508000683,
+            "elapsed_seconds": 9.068322437000461,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 3.3876341800011383,
+            "seconds_per_unit": 1.5113870728334102,
             "details": {
               "mode": "hybrid",
               "result_counts": [
@@ -2985,15 +3005,15 @@
                 10
               ]
             },
-            "max_rss_kib": 582544
+            "max_rss_kib": 613716
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 19.381599043990718,
+            "elapsed_seconds": 9.084157820005203,
             "units": 6,
             "unit": "queries",
-            "seconds_per_unit": 3.230266507331786,
+            "seconds_per_unit": 1.5140263033342005,
             "details": {
               "mode": "hybrid",
               "result_counts": [
@@ -3005,7 +3025,7 @@
                 10
               ]
             },
-            "max_rss_kib": 582544
+            "max_rss_kib": 613716
           }
         ]
       },
@@ -3026,62 +3046,62 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 83.354851,
-            "p95": 83.736424,
-            "minimum": 82.891678,
-            "maximum": 83.778821
+            "median": 83.628142,
+            "p95": 84.276331,
+            "minimum": 83.005754,
+            "maximum": 84.348351
           },
           "seconds_per_unit": {
-            "median": 27.784950355,
-            "p95": 27.912141348
+            "median": 27.876047394,
+            "p95": 28.092110178
           },
-          "max_rss_kib": 583516
+          "max_rss_kib": 612492
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 83.77882104201126,
+            "elapsed_seconds": 84.34835146300611,
             "units": 3,
             "unit": "answers",
-            "seconds_per_unit": 27.92627368067042,
+            "seconds_per_unit": 28.11611715433537,
             "details": {
               "provider": "offline_extractive",
               "statuses": {
-                "grounded": 3
+                "partial": 3
               }
             },
-            "max_rss_kib": 575820
+            "max_rss_kib": 612492
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 82.89167768598418,
+            "elapsed_seconds": 83.6281421820022,
             "units": 3,
             "unit": "answers",
-            "seconds_per_unit": 27.630559228661394,
+            "seconds_per_unit": 27.876047394000732,
             "details": {
               "provider": "offline_extractive",
               "statuses": {
-                "grounded": 3
+                "partial": 3
               }
             },
-            "max_rss_kib": 579664
+            "max_rss_kib": 612420
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 83.35485106401029,
+            "elapsed_seconds": 83.00575413000479,
             "units": 3,
             "unit": "answers",
-            "seconds_per_unit": 27.784950354670098,
+            "seconds_per_unit": 27.668584710001596,
             "details": {
               "provider": "offline_extractive",
               "statuses": {
-                "grounded": 3
+                "partial": 3
               }
             },
-            "max_rss_kib": 583516
+            "max_rss_kib": 609020
           }
         ]
       },
@@ -3092,62 +3112,62 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 9.841607,
-            "p95": 75.799684,
-            "minimum": 9.642166,
-            "maximum": 83.128359
+            "median": 9.05183,
+            "p95": 77.126869,
+            "minimum": 8.484899,
+            "maximum": 84.690762
           },
           "seconds_per_unit": {
-            "median": 3.280535825,
-            "p95": 25.266561301
+            "median": 3.01727683,
+            "p95": 25.708956426
           },
-          "max_rss_kib": 585584
+          "max_rss_kib": 609920
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 83.12835906099644,
+            "elapsed_seconds": 84.69076247799967,
             "units": 3,
             "unit": "answers",
-            "seconds_per_unit": 27.70945302033215,
+            "seconds_per_unit": 28.230254159333224,
             "details": {
               "provider": "offline_extractive",
               "statuses": {
-                "grounded": 3
+                "partial": 3
               }
             },
-            "max_rss_kib": 585584
+            "max_rss_kib": 609920
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 9.841607473994372,
+            "elapsed_seconds": 8.484899110000697,
             "units": 3,
             "unit": "answers",
-            "seconds_per_unit": 3.2805358246647907,
+            "seconds_per_unit": 2.8282997033335655,
             "details": {
               "provider": "offline_extractive",
               "statuses": {
-                "grounded": 3
+                "partial": 3
               }
             },
-            "max_rss_kib": 585584
+            "max_rss_kib": 609920
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 9.642165980010759,
+            "elapsed_seconds": 9.051830488999258,
             "units": 3,
             "unit": "answers",
-            "seconds_per_unit": 3.214055326670253,
+            "seconds_per_unit": 3.0172768296664194,
             "details": {
               "provider": "offline_extractive",
               "statuses": {
-                "grounded": 3
+                "partial": 3
               }
             },
-            "max_rss_kib": 585584
+            "max_rss_kib": 609920
           }
         ]
       },
@@ -3168,68 +3188,68 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 83.603565,
-            "p95": 85.675136,
-            "minimum": 83.572059,
-            "maximum": 85.90531
+            "median": 7.156744,
+            "p95": 7.407322,
+            "minimum": 6.907331,
+            "maximum": 7.435164
           },
           "seconds_per_unit": {
-            "median": 27.867855038,
-            "p95": 28.55837865
+            "median": 2.385581353,
+            "p95": 2.469107273
           },
-          "max_rss_kib": 571088
+          "max_rss_kib": 127328
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 85.90531048801495,
+            "elapsed_seconds": 7.435163793008542,
             "units": 3,
             "unit": "student profiles",
-            "seconds_per_unit": 28.635103496004984,
+            "seconds_per_unit": 2.4783879310028474,
             "details": {
               "recommendation_counts": [
                 3,
-                3,
+                2,
                 3
               ],
               "persistence": false
             },
-            "max_rss_kib": 566728
+            "max_rss_kib": 127328
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 83.57205928399344,
+            "elapsed_seconds": 7.1567440580111,
             "units": 3,
             "unit": "student profiles",
-            "seconds_per_unit": 27.85735309466448,
+            "seconds_per_unit": 2.3855813526703664,
             "details": {
               "recommendation_counts": [
                 3,
-                3,
+                2,
                 3
               ],
               "persistence": false
             },
-            "max_rss_kib": 569924
+            "max_rss_kib": 127064
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 83.60356511300779,
+            "elapsed_seconds": 6.907330728005036,
             "units": 3,
             "unit": "student profiles",
-            "seconds_per_unit": 27.867855037669262,
+            "seconds_per_unit": 2.3024435760016786,
             "details": {
               "recommendation_counts": [
                 3,
-                3,
+                2,
                 3
               ],
               "persistence": false
             },
-            "max_rss_kib": 571088
+            "max_rss_kib": 127312
           }
         ]
       },
@@ -3240,68 +3260,68 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 10.482148,
-            "p95": 76.667746,
-            "minimum": 10.21255,
-            "maximum": 84.021701
+            "median": 3.409689,
+            "p95": 6.650298,
+            "minimum": 3.359408,
+            "maximum": 7.010365
           },
           "seconds_per_unit": {
-            "median": 3.494049488,
-            "p95": 25.555915182
+            "median": 1.136563025,
+            "p95": 2.216765903
           },
-          "max_rss_kib": 576056
+          "max_rss_kib": 130532
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 84.02170077801566,
+            "elapsed_seconds": 7.010365335998358,
             "units": 3,
             "unit": "student profiles",
-            "seconds_per_unit": 28.007233592671884,
+            "seconds_per_unit": 2.336788445332786,
             "details": {
               "recommendation_counts": [
                 3,
-                3,
+                2,
                 3
               ],
               "persistence": false
             },
-            "max_rss_kib": 576056
+            "max_rss_kib": 130532
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 10.482148465001956,
+            "elapsed_seconds": 3.35940805899736,
             "units": 3,
             "unit": "student profiles",
-            "seconds_per_unit": 3.494049488333985,
+            "seconds_per_unit": 1.1198026863324533,
             "details": {
               "recommendation_counts": [
                 3,
-                3,
+                2,
                 3
               ],
               "persistence": false
             },
-            "max_rss_kib": 576056
+            "max_rss_kib": 130532
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 10.21255039400421,
+            "elapsed_seconds": 3.409689074003836,
             "units": 3,
             "unit": "student profiles",
-            "seconds_per_unit": 3.4041834646680704,
+            "seconds_per_unit": 1.1365630246679455,
             "details": {
               "recommendation_counts": [
                 3,
-                3,
+                2,
                 3
               ],
               "persistence": false
             },
-            "max_rss_kib": 576056
+            "max_rss_kib": 130532
           }
         ]
       },
@@ -3322,25 +3342,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 79.605999,
-            "p95": 81.178027,
-            "minimum": 79.261164,
-            "maximum": 81.352697
+            "median": 81.708634,
+            "p95": 82.840462,
+            "minimum": 79.708407,
+            "maximum": 82.966221
           },
           "seconds_per_unit": {
-            "median": 11.372285535,
-            "p95": 11.596861001
+            "median": 11.672661974,
+            "p95": 11.834351724
           },
-          "max_rss_kib": 611536
+          "max_rss_kib": 617156
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 81.35269681698992,
+            "elapsed_seconds": 79.70840749600029,
             "units": 7,
             "unit": "ASGI requests",
-            "seconds_per_unit": 11.62181383099856,
+            "seconds_per_unit": 11.38691535657147,
             "details": {
               "status_codes": [
                 200,
@@ -3353,15 +3373,15 @@
               ],
               "transport": "FastAPI TestClient"
             },
-            "max_rss_kib": 611536
+            "max_rss_kib": 617156
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 79.60599874600302,
+            "elapsed_seconds": 81.70863381699019,
             "units": 7,
             "unit": "ASGI requests",
-            "seconds_per_unit": 11.37228553514329,
+            "seconds_per_unit": 11.67266197385574,
             "details": {
               "status_codes": [
                 200,
@@ -3374,15 +3394,15 @@
               ],
               "transport": "FastAPI TestClient"
             },
-            "max_rss_kib": 609332
+            "max_rss_kib": 613380
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 79.26116393200937,
+            "elapsed_seconds": 82.96622076399217,
             "units": 7,
             "unit": "ASGI requests",
-            "seconds_per_unit": 11.323023418858481,
+            "seconds_per_unit": 11.852317251998882,
             "details": {
               "status_codes": [
                 200,
@@ -3395,7 +3415,7 @@
               ],
               "transport": "FastAPI TestClient"
             },
-            "max_rss_kib": 609888
+            "max_rss_kib": 613664
           }
         ]
       },
@@ -3406,25 +3426,25 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 3.947942,
-            "p95": 72.397143,
-            "minimum": 3.83355,
-            "maximum": 80.002609
+            "median": 5.712423,
+            "p95": 76.503725,
+            "minimum": 5.572377,
+            "maximum": 84.369425
           },
           "seconds_per_unit": {
-            "median": 0.56399165,
-            "p95": 10.342448947
+            "median": 0.816060414,
+            "p95": 10.929103574
           },
-          "max_rss_kib": 656568
+          "max_rss_kib": 658060
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 80.00260941899614,
+            "elapsed_seconds": 84.36942525100312,
             "units": 7,
             "unit": "ASGI requests",
-            "seconds_per_unit": 11.428944202713735,
+            "seconds_per_unit": 12.05277503585759,
             "details": {
               "status_codes": [
                 200,
@@ -3437,15 +3457,15 @@
               ],
               "transport": "FastAPI TestClient"
             },
-            "max_rss_kib": 656568
+            "max_rss_kib": 658060
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 3.833550267998362,
+            "elapsed_seconds": 5.7124229009932606,
             "units": 7,
             "unit": "ASGI requests",
-            "seconds_per_unit": 0.5476500382854803,
+            "seconds_per_unit": 0.8160604144276087,
             "details": {
               "status_codes": [
                 200,
@@ -3458,15 +3478,15 @@
               ],
               "transport": "FastAPI TestClient"
             },
-            "max_rss_kib": 656568
+            "max_rss_kib": 658060
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 3.9479415510140825,
+            "elapsed_seconds": 5.572376715994324,
             "units": 7,
             "unit": "ASGI requests",
-            "seconds_per_unit": 0.563991650144869,
+            "seconds_per_unit": 0.7960538165706177,
             "details": {
               "status_codes": [
                 200,
@@ -3479,7 +3499,7 @@
               ],
               "transport": "FastAPI TestClient"
             },
-            "max_rss_kib": 656568
+            "max_rss_kib": 658060
           }
         ]
       },
@@ -3500,56 +3520,56 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 31.145462,
-            "p95": 33.201494,
-            "minimum": 30.970344,
-            "maximum": 33.429942
+            "median": 31.83302,
+            "p95": 32.25544,
+            "minimum": 31.360214,
+            "maximum": 32.302375
           },
           "seconds_per_unit": {
-            "median": 31.14546169,
-            "p95": 33.201494093
+            "median": 31.833020312,
+            "p95": 32.255439612
           },
-          "max_rss_kib": 472272
+          "max_rss_kib": 367468
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 33.429942137998296,
+            "elapsed_seconds": 32.3023750900029,
             "units": 1,
             "unit": "production builds",
-            "seconds_per_unit": 33.429942137998296,
+            "seconds_per_unit": 32.3023750900029,
             "details": {
               "assets": 2,
-              "dist_bytes": 371160
+              "dist_bytes": 434553
             },
-            "max_rss_kib": 472272
+            "max_rss_kib": 367468
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 30.97034415899543,
+            "elapsed_seconds": 31.360214330998133,
             "units": 1,
             "unit": "production builds",
-            "seconds_per_unit": 30.97034415899543,
+            "seconds_per_unit": 31.360214330998133,
             "details": {
               "assets": 2,
-              "dist_bytes": 371160
+              "dist_bytes": 434553
             },
-            "max_rss_kib": 457108
+            "max_rss_kib": 366048
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 31.145461690000957,
+            "elapsed_seconds": 31.833020311998553,
             "units": 1,
             "unit": "production builds",
-            "seconds_per_unit": 31.145461690000957,
+            "seconds_per_unit": 31.833020311998553,
             "details": {
               "assets": 2,
-              "dist_bytes": 371160
+              "dist_bytes": 434553
             },
-            "max_rss_kib": 454092
+            "max_rss_kib": 348600
           }
         ]
       },
@@ -3560,56 +3580,56 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 30.763089,
-            "p95": 31.269726,
-            "minimum": 30.739633,
-            "maximum": 31.326019
+            "median": 31.739763,
+            "p95": 31.790134,
+            "minimum": 31.106142,
+            "maximum": 31.795731
           },
           "seconds_per_unit": {
-            "median": 30.763089387,
-            "p95": 31.269725989
+            "median": 31.739763189,
+            "p95": 31.790134226
           },
-          "max_rss_kib": 470124
+          "max_rss_kib": 358460
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 30.763089387008222,
+            "elapsed_seconds": 31.739763189005316,
             "units": 1,
             "unit": "production builds",
-            "seconds_per_unit": 30.763089387008222,
+            "seconds_per_unit": 31.739763189005316,
             "details": {
               "assets": 2,
-              "dist_bytes": 371160
+              "dist_bytes": 434553
             },
-            "max_rss_kib": 470124
+            "max_rss_kib": 358460
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 31.326018945022952,
+            "elapsed_seconds": 31.106141648997436,
             "units": 1,
             "unit": "production builds",
-            "seconds_per_unit": 31.326018945022952,
+            "seconds_per_unit": 31.106141648997436,
             "details": {
               "assets": 2,
-              "dist_bytes": 371160
+              "dist_bytes": 434553
             },
-            "max_rss_kib": 470124
+            "max_rss_kib": 358460
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 30.73963290901156,
+            "elapsed_seconds": 31.79573100799462,
             "units": 1,
             "unit": "production builds",
-            "seconds_per_unit": 30.73963290901156,
+            "seconds_per_unit": 31.79573100799462,
             "details": {
               "assets": 2,
-              "dist_bytes": 371160
+              "dist_bytes": 434553
             },
-            "max_rss_kib": 470124
+            "max_rss_kib": 358460
           }
         ]
       },
@@ -3630,101 +3650,101 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 12.496218,
-            "p95": 12.807251,
-            "minimum": 12.365719,
-            "maximum": 12.841811
+            "median": 13.732113,
+            "p95": 13.763306,
+            "minimum": 13.697199,
+            "maximum": 13.766772
           },
           "seconds_per_unit": {
-            "median": 1.562027208,
-            "p95": 1.600906437
+            "median": 1.716514077,
+            "p95": 1.720413213
           },
-          "max_rss_kib": 460660
+          "max_rss_kib": 369796
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 12.365718828999999,
+            "elapsed_seconds": 13.697198652000003,
             "units": 8,
             "unit": "rendered routes",
-            "seconds_per_unit": 1.5457148536249998,
+            "seconds_per_unit": 1.7121498315000003,
             "details": {
               "temperature": "cold",
               "route_elapsed_ms": {
-                "/": 1245.766,
-                "/papers": 1178.614,
-                "/search": 1669.421,
-                "/ask": 1735.884,
-                "/extensions": 1186.862,
-                "/explorer": 2975.6,
-                "/evaluation": 1275.226,
-                "/admin": 1098.345
+                "/": 1513.717,
+                "/papers": 1437.0,
+                "/search": 2497.343,
+                "/ask": 2376.948,
+                "/extensions": 1403.586,
+                "/explorer": 1400.238,
+                "/evaluation": 1674.686,
+                "/admin": 1393.681
               },
               "failures": [],
               "browser": "Playwright Chromium",
               "viewport": "1440x900",
               "wait_condition": "networkidle and visible main landmark",
-              "backend_port": 36233,
-              "frontend_port": 54777
+              "backend_port": 55093,
+              "frontend_port": 55935
             },
-            "max_rss_kib": 460660
+            "max_rss_kib": 366700
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 12.496217662000001,
+            "elapsed_seconds": 13.732112613,
             "units": 8,
             "unit": "rendered routes",
-            "seconds_per_unit": 1.5620272077500001,
+            "seconds_per_unit": 1.716514076625,
             "details": {
               "temperature": "cold",
               "route_elapsed_ms": {
-                "/": 1259.182,
-                "/papers": 1150.305,
-                "/search": 1702.855,
-                "/ask": 1818.623,
-                "/extensions": 1206.284,
-                "/explorer": 2970.243,
-                "/evaluation": 1266.964,
-                "/admin": 1121.761
+                "/": 1657.265,
+                "/papers": 1441.272,
+                "/search": 2297.767,
+                "/ask": 2392.121,
+                "/extensions": 1420.202,
+                "/explorer": 1404.702,
+                "/evaluation": 1712.718,
+                "/admin": 1406.065
               },
               "failures": [],
               "browser": "Playwright Chromium",
               "viewport": "1440x900",
               "wait_condition": "networkidle and visible main landmark",
-              "backend_port": 48699,
-              "frontend_port": 54305
+              "backend_port": 36845,
+              "frontend_port": 48791
             },
-            "max_rss_kib": 457540
+            "max_rss_kib": 369796
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 12.841810809,
+            "elapsed_seconds": 13.766771603999999,
             "units": 8,
             "unit": "rendered routes",
-            "seconds_per_unit": 1.605226351125,
+            "seconds_per_unit": 1.7208464504999998,
             "details": {
               "temperature": "cold",
               "route_elapsed_ms": {
-                "/": 1288.835,
-                "/papers": 1196.322,
-                "/search": 1710.31,
-                "/ask": 1778.673,
-                "/extensions": 1240.816,
-                "/explorer": 3221.676,
-                "/evaluation": 1274.882,
-                "/admin": 1130.297
+                "/": 1517.605,
+                "/papers": 1378.342,
+                "/search": 2293.157,
+                "/ask": 2367.062,
+                "/extensions": 1444.333,
+                "/explorer": 1489.951,
+                "/evaluation": 1803.722,
+                "/admin": 1472.598
               },
               "failures": [],
               "browser": "Playwright Chromium",
               "viewport": "1440x900",
               "wait_condition": "networkidle and visible main landmark",
-              "backend_port": 50471,
-              "frontend_port": 60507
+              "backend_port": 41883,
+              "frontend_port": 33245
             },
-            "max_rss_kib": 456192
+            "max_rss_kib": 353756
           }
         ]
       },
@@ -3735,101 +3755,101 @@
           "failures": 0,
           "failure_rate": 0.0,
           "elapsed_seconds": {
-            "median": 12.463381,
-            "p95": 12.63072,
-            "minimum": 12.308595,
-            "maximum": 12.649313
+            "median": 13.307194,
+            "p95": 13.421602,
+            "minimum": 13.208467,
+            "maximum": 13.434314
           },
           "seconds_per_unit": {
-            "median": 1.557922672,
-            "p95": 1.578840001
+            "median": 1.663399255,
+            "p95": 1.677700209
           },
-          "max_rss_kib": 469244
+          "max_rss_kib": 364888
         },
         "samples": [
           {
             "repetition": 1,
             "status": "ok",
-            "elapsed_seconds": 12.649313189999999,
+            "elapsed_seconds": 13.434313629,
             "units": 8,
             "unit": "rendered routes",
-            "seconds_per_unit": 1.5811641487499999,
+            "seconds_per_unit": 1.679289203625,
             "details": {
               "temperature": "warm",
               "route_elapsed_ms": {
-                "/": 1247.065,
-                "/papers": 1162.634,
-                "/search": 1720.44,
-                "/ask": 1780.643,
-                "/extensions": 1196.533,
-                "/explorer": 3145.833,
-                "/evaluation": 1273.612,
-                "/admin": 1122.554
+                "/": 1529.953,
+                "/papers": 1390.461,
+                "/search": 2288.807,
+                "/ask": 2372.635,
+                "/extensions": 1398.093,
+                "/explorer": 1400.485,
+                "/evaluation": 1671.419,
+                "/admin": 1382.461
               },
               "failures": [],
               "browser": "Playwright Chromium",
               "viewport": "1440x900",
               "wait_condition": "networkidle and visible main landmark",
-              "backend_port": 38479,
-              "frontend_port": 45325
+              "backend_port": 37581,
+              "frontend_port": 58875
             },
-            "max_rss_kib": 469244
+            "max_rss_kib": 364888
           },
           {
             "repetition": 2,
             "status": "ok",
-            "elapsed_seconds": 12.308594824999995,
+            "elapsed_seconds": 13.208467033000002,
             "units": 8,
             "unit": "rendered routes",
-            "seconds_per_unit": 1.5385743531249993,
+            "seconds_per_unit": 1.6510583791250002,
             "details": {
               "temperature": "warm",
               "route_elapsed_ms": {
-                "/": 1158.034,
-                "/papers": 1141.479,
-                "/search": 1668.644,
-                "/ask": 1639.476,
-                "/extensions": 1204.526,
-                "/explorer": 3073.128,
-                "/evaluation": 1253.861,
-                "/admin": 1169.447
+                "/": 1385.078,
+                "/papers": 1386.447,
+                "/search": 2279.079,
+                "/ask": 2287.725,
+                "/extensions": 1393.736,
+                "/explorer": 1405.314,
+                "/evaluation": 1677.446,
+                "/admin": 1393.642
               },
               "failures": [],
               "browser": "Playwright Chromium",
               "viewport": "1440x900",
               "wait_condition": "networkidle and visible main landmark",
-              "backend_port": 38479,
-              "frontend_port": 45325
+              "backend_port": 37581,
+              "frontend_port": 58875
             },
-            "max_rss_kib": 469244
+            "max_rss_kib": 364888
           },
           {
             "repetition": 3,
             "status": "ok",
-            "elapsed_seconds": 12.463381373999997,
+            "elapsed_seconds": 13.307194039999999,
             "units": 8,
             "unit": "rendered routes",
-            "seconds_per_unit": 1.5579226717499997,
+            "seconds_per_unit": 1.6633992549999999,
             "details": {
               "temperature": "warm",
               "route_elapsed_ms": {
-                "/": 1222.476,
-                "/papers": 1217.248,
-                "/search": 1702.365,
-                "/ask": 1680.193,
-                "/extensions": 1183.418,
-                "/explorer": 3062.445,
-                "/evaluation": 1275.63,
-                "/admin": 1119.607
+                "/": 1471.266,
+                "/papers": 1385.361,
+                "/search": 2300.254,
+                "/ask": 2257.556,
+                "/extensions": 1459.397,
+                "/explorer": 1389.607,
+                "/evaluation": 1666.133,
+                "/admin": 1377.62
               },
               "failures": [],
               "browser": "Playwright Chromium",
               "viewport": "1440x900",
               "wait_condition": "networkidle and visible main landmark",
-              "backend_port": 38479,
-              "frontend_port": 45325
+              "backend_port": 37581,
+              "frontend_port": 58875
             },
-            "max_rss_kib": 469244
+            "max_rss_kib": 364888
           }
         ]
       },

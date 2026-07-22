@@ -17,7 +17,10 @@ class Topic(SQLModel, table=True):
     normalized_name: str = Field(index=True, unique=True)
     description: Optional[str] = None
     source: str = "deterministic_explorer"
-    review_status: str = "needs_review"
+    review_status: str = Field(default="needs_review", index=True)
+    reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
@@ -29,7 +32,12 @@ class PaperTopic(SQLModel, table=True):
     score: float = 0.0
     evidence_json: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
     source: str = "deterministic_explorer"
+    review_status: str = Field(default="needs_review", index=True)
+    reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
     created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class AuthorTopic(SQLModel, table=True):
@@ -39,4 +47,9 @@ class AuthorTopic(SQLModel, table=True):
     paper_count: int = 0
     score: float = 0.0
     evidence_json: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSONEncodedValue))
+    review_status: str = Field(default="needs_review", index=True)
+    reviewer_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
     created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

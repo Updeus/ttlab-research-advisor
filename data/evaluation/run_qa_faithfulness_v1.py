@@ -37,6 +37,7 @@ from app.indexing.embedder import (
     validate_index_manifest,
 )
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
+from app.indexing.retriever import RetrievalScope
 from app.intelligence.llm_provider import build_ollama_prompt, order_context_chunks_for_question
 from app.intelligence.rag_answerer import ask_question
 from app.models import Chunk, Paper, RAGAnswer
@@ -52,6 +53,7 @@ PRIVATE_ROOT = PROJECT_ROOT / "artifacts/phase3/private/qa"
 OLLAMA_AVAILABILITY = PHASE3_ROOT / "ollama_availability_v1.json"
 REVIEWER_ID = "codex-ai-review"
 REVIEWER_TYPE = "ai"
+EVALUATION_RETRIEVAL_SCOPE: RetrievalScope = "technical"
 
 HEURISTIC_RETRIEVER_CONFIGURATION = {
     "configuration_status": "current_untuned_heuristic_baseline",
@@ -179,6 +181,30 @@ def _answer_points(case_id: str, source: Mapping[str, Any]) -> list[dict[str, An
     return points
 
 
+def generate_evaluation_answer(
+    session: Session,
+    case: Mapping[str, Any],
+    *,
+    mode: str,
+    provider: str,
+    model: str | None,
+    top_k: int,
+    retrieval_scope: RetrievalScope,
+) -> dict[str, Any]:
+    """Run one offline case against the declared technical evaluation corpus."""
+
+    return ask_question(
+        session,
+        str(case["question"]),
+        mode=mode,
+        top_k=top_k,
+        provider_name=provider,
+        model_name=model,
+        persist=False,
+        retrieval_scope=retrieval_scope,
+    )
+
+
 def run_answers(
     *,
     mode: str,
@@ -186,6 +212,7 @@ def run_answers(
     model: str | None,
     top_k: int,
     output_stem: str,
+    retrieval_scope: RetrievalScope,
 ) -> dict[str, Any]:
     cases = load_jsonl(QA_CASES)
     output_path = PHASE3_ROOT / f"{output_stem}_answers_v1.jsonl"
@@ -204,14 +231,14 @@ def run_answers(
         stored_before = session.exec(select(func.count()).select_from(RAGAnswer)).one()
         for position, case in enumerate(cases, start=1):
             start = time.perf_counter()
-            response = ask_question(
+            response = generate_evaluation_answer(
                 session,
-                str(case["question"]),
+                case,
                 mode=mode,
                 top_k=top_k,
-                provider_name=provider,
-                model_name=model,
-                persist=False,
+                provider=provider,
+                model=model,
+                retrieval_scope=retrieval_scope,
             )
             elapsed = time.perf_counter() - start
             source_map = _source_map_for_response(case["question"], response)
@@ -236,6 +263,7 @@ def run_answers(
                 "top_k": top_k,
                 "provider": provider,
                 "model": model,
+                "retrieval_scope": retrieval_scope,
                 "audience": "general",
                 "max_words": 250,
                 "retrieved_chunks": response["retrieved_chunks"],
@@ -324,6 +352,7 @@ def run_answers(
             "top_k": top_k,
             "provider": provider,
             "model": model,
+            "retrieval_scope": retrieval_scope,
             "audience": "general",
             "max_words": 250,
             "persist": False,
@@ -667,6 +696,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--provider", choices=["offline_extractive", "ollama"], default="offline_extractive")
     run.add_argument("--model", default=None)
     run.add_argument("--top-k", type=int, default=5)
+    run.add_argument(
+        "--retrieval-scope",
+        choices=["technical"],
+        default=EVALUATION_RETRIEVAL_SCOPE,
+        help="Offline silver evaluation is restricted to the frozen technical corpus; public projection is not evaluated.",
+    )
     run.add_argument("--output-stem", required=True)
     subparsers.add_parser("check-ollama")
     return parser
@@ -684,6 +719,7 @@ def main() -> None:
             model=args.model,
             top_k=args.top_k,
             output_stem=args.output_stem,
+            retrieval_scope=args.retrieval_scope,
         )
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:

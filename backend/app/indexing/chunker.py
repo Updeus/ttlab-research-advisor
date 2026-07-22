@@ -12,7 +12,15 @@ from typing import Any
 from sqlmodel import Session, delete, select
 
 from app.db import create_db_and_tables, engine
+from app.ingestion.manual_import import invalidate_generated_outputs_for_paper
+from app.io_utils import atomic_write_json
 from app.models import Chunk, Paper
+
+CHUNK_ARTIFACT_CONTRACT = "deterministic_chunk_db_mirror_v1"
+CHUNKER_ALGORITHM_VERSION = "page_sentence_sections_v2"
+DEFAULT_TARGET_WORDS = 850
+DEFAULT_MAX_CHARS = 5000
+DEFAULT_OVERLAP_WORDS = 125
 
 SECTION_ALIASES = {
     "abstract": "Abstract",
@@ -385,9 +393,9 @@ def overlap_start_index(units: list[dict[str, Any]], start: int, end: int, overl
 def build_chunks_from_extraction(
     extracted: dict[str, Any],
     *,
-    target_words: int = 850,
-    max_chars: int = 5000,
-    overlap_words: int = 125,
+    target_words: int = DEFAULT_TARGET_WORDS,
+    max_chars: int = DEFAULT_MAX_CHARS,
+    overlap_words: int = DEFAULT_OVERLAP_WORDS,
     min_chars: int = 400,
 ) -> list[dict[str, Any]]:
     paper_id = str(extracted["paper_id"])
@@ -475,17 +483,190 @@ def make_chunk_record(paper_id: str, chunk_index: int, units: list[dict[str, Any
     }
 
 
-def write_chunks(chunks: list[dict[str, Any]], output_path: Path) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(chunks, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+def canonical_chunks_sha256(chunks: list[dict[str, Any]]) -> str:
+    payload = json.dumps(chunks, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def persist_chunks(session: Session, paper: Paper, chunks: list[dict[str, Any]], *, overwrite: bool = False) -> None:
+def chunk_manifest_path(output_path: Path) -> Path:
+    return output_path.with_suffix(output_path.suffix + ".manifest.json")
+
+
+def chunk_artifact_manifest(
+    extracted: dict[str, Any],
+    chunks: list[dict[str, Any]],
+    *,
+    min_chars: int,
+) -> dict[str, Any]:
+    return {
+        "artifact_contract": CHUNK_ARTIFACT_CONTRACT,
+        "paper_id": str(extracted.get("paper_id") or ""),
+        "extraction_artifact_generation_id": str(extracted.get("artifact_generation_id") or ""),
+        "extraction_text_artifact_sha256": str(extracted.get("text_artifact_sha256") or ""),
+        "chunker_configuration": {
+            "algorithm_version": CHUNKER_ALGORITHM_VERSION,
+            "target_words": DEFAULT_TARGET_WORDS,
+            "max_chars": DEFAULT_MAX_CHARS,
+            "overlap_words": DEFAULT_OVERLAP_WORDS,
+            "min_chars": min_chars,
+        },
+        "chunk_count": len(chunks),
+        "chunk_ids": [str(chunk["chunk_id"]) for chunk in chunks],
+        "chunks_sha256": canonical_chunks_sha256(chunks),
+    }
+
+
+def write_chunks(
+    chunks: list[dict[str, Any]],
+    output_path: Path,
+    *,
+    manifest: dict[str, Any],
+) -> None:
+    atomic_write_json(output_path, chunks)
+    atomic_write_json(chunk_manifest_path(output_path), manifest)
+
+
+def db_chunk_payload(chunks: list[Chunk]) -> list[dict[str, Any]]:
+    return [
+        {
+            "chunk_id": chunk.chunk_id,
+            "paper_id": chunk.paper_id,
+            "chunk_index": chunk.chunk_index,
+            "page_start": chunk.page_start,
+            "page_end": chunk.page_end,
+            "section": chunk.section,
+            "text": chunk.text,
+            "char_count": chunk.char_count,
+            "word_count": chunk.word_count,
+            "token_count_estimate": chunk.token_count_estimate,
+            "source_hash": chunk.source_hash,
+        }
+        for chunk in sorted(chunks, key=lambda item: (item.chunk_index, item.chunk_id))
+    ]
+
+
+def validate_chunk_artifact(
+    output_path: Path,
+    *,
+    expected_chunks: list[dict[str, Any]],
+    expected_manifest: dict[str, Any],
+    database_chunks: list[Chunk],
+    extraction_generation_id: str,
+) -> tuple[bool, str | None]:
+    manifest_path = chunk_manifest_path(output_path)
+    if not output_path.exists():
+        return False, "missing_chunk_json"
+    if not manifest_path.exists():
+        return False, "missing_chunk_manifest"
+    try:
+        file_chunks = json.loads(output_path.read_text(encoding="utf-8"))
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError, UnicodeError):
+        return False, "unreadable_chunk_artifact"
+    if not isinstance(file_chunks, list) or not isinstance(manifest, dict):
+        return False, "invalid_chunk_artifact_schema"
+    if manifest.get("artifact_contract") != CHUNK_ARTIFACT_CONTRACT:
+        return False, "invalid_chunk_artifact_contract"
+    if manifest != expected_manifest:
+        return False, "chunk_manifest_mismatch"
+    expected_hash = canonical_chunks_sha256(expected_chunks)
+    if canonical_chunks_sha256(file_chunks) != expected_hash:
+        return False, "chunk_json_hash_mismatch"
+    if canonical_chunks_sha256(db_chunk_payload(database_chunks)) != expected_hash:
+        return False, "chunk_database_mirror_mismatch"
+    if any(chunk.extraction_generation_id != extraction_generation_id for chunk in database_chunks):
+        return False, "chunk_database_extraction_generation_mismatch"
+    return True, None
+
+
+def validate_extraction_artifact_link(extracted: dict[str, Any]) -> tuple[bool, str | None]:
+    """Validate the JSON-authoritative extraction manifest and TXT mirror."""
+
+    if extracted.get("artifact_contract") != "json_authoritative_text_mirror_v1":
+        return False, "missing_json_authoritative_artifact_contract"
+    paper_id = str(extracted.get("paper_id") or "")
+    expected_hash = str(extracted.get("text_artifact_sha256") or "")
+    text_path_value = str(extracted.get("full_text_path") or "")
+    generation_id = str(extracted.get("artifact_generation_id") or "")
+    input_pdf_sha256 = str(extracted.get("input_pdf_sha256") or "")
+    extraction_config = extracted.get("extraction_config")
+    pages = extracted.get("pages")
+    if not paper_id:
+        return False, "missing_paper_id"
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        return False, "invalid_text_artifact_sha256"
+    if not re.fullmatch(r"[0-9a-f]{64}", generation_id):
+        return False, "invalid_artifact_generation_id"
+    if not re.fullmatch(r"[0-9a-f]{64}", input_pdf_sha256):
+        return False, "invalid_input_pdf_sha256"
+    if not isinstance(extraction_config, dict):
+        return False, "invalid_extraction_config"
+    if not isinstance(pages, list):
+        return False, "invalid_extraction_pages"
+    if not text_path_value:
+        return False, "missing_full_text_path"
+    text_path = Path(text_path_value)
+    if not text_path.exists() or not text_path.is_file():
+        return False, "missing_text_artifact"
+    try:
+        serialized_bytes = text_path.read_bytes()
+        serialized_text = serialized_bytes.decode("utf-8")
+    except (OSError, UnicodeError):
+        return False, "unreadable_text_artifact"
+    # Hash the exact committed bytes. Path.read_text() enables universal-newline
+    # conversion, which can silently turn CR/CRLF bytes into LF before hashing
+    # and reject a valid JSON-authoritative extraction mirror.
+    digest = hashlib.sha256(serialized_bytes).hexdigest()
+    if digest != expected_hash:
+        return False, "text_artifact_hash_mismatch"
+    page_parts: list[str] = []
+    for expected_page_number, page in enumerate(pages, start=1):
+        if not isinstance(page, dict):
+            return False, "invalid_extraction_page_record"
+        try:
+            page_number = int(page.get("page_number") or 0)
+        except (TypeError, ValueError):
+            return False, "invalid_extraction_page_number"
+        if page_number != expected_page_number:
+            return False, "nonsequential_extraction_pages"
+        page_parts.append(f"--- Page {page_number} ---\n{str(page.get('text') or '')}".strip())
+    reconstructed_text = "\n\n".join(page_parts)
+    reconstructed_text += "\n" if reconstructed_text else ""
+    if reconstructed_text != serialized_text:
+        return False, "extraction_pages_text_mirror_mismatch"
+    expected_generation_id = hashlib.sha256(
+        json.dumps(
+            {
+                "paper_id": paper_id,
+                "input_pdf_sha256": input_pdf_sha256,
+                "extraction_config": extraction_config,
+                "text_artifact_sha256": expected_hash,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    if generation_id != expected_generation_id:
+        return False, "artifact_generation_id_mismatch"
+    return True, None
+
+
+def persist_chunks(
+    session: Session,
+    paper: Paper,
+    chunks: list[dict[str, Any]],
+    *,
+    manifest: dict[str, Any],
+    overwrite: bool = False,
+) -> None:
     existing = session.exec(select(Chunk).where(Chunk.paper_id == paper.paper_id)).first()
     if existing and overwrite:
         session.exec(delete(Chunk).where(Chunk.paper_id == paper.paper_id))
     elif existing:
         return
+    extraction_generation_id = str(manifest.get("extraction_artifact_generation_id") or "")
+    new_chunk_generation_id = str(manifest.get("chunks_sha256") or "")
+    chunk_generation_changed = paper.chunk_generation_id != new_chunk_generation_id
     for chunk in chunks:
         session.add(
             Chunk(
@@ -501,9 +682,21 @@ def persist_chunks(session: Session, paper: Paper, chunks: list[dict[str, Any]],
                 token_count=int(chunk["token_count_estimate"]),
                 token_count_estimate=int(chunk["token_count_estimate"]),
                 source_hash=str(chunk["source_hash"]),
+                extraction_generation_id=extraction_generation_id,
             )
         )
     paper.chunk_count = len(chunks)
+    paper.chunk_extraction_generation_id = extraction_generation_id
+    paper.chunk_generation_id = new_chunk_generation_id
+    if chunk_generation_changed:
+        paper.public_index_generation_id = None
+        paper.publication_status = "pending_review"
+        paper.public_access_level = "hidden"
+        invalidate_generated_outputs_for_paper(
+            session,
+            paper.paper_id,
+            reason="Chunk generation changed; regenerate and reapprove this source-grounded output.",
+        )
     paper.updated_at = utc_now()
     session.add(paper)
 
@@ -514,6 +707,7 @@ def candidate_papers(session: Session, paper_ids: list[str] | None = None) -> li
             select(Paper)
             .where(Paper.pdf_text_status == "extracted")
             .where(Paper.extracted_json_path.is_not(None))
+            .where(Paper.extraction_generation_id.is_not(None))
             .order_by(Paper.year.desc(), Paper.title)
         ).all()
     )
@@ -532,28 +726,125 @@ def chunk_from_db(
     min_chars: int = 400,
     output_dir: Path = Path("data/chunks"),
 ) -> dict[str, int]:
-    summary = {"attempted": 0, "chunked": 0, "skipped_existing": 0, "no_text": 0, "failed": 0}
+    summary = {
+        "attempted": 0,
+        "chunked": 0,
+        "skipped_existing": 0,
+        "no_text": 0,
+        "failed": 0,
+        "quarantined": 0,
+        "repaired_artifact": 0,
+    }
     for paper in candidate_papers(session, paper_ids):
         if limit is not None and summary["attempted"] >= limit:
             break
         output_path = output_dir / f"{paper.paper_id}.json"
-        existing_chunk = session.exec(select(Chunk).where(Chunk.paper_id == paper.paper_id)).first()
-        if output_path.exists() and existing_chunk and not overwrite:
-            summary["skipped_existing"] += 1
-            continue
+        existing_chunks = list(
+            session.exec(
+                select(Chunk).where(Chunk.paper_id == paper.paper_id).order_by(Chunk.chunk_index, Chunk.chunk_id)
+            ).all()
+        )
         summary["attempted"] += 1
         if not paper.extracted_json_path or not Path(paper.extracted_json_path).exists():
             summary["failed"] += 1
             continue
-        extracted = json.loads(Path(paper.extracted_json_path).read_text(encoding="utf-8"))
+        try:
+            extracted = json.loads(Path(paper.extracted_json_path).read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError, UnicodeError) as exc:
+            summary["quarantined"] += 1
+            session.exec(delete(Chunk).where(Chunk.paper_id == paper.paper_id))
+            paper.pdf_text_status = "quarantined_invalid_extraction_json"
+            paper.corpus_eligibility_status = "needs_review"
+            paper.corpus_exclusion_reason = f"invalid_extraction_json:{type(exc).__name__}"
+            paper.chunk_count = 0
+            paper.chunk_extraction_generation_id = None
+            paper.chunk_generation_id = None
+            paper.public_index_generation_id = None
+            paper.publication_status = "pending_review"
+            paper.public_access_level = "hidden"
+            session.add(paper)
+            continue
+        if not isinstance(extracted, dict) or not isinstance(extracted.get("pages"), list):
+            summary["quarantined"] += 1
+            session.exec(delete(Chunk).where(Chunk.paper_id == paper.paper_id))
+            paper.pdf_text_status = "quarantined_invalid_extraction_schema"
+            paper.corpus_eligibility_status = "needs_review"
+            paper.corpus_exclusion_reason = "invalid_extraction_schema"
+            paper.chunk_count = 0
+            paper.chunk_extraction_generation_id = None
+            paper.chunk_generation_id = None
+            paper.public_index_generation_id = None
+            paper.publication_status = "pending_review"
+            paper.public_access_level = "hidden"
+            session.add(paper)
+            continue
+        artifact_valid, artifact_error = validate_extraction_artifact_link(extracted)
+        if not artifact_valid:
+            summary["quarantined"] += 1
+            session.exec(delete(Chunk).where(Chunk.paper_id == paper.paper_id))
+            paper.pdf_text_status = "quarantined_extraction_artifact_mismatch"
+            paper.corpus_eligibility_status = "needs_review"
+            paper.corpus_exclusion_reason = f"extraction_artifact_integrity:{artifact_error}"
+            paper.chunk_count = 0
+            paper.chunk_extraction_generation_id = None
+            paper.chunk_generation_id = None
+            paper.public_index_generation_id = None
+            paper.publication_status = "pending_review"
+            paper.public_access_level = "hidden"
+            session.add(paper)
+            continue
+        extraction_generation_id = str(extracted.get("artifact_generation_id") or "")
+        if extraction_generation_id != paper.extraction_generation_id:
+            summary["quarantined"] += 1
+            session.exec(delete(Chunk).where(Chunk.paper_id == paper.paper_id))
+            paper.pdf_text_status = "quarantined_extraction_generation_mismatch"
+            paper.corpus_eligibility_status = "needs_review"
+            paper.corpus_exclusion_reason = "extraction_manifest_generation_does_not_match_paper"
+            paper.chunk_count = 0
+            paper.chunk_extraction_generation_id = None
+            paper.chunk_generation_id = None
+            paper.public_index_generation_id = None
+            paper.publication_status = "pending_review"
+            paper.public_access_level = "hidden"
+            session.add(paper)
+            continue
         chunks = build_chunks_from_extraction(extracted, min_chars=min_chars)
         if not chunks:
             summary["no_text"] += 1
             paper.chunk_count = 0
+            paper.chunk_extraction_generation_id = None
+            paper.chunk_generation_id = None
+            paper.public_index_generation_id = None
+            paper.publication_status = "pending_review"
+            paper.public_access_level = "hidden"
             session.add(paper)
             continue
-        write_chunks(chunks, output_path)
-        persist_chunks(session, paper, chunks, overwrite=overwrite)
+        manifest = chunk_artifact_manifest(extracted, chunks, min_chars=min_chars)
+        artifact_matches, _artifact_error = validate_chunk_artifact(
+            output_path,
+            expected_chunks=chunks,
+            expected_manifest=manifest,
+            database_chunks=existing_chunks,
+            extraction_generation_id=extraction_generation_id,
+        )
+        if artifact_matches and (
+            paper.chunk_extraction_generation_id != extraction_generation_id
+            or paper.chunk_generation_id != manifest["chunks_sha256"]
+        ):
+            artifact_matches = False
+        if artifact_matches and not overwrite:
+            summary["skipped_existing"] += 1
+            continue
+        if output_path.exists() or chunk_manifest_path(output_path).exists() or existing_chunks:
+            summary["repaired_artifact"] += 1
+        write_chunks(chunks, output_path, manifest=manifest)
+        persist_chunks(
+            session,
+            paper,
+            chunks,
+            manifest=manifest,
+            overwrite=bool(existing_chunks),
+        )
         summary["chunked"] += 1
     session.commit()
     return summary

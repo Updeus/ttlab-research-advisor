@@ -9,7 +9,13 @@ import re
 import subprocess
 from collections import Counter
 from pathlib import Path
+import sys
 from typing import Any
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+from manuscript_v2_package import load_manuscript_v2_package
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +24,56 @@ THESIS_ROOT = ROOT / "thesis"
 BIBLIOGRAPHY = THESIS_ROOT / "references.bib"
 PAPER_PDF = ROOT / "build" / "ieee-paper.pdf"
 THESIS_PDF = ROOT / "build" / "thesis.pdf"
+PAPER_MAX_PAGES = 6
+THESIS_MIN_PAGES = 75
+PAPER_REFERENCE_TARGET = range(18, 23)
+PAPER_GENERATED_MACROS = ROOT / "paper" / "generated" / "metrics.tex"
+PAPER_GENERATED_MANIFEST = ROOT / "paper" / "generated" / "manifest.json"
+THESIS_GENERATED_MACROS = ROOT / "thesis" / "generated" / "evidence_macros.tex"
+THESIS_GENERATED_MANIFEST = ROOT / "thesis" / "generated" / "manuscript_metrics_manifest.json"
+
+REQUIRED_V2_MACRO_USAGE = (
+    "VTwoEvidenceTier",
+    "VTwoPackageStatus",
+    "VTwoEvaluationSourceCommitPrefix",
+    "VTwoCorpusSnapshotId",
+    "VTwoTechnicalEligiblePapers",
+    "VTwoTechnicalEligibleChunks",
+    "VTwoEvaluationScope",
+    "VTwoPublicProjectionExercised",
+    "VTwoQATestCases",
+    "VTwoQAAnswerabilityPrecision",
+    "VTwoQAAnswerabilityPrecisionCi",
+    "VTwoQAAnswerPointCoverage",
+    "VTwoQAAnswerPointCoverageCi",
+    "VTwoQACitationLocatorPrecision",
+    "VTwoQACitationLocatorPrecisionCi",
+    "VTwoFinderTestProfiles",
+    "VTwoFinderHitAtThreeDelta",
+    "VTwoFinderHitAtThreeDeltaCi",
+    "VTwoTopicTestCases",
+    "VTwoTopicKnownPositiveRecall",
+    "VTwoTopicKnownPositiveRecallCi",
+    "VTwoOCRCharacterErrorRate",
+)
+PROHIBITED_V2_TOPIC_MACROS = (
+    "VTwoTopicMicroPrecision",
+    "VTwoTopicMicroFOne",
+    "VTwoTopicExactMatch",
+)
+HAND_ENTERED_V2_RESULT = re.compile(
+    r"(?:remediation[-~ ]?v2|peer-review-remediation-v2|\bv2\s+(?:run|evaluation|result))"
+    r".{0,180}?(?:\b\d+(?:\.\d+)?\s*\\?%|\b0\.\d{2,}\b|"
+    r"[+-]\d+(?:\.\d+)?\s*(?:pp|percentage\s+points?)|"
+    r"\b\d+\s+(?:cases?|profiles?|papers?|chunks?|predictions?|fixtures?))",
+    re.IGNORECASE | re.DOTALL,
+)
+PROHIBITED_V2_TOPIC_RESULT = re.compile(
+    r"(?:remediation[-~ ]?v2|peer-review-remediation-v2|\bv2\b)"
+    r".{0,220}?\btopic.{0,100}?\b(?:precision|f[-_ ]?1|exact[- ]match)\b"
+    r"\s*(?:=|was|of|:)\s*\d",
+    re.IGNORECASE | re.DOTALL,
+)
 
 STALE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("obsolete commit", re.compile(r"713ea5c", re.IGNORECASE)),
@@ -81,7 +137,124 @@ def add_match_errors(
             errors.append(f"{path.relative_to(ROOT)}:{line_number(text, match.start())}: {description}")
 
 
-def source_checks() -> tuple[list[str], dict[str, Any]]:
+def citation_keys(text: str) -> list[str]:
+    """Return normalized keys from ordinary LaTeX citation commands."""
+
+    keys: list[str] = []
+    for citation in re.findall(r"\\cite\{([^}]+)\}", text):
+        keys.extend(key.strip() for key in citation.split(",") if key.strip())
+    return keys
+
+
+def manuscript_constraint_errors(
+    label: str,
+    pages: int,
+    *,
+    cited_references: int | None = None,
+) -> list[str]:
+    """Apply the supervisor's hard submission constraints without layout heuristics."""
+
+    errors: list[str] = []
+    if label == "paper":
+        if pages < 1 or pages > PAPER_MAX_PAGES:
+            errors.append(f"paper page count {pages} outside the hard 1-{PAPER_MAX_PAGES} page range")
+        if cited_references is not None and cited_references not in PAPER_REFERENCE_TARGET:
+            errors.append(
+                "paper cited-reference count "
+                f"{cited_references} outside the documented "
+                f"{min(PAPER_REFERENCE_TARGET)}-{max(PAPER_REFERENCE_TARGET)} target"
+            )
+    elif label == "thesis" and pages < THESIS_MIN_PAGES:
+        errors.append(f"thesis page count {pages} below the hard {THESIS_MIN_PAGES}-page minimum")
+    return errors
+
+
+def _authored_sources(paths: list[Path]) -> list[Path]:
+    return [path for path in paths if "generated" not in path.relative_to(ROOT).parts]
+
+
+def _v2_source_checks(
+    errors: list[str],
+    manuscript_groups: dict[str, str],
+    *,
+    allow_v2_not_run: bool,
+) -> dict[str, Any]:
+    try:
+        package = load_manuscript_v2_package(ROOT, allow_not_run=allow_v2_not_run)
+    except (FileNotFoundError, RuntimeError, ValueError) as exc:
+        errors.append(f"remediation-v2 package validation failed: {exc}")
+        return {"status": "invalid", "completed": False, "layout_only": allow_v2_not_run}
+
+    for label, path in (
+        ("paper", PAPER_GENERATED_MACROS),
+        ("thesis", THESIS_GENERATED_MACROS),
+    ):
+        if not path.is_file():
+            errors.append(f"{label} generated macro file is missing: {path.relative_to(ROOT)}")
+        elif package["macro_text"] not in path.read_text(encoding="utf-8"):
+            errors.append(f"{label} generated macros are not bound to the selected v2 package state")
+
+    for label, path in (
+        ("paper", PAPER_GENERATED_MANIFEST),
+        ("thesis", THESIS_GENERATED_MANIFEST),
+    ):
+        if not path.is_file():
+            errors.append(f"{label} generated manifest is missing: {path.relative_to(ROOT)}")
+            continue
+        try:
+            generated_manifest = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            errors.append(f"{label} generated manifest is invalid JSON")
+            continue
+        recorded = generated_manifest.get("remediation_v2") or {}
+        if (
+            recorded.get("status") != package["status"]
+            or recorded.get("completed") is not package["completed"]
+            or recorded.get("layout_only") is not package["layout_only"]
+            or recorded.get("manifest_sha256") != package["manifest_sha256"]
+            or recorded.get("validation_attestation_sha256")
+            != package["validation_attestation_sha256"]
+        ):
+            errors.append(f"{label} generated manifest has stale remediation-v2 identity")
+        recorded_sources = generated_manifest.get("sources") or {}
+        for name, identity in package["sources"].items():
+            if recorded_sources.get(name) != identity:
+                errors.append(f"{label} generated manifest has stale remediation-v2 source: {name}")
+
+    for manuscript, text in manuscript_groups.items():
+        for macro_name in REQUIRED_V2_MACRO_USAGE:
+            if not re.search(rf"\\{re.escape(macro_name)}\b", text):
+                errors.append(f"{manuscript} does not use required v2 macro: {macro_name}")
+        lowered = text.casefold()
+        for phrase in (
+            "ai-silver",
+            "historical v1",
+            "public projection",
+            "human validation",
+            "entailment",
+        ):
+            if phrase not in lowered:
+                errors.append(f"{manuscript} omits required v2 evidence boundary wording: {phrase}")
+        if HAND_ENTERED_V2_RESULT.search(text):
+            errors.append(f"{manuscript} contains a hand-entered remediation-v2 numerical result")
+        if PROHIBITED_V2_TOPIC_RESULT.search(text):
+            errors.append(
+                f"{manuscript} reports prohibited v2 topic precision/F1/exact-match evidence"
+            )
+        for macro_name in PROHIBITED_V2_TOPIC_MACROS:
+            if re.search(rf"\\{re.escape(macro_name)}\b", text):
+                errors.append(f"{manuscript} uses prohibited positive-only topic macro: {macro_name}")
+
+    return {
+        "status": package["status"],
+        "completed": package["completed"],
+        "layout_only": package["layout_only"],
+        "manifest_sha256": package["manifest_sha256"],
+        "validation_attestation_sha256": package["validation_attestation_sha256"],
+    }
+
+
+def source_checks(*, allow_v2_not_run: bool = False) -> tuple[list[str], dict[str, Any]]:
     errors: list[str] = []
     sources = read_sources()
 
@@ -105,6 +278,15 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         add_match_errors(errors, sources, description, pattern)
 
     combined = "\n".join(sources.values())
+    manuscript_groups = {
+        "paper": "\n".join(sources[path] for path in _authored_sources(paper_tex_sources())),
+        "thesis": "\n".join(sources[path] for path in _authored_sources(thesis_tex_sources())),
+    }
+    v2_report = _v2_source_checks(
+        errors,
+        manuscript_groups,
+        allow_v2_not_run=allow_v2_not_run,
+    )
     labels = re.findall(r"\\label\{((?:fig|tab):[^}]+)\}", combined)
     duplicate_labels = sorted(label for label, count in Counter(labels).items() if count > 1)
     errors.extend(f"duplicate float label: {label}" for label in duplicate_labels)
@@ -115,15 +297,23 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         if not reference_pattern.search(combined):
             errors.append(f"unreferenced float label: {label}")
 
-    citation_keys: list[str] = []
-    for citation in re.findall(r"\\cite\{([^}]+)\}", combined):
-        citation_keys.extend(key.strip() for key in citation.split(",") if key.strip())
+    all_citation_keys = citation_keys(combined)
+    paper_citation_keys = citation_keys(manuscript_groups["paper"])
     bib_text = BIBLIOGRAPHY.read_text(encoding="utf-8")
     bib_keys = re.findall(r"@\w+\s*\{\s*([^,\s]+)\s*,", bib_text)
     duplicate_bib_keys = sorted(key for key, count in Counter(bib_keys).items() if count > 1)
     errors.extend(f"duplicate bibliography key: {key}" for key in duplicate_bib_keys)
-    missing_bib_keys = sorted(set(citation_keys) - set(bib_keys))
+    missing_bib_keys = sorted(set(all_citation_keys) - set(bib_keys))
     errors.extend(f"citation key missing from bibliography: {key}" for key in missing_bib_keys)
+
+    cited_reference_count = len(set(paper_citation_keys))
+    errors.extend(
+        manuscript_constraint_errors(
+            "paper",
+            1,
+            cited_references=cited_reference_count,
+        )
+    )
 
     required_identity = (
         "Jarod Esareesingh",
@@ -132,10 +322,6 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         "jarod.esareesingh@my.uwi.edu",
         "Trinidad and Tobago",
     )
-    manuscript_groups = {
-        "paper": "\n".join(sources[path] for path in paper_tex_sources()),
-        "thesis": "\n".join(sources[path] for path in thesis_tex_sources()),
-    }
     for manuscript, text in manuscript_groups.items():
         for value in required_identity:
             if value not in text:
@@ -148,8 +334,10 @@ def source_checks() -> tuple[list[str], dict[str, Any]]:
         "paper_source_files": len(paper_tex_sources()),
         "thesis_source_files": len(thesis_tex_sources()),
         "float_labels": len(labels),
-        "citation_occurrences": len(citation_keys),
+        "citation_occurrences": len(all_citation_keys),
         "bibliography_entries": len(bib_keys),
+        "paper_cited_references": cited_reference_count,
+        "remediation_v2": v2_report,
     }
 
 
@@ -168,9 +356,9 @@ def parse_pdfinfo(path: Path) -> dict[str, str]:
 def pdf_checks() -> tuple[list[str], dict[str, Any]]:
     errors: list[str] = []
     report: dict[str, Any] = {}
-    for label, path, page_range, required_size in (
-        ("paper", PAPER_PDF, range(6, 9), "letter"),
-        ("thesis", THESIS_PDF, range(40, 501), "A4"),
+    for label, path, required_size in (
+        ("paper", PAPER_PDF, "letter"),
+        ("thesis", THESIS_PDF, "A4"),
     ):
         if not path.exists():
             errors.append(f"missing compiled PDF: {path.relative_to(ROOT)}")
@@ -185,11 +373,7 @@ def pdf_checks() -> tuple[list[str], dict[str, Any]]:
             pages = int(info.get("Pages", "0"))
         except ValueError:
             pages = 0
-        if pages not in page_range:
-            errors.append(
-                f"{label} page count {pages} outside required "
-                f"{min(page_range)}-{max(page_range)}"
-            )
+        errors.extend(manuscript_constraint_errors(label, pages))
         if required_size.casefold() not in info.get("Page size", "").casefold():
             errors.append(f"{label} page size is not {required_size}: {info.get('Page size', 'missing')}")
         for field in ("Title", "Author", "Subject", "Keywords"):
@@ -237,10 +421,15 @@ def pdf_checks() -> tuple[list[str], dict[str, Any]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-only", action="store_true", help="Skip compiled-PDF checks.")
+    parser.add_argument(
+        "--allow-v2-not-run",
+        action="store_true",
+        help="Allow explicit layout-only v2 placeholders; never valid for final readiness.",
+    )
     parser.add_argument("--json-out", type=Path, help="Optional path for a machine-readable report.")
     args = parser.parse_args()
 
-    errors, source_report = source_checks()
+    errors, source_report = source_checks(allow_v2_not_run=args.allow_v2_not_run)
     pdf_report: dict[str, Any] = {}
     if not args.source_only:
         pdf_errors, pdf_report = pdf_checks()

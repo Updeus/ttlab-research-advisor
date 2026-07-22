@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { fetchSearchDiagnostics, searchChunks } from "../api/client";
+import { fetchSearchDiagnostics, isAbortError, searchChunks } from "../api/client";
 import { EmptyState, InlineProgress, ListSkeleton, SearchActionButton } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
 import type { Paper, SearchDiagnostics, SearchMode, SearchResponse } from "../types/paper";
@@ -11,15 +11,29 @@ type SearchPageProps = {
   onNotify?: (message: string, tone?: ToastTone) => void;
 };
 
+type SubmittedSearch = {
+  query: string;
+  mode: SearchMode;
+  limit: number;
+};
+
+type SearchResult = {
+  request: SubmittedSearch;
+  response: SearchResponse;
+};
+
 export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps) {
   const [query, setQuery] = useState("RAG academic research");
-  const [mode, setMode] = useState<SearchMode>("hybrid");
+  const [mode, setMode] = useState<SearchMode>("keyword");
   const [limit, setLimit] = useState(10);
-  const [response, setResponse] = useState<SearchResponse | null>(null);
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [failedRequest, setFailedRequest] = useState<SubmittedSearch | null>(null);
   const [diagnostics, setDiagnostics] = useState<SearchDiagnostics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [diagnosticsError, setDiagnosticsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const requestSequence = useRef(0);
+  const requestController = useRef<AbortController | null>(null);
 
   function loadDiagnostics() {
     setDiagnosticsError(null);
@@ -35,48 +49,63 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
     loadDiagnostics();
   }, []);
 
-  function runSearch() {
-    const trimmed = query.trim();
-    if (!trimmed) {
+  useEffect(() => () => requestController.current?.abort(), []);
+
+  function runSearch(requestOverride?: SubmittedSearch) {
+    const submittedRequest: SubmittedSearch = requestOverride ?? {
+      query: query.trim(),
+      mode,
+      limit,
+    };
+    if (!submittedRequest.query) {
       return;
     }
+
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
+    const sequence = ++requestSequence.current;
     setLoading(true);
     setError(null);
-    searchChunks(trimmed, mode, limit)
-      .then((result) => {
-        setResponse(result);
-        onNotify?.(`Search returned ${result.result_count} source chunks.`, "success");
+    setFailedRequest(null);
+    searchChunks(submittedRequest.query, submittedRequest.mode, submittedRequest.limit, controller.signal)
+      .then((response) => {
+        if (sequence !== requestSequence.current) return;
+        setResult({ request: submittedRequest, response });
+        onNotify?.(`Search returned ${response.result_count} source chunks.`, "success");
       })
       .catch((err: unknown) => {
+        if (sequence !== requestSequence.current || isAbortError(err)) return;
         const message = err instanceof Error ? err.message : "Search failed.";
         setError(message);
+        setFailedRequest(submittedRequest);
         onNotify?.(message, "error");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (sequence === requestSequence.current) setLoading(false);
+      });
   }
+
+  const response = result?.response ?? null;
 
   return (
     <section className="page-section">
       <div className="section-heading">
         <h2>Search Source Chunks</h2>
       </div>
+      <p className="notice">Search runs only across approved public papers with cleared rights, searchable access, and eligible extracted text. Metadata-only catalogue records are excluded.</p>
 
       <form className="search-toolbar" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); runSearch(); }}>
         <input
           aria-label="Search source chunks"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              runSearch();
-            }
-          }}
         />
         <select aria-label="Search mode" value={mode} onChange={(event) => setMode(event.target.value as SearchMode)}>
           <option value="keyword">Keyword</option>
           <option value="feature_hashing">Feature-hashing baseline</option>
           <option value="dense">Dense semantic (learned model)</option>
-          <option value="hybrid">Hybrid</option>
+          <option value="hybrid">Hybrid (experimental; not validated as better)</option>
         </select>
         <select aria-label="Result limit" value={limit} onChange={(event) => setLimit(Number(event.target.value))}>
           <option value={5}>5</option>
@@ -87,18 +116,18 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
       </form>
 
       {diagnostics ? (
-        <div className="search-diagnostics" aria-label="Current index snapshot">
+        <section className="search-diagnostics" aria-label="Current index snapshot">
           <span>{diagnostics.searchable_chunks} eligible searchable chunks</span>
-          <span>Keyword: {diagnostics.chunks_indexed_for_keyword_search} · {diagnostics.keyword?.status ?? "status unavailable"}</span>
-          <span>Feature hashing: {diagnostics.chunks_indexed_for_feature_hashing} · {diagnostics.feature_hashing.status}</span>
-          <span>Dense semantic: {diagnostics.chunks_indexed_for_dense_search} · {diagnostics.dense.status}</span>
+          <span>Keyword: {diagnostics.chunks_indexed_for_keyword_search} · {diagnostics.keyword.projection_status}</span>
+          <span>Feature hashing: {diagnostics.chunks_indexed_for_feature_hashing} · {diagnostics.feature_hashing.projection_status}</span>
+          <span>Dense semantic: {diagnostics.chunks_indexed_for_dense_search} · {diagnostics.dense.projection_status}</span>
           <span>Feature-hashing snapshot: {formatTimestamp(diagnostics.feature_hashing.last_indexed_at)}</span>
-        </div>
+        </section>
       ) : null}
-      {diagnostics && [diagnostics.keyword?.status, diagnostics.feature_hashing.status].some((status) => status && status !== "ready") ? (
+      {diagnostics && [diagnostics.keyword.projection_status, diagnostics.feature_hashing.projection_status].some((status) => !isReadyIndexStatus(status)) ? (
         <p className="notice notice--warning" role="status">A required search index is not ready for the current eligible corpus. Results may fail until an administrator rebuilds it.</p>
       ) : null}
-      {diagnostics && diagnostics.dense.status !== "ready" ? (
+      {diagnostics && !isReadyIndexStatus(diagnostics.dense.projection_status) ? (
         <p className="notice" role="status">Dense semantic search is unavailable for this snapshot. Keyword and feature-hashing modes remain distinct alternatives.</p>
       ) : null}
       {diagnosticsError ? (
@@ -112,7 +141,7 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
       {error ? (
         <div className="notice notice--error" role="alert">
           <p>{error}</p>
-          <button className="action-button" onClick={runSearch}>Retry search</button>
+          <button className="action-button" onClick={() => runSearch(failedRequest ?? undefined)}>Retry search</button>
         </div>
       ) : null}
       {response?.warnings.length ? (
@@ -120,6 +149,11 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
       ) : null}
 
       {loading && !response ? <ListSkeleton count={limit > 10 ? 5 : 3} lines={3} /> : null}
+      {result ? (
+        <p className="paper-card__status" aria-live="polite">
+          Results for “{result.request.query}” · {result.request.mode.replaceAll("_", " ")} · up to {result.request.limit}
+        </p>
+      ) : null}
       <div className="paper-list">
         {response?.results.map((result) => {
           const paper = papers.find((item) => item.paper_id === result.paper_id);
@@ -157,13 +191,17 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
         })}
         {response && response.results.length === 0 ? (
           <EmptyState
-            title="No source chunks matched this search"
-            body="Try a broader phrase, fewer exact terms, or switch among keyword, feature-hashing baseline, dense semantic, and hybrid modes."
+            title="No approved public source chunks matched this search"
+            body="Try a broader phrase or another retrieval mode. Search includes only papers whose publication, rights, and searchable-access reviews have passed."
           />
         ) : null}
       </div>
     </section>
   );
+}
+
+function isReadyIndexStatus(status: string | null | undefined): boolean {
+  return status === "public_projection_ready";
 }
 
 function formatTimestamp(value: string | null | undefined): string {

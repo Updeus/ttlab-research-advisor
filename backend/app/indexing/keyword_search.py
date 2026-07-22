@@ -94,7 +94,7 @@ def supports_fts5(session: Session) -> bool:
 
 def rebuild_keyword_index(session: Session) -> dict[str, Any]:
     chunks = eligible_chunks(session)
-    corpus = corpus_descriptor(chunks)
+    corpus = corpus_descriptor(session, chunks)
     fts_available = supports_fts5(session)
     if fts_available:
         session.exec(
@@ -347,7 +347,7 @@ def make_snippet(text_value: str, terms: list[str], window: int = 240) -> str:
 
 def diagnostics(session: Session) -> dict[str, Any]:
     current_chunks = eligible_chunks(session)
-    current_corpus = corpus_descriptor(current_chunks)
+    current_corpus = corpus_descriptor(session, current_chunks)
     total_chunks = len(current_chunks)
     indexed = keyword_index_count(session)
     metadata = keyword_index_metadata(session)
@@ -366,7 +366,12 @@ def diagnostics(session: Session) -> dict[str, Any]:
             errors.append("FTS configuration hash does not match runtime configuration.")
         if stored_corpus.get("snapshot_hash") != current_corpus["snapshot_hash"]:
             errors.append("FTS corpus snapshot does not match the current eligible corpus.")
-        if int(metadata.get("indexed_chunk_count") or -1) != indexed:
+        stored_count = metadata.get("indexed_chunk_count")
+        try:
+            count_matches = stored_count is not None and int(stored_count) == indexed
+        except (TypeError, ValueError):
+            count_matches = False
+        if not count_matches:
             errors.append("FTS metadata count does not match persisted rows.")
         if indexed != total_chunks:
             errors.append("FTS row count does not equal eligible chunk count.")

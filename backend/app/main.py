@@ -17,7 +17,7 @@ from app.api.papers import router as papers_router
 from app.api.recommendations import router as recommendations_router
 from app.api.search import router as search_router
 from app.config import get_settings
-from app.db import create_db_and_tables, engine
+from app.db import create_db_and_tables, engine, sqlite_integrity_diagnostics
 from app.indexing.embedder import (
     DEFAULT_INDEX_PATH,
     DENSE_INDEX_PATH,
@@ -27,8 +27,13 @@ from app.indexing.embedder import (
     validate_present_authoritative_indexes,
 )
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
-from app.middleware import PublicRateLimitMiddleware, RequestBodyLimitMiddleware, SecurityHeadersMiddleware
-from app.security import validate_security_configuration
+from app.middleware import (
+    PublicGenerationConcurrencyMiddleware,
+    PublicRateLimitMiddleware,
+    RequestBodyLimitMiddleware,
+    SecurityHeadersMiddleware,
+)
+from app.security import operational_boundary_diagnostics, validate_security_configuration
 
 settings = get_settings()
 
@@ -61,6 +66,12 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_hosts)
 app.add_middleware(
     RequestBodyLimitMiddleware,
     max_bytes=settings.max_request_bytes,
+)
+app.add_middleware(
+    PublicGenerationConcurrencyMiddleware,
+    max_concurrency=settings.public_generation_max_concurrency,
+    max_queue=settings.public_generation_max_queue,
+    queue_timeout_seconds=settings.public_generation_queue_timeout_seconds,
 )
 app.add_middleware(
     PublicRateLimitMiddleware,
@@ -113,6 +124,8 @@ def health() -> dict[str, str]:
 def readiness(response: Response) -> dict[str, object]:
     checks: dict[str, object] = {
         "database": False,
+        "database_integrity": {},
+        "operational_boundaries": operational_boundary_diagnostics(settings),
         "keyword_index": {"required": True, "ready": False, "status": "unknown"},
         "feature_hashing_index": {"required": True, "ready": False, "status": "unknown"},
         "dense_index": {"required": False, "ready": False, "status": "unknown"},
@@ -121,6 +134,7 @@ def readiness(response: Response) -> dict[str, object]:
         with Session(engine) as session:
             session.exec(text("SELECT 1"))
             checks["database"] = True
+            checks["database_integrity"] = sqlite_integrity_diagnostics()
             index_checks, ready = readiness_index_checks(session)
             checks.update(index_checks)
             if not ready:

@@ -6,7 +6,7 @@ platform.**
 Developed as an MSc Data Science project, this platform ingests and inspects
 TTLAB publications, searches full-paper content, answers questions with paper/
 chunk/page evidence, discovers publication-derived topics and authors, and
-generates explicitly labeled thesis-extension suggestions and paper-
+generates explicitly labeled Ollama-assisted thesis ideas, structured thesis-extension suggestions, and paper-
 intelligence drafts. It extends *Automating the
 Collection, Display, Summarization and Podcasting of Academic Research* beyond
 metadata and abstracts into full-text retrieval, source-traceable RAG,
@@ -38,12 +38,19 @@ claim is correct, complete, novel, feasible, or supervisor-approved.
   source links, citation pruning, requested/configured/effective provider
   provenance, and transient public requests by default. Automated source checks
   are capped at `support_unverified`; they do not assert entailment.
-- Thesis Extension Finder with an evidence-only alternative and separate paper
-  facts, paper-stated future work, inferred gaps, and system suggestions.
+- Ollama-only Idea Generator chat that uses related approved paper chunks when
+  available and still returns clearly labeled general suggestions when no close
+  paper match exists. Public conversations are transient page/request state.
+- A retained structured Thesis Extension Finder backend with an evidence-only
+  alternative and separate paper facts, paper-stated future work, inferred gaps,
+  and system suggestions; it is no longer the public `/extensions` interface.
 - Public/technical summaries, contributions, methods, limitations, future work,
   skills/evaluation plans, and text-only podcast scripts.
 - Publication-derived Topic/Author Explorer and explainable related-paper links.
-- Authenticated reviewer/admin mutations, actor-advertised capabilities,
+- Local administrator accounts with Argon2id passwords, expiring HttpOnly
+  sessions, CSRF protection, login lockout, and one-time temporary passwords;
+  service bearer actors remain supported for automation. Authenticated mutations,
+  actor-advertised capabilities,
   separate correction and review actions, human-admin-only publication/rights
   decisions, distinct `ai_reviewed` state, attributed append-only review events
   with a hash chain, and a visibly insecure loopback-only demo bypass.
@@ -196,6 +203,26 @@ The one-command loopback demo is:
 ./scripts/run_everything.sh
 ```
 
+After the first setup, use the fast demo launcher to start or reuse Ollama,
+the backend, and the frontend without reinstalling, preparing, or verifying:
+
+```bash
+./scripts/start_demo.sh
+```
+
+The explicit loopback demo accepts every model already installed in Ollama.
+In production, **Pin and allow all installed models** records every currently
+installed model's immutable digest in the database. Models installed later stay
+blocked until an administrator runs the action again. Environment digest pins
+remain a supported bootstrap/fallback policy.
+When a complete learned-dense index is present, the local demo preloads its
+encoder before the backend reports ready. On the documented 4 GiB WSL baseline,
+the first launch can spend up to about two minutes on this cold start; dense
+requests then avoid that model-load stall.
+
+Open `http://127.0.0.1:5173` and keep the launcher terminal open. Press
+`Ctrl+C` to stop services started by the script.
+
 Useful variants:
 
 ```bash
@@ -207,13 +234,58 @@ Useful variants:
 
 The launcher binds locally and opts into a clearly labeled insecure demo admin
 bypass. Responses carry `X-TTLAB-Insecure-Demo: true`. Never enable this bypass
-in production. Direct backend startup is fail-closed for protected routes unless
-environment-configured reviewer/admin actors are supplied.
+in production. In this loopback-only mode all interactive product screens use a
+clearly labeled preview of the technically eligible corpus: Dashboard, Paper
+    Browser, Search, Ask TTLAB, Idea Generator, Topic/Author Explorer,
+related papers, generated summaries/podcast scripts, Evaluation, and Admin
+review. Draft artifacts and graph links remain visibly labeled with their review
+status; enabling the demo does not rewrite stored publication or rights decisions.
+The local operator is treated as the human demo administrator so review,
+correction, approval, and publication controls can be demonstrated. Live PDF
+acquisition and ingestion still run only through the isolated offline-worker
+commands below, not through the API process. Production backend startup remains
+fail-closed until a local admin account or environment-configured admin service
+actor exists.
+
+### Administrator setup and control center
+
+For an authenticated local stack with real administrator passwords, Ollama,
+the backend, and a built frontend bundle, run:
+
+```bash
+./scripts/start_authenticated_stack.sh
+```
+
+The launcher creates the first `jarod` administrator interactively only when no
+administrator exists. It reuses healthy services, starts missing ones on
+loopback, reports `/ready`, and stops only processes it started when interrupted.
+This is an authenticated local deployment for demonstrations; strict public
+production still requires the HTTPS proxy and controls in `docs/DEPLOYMENT.md`.
+
+Create the first production administrator before starting the API:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.admin_cli create jarod --display-name "Jarod"
+```
+
+Omit `--password` so the secret is not stored in shell history. Additional
+administrators can be created in **Admin Control**; each temporary password is
+shown once and must be changed at first sign-in. The control center also provides
+persistent public-feature switches, exact-digest Ollama controls, preview-before-
+execute bulk approval, review blockers, and the protected TTLAB discovery trigger.
+The explicitly confirmed catch-all approval bypasses normal review blockers but
+still excludes papers and extraction reviews whose PDF status is `missing_pdf`;
+every changed record retains an audited bulk-operation event.
+Disabled features disappear from public navigation and their APIs return a stable
+`503 feature_disabled` response while admin diagnostics remain accessible.
 
 Prepare a bounded UI dataset separately:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.demo.prepare_demo --limit 25
+TTLAB_SERVICE_ROLE=offline_worker \
+  TTLAB_SYNC_EXECUTION_MODE=offline_single_writer \
+  PYTHONPATH=backend \
+  .venv/bin/python -m app.demo.prepare_demo --limit 25
 ```
 
 The bounded feature-hashing output is isolated under `data/indexes/demo/` and
@@ -280,12 +352,17 @@ update authoritative status, and cannot support published results.
 
 ### Automated synchronization boundary
 
-Automated corpus synchronization is intentionally unavailable. The worker and
-Admin trigger fail before discovery or mutation with
+The isolated worker and Admin trigger can check TTLAB and stage new or changed
+`IngestionCandidate` records without mutating the active paper corpus. Configure
+the API with `TTLAB_SYNC_ENABLED=true`, and run the separate worker with
+`TTLAB_SERVICE_ROLE=offline_worker` and
+`TTLAB_SYNC_EXECUTION_MODE=offline_single_writer`.
+
+Candidate import/promotion remains intentionally unavailable and reports
 `atomic_generation_promotion_not_implemented`; configuration cannot enable a
-partially committed promotion. This preserves the last active corpus when any
-future scheduled run would otherwise fail between metadata, extraction, chunk,
-index, topic, and file phases.
+partially committed promotion. This preserves the last active corpus when a
+future import would otherwise fail between metadata, extraction, chunk, index,
+topic, and file phases.
 
 Corpus changes therefore use the explicit commands above in an isolated copy.
 An operator must validate the complete staged database/files/indexes, stop API
@@ -296,6 +373,24 @@ the trigger is unavailable. See [Deployment](docs/DEPLOYMENT.md) for the
 remaining operator controls.
 
 ## Use the intelligence features
+
+Open `/extensions` in the frontend for the Idea Generator. It uses the
+administrator-approved default Ollama model; students cannot select a provider
+or model. Each successful turn returns conversational guidance plus one to three
+idea cards. When retrieval finds an applicable paper, the response exposes its
+bounded source passage as background. When retrieval finds no defensible match,
+Ollama still proposes general directions without paper citations. The public
+endpoint does not save the conversation, and it never falls back to another
+provider: an unavailable or invalid Ollama response produces an explicit retry
+state.
+
+Direct API example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/recommendations/ideas \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"I know Python and want an agriculture thesis idea.","history":[]}'
+```
 
 Ask a question:
 
@@ -340,8 +435,9 @@ model tag but not an immutable digest. In that case the output is honestly
 attributed to the tag with `generation_time_digest_verified=false`; the
 pre/post checks narrow tag-swap risk but are not a generation-time digest
 attestation. If the service or configured digest is unavailable, the
-application records the requested/configured/effective provider and explicit
-offline fallback reason. The historical QA study contains no Ollama quality or
+Ask TTLAB records the requested/configured/effective provider and explicit
+offline fallback reason. Idea Generator is intentionally stricter: it returns a
+retryable error instead of using the extractive provider. The historical QA study contains no Ollama quality or
 latency comparison because the service was unavailable.
 
 ## Evaluation and reproduction
@@ -466,6 +562,7 @@ projection and include:
 
 - `GET /health`, `GET /ready`, `GET /api/stats`
 - `GET /api/papers`, `GET /api/papers/{paper_id}`
+- `GET /api/papers/{paper_id}/artifacts` (current generated versions are public and explicitly labeled when not human-reviewed)
 - `GET /api/search?q=RAG&mode=dense`
 - `POST /api/ask`
 - `POST /api/recommendations/extensions`
@@ -491,11 +588,11 @@ anonymous request parameter.
 - [External submission checks](docs/EXTERNAL_SUBMISSION_CHECKS.md)
 
 Production mode requires explicit trusted hosts/CORS origins, HTTPS public base
-URL, and at least one environment-configured active admin actor. Bearer tokens
-are represented in configuration only by SHA-256 digests and are never
-committed. Token mode does not use cookies; reverse proxy, TLS, monitoring,
-retention, incident response, and institutional identity remain deployment
-responsibilities.
+URL, and at least one active local admin account or environment-configured admin
+service actor. Browser administrators use Secure/HttpOnly/SameSite cookies with
+CSRF headers; passwords are Argon2id-hashed. Service bearer tokens are represented
+in configuration only by SHA-256 digests. Reverse proxy, TLS, monitoring,
+retention, incident response, and institutional identity remain deployment responsibilities.
 
 Automated axe, keyboard, route, responsive-overflow, and Chromium checks provide
 regression evidence only. They do not establish WCAG conformance or conformance

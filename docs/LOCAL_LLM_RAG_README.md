@@ -1,10 +1,19 @@
 # Local Ollama Provider Boundary
 
-Ollama is an optional local answer composer for the TTLAB Research
+Ollama is an optional local answer composer for Ask TTLAB and the required
+generation provider for the public Idea Generator in the TTLAB Research
 Intelligence Platform. Retrieval and public-source eligibility are decided
 before model invocation. The default and reproducible path remains the
 deterministic `offline_extractive` provider; a fluent model response does not
 change citation, publication, rights, or review status.
+
+Idea Generator uses a distinct strict boundary. It always attempts the approved
+default Ollama model, accepts no student-selected provider/model, and uses
+Ollama's non-streaming JSON-schema output for its chat text and idea cards. A
+missing service, failed digest check, or twice-invalid structured response is a
+retryable error; it never falls back to `offline_extractive`. A missing paper
+match is not a provider failure: Ollama is invoked without paper context and the
+result is labeled as a general suggestion with no citations.
 
 Source-traceable means that an answer retains paper/chunk/page evidence and
 generation provenance. It does not establish factual correctness, semantic
@@ -61,6 +70,10 @@ The provider uses bounded settings intended for a local demonstration:
 - `keep_alive=10m`; and
 - retrieved context only, after the public/technical scope decision.
 
+Idea Generator uses the same `num_ctx` and `keep_alive`, temperature `0.3`, a
+bounded 1,200-token structured response, at most six paper chunks, and at most
+12 page-session history messages/6,000 history characters.
+
 Query expansion, metadata and section scoring, evidence weighting, and
 diversity are retrieval heuristics. The model cannot declare its own answer
 grounded or override the pre-generation answerability gate. Citation pruning
@@ -74,6 +87,14 @@ Inspect the redacted status first:
 ```bash
 curl http://127.0.0.1:8000/api/llms/local
 curl http://127.0.0.1:8000/api/llms/benchmark/latest
+```
+
+Generate ideas after status reports an approved usable model:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/recommendations/ideas \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"I like AI, public data, and web applications.","history":[]}'
 ```
 
 Ask through the public projection:

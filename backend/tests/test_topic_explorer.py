@@ -13,8 +13,11 @@ from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.intelligence import topic_explorer as topic_explorer_module
 from app.intelligence.topic_explorer import (
     author_detail,
+    explorer_overview,
     feature_hashing_related_scores,
     get_related_papers,
+    list_authors,
+    list_topics,
     normalize_topic,
     rebuild_topic_index,
 )
@@ -371,6 +374,58 @@ def test_explorer_api_endpoints_and_stats_work() -> None:
     assert stats.status_code == 200
     assert stats.json()["topic_count"] >= 1
     assert stats.json()["paper_topic_links"] >= 1
+
+
+def test_demo_explorer_shows_unreviewed_graph_without_public_approval() -> None:
+    engine = build_explorer_engine()
+    with Session(engine) as session:
+        rebuild_topic_index(session)
+        for author in session.exec(select(Author)).all():
+            author.identity_status = "unresolved"
+            author.review_status = "needs_review"
+            author.identity_review_status = "needs_review"
+            session.add(author)
+        session.commit()
+
+    with Session(engine) as session:
+        overview = explorer_overview(session, demo_preview=True)
+        topics = list_topics(session, demo_preview=True)
+        authors = list_authors(session, demo_preview=True)
+        related = get_related_papers(session, "rag-paper", demo_preview=True)
+
+    assert overview["demo_preview"] is True
+    assert overview["paper_count"] >= 2
+    assert overview["topic_count"] >= 1
+    assert topics["items"]
+    assert authors["items"]
+    assert isinstance(related, list)
+
+
+def test_public_explorer_lists_unreviewed_bibliographic_authors_from_public_papers() -> None:
+    engine = build_explorer_engine()
+    with Session(engine) as session:
+        rebuild_topic_index(session)
+        approve_explorer_graph(session)
+        for author in session.exec(select(Author)).all():
+            author.identity_status = "unresolved"
+            author.review_status = "needs_review"
+            author.identity_review_status = "needs_review"
+            session.add(author)
+        session.commit()
+
+    with Session(engine) as session:
+        authors = list_authors(session)
+        overview = explorer_overview(session)
+        author = authors["items"][0]
+        detail = author_detail(session, author["author_id"])
+
+    assert authors["total"] > 0
+    assert author["paper_count"] > 0
+    assert author["identity_review_status"] == "needs_review"
+    assert overview["top_authors"]
+    assert overview["author_count"] == authors["total"]
+    assert detail is not None
+    assert detail["papers"]
 
 
 def test_demo_prepare_helper_is_idempotent_in_skip_mode(monkeypatch) -> None:

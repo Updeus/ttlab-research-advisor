@@ -684,19 +684,17 @@ def serialize_public_artifact(artifact: PaperArtifact) -> dict[str, Any]:
     """Serialize an artifact without exposing protected review workspace data.
 
     Review notes and stable reviewer identifiers are administrative data. Draft
-    corrections are also private until a human administrator has approved the
-    corrected artifact. The public payload retains the review status and
-    timestamp so clients can communicate provenance without identifying the
-    reviewer or disclosing work in progress.
+    corrections remain private until a human administrator approves them. The
+    current generated version may be viewed publicly before review, with an
+    explicit review status and warning.
     """
 
-    if artifact.review_status != "approved":
-        raise ValueError("Only approved artifacts may be serialized for public output")
-    correction_blockers = artifact_correction_blockers(artifact)
-    if correction_blockers:
+    approved = artifact.review_status == "approved"
+    correction_blockers = artifact_correction_blockers(artifact) if approved else []
+    if approved and correction_blockers:
         raise ValueError(f"Artifact correction is not publishable: {', '.join(correction_blockers)}")
     corrected_json = artifact.corrected_json if isinstance(artifact.corrected_json, dict) else {}
-    use_corrected_json = bool(corrected_json)
+    use_corrected_json = approved and bool(corrected_json)
     correction_used = use_corrected_json
     effective_source_chunk_ids = (
         artifact.correction_source_chunk_ids_json if correction_used else artifact.source_chunk_ids_json
@@ -704,6 +702,13 @@ def serialize_public_artifact(artifact: PaperArtifact) -> dict[str, Any]:
     effective_citations = artifact.correction_citations_json if correction_used else artifact.citations_json
     effective_grounding = artifact.correction_grounding_status if correction_used else artifact.grounding_status
     effective_warnings = list(artifact.warnings_json or [])
+    if not approved:
+        effective_warnings = dedupe_preserve_order(
+            [
+                *effective_warnings,
+                "This is the current AI-generated version and has not been approved or verified by a human reviewer.",
+            ]
+        )
     if correction_used and artifact.correction_grounding_status != "grounded":
         effective_warnings = dedupe_preserve_order(
             [
@@ -729,7 +734,7 @@ def serialize_public_artifact(artifact: PaperArtifact) -> dict[str, Any]:
             "provider": None if correction_used else artifact.provider,
             "model": None if correction_used else artifact.model,
             "generated_at": None if correction_used else artifact.created_at.isoformat(),
-            "approved_version": "corrected" if correction_used else "generated",
+            "approved_version": ("corrected" if correction_used else "generated") if approved else None,
             "correction_fields": ["json"] if correction_used else [],
             "derived_fields": ["text"] if correction_used else [],
             "runtime": (
@@ -1128,8 +1133,6 @@ def list_paper_artifacts(
         .where(PaperArtifact.paper_id == paper_id)
         .order_by(PaperArtifact.artifact_type, desc(PaperArtifact.created_at))
     )
-    if public:
-        statement = statement.where(PaperArtifact.review_status == "approved")
     records = session.exec(statement).all()
     serializer = serialize_public_artifact if public else serialize_artifact
     serialized: list[dict[str, Any]] = []
@@ -1158,8 +1161,6 @@ def get_latest_paper_artifact(
         .where(PaperArtifact.artifact_type == artifact_type)
         .order_by(desc(PaperArtifact.created_at))
     )
-    if public:
-        statement = statement.where(PaperArtifact.review_status == "approved")
     records = list(session.exec(statement).all())
     for record in records:
         try:

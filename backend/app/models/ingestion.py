@@ -43,3 +43,17 @@ class IngestionSyncState(SQLModel, table=True):
     last_failure_at: Optional[datetime] = Field(default=None, index=True)
     next_scheduled_at: Optional[datetime] = Field(default=None, index=True)
     updated_at: datetime = Field(default_factory=utc_now, index=True)
+
+
+class IngestionCandidate(SQLModel, table=True):
+    candidate_id: str = Field(primary_key=True)
+    source_key: str = Field(unique=True, index=True)
+    title: str = Field(index=True)
+    source_url: Optional[str] = None
+    pdf_url: Optional[str] = None
+    metadata_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSONEncodedValue))
+    comparison_status: str = Field(default="new", index=True)
+    import_status: str = Field(default="pending", index=True)
+    discovered_run_id: str = Field(index=True)
+    discovered_at: datetime = Field(default_factory=utc_now, index=True)
+    updated_at: datetime = Field(default_factory=utc_now, index=True)

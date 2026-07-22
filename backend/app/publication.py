@@ -14,6 +14,7 @@ from typing import Any, Literal
 from sqlmodel import Session, select
 
 from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
+from app.config import Settings
 from app.models import Chunk, Paper
 
 PublicationStatus = Literal["pending_review", "published", "hidden"]
@@ -23,6 +24,26 @@ PublicAccessLevel = Literal["hidden", "metadata_only", "searchable"]
 PUBLICATION_STATUSES = {"pending_review", "published", "hidden"}
 RIGHTS_STATUSES = {"unknown", "cleared", "restricted"}
 PUBLIC_ACCESS_LEVELS = {"hidden", "metadata_only", "searchable"}
+
+
+def local_demo_corpus_preview_enabled(settings: Settings) -> bool:
+    """Allow unreviewed corpus inspection only in the explicit insecure local demo."""
+
+    return bool(
+        settings.security_mode == "local_demo"
+        and settings.allow_insecure_local_demo
+        and settings.demo_corpus_preview
+    )
+
+
+def is_local_demo_content(session: Session, paper: Paper) -> bool:
+    """Require a technically eligible, generation-bound record for demo retrieval."""
+
+    return bool(
+        paper.corpus_eligibility_status == "eligible"
+        and has_current_content_generation(paper, require_public_index=False)
+        and content_generation_diagnostics(session, paper)["ready"]
+    )
 
 
 def has_current_content_generation(paper: Paper, *, require_public_index: bool = True) -> bool:

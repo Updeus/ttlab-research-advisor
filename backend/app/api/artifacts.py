@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlmodel import Session
 
+from app.config import Settings, get_settings
 from app.db import get_session
 from app.intelligence.paper_artifact_generator import (
     ARTIFACT_TYPES,
@@ -14,7 +15,7 @@ from app.intelligence.paper_artifact_generator import (
     list_paper_artifacts,
 )
 from app.models import Paper
-from app.publication import is_public_content
+from app.publication import is_local_demo_content, is_public_content, local_demo_corpus_preview_enabled
 from app.security import AuthenticatedActor, get_optional_actor, require_admin, require_reviewer
 
 router = APIRouter(prefix="/api", tags=["artifacts"])
@@ -86,12 +87,18 @@ def generate_artifacts_for_paper(
 def get_artifacts_for_paper(
     paper_id: str,
     session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> list[dict[str, object]]:
     paper = session.get(Paper, paper_id)
     if paper is None:
         raise HTTPException(status_code=404, detail="Paper not found")
-    require_eligible_public_paper(session, paper)
-    return list_paper_artifacts(session, paper_id, public=True)
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    require_eligible_paper(session, paper, demo_preview=demo_preview)
+    artifacts = list_paper_artifacts(session, paper_id, public=not demo_preview)
+    if demo_preview:
+        for artifact in artifacts:
+            mark_demo_artifact(artifact)
+    return artifacts
 
 
 @router.get("/papers/{paper_id}/artifacts/{artifact_type}")
@@ -99,16 +106,20 @@ def get_artifact_for_paper(
     paper_id: str,
     artifact_type: str,
     session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, object]:
     paper = session.get(Paper, paper_id)
     if paper is None:
         raise HTTPException(status_code=404, detail="Paper not found")
-    require_eligible_public_paper(session, paper)
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    require_eligible_paper(session, paper, demo_preview=demo_preview)
     if artifact_type not in ARTIFACT_TYPES:
         raise HTTPException(status_code=400, detail="Unsupported artifact type")
-    artifact = get_latest_paper_artifact(session, paper_id, artifact_type, public=True)
+    artifact = get_latest_paper_artifact(session, paper_id, artifact_type, public=not demo_preview)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
+    if demo_preview:
+        mark_demo_artifact(artifact)
     return artifact
 
 
@@ -126,9 +137,19 @@ def validate_artifact_types(artifact_types: list[str]) -> None:
         raise HTTPException(status_code=400, detail=f"Unsupported artifact types: {', '.join(invalid)}")
 
 
-def require_eligible_public_paper(
+def require_eligible_paper(
     session: Session,
     paper: Paper,
+    *,
+    demo_preview: bool = False,
 ) -> None:
-    if not is_public_content(session, paper):
+    if not is_public_content(session, paper) and not (demo_preview and is_local_demo_content(session, paper)):
         raise HTTPException(status_code=404, detail="Paper artifacts are not publicly available")
+
+
+def mark_demo_artifact(artifact: dict[str, object]) -> None:
+    artifact["demo_preview"] = True
+    artifact["corpus_access_mode"] = "unreviewed_local_demo_preview"
+    warnings = list(artifact.get("warnings") or [])
+    warnings.append("Local demo preview: this generated output may not be reviewed or approved for publication.")
+    artifact["warnings"] = warnings

@@ -7,10 +7,13 @@ from sqlmodel import Session, desc, func, select
 from app.db import get_session
 from app.api.index_health import public_index_projection_health
 from app.indexing.embedder import eligible_chunks
+from app.indexing.dense_runtime import dense_runtime_diagnostics
 from app.config import Settings, get_settings
 from app.intelligence.rag_answerer import ask_diagnostics, ask_question, serialize_answer
 from app.models import Chunk, RAGAnswer
 from app.security import AuthenticatedActor, require_reviewer
+from app.publication import local_demo_corpus_preview_enabled
+from app.indexing.retriever import sanitize_public_retrieval_warnings
 
 router = APIRouter(prefix="/api", tags=["ask"])
 PUBLIC_SOURCE_SNIPPET_MAX_CHARS = 700
@@ -35,6 +38,19 @@ def ask(
 ) -> dict[str, object]:
     if request.provider != "auto" and request.provider not in settings.allowed_llm_providers:
         raise HTTPException(status_code=400, detail="Requested LLM provider is not enabled")
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    if demo_preview and request.mode in {"dense", "hybrid"}:
+        dense_runtime = dense_runtime_diagnostics()
+        if dense_runtime["state"] == "warming":
+            raise HTTPException(
+                status_code=503,
+                detail="Dense semantic search is warming up. Try again shortly or use Keyword mode now.",
+            )
+        if dense_runtime["state"] == "unavailable":
+            raise HTTPException(
+                status_code=503,
+                detail="Dense semantic search could not load. Use Keyword or Feature-hashing mode.",
+            )
     try:
         internal_response = ask_question(
             session,
@@ -47,9 +63,17 @@ def ask(
             model_name=request.model,
             paper_id=request.paper_id,
             persist=False,
-            retrieval_scope="public",
+            retrieval_scope="technical" if demo_preview else "public",
             provider_settings=settings,
         )
+        internal_response["warnings"] = sanitize_public_retrieval_warnings(
+            list(internal_response.get("warnings") or [])
+        )
+        if demo_preview:
+            internal_response["warnings"].append(
+                "Local demo preview: this answer uses technically eligible sources that have not necessarily passed publication or rights review."
+            )
+        internal_response["demo_preview"] = demo_preview
         return serialize_public_ask_response(internal_response)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -103,7 +127,8 @@ def diagnostics(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, object]:
     base = ask_diagnostics(session, settings)
-    searchable_chunks = len(eligible_chunks(session, public_only=True))
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    searchable_chunks = len(eligible_chunks(session, public_only=not demo_preview))
     index_health = public_index_projection_health(
         session,
         public_eligible_chunks=searchable_chunks,
@@ -117,6 +142,8 @@ def diagnostics(
         "keyword_index": index_health["keyword"],
         "feature_hashing_index": index_health["feature_hashing"],
         "dense_index": index_health["dense"],
+        "dense_provider": dense_runtime_diagnostics(),
+        "corpus_access_mode": "unreviewed_local_demo_preview" if demo_preview else "approved_public_projection",
     }
 
 

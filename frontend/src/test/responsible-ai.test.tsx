@@ -335,7 +335,7 @@ describe("evidence and responsible-AI interfaces", () => {
       if (url.pathname === "/api/ask" && init?.method === "POST") return json({
         answer_id: "answer-1",
         question: "Which paper?",
-        answer: "The cited paper discusses retrieval.",
+        answer: "**Main finding:** The cited paper discusses retrieval [S3].",
         grounding_status: "partial",
         support_status: "support_unverified",
         provider: "offline_extractive",
@@ -357,7 +357,11 @@ describe("evidence and responsible-AI interfaces", () => {
           source_url: paper.post_url,
           pdf_url: paper.pdf_url,
         }],
-        retrieved_chunks: [{ chunk_id: hybridSourceResult.chunk_id, paper_id: paper.paper_id, title: paper.title, authors: paper.authors, year: paper.year, page_start: 2, page_end: 2, section: "Methodology", snippet: hybridSourceResult.snippet, scores: hybridSourceResult.scores, source: hybridSourceResult.source }],
+        retrieved_chunks: [
+          { chunk_id: "other-0001", paper_id: "other-1", title: "Unrelated source one", authors: [], year: 2024, page_start: 1, page_end: 1, section: "Introduction", snippet: "Unrelated evidence one.", scores: hybridSourceResult.scores, source: { pdf_url: null, post_url: null } },
+          { chunk_id: "other-0002", paper_id: "other-2", title: "Unrelated source two", authors: [], year: 2024, page_start: 1, page_end: 1, section: "Introduction", snippet: "Unrelated evidence two.", scores: hybridSourceResult.scores, source: { pdf_url: null, post_url: null } },
+          { chunk_id: hybridSourceResult.chunk_id, paper_id: paper.paper_id, title: paper.title, authors: paper.authors, year: paper.year, page_start: 2, page_end: 2, section: "Methodology", snippet: hybridSourceResult.snippet, scores: hybridSourceResult.scores, source: hybridSourceResult.source },
+        ],
         retrieval_metadata: { expanded_query: "Which paper?", query_expansions: [], retrieval_strategy: "explicit_config_v1", retrieval_scope: "public" },
         generation_metadata: {},
         answerability: { answerable: true, reason: "source_term_coverage", query_terms: ["retrieval"], matched_query_terms: ["retrieval"], max_query_coverage: 1, minimum_query_coverage: 0.34, relevant_chunk_ids: [hybridSourceResult.chunk_id], warnings: [] },
@@ -378,11 +382,33 @@ describe("evidence and responsible-AI interfaces", () => {
     await user.click(screen.getByRole("button", { name: "Ask" }));
     expect(await screen.findByText(/transient answer/)).toBeInTheDocument();
     expect(screen.getByText(/does not establish entailment or factual correctness/i)).toBeInTheDocument();
-    expect(screen.getAllByText("Chunk paper-1-0001").length).toBeGreaterThan(0);
+    expect(screen.getByText("Main finding:").tagName).toBe("STRONG");
+    const inlineCitation = screen.getByRole("link", { name: `Source: ${paper.title}, Methodology, p. 2` });
+    expect(inlineCitation).toHaveTextContent(`[${paper.title}, p. 2]`);
+    expect(inlineCitation).toHaveAttribute("href", "#ask-source-paper-1-0001");
+    expect(document.querySelector("#ask-source-paper-1-0001")).toBeInTheDocument();
+    expect(screen.queryByText(/\[S3\]/)).not.toBeInTheDocument();
     expect(screen.getAllByText("A source-grounded passage about retrieval.").length).toBeGreaterThan(0);
     await user.clear(questionInput);
     await user.type(questionInput, "A different draft question");
     expect(screen.getByText(/Answer to “What evidence supports retrieval\?”/)).toBeInTheDocument();
+  });
+
+  it("disables learned dense retrieval while its local model warms up", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = new URL(String(input));
+      if (url.pathname === "/api/ask/diagnostics") return json({
+        ...askDiagnostics,
+        dense_provider: { state: "warming", started_at: "2026-01-01T00:00:00Z", ready_at: null, elapsed_seconds: null },
+      });
+      if (url.pathname === "/api/llms/local") return json({ available: false, base_url: "", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: [] });
+      return json({}, { status: 404 });
+    });
+
+    render(<AskPage papers={[paper as never]} onSelectPaper={() => undefined} />);
+
+    expect(await screen.findByRole("option", { name: /Dense semantic.*warming up/ })).toBeDisabled();
+    expect(screen.getByText("Dense semantic: warming up")).toBeInTheDocument();
   });
 
   it("excludes metadata-only papers from Ask scopes, including deep links", async () => {
@@ -472,7 +498,7 @@ describe("evidence and responsible-AI interfaces", () => {
     expect(fetchMock).toHaveBeenCalled();
   });
 
-  it("fails closed when an artifact has generated content but no approved effective version", async () => {
+  it("shows the current generated artifact publicly with an explicit unreviewed warning", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
       if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
@@ -481,8 +507,8 @@ describe("evidence and responsible-AI interfaces", () => {
         artifact_id: "artifact-needs-review",
         paper_id: paper.paper_id,
         artifact_type: "paper_intelligence_bundle",
-        generated_json: intelligenceBundle("MUST NOT BE PUBLIC"),
-        effective_json: null,
+        generated_json: intelligenceBundle("CURRENT GENERATED DRAFT"),
+        effective_json: intelligenceBundle("CURRENT GENERATED DRAFT"),
         citations: [],
         grounding_status: "grounded",
         generation_status: "generated",
@@ -497,8 +523,39 @@ describe("evidence and responsible-AI interfaces", () => {
 
     render(<PaperDetail paper={paper as never} onBack={() => undefined} />);
     expect(await screen.findByText("Loaded source chunk")).toBeInTheDocument();
-    expect(screen.getByText("Paper intelligence is awaiting approval")).toBeInTheDocument();
-    expect(screen.queryByText("MUST NOT BE PUBLIC")).not.toBeInTheDocument();
+    expect(screen.getByText("CURRENT GENERATED DRAFT")).toBeInTheDocument();
+    expect(screen.getByText(/Public AI-generated draft/)).toBeInTheDocument();
+    expect(screen.getByText(/Current generated version/)).toBeInTheDocument();
+    expect(screen.queryByText("Paper intelligence is awaiting approval")).not.toBeInTheDocument();
+  });
+
+  it("uses a generated artifact payload when an effective projection is absent", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
+      if (url.pathname.endsWith("/chunks")) return json([]);
+      if (url.pathname.endsWith("/artifacts")) return json([{
+        artifact_id: "artifact-generated-default",
+        paper_id: paper.paper_id,
+        artifact_type: "paper_intelligence_bundle",
+        generated_json: intelligenceBundle("GENERATED DEFAULT CONTENT"),
+        effective_json: null,
+        citations: [],
+        grounding_status: "partial",
+        generation_status: "generated",
+        warnings: [],
+        review_status: "needs_review",
+        provenance: { provider: "offline", model: "fixture", generated_at: "2026-01-01T00:00:00Z", approved_version: null, correction_fields: [] },
+        created_at: "2026-01-01T00:00:00Z",
+      }]);
+      if (url.pathname.endsWith("/related")) return json([]);
+      return json({}, { status: 404 });
+    });
+
+    render(<PaperDetail paper={paper as never} onBack={() => undefined} />);
+
+    expect(await screen.findByText("GENERATED DEFAULT CONTENT")).toBeInTheDocument();
+    expect(screen.queryByText(/awaiting approval/i)).not.toBeInTheDocument();
   });
 });
 

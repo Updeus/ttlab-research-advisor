@@ -30,7 +30,8 @@ permitted catalogue/PDF sources
   -> retrieval and explicit reranking configuration
        |-> Search
        |-> Ask TTLAB -> answer/citation verifier
-       |-> evidence-only or full Extension Finder
+       |-> Ollama-only conversational Idea Generator
+       |-> retained evidence-only or full Extension Finder backend
        |-> paper intelligence / podcast text
        |-> controlled topics / author evidence / related papers
   -> SQLModel/SQLite + generated artifacts + append-only review events
@@ -53,12 +54,12 @@ dense index is not an acceptable degraded state.
 - `ingestion/ttlab_page.py` discovers and normalizes catalogue records without
   treating scraped fields as verified facts.
 - `ingestion/manual_import.py` idempotently imports seeds and author aliases.
-- `ingestion/sync.py` retains comparison/invalidation logic for future staged
-  generation work, but its orchestration gate returns
-  `atomic_generation_promotion_not_implemented` before discovery or mutation.
-  Separate phase commits/files cannot be promoted safely as one active corpus.
-- `ingestion/sync_worker.py` and the Admin trigger expose that fail-closed state;
-  no configuration enables scheduled or manual automated promotion. Corpus
+- `ingestion/sync.py` can compare discovered records and persist
+  `IngestionCandidate` rows without changing the active corpus. Its import gate
+  still returns `atomic_generation_promotion_not_implemented` because separate
+  phase commits/files cannot yet be promoted safely as one active corpus.
+- `ingestion/sync_worker.py` and the Admin trigger run discovery in a separate
+  explicitly isolated worker; no configuration enables automated promotion. Corpus
   updates are explicit operator-run builds in an isolated copy followed by
   complete validation and a deliberate maintenance-window replacement.
 - `ingestion/pdf_downloader.py` limits permitted hosts, redirects, file size,
@@ -140,6 +141,12 @@ and payload identity they consume.
 - `intelligence/extension_recommender.py` provides an evidence-only mode and a
   full structured Finder. The full path separates paper-supported facts,
   explicit/inferred/not-found gaps, and newly generated suggestions.
+- `intelligence/idea_generator.py` builds a bounded multi-turn retrieval query,
+  classifies whether paper evidence is applicable, and requests one to three
+  schema-validated ideas from the approved default Ollama model. It validates
+  model-supplied source aliases against retrieved chunks and never invokes an
+  offline or external fallback. No-match requests remain useful general
+  suggestions with empty citations.
 - `intelligence/recommendation_verifier.py` checks citations, gap labels, data
   warnings, skills gaps, and timeline risk.
 - `intelligence/paper_artifact_generator.py` produces cited public/technical
@@ -149,7 +156,10 @@ and payload identity they consume.
   there is no audio/TTS pipeline.
 - `intelligence/topic_explorer.py` applies the retained controlled lexical
   vocabulary, derives author-topic evidence only from eligible publication
-  authorship, and explains related-paper scores.
+  authorship, and explains related-paper scores. Public bibliographic author
+  cards are derived from already-public papers and do not require separate
+  identity approval; unresolved status remains visible, while rejected,
+  invalid, and merged identities are excluded.
 - `intelligence/llm_provider.py` keeps deterministic offline extraction as the
   default path. Optional Ollama use requires an allowlisted model name and exact
   service-reported SHA-256 digest, checked before and after generation. Because
@@ -159,6 +169,9 @@ and payload identity they consume.
   incomplete OpenAI stub is not a supported provider.
 
 The platform never treats a generated extension as paper-stated future work.
+Idea Generator paper citations are background/inspiration, not evidence that a
+new proposal is novel or feasible. Its public history is request-scoped React
+state and is not persisted by the API.
 Potential researcher fit is a bibliographic discovery hint, not confirmation of
 availability, endorsement, expertise beyond the corpus, or supervision.
 
@@ -172,8 +185,11 @@ rejection, and `needs_reprocess` where applicable.
 Corrections and review decisions are separate endpoints. Saving a correction
 creates an attributed event and reopens the item at `needs_review`; it cannot be
 approved in the same request. Public artifact serialization uses corrected
-content only after a subsequent human-admin approval. Actor capabilities and
-allowed transitions are returned explicitly so clients do not guess policy.
+content only after a subsequent human-admin approval. The current generated
+artifact is publicly readable before approval with an explicit unreviewed AI
+draft warning; private reviewer notes and pending corrections remain protected.
+Actor capabilities and allowed transitions are returned explicitly so clients
+do not guess policy.
 
 Review events record item/action, prior/new state, actor ID/name/type/role,
 request ID, notes/diff, timestamp, previous-event hash, and event hash. SQLite
@@ -280,8 +296,10 @@ requests are transient. History/item routes are protected.
 
 ### Paper artifacts
 
-Public reads require approved metadata, cleared rights, searchable access for
-source evidence, and an approved effective artifact state.
+Public artifact reads require approved paper metadata and cleared public rights.
+The current generated version does not require artifact approval, but is labeled
+with its review and grounding status. An approved correction replaces the
+generated version only after the separate human review transition.
 Generating an artifact for one paper requires reviewer authorization; batch
 generation requires admin. Payloads retain provider/model/time, support labels,
 source chunk IDs/citations, grounding, warnings, and review state.
@@ -301,10 +319,14 @@ scope. Protected routes include:
 - actor capabilities, all admin review/correction/publication/extraction
   decisions, and paginated review-event routes.
 
-Bearer actors are configured through `TTLAB_AUTH_ACTORS_JSON` using only token
-SHA-256 digests and stable actor metadata. Production requires at least one
-active admin actor, HTTPS public base URL, exact HTTPS CORS origins, explicit
-trusted hosts, and disabled demo bypass. No default secret is committed.
+Human administrators are local accounts with Argon2id hashes, login lockout,
+eight-hour idle/24-hour absolute sessions, Secure HttpOnly SameSite cookies, and
+CSRF checks. The bootstrap CLI creates the first administrator; the dashboard
+creates additional accounts with one-time temporary passwords. Service bearer
+actors remain available through `TTLAB_AUTH_ACTORS_JSON` using only token SHA-256
+digests. Production requires at least one active local admin or admin service
+actor, HTTPS public base URL, exact HTTPS CORS origins, explicit trusted hosts,
+and disabled demo bypass. No default secret is committed.
 
 Public request bodies are limited and generation endpoints are rate-limited.
 The in-memory limiter supports only the declared one-API-worker topology;
@@ -313,8 +335,8 @@ application is replaced with an external distributed control. Downloader hosts
 and sizes are bounded, but DNS rebinding TOCTOU and hostile-parser isolation
 remain external controls; production API mode disables live PDF work. Security middleware supplies request
 IDs, safe headers, path/body-minimized logs, and a visible security-mode header.
-Token mode does not use cookies, so browser CSRF tokens are not the applicable
-control; exact CORS, HTTPS, token secrecy, and authorization are.
+Cookie sessions require the matching CSRF cookie/header pair. Service-token mode
+does not use cookies; exact CORS, HTTPS, token secrecy, and authorization apply.
 
 ## Frontend architecture
 
@@ -337,13 +359,18 @@ control; exact CORS, HTTPS, token secrecy, and authorization are.
 /admin
 ```
 
+`/extensions` is the public Idea Generator chat. The legacy structured Finder
+API remains at `/api/recommendations/extensions` for compatibility and retained
+evaluation evidence, but it is not linked from public navigation.
+
 The interface preserves browser history, reload/deep links, route titles,
 focus restoration, current-link state, a skip link, a deterministic 404, and
 responsive layouts. It displays index/evaluation freshness, evidence locators,
 provider/model/timestamp, review type/status, generated-content notices, and
 unsupported/partial warnings. Student profile and question content remains in
 component/request memory and is not written to browser storage or URLs. Admin
-bearer tokens remain in page/module memory and disappear on reload.
+sessions use HttpOnly cookies; only the non-secret CSRF token is readable by the
+frontend. Service bearer tokens remain an API automation mechanism.
 
 Every public route treats zero approved records as a governed empty projection,
 not as permission to fall back to the technical corpus. Admin Review separately
@@ -369,11 +396,10 @@ institutional identity or token provisioning, incident handling, correction/
 appeal contacts, and SPA fallback routing. Production must not expose local
 API docs or the insecure demo bypass.
 
-Production operation is narrowed to one API worker with synchronization
-disabled. Corpus acquisition/parsing and complete rebuilds are explicit
-operator-run staging tasks with no public listener or bearer/provider secrets;
-the repository does not automate their promotion. The API's reviewer-protected
-diagnostics expose the disabled boundary rather than queuing unsafe work.
+Production operation is narrowed to one API worker. A separate isolated worker
+may run bounded discovery and stage candidates. Corpus acquisition/parsing and
+complete rebuilds remain operator-run staging tasks with no public listener or
+browser/model credentials; the repository does not automate their promotion.
 Network egress isolation, DNS pinning/proxying, process/resource isolation, and
 any multi-worker rate limiter remain deployment responsibilities.
 

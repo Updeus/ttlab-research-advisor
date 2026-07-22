@@ -35,10 +35,10 @@ describe("automated accessibility smoke", () => {
     ["/papers/paper-1", "Grounded Research Discovery"],
     ["/search", "Search Source Chunks"],
     ["/ask", "Ask TTLAB"],
-    ["/extensions", "Thesis Extension Finder"],
+    ["/extensions", "Idea Generator"],
     ["/explorer", "Topic and author explorer"],
     ["/evaluation", "Evaluation dashboard"],
-    ["/admin", "Reviewer authentication required"],
+    ["/admin", "Administrator sign in"],
   ])("has no detectable axe violations on %s", async (route, heading) => {
     const { container } = render(<MemoryRouter initialEntries={[route]}><App /></MemoryRouter>);
     await screen.findByRole("heading", { name: heading });
@@ -122,59 +122,44 @@ describe("automated accessibility smoke", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("has no detectable axe violations on a dynamic Finder evidence result", async () => {
+  it("has no detectable axe violations on a generated idea result", async () => {
     const user = userEvent.setup();
-    overrideFetch((input) => {
+    overrideFetch((input, init) => {
       const url = requestUrl(input);
-      if (url.pathname === "/api/search") {
+      if (url.pathname === "/api/llms/local") {
         return json({
-          query: "retrieval",
-          mode: "keyword",
-          result_count: 1,
-          results: [{
-            rank: 1,
-            paper_id: paper.paper_id,
-            paper_title: paper.title,
-            authors: paper.authors,
-            year: paper.year,
-            venue: paper.venue,
-            topics: paper.topics,
-            chunk_id: "paper-1-0001",
-            chunk_index: 0,
-            section: "Methodology",
-            page_start: 2,
-            page_end: 2,
-            snippet: "A source-grounded passage.",
-            scores: {
-              keyword: 0.8,
-              vector: 0,
-              vector_provider: null,
-              metadata: 0,
-              section_boost: 0,
-              evidence_quality: 0,
-              topical_alignment: 0,
-              diversity_penalty: 0,
-              combined: 0.8,
-            },
-            source: { pdf_url: paper.pdf_url, post_url: paper.source_url },
+          available: true, generation_available: true, base_url: "http://localhost:11434",
+          default_model: "qwen-test:4b", model_count: 1, models: [], candidate_pulls: [],
+          recommended_pulls: [], benchmark: null, warnings: [], model_policy: "pinned_digest_only",
+        });
+      }
+      if (url.pathname === "/api/recommendations/ideas" && init?.method === "POST") {
+        return json({
+          message_id: "idea-a11y", reply: "Here is a paper-informed direction.", paper_match_status: "matched",
+          ideas: [{
+            title: "Evaluate research discovery for students",
+            research_question: "How useful is cited retrieval for student research?",
+            summary: "Build and evaluate a small prototype.", why_it_fits: "It fits web and AI interests.",
+            mvp_scope: "One workflow and a small question set.", skills: ["Python"],
+            evaluation_plan: "Measure retrieval and usefulness.", basis: "paper_informed", source_chunk_ids: ["paper-1-0001"],
           }],
-          warnings: [],
-          expanded_query: "retrieval",
-          query_expansions: [],
-          vector_provider: null,
-          retrieval_strategy: "explicit_config_v1",
-          retriever_config: retrieverConfig,
-          retrieval_scope: "public",
-        } satisfies SearchResponse);
+          citations: [{
+            paper_id: paper.paper_id, title: paper.title, authors: paper.authors, year: paper.year,
+            chunk_id: "paper-1-0001", section: "Methodology", page_start: 2, page_end: 2,
+            snippet: "A source-grounded passage.", score: 0.8, source_url: paper.source_url, pdf_url: paper.pdf_url,
+          }],
+          provider: "ollama", model: "qwen-test:4b", generation_metadata: {}, runtime_provenance: {}, warnings: [],
+          created_at: "2026-07-22T00:00:00Z",
+        });
       }
       return undefined;
     });
 
     const { container } = render(<MemoryRouter initialEntries={["/extensions"]}><App /></MemoryRouter>);
-    await screen.findByRole("heading", { name: "Thesis Extension Finder" });
-    await user.click(screen.getByRole("radio", { name: "Evidence-only ranked papers/passages" }));
-    await user.click(screen.getByRole("button", { name: "Retrieve Evidence Only" }));
-    await screen.findByRole("heading", { name: "Evidence-only ranked papers and passages" });
+    await screen.findByRole("heading", { name: "Idea Generator" });
+    await user.type(screen.getByLabelText("What are you interested in doing?"), "I like retrieval and Python.");
+    await user.click(screen.getByRole("button", { name: "Generate ideas" }));
+    await screen.findByRole("heading", { name: "Evaluate research discovery for students" });
     expect(await axe(container)).toHaveNoViolations();
   });
 

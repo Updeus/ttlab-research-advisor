@@ -3,6 +3,10 @@ import type { KeyboardEvent, ReactNode } from "react";
 
 import {
   fetchAdminOverview,
+  fetchAdminControlSummary,
+  fetchAdminModels,
+  fetchManagedAdmins,
+  fetchIngestionCandidates,
   fetchAdminPublicationPreview,
   fetchActorCapabilities,
   fetchIngestionSyncStatus,
@@ -15,12 +19,22 @@ import {
   reviewRecommendation,
   reviewGraphRecord,
   requestIngestionSync,
+  pinInstalledModels,
+  previewBulkApproval,
+  previewEligiblePublication,
+  publishEligiblePapers,
+  executeBulkApproval,
+  createManagedAdmin,
+  updateFeature,
   reviewExtraction,
   saveArtifactCorrection,
   saveGraphCorrection,
   saveRecommendationCorrection,
 } from "../api/client";
 import type { GraphReviewItemType } from "../api/client";
+import type { AdminControlSummary, AdminModel } from "../api/client";
+import type { ManagedAdmin } from "../api/client";
+import type { IngestionCandidate } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { BusyButton, EmptyState, ListSkeleton, MetricSkeletonGrid } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
@@ -227,6 +241,8 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify, onDataChanged
         </div>
       ) : null}
 
+      <AdminControlPanel onComplete={completeAction} onError={failAction} />
+
       <div className="artifact-tabs admin-tabs" role="tablist" aria-label="Admin review sections">
         {ADMIN_TABS.map((tab, index) => (
           <button
@@ -250,6 +266,7 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify, onDataChanged
       {activeTab === "overview" ? (
         <AdminOverviewPanel
           overview={overview}
+          publicationPreview={publicationPreview}
           syncStatus={syncStatus}
           loading={loading}
           requestingSync={requestingSync}
@@ -368,6 +385,173 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify, onDataChanged
         />
       ) : null}
       </div>
+    </section>
+  );
+}
+
+function AdminControlPanel({ onComplete, onError }: { onComplete: (message: string) => void; onError: (error: unknown) => void }) {
+  const [summary, setSummary] = useState<AdminControlSummary | null>(null);
+  const [models, setModels] = useState<AdminModel[]>([]);
+  const [admins, setAdmins] = useState<ManagedAdmin[]>([]);
+  const [candidates, setCandidates] = useState<IngestionCandidate[]>([]);
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState("");
+  const [bulkPreview, setBulkPreview] = useState<{ operation_id: string; preview_hash: string; eligible_count: number; blocked_count: number; approval_mode: "eligible" | "catch_all" } | null>(null);
+  const [catchAllConfirmed, setCatchAllConfirmed] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [newDisplayName, setNewDisplayName] = useState("");
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
+  const [publicationPreview, setPublicationPreview] = useState<{ operation_id: string; preview_hash: string; eligible_count: number; blocked_count: number } | null>(null);
+  const [rightsAttested, setRightsAttested] = useState(false);
+  const [attestationNote, setAttestationNote] = useState("");
+  const [publicationPassword, setPublicationPassword] = useState("");
+  const [controlError, setControlError] = useState<string | null>(null);
+
+  function refreshControl() {
+    setControlError(null);
+    Promise.all([fetchAdminControlSummary(), fetchAdminModels(), fetchManagedAdmins(), fetchIngestionCandidates()])
+      .then(([control, inventory, adminData, candidateData]) => { setSummary(control); setModels(inventory.items); setAdmins(adminData.items); setCandidates(candidateData.items); })
+      .catch((error: unknown) => setControlError(error instanceof Error ? error.message : "Control settings are unavailable."));
+  }
+
+  useEffect(() => { refreshControl(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  function run(key: string, action: () => Promise<unknown>, success: string) {
+    setBusy(key);
+    action().then(() => { onComplete(success); refreshControl(); }).catch(onError).finally(() => setBusy(""));
+  }
+
+  return (
+    <section className="admin-card" aria-labelledby="control-center-title">
+      <div className="section-heading">
+        <div><p className="eyebrow">Platform operations</p><h2 id="control-center-title">Admin Control Center</h2></div>
+        <StatusBadge label="admin only" tone="neutral" />
+      </div>
+      <p>Turn public features on or off, pin every model currently installed in Ollama, and approve all review items that pass their technical blockers.</p>
+      {controlError ? <p className="notice notice--warning">Control settings could not be loaded: {controlError}</p> : null}
+      <div className="admin-grid">
+        <div>
+          <h3>Public features</h3>
+          {summary?.features.map((feature) => (
+            <label className="admin-control-row" key={feature.key}>
+              <input
+                type="checkbox"
+                checked={feature.enabled}
+                disabled={busy === `feature-${feature.key}`}
+                onChange={() => run(`feature-${feature.key}`, () => updateFeature(feature.key, !feature.enabled), `${feature.label} ${feature.enabled ? "disabled" : "enabled"}.`)}
+              />
+              <span><strong>{feature.label}</strong><small>{feature.description}</small></span>
+            </label>
+          )) ?? <p>Loading feature controls…</p>}
+        </div>
+        <div>
+          <h3>Local Ollama models</h3>
+          <label htmlFor="admin-current-password">Current password for sensitive changes</label>
+          <input id="admin-current-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} />
+          <BusyButton busy={busy === "models"} busyLabel="Pinning models…" onClick={() => run("models", () => pinInstalledModels(password).then((result) => { setPassword(""); return result; }), "Every currently installed Ollama model was pinned by exact digest.")}>Pin and allow all installed models</BusyButton>
+          <p className="field-help">New models added later remain blocked until this is run again.</p>
+          <ul>{models.map((model) => <li key={model.name}>{model.name} — {model.enabled && model.digest_matches ? "allowed" : model.pinned ? "digest changed or disabled" : "not pinned"}{model.is_default ? " (default)" : ""}</li>)}</ul>
+        </div>
+      </div>
+      <div>
+        <h3>Batch approvals</h3>
+        <p>Preview is mandatory. Use the normal readiness approval, or the catch-all action to approve every review item except papers and extractions whose PDF status is missing.</p>
+        {!bulkPreview ? (
+          <div className="admin-action-row">
+            <BusyButton busy={busy === "preview"} busyLabel="Checking blockers…" onClick={() => {
+              setBusy("preview");
+              previewBulkApproval("eligible").then(setBulkPreview).catch(onError).finally(() => setBusy(""));
+            }}>Preview eligible approvals</BusyButton>
+            <BusyButton variant="danger" busy={busy === "preview-catch-all"} busyLabel="Building catch-all preview…" onClick={() => {
+              setBusy("preview-catch-all");
+              setCatchAllConfirmed(false);
+              previewBulkApproval("catch_all").then(setBulkPreview).catch(onError).finally(() => setBusy(""));
+            }}>Preview Approve All</BusyButton>
+          </div>
+        ) : (
+          <div className={bulkPreview.approval_mode === "catch_all" ? "notice notice--warning" : "notice"}>
+            <p><strong>{bulkPreview.eligible_count}</strong> eligible; <strong>{bulkPreview.blocked_count}</strong> blocked and unchanged.</p>
+            {bulkPreview.approval_mode === "catch_all" ? (
+              <>
+                <p><strong>Warning:</strong> this bypasses normal metadata, grounding, correction, and dependency blockers. Only missing-PDF papers and their extraction reviews remain unapproved.</p>
+                <label className="admin-control-row">
+                  <input type="checkbox" checked={catchAllConfirmed} onChange={(event) => setCatchAllConfirmed(event.target.checked)} />
+                  <span><strong>I understand this approves all other current review items.</strong></span>
+                </label>
+              </>
+            ) : null}
+            <div className="admin-action-row">
+              <BusyButton
+                variant={bulkPreview.approval_mode === "catch_all" ? "danger" : "primary"}
+                disabled={bulkPreview.approval_mode === "catch_all" && !catchAllConfirmed}
+                busy={busy === "approve"}
+                busyLabel="Approving…"
+                onClick={() => run(
+                  "approve",
+                  () => executeBulkApproval(bulkPreview.operation_id, bulkPreview.preview_hash).then((result) => {
+                    setBulkPreview(null);
+                    setCatchAllConfirmed(false);
+                    return result;
+                  }),
+                  bulkPreview.approval_mode === "catch_all"
+                    ? "All current review items except missing-PDF papers were approved in one audited operation."
+                    : "Eligible review items approved in one audited operation.",
+                )}
+              >{bulkPreview.approval_mode === "catch_all" ? "Approve Everything Except Missing PDFs" : "Approve eligible items"}</BusyButton>
+              <button className="link-button" onClick={() => { setBulkPreview(null); setCatchAllConfirmed(false); }}>Discard preview</button>
+            </div>
+          </div>
+        )}
+      </div>
+      <div>
+        <h3>Administrator accounts</h3>
+        <p>{admins.length} account{admins.length === 1 ? "" : "s"}: {admins.map((admin) => admin.username).join(", ") || "none"}.</p>
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          setBusy("admin");
+          createManagedAdmin(newUsername, newDisplayName, password)
+            .then((result) => { setTemporaryPassword(result.temporary_password); setPassword(""); setNewUsername(""); setNewDisplayName(""); onComplete(`Administrator ${result.user.username} created.`); refreshControl(); })
+            .catch(onError)
+            .finally(() => setBusy(""));
+        }}>
+          <label htmlFor="new-admin-username">New admin username</label>
+          <input id="new-admin-username" minLength={3} required value={newUsername} onChange={(event) => setNewUsername(event.target.value)} />
+          <label htmlFor="new-admin-name">Display name</label>
+          <input id="new-admin-name" required value={newDisplayName} onChange={(event) => setNewDisplayName(event.target.value)} />
+          <button className="action-button" type="submit" disabled={busy === "admin"}>Create administrator</button>
+        </form>
+        {temporaryPassword ? <div className="notice notice--warning"><p>Temporary password (shown once): <code>{temporaryPassword}</code></p><button className="link-button" onClick={() => setTemporaryPassword(null)}>I saved it</button></div> : null}
+      </div>
+      <div>
+        <h3>Rights attestation and publication</h3>
+        <p>This is separate from review approval. It publishes only papers whose metadata, extraction, corpus generation, and authoritative indexes are ready.</p>
+        {!publicationPreview ? (
+          <BusyButton busy={busy === "publication-preview"} busyLabel="Checking publication blockers…" onClick={() => {
+            setBusy("publication-preview");
+            previewEligiblePublication().then(setPublicationPreview).catch(onError).finally(() => setBusy(""));
+          }}>Preview publishable papers</BusyButton>
+        ) : (
+          <div className="notice notice--warning">
+            <p><strong>{publicationPreview.eligible_count}</strong> publishable; <strong>{publicationPreview.blocked_count}</strong> blocked.</p>
+            <label><input type="checkbox" checked={rightsAttested} onChange={(event) => setRightsAttested(event.target.checked)} /> I attest TTLAB has the right to expose these papers and their indexed text.</label>
+            <label htmlFor="rights-attestation-note">Attestation record</label>
+            <textarea id="rights-attestation-note" minLength={10} required value={attestationNote} onChange={(event) => setAttestationNote(event.target.value)} placeholder="State the authority or rights basis for publication." />
+            <label htmlFor="publication-current-password">Current password for publication</label>
+            <input id="publication-current-password" type="password" autoComplete="current-password" value={publicationPassword} onChange={(event) => setPublicationPassword(event.target.value)} />
+            <p className="field-help">A recent login already counts. Re-enter your password here only if the server says the 15-minute confirmation has expired.</p>
+            <BusyButton disabled={!rightsAttested || attestationNote.trim().length < 10} busy={busy === "publish"} busyLabel="Publishing…" onClick={() => run("publish", () => publishEligiblePapers(publicationPreview.operation_id, publicationPreview.preview_hash, attestationNote, publicationPassword).then((result) => { setPublicationPassword(""); setPublicationPreview(null); setRightsAttested(false); setAttestationNote(""); return result; }), "Eligible papers published with an audited rights attestation.")}>Attest and publish eligible papers</BusyButton>
+            <button className="link-button" onClick={() => { setPublicationPreview(null); setRightsAttested(false); setAttestationNote(""); setPublicationPassword(""); }}>Discard preview</button>
+          </div>
+        )}
+      </div>
+      <div>
+        <h3>TTLAB discovery candidates</h3>
+        {candidates.length ? (
+          <ul>{candidates.slice(0, 20).map((candidate) => <li key={candidate.candidate_id}><strong>{candidate.title}</strong> — {candidate.comparison_status}, {candidate.import_status}</li>)}</ul>
+        ) : <p>No new or changed TTLAB publications are staged.</p>}
+        <p className="field-help">Use “Check for new publications now” in Overview. The isolated worker fills this list without changing the active corpus.</p>
+      </div>
+      {!summary?.corpus_import_available ? <p className="notice notice--warning">New-publication checks can safely stage candidates, but importing them remains blocked until atomic corpus promotion and rollback are implemented.</p> : null}
     </section>
   );
 }
@@ -519,6 +703,7 @@ function PublicationDecisionCard({
 
 function AdminOverviewPanel({
   overview,
+  publicationPreview,
   syncStatus,
   loading,
   requestingSync,
@@ -526,6 +711,7 @@ function AdminOverviewPanel({
   capabilities,
 }: {
   overview: AdminOverview | null;
+  publicationPreview: AdminPublicationPreview | null;
   syncStatus: IngestionSyncStatus | null;
   loading: boolean;
   requestingSync: boolean;
@@ -546,13 +732,16 @@ function AdminOverviewPanel({
   if (!overview) {
     return <EmptyState title="Admin overview is not available yet" body="Start the backend and refresh this local demo page." />;
   }
+  const missingPdfPapers = (publicationPreview?.items ?? []).filter(
+    (paper) => paper.pdf_text_status === "missing_pdf",
+  );
   return (
     <>
       <article className="admin-card ingestion-sync-card" aria-labelledby="ingestion-sync-title">
         <div className="section-heading">
           <div>
             <p className="eyebrow">Automated acquisition</p>
-            <h2 id="ingestion-sync-title">TTLAB publication synchronization</h2>
+            <h2 id="ingestion-sync-title">Check TTLAB for new publications</h2>
           </div>
           <StatusBadge
             label={syncStatus?.running ? "running" : syncStatus?.enabled ? "scheduled" : "manual only"}
@@ -590,12 +779,12 @@ function AdminOverviewPanel({
               ? "Synchronization queued"
               : !capabilities
                 ? "Checking actor permission..."
-                : !capabilities.capabilities.trigger_ingestion || syncStatus?.manual_trigger_allowed === false
+              : !capabilities.capabilities.trigger_ingestion || syncStatus?.manual_trigger_allowed === false
                 ? "Admin role required"
-                : "Request synchronization now"}
+                : "Check for new publications now"}
           </BusyButton>
         </div>
-        <p className="field-help">The API records this request; the separately deployed ingestion worker performs the network and indexing work.</p>
+        <p className="field-help">The API records this request; the isolated worker checks TTLAB and stages candidates without changing the active public corpus.</p>
       </article>
 
       <section
@@ -628,6 +817,38 @@ function AdminOverviewPanel({
           <Metric label="Recommendations needing review" value={overview.thesis_recommendations.needs_review ?? 0} />
           <Metric label="Review events" value={overview.total_review_events} />
           <Metric label="Chunks" value={overview.total_chunks} />
+        </div>
+      </section>
+
+      <section className="admin-card" aria-labelledby="missing-pdf-papers-title">
+        <div className="section-heading section-heading--compact">
+          <div>
+            <p className="eyebrow">TTLAB website records</p>
+            <h2 id="missing-pdf-papers-title">Papers missing PDFs</h2>
+          </div>
+          <StatusBadge label={`${missingPdfPapers.length} papers`} tone={missingPdfPapers.length ? "warn" : "good"} />
+        </div>
+        <p className="field-help">These publications exist in the TTLAB catalogue but do not currently have a PDF attached. Open the TTLAB page to locate or correct the source document.</p>
+        <div className="paper-list paper-list--compact">
+          {missingPdfPapers.map((paper) => {
+            const ttlabUrl = paper.post_url || paper.source_url;
+            return (
+              <article className="review-row" key={paper.paper_id}>
+                <div>
+                  <div className="paper-card__meta">
+                    <span>{paper.year ?? "Year unavailable"}</span>
+                    <span>{paper.pdf_unavailability_reason ?? "PDF not attached"}</span>
+                  </div>
+                  <h3>{paper.title}</h3>
+                  <p>{paper.authors.join(", ") || "Authors need review"}</p>
+                </div>
+                {ttlabUrl ? <a className="action-link" href={ttlabUrl} target="_blank" rel="noreferrer">Open TTLAB page</a> : <span className="field-help">TTLAB link unavailable</span>}
+              </article>
+            );
+          })}
+          {!missingPdfPapers.length ? (
+            <EmptyState title="No TTLAB papers are missing PDFs" body="Every current catalogue record has a PDF source attached." />
+          ) : null}
         </div>
       </section>
 

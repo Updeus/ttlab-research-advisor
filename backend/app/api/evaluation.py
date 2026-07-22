@@ -4,16 +4,33 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
+from app.config import Settings, get_settings
 from app.db import get_session
 from app.evaluation.dashboard import build_evaluation_dashboard
 from app.api.public import redact_local_paths
+from app.publication import local_demo_corpus_preview_enabled
 
 router = APIRouter(prefix="/api/evaluation", tags=["evaluation"])
 
 
 @router.get("/dashboard")
-def evaluation_dashboard(session: Annotated[Session, Depends(get_session)]) -> dict[str, object]:
-    return redact_local_paths(public_evaluation_projection(build_evaluation_dashboard(session)))
+def evaluation_dashboard(
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, object]:
+    demo_preview = local_demo_corpus_preview_enabled(settings)
+    dashboard = redact_local_paths(build_evaluation_dashboard(session))
+    if not demo_preview:
+        return public_evaluation_projection(dashboard)
+    dashboard["demo_preview"] = True
+    dashboard["corpus_access_mode"] = "unreviewed_local_demo_preview"
+    dashboard["overall_quality"] = {
+        **dict(dashboard.get("overall_quality") or {}),
+        "scope": "technical_demo",
+        "operational_counts_visible": True,
+        "notice": "Local demo preview includes technical-corpus and draft-output counts.",
+    }
+    return dashboard
 
 
 def public_evaluation_projection(payload: dict[str, Any]) -> dict[str, Any]:

@@ -10,17 +10,64 @@ from collections import defaultdict, deque
 from starlette.datastructures import Headers, MutableHeaders
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+from sqlalchemy.exc import OperationalError
 
 logger = logging.getLogger("ttlab.api")
 
 PUBLIC_GENERATION_PATHS = {
     ("POST", "/api/ask"),
+    ("POST", "/api/recommendations/ideas"),
     ("POST", "/api/recommendations/extensions"),
 }
 
 
 class RequestTooLargeError(Exception):
     pass
+
+
+class FeatureGateMiddleware:
+    """Fail public APIs closed when an administrator disables a feature."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        from sqlmodel import Session
+
+        from app.db import engine
+        from app.features import feature_for_path
+        from app.models.admin import FeatureSetting
+
+        feature_key = feature_for_path(str(scope.get("path") or ""))
+        if feature_key:
+            try:
+                with Session(engine) as session:
+                    setting = session.get(FeatureSetting, feature_key)
+            except OperationalError as exc:
+                # Startup creates/seeds this table before production traffic.
+                # Test clients and migration/bootstrap probes may intentionally
+                # invoke ASGI without running lifespan; preserve legacy-enabled
+                # behavior until initialization completes.
+                if "no such table" not in str(exc).lower():
+                    raise
+                setting = None
+            if setting is not None and not setting.enabled:
+                response = JSONResponse(
+                    {
+                        "detail": {
+                            "code": "feature_disabled",
+                            "feature": feature_key,
+                            "message": setting.disabled_message or "This feature is temporarily disabled.",
+                        }
+                    },
+                    status_code=503,
+                )
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
 
 
 class RequestBodyLimitMiddleware:

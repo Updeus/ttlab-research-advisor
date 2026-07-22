@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 
 import { askTtlab, fetchAskDiagnostics, fetchLocalLlms, isAbortError } from "../api/client";
+import { askSourceAnchor, askSourceNumber, CitedAnswer } from "../components/CitedAnswer";
 import { BusyButton, EmptyState, InlineProgress, ListSkeleton } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
 import type { AskDiagnostics, AskRequest, AskResponse, LocalLlmModel, LocalLlmStatus, Paper, SearchMode } from "../types/paper";
@@ -21,6 +22,7 @@ type AskResult = {
 
 export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null }: AskPageProps) {
   const searchablePapers = papers.filter(isSearchablePublicPaper);
+  const demoPreview = papers.some((paper) => paper.demo_preview);
   const [question, setQuestion] = useState("Which TTLAB papers discuss RAG?");
   const [audience, setAudience] = useState("general");
   const [mode, setMode] = useState<SearchMode>("keyword");
@@ -85,9 +87,12 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
   }, [initialPaperId, papers]);
 
   const llmGenerationAvailable = llmStatus ? (llmStatus.generation_available ?? llmStatus.available) : false;
+  const allInstalledModelsAllowed = llmStatus?.model_policy === "all_installed_local_models";
   const installedModels = llmStatus?.models.filter((model) => model.installed && (model.usable ?? true)) ?? [];
   const modelOptions = installedModels.length ? installedModels : (llmStatus?.models.length ? llmStatus.models : [fallbackModel(selectedModel)]);
   const selectedModelInfo = modelOptions.find((model) => model.name === selectedModel) ?? modelOptions[0];
+  const denseProviderState = diagnostics?.dense_provider?.state;
+  const denseUnavailable = denseProviderState === "warming" || denseProviderState === "unavailable";
 
   function submitQuestion(requestOverride?: AskRequest) {
     const submittedRequest: AskRequest = requestOverride ?? {
@@ -140,7 +145,9 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
         Privacy: your question and paper scope are sent for this request only. The public endpoint does not save them to Ask history. Do not enter confidential or personal data.
       </p>
       <p className="notice">
-        Ask searches only approved, rights-cleared papers with <strong>searchable</strong> public access and an eligible extracted-text corpus. Metadata-only catalogue records are not available as Ask scopes.
+        {demoPreview
+          ? "Local demo preview: Ask searches the technically eligible extracted-paper corpus. These records are not necessarily approved for public publication or redistribution."
+          : <>Ask searches only approved, rights-cleared papers with <strong>searchable</strong> public access and an eligible extracted-text corpus. Metadata-only catalogue records are not available as Ask scopes.</>}
       </p>
 
       <div className="ask-panel" aria-busy={loading}>
@@ -160,8 +167,8 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
           <select aria-label="Retrieval mode" value={mode} onChange={(event) => setMode(event.target.value as SearchMode)}>
             <option value="keyword">Keyword</option>
             <option value="feature_hashing">Feature-hashing baseline</option>
-            <option value="dense">Dense semantic (learned model)</option>
-            <option value="hybrid">Hybrid (experimental; not validated as better)</option>
+            <option value="dense" disabled={denseUnavailable}>Dense semantic (learned model){denseProviderState === "warming" ? " — warming up" : denseProviderState === "ready" ? " — ready" : denseProviderState === "unavailable" ? " — unavailable" : ""}</option>
+            <option value="hybrid" disabled={denseUnavailable}>Hybrid (experimental; not validated as better){denseProviderState === "warming" ? " — dense model warming up" : ""}</option>
           </select>
           <select aria-label="Top K" value={topK} onChange={(event) => setTopK(Number(event.target.value))}>
             <option value={3}>Top 3</option>
@@ -169,7 +176,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
             <option value={8}>Top 8</option>
           </select>
           <select aria-label="Paper scope" value={selectedPaperId} onChange={(event) => setSelectedPaperId(event.target.value)}>
-            <option value="">All searchable public papers</option>
+            <option value="">{demoPreview ? "All technically eligible demo papers" : "All searchable public papers"}</option>
             {searchablePapers.map((paper) => (
               <option key={paper.paper_id} value={paper.paper_id}>
                 {paper.title}
@@ -177,7 +184,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
             ))}
           </select>
           <select aria-label="Answer provider" value={provider} onChange={(event) => setProvider(event.target.value)}>
-            <option value="ollama" disabled={llmStatus !== null && !llmGenerationAvailable}>Local Ollama{llmStatus !== null && !llmGenerationAvailable ? " (no digest-verified model)" : ""}</option>
+            <option value="ollama" disabled={llmStatus !== null && !llmGenerationAvailable}>Local Ollama{llmStatus !== null && !llmGenerationAvailable ? (allInstalledModelsAllowed ? " (no installed model)" : " (no digest-verified model)") : ""}</option>
             <option value="offline_extractive">Offline extractive</option>
             <option value="auto">Auto fallback</option>
           </select>
@@ -205,8 +212,8 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
           <span>{diagnostics.total_stored_answers === null ? "Stored answer history protected" : `${diagnostics.total_stored_answers} stored answers`}</span>
           <span>{diagnostics.default_provider.replaceAll("_", " ")}</span>
           <span>Feature hashing: {diagnostics.feature_hashing_index.projection_status} · {formatTimestamp(diagnostics.feature_hashing_index.last_indexed_at)}</span>
-          <span>Dense semantic: {diagnostics.dense_index.projection_status}</span>
-          {llmStatus ? <span>{llmGenerationAvailable ? `${installedModels.length} digest-verified local Ollama models` : "Ollama generation unavailable"}</span> : null}
+          <span>Dense semantic: {denseProviderState === "warming" ? "warming up" : denseProviderState === "ready" ? "ready" : denseProviderState === "unavailable" ? "unavailable" : diagnostics.dense_index.projection_status}</span>
+          {llmStatus ? <span>{llmGenerationAvailable ? `${installedModels.length} ${allInstalledModelsAllowed ? "installed" : "digest-verified"} local Ollama models` : "Ollama generation unavailable"}</span> : null}
         </div>
       ) : null}
 
@@ -262,7 +269,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
               This transient answer was generated from indexed TTLAB paper chunks and was not saved or human-reviewed. Check every claim against the cited sources.
             </p>
             <h3>Answer</h3>
-            <p>{response.answer}</p>
+            <CitedAnswer answer={response.answer} citations={response.citations} retrievedChunks={response.retrieved_chunks} />
             {response.retrieval_metadata?.query_expansions?.length ? (
               <p className="paper-card__status">Query expansion: {response.retrieval_metadata.query_expansions.join(", ")}</p>
             ) : null}
@@ -284,13 +291,14 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
           <div className="paper-list">
             {response.citations.map((citation) => {
               const paper = papers.find((item) => item.paper_id === citation.paper_id);
+              const sourceNumber = askSourceNumber(response.retrieved_chunks, citation.chunk_id);
               return (
-                <article className="citation-card" key={citation.chunk_id}>
+                <article className="citation-card" id={askSourceAnchor(citation.chunk_id)} key={citation.chunk_id}>
                   <div className="paper-card__meta">
+                    {sourceNumber ? <span>Cited source {sourceNumber}</span> : null}
                     <span>{citation.section ?? "Unknown"}</span>
                     <span>Pages {citation.page_start ?? "?"}-{citation.page_end ?? "?"}</span>
                     <span>Score {citation.score.toFixed(3)}</span>
-                    <span>Chunk {citation.chunk_id}</span>
                   </div>
                   <h3>{citation.title}</h3>
                   <p className="paper-card__status">

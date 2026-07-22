@@ -15,6 +15,7 @@ from app.ingestion.sync import (
     SOURCE,
     as_utc,
     ensure_sync_state,
+    execute_ttlab_discovery_check,
     execute_ttlab_sync,
     get_sync_state,
     iso_utc,
@@ -49,10 +50,8 @@ def next_scheduled_run(settings: Settings, now: datetime) -> datetime:
 
 def scheduled_sync_due(settings: Settings, session: Session, now: datetime) -> bool:
     if (
-        not ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
-        or not settings.sync_enabled
+        not settings.sync_enabled
         or settings.sync_execution_mode != "offline_single_writer"
-        or settings.security_mode == "production"
         or settings.service_role != "offline_worker"
     ):
         return False
@@ -80,10 +79,8 @@ def scheduled_sync_due(settings: Settings, session: Session, now: datetime) -> b
 def update_next_scheduled_at(session: Session, settings: Settings, now: datetime) -> None:
     state = ensure_sync_state(session)
     enabled = bool(
-        ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
-        and settings.sync_enabled
+        settings.sync_enabled
         and settings.sync_execution_mode == "offline_single_writer"
-        and settings.security_mode != "production"
         and settings.service_role == "offline_worker"
     )
     next_run = next_scheduled_run(settings, now).replace(tzinfo=None) if enabled else None
@@ -95,16 +92,16 @@ def update_next_scheduled_at(session: Session, settings: Settings, now: datetime
 
 
 def run_worker(settings: Settings) -> None:
-    if not ATOMIC_GENERATION_PROMOTION_IMPLEMENTED:
+    if settings.service_role != "offline_worker" or settings.sync_execution_mode != "offline_single_writer":
         print(
             json.dumps(
                 {
-                    "event": "sync_worker_disabled",
-                    "source": SOURCE,
-                    "reason": "atomic_generation_promotion_not_implemented",
-                    "configured_enabled": settings.sync_enabled,
-                    "effective_enabled": False,
-                    "legacy_manual_request_action": "left_pending_for_operator_review",
+                    "event": "sync_worker_not_started",
+                    "reason": "discovery_worker_not_configured",
+                    "required_service_role": "offline_worker",
+                    "required_execution_mode": "offline_single_writer",
+                    "service_role": settings.service_role,
+                    "execution_mode": settings.sync_execution_mode,
                 },
                 sort_keys=True,
             ),
@@ -134,12 +131,12 @@ def run_worker(settings: Settings) -> None:
         with Session(engine) as session:
             update_next_scheduled_at(session, settings, now)
             state = get_sync_state(session)
-            manual_pending = bool(state and state.manual_requested_at)
+            manual_pending = bool(settings.sync_enabled and state and state.manual_requested_at)
             due = scheduled_sync_due(settings, session, now)
             if manual_pending or due:
                 trigger = "manual" if manual_pending else "scheduled"
                 requested_by = state.manual_requested_by if manual_pending and state else None
-                result = execute_ttlab_sync(
+                result = execute_ttlab_discovery_check(
                     session,
                     settings=settings,
                     trigger=trigger,
@@ -167,10 +164,8 @@ def main() -> None:
         with Session(engine) as session:
             state = get_sync_state(session)
             effective_enabled = bool(
-                ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
-                and settings.sync_enabled
+                settings.sync_enabled
                 and settings.sync_execution_mode == "offline_single_writer"
-                and settings.security_mode != "production"
                 and settings.service_role == "offline_worker"
             )
             print(
@@ -180,7 +175,7 @@ def main() -> None:
                         "configured_enabled": settings.sync_enabled,
                         "effective_enabled": effective_enabled,
                         "disabled_reason": (
-                            None if effective_enabled else "atomic_generation_promotion_not_implemented"
+                            None if effective_enabled else "discovery_worker_not_configured"
                         ),
                         "execution_mode": settings.sync_execution_mode,
                         "service_role": settings.service_role,
@@ -196,7 +191,7 @@ def main() -> None:
     if args.once:
         create_db_and_tables()
         with Session(engine) as session:
-            result = execute_ttlab_sync(
+            result = execute_ttlab_discovery_check(
                 session,
                 settings=settings,
                 trigger=args.trigger,

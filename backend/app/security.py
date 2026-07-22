@@ -6,14 +6,17 @@ import ipaddress
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Annotated, Literal
 from urllib.parse import urlparse
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from sqlmodel import Session
 
 from app.config import Settings, get_settings
+from app.db import get_session
 
 Role = Literal["reviewer", "admin"]
 ReviewerType = Literal["human", "ai", "service"]
@@ -63,6 +66,11 @@ class AuthenticatedActor:
     reviewer_type: ReviewerType
     request_id: str
     local_demo_bypass: bool = False
+    auth_method: str = "bearer"
+    username: str | None = None
+    must_change_password: bool = False
+    session_digest: str | None = None
+    password_verified_at: datetime | None = None
 
 
 bearer_scheme = HTTPBearer(
@@ -135,8 +143,10 @@ def validate_security_configuration(settings: Settings) -> None:
     if settings.security_mode == "production":
         if settings.allow_insecure_local_demo:
             raise ValueError("Production cannot enable insecure local-demo authentication bypass")
-        if not records or not any(record.active and record.role == "admin" for record in records):
-            raise ValueError("Production requires at least one active environment-configured admin actor")
+        if settings.demo_corpus_preview:
+            raise ValueError("Production cannot expose the unreviewed local-demo corpus preview")
+        if settings.ollama_allow_all_local_models:
+            raise ValueError("Production cannot allow unpinned Ollama models")
         if not settings.public_base_url or not settings.public_base_url.startswith("https://"):
             raise ValueError("Production requires an https TTLAB_PUBLIC_BASE_URL")
         public_hostname = urlparse(settings.public_base_url).hostname
@@ -144,9 +154,11 @@ def validate_security_configuration(settings: Settings) -> None:
             raise ValueError("Production public hostname must be present in TTLAB_TRUSTED_HOSTS")
         if any(urlparse(origin).scheme != "https" for origin in settings.cors_origins):
             raise ValueError("Production CORS origins must use https")
-        if settings.service_role != "api" or settings.sync_execution_mode != "disabled":
+        if settings.service_role == "api" and settings.sync_execution_mode != "disabled":
             raise ValueError("Production API mode cannot run PDF acquisition, parsing, or ingestion workers")
-        if settings.api_worker_count != 1:
+        if settings.service_role == "offline_worker" and settings.sync_execution_mode != "offline_single_writer":
+            raise ValueError("A production offline worker requires TTLAB_SYNC_EXECUTION_MODE=offline_single_writer")
+        if settings.service_role == "api" and settings.api_worker_count != 1:
             raise ValueError(
                 "The built-in public generation limiter is process-local; production requires one API worker "
                 "unless an external distributed limiter is implemented"
@@ -157,8 +169,7 @@ def require_offline_pdf_worker(settings: Settings, operation: str) -> None:
     """Fail closed unless a local, explicitly isolated worker owns PDF work."""
 
     allowed = (
-        settings.security_mode != "production"
-        and settings.service_role == "offline_worker"
+        settings.service_role == "offline_worker"
         and settings.sync_execution_mode == "offline_single_writer"
     )
     if not allowed:
@@ -168,12 +179,32 @@ def require_offline_pdf_worker(settings: Settings, operation: str) -> None:
         )
 
 
+def validate_admin_runtime_configuration(settings: Settings) -> None:
+    """Require a usable production administrator after database initialization."""
+
+    if settings.security_mode != "production" or settings.service_role != "api":
+        return
+    if any(record.active and record.role == "admin" for record in parse_actor_records(settings)):
+        return
+    from sqlmodel import Session, select
+
+    from app.db import engine
+    from app.models.admin import AdminUser
+
+    with Session(engine) as session:
+        if session.exec(select(AdminUser).where(AdminUser.active == True)).first() is not None:  # noqa: E712
+            return
+    raise ValueError(
+        "Production requires an active local admin account. Run "
+        "'python -m app.admin_cli create <username>' before starting the API."
+    )
+
+
 def operational_boundary_diagnostics(settings: Settings) -> dict[str, object]:
     """Report application guarantees and deliberately unimplemented controls."""
 
     pdf_enabled = (
-        settings.security_mode != "production"
-        and settings.service_role == "offline_worker"
+        settings.service_role == "offline_worker"
         and settings.sync_execution_mode == "offline_single_writer"
     )
     rate_topology_supported = settings.api_worker_count == 1
@@ -221,8 +252,43 @@ def get_current_actor(
     request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
     settings: Annotated[Settings, Depends(get_settings)],
+    session: Annotated[Session, Depends(get_session)],
 ) -> AuthenticatedActor:
     request_id = str(getattr(request.state, "request_id", "unavailable"))
+    raw_session = request.cookies.get("ttlab_admin_session")
+    if raw_session:
+        from app.admin_accounts import CSRF_COOKIE, digest_secret, resolve_admin_session
+
+        resolved = resolve_admin_session(session, raw_session)
+        if resolved is not None:
+            session_record, user = resolved
+            if request.method.upper() not in {"GET", "HEAD", "OPTIONS"}:
+                header_csrf = request.headers.get("x-csrf-token", "")
+                cookie_csrf = request.cookies.get(CSRF_COOKIE, "")
+                if (
+                    not header_csrf
+                    or not cookie_csrf
+                    or not hmac.compare_digest(header_csrf, cookie_csrf)
+                    or not hmac.compare_digest(digest_secret(header_csrf), session_record.csrf_digest)
+                ):
+                    raise HTTPException(status_code=403, detail="Valid CSRF token required")
+                if user.must_change_password and request.url.path not in {"/api/auth/password", "/api/auth/logout"}:
+                    raise HTTPException(status_code=403, detail="Password change required before administrative changes")
+            return record_actor(
+                request,
+                AuthenticatedActor(
+                    actor_id=user.user_id,
+                    display_name=user.display_name,
+                    role="admin",
+                    reviewer_type="human",
+                    request_id=request_id,
+                    auth_method="session",
+                    username=user.username,
+                    must_change_password=user.must_change_password,
+                    session_digest=session_record.session_digest,
+                    password_verified_at=session_record.password_verified_at,
+                ),
+            )
     if credentials is None:
         if (
             settings.security_mode == "local_demo"
@@ -235,9 +301,14 @@ def get_current_actor(
                     actor_id="local-demo-bypass",
                     display_name="Insecure local demo",
                     role="admin",
-                    reviewer_type="service",
+                    # Explicit loopback demo mode represents the person at the
+                    # local machine so the complete review workflow is usable.
+                    # Production still requires an authenticated human actor.
+                    reviewer_type="human",
                     request_id=request_id,
                     local_demo_bypass=True,
+                    auth_method="local_demo",
+                    username="local-demo",
                 ),
             )
         raise _unauthorized()
@@ -286,16 +357,19 @@ def get_optional_actor(
     request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
     settings: Annotated[Settings, Depends(get_settings)],
+    session: Annotated[Session, Depends(get_session)],
 ) -> AuthenticatedActor | None:
+    if request.cookies.get("ttlab_admin_session"):
+        return get_current_actor(request, credentials, settings, session)
     if credentials is None:
         if (
             settings.security_mode == "local_demo"
             and settings.allow_insecure_local_demo
             and request_is_loopback(request)
         ):
-            return get_current_actor(request, credentials, settings)
+            return get_current_actor(request, credentials, settings, session)
         return None
-    return get_current_actor(request, credentials, settings)
+    return get_current_actor(request, credentials, settings, session)
 
 
 def require_reviewer(

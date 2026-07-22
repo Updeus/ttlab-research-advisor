@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, desc, func, select
 
 from app.db import create_db_and_tables, engine
+from app.indexing.embedder import eligible_chunks
 from app.indexing.retriever import RetrievalScope, retrieve
 from app.intelligence.rag_answerer import assess_answerability
 from app.intelligence.recommendation_verifier import verify_recommendations
@@ -904,11 +905,16 @@ def recommendation_correction_blockers(record: ThesisRecommendation) -> list[str
     return blockers
 
 
-def recommendation_diagnostics(session: Session) -> dict[str, Any]:
+def recommendation_diagnostics(session: Session, *, demo_preview: bool = False) -> dict[str, Any]:
     # This route is anonymous, so it reports only the public projection and
     # does not expose draft run counts or technical-corpus inventory.
-    eligible_join = Chunk.paper_id == Paper.paper_id
-    searchable_chunks = session.exec(
+    if demo_preview:
+        technical_chunks = eligible_chunks(session)
+        searchable_chunks = len(technical_chunks)
+        searchable_papers = len({chunk.paper_id for chunk in technical_chunks})
+    else:
+        eligible_join = Chunk.paper_id == Paper.paper_id
+        searchable_chunks = session.exec(
         select(func.count())
         .select_from(Chunk)
         .join(Paper, eligible_join)
@@ -923,8 +929,8 @@ def recommendation_diagnostics(session: Session) -> dict[str, Any]:
         .where(Paper.chunk_extraction_generation_id == Paper.extraction_generation_id)
         .where(Paper.public_index_generation_id == Paper.chunk_generation_id)
         .where(Chunk.extraction_generation_id == Paper.extraction_generation_id)
-    ).one()
-    searchable_papers = session.exec(
+        ).one()
+        searchable_papers = session.exec(
         select(func.count(func.distinct(Chunk.paper_id)))
         .select_from(Chunk)
         .join(Paper, eligible_join)
@@ -939,7 +945,7 @@ def recommendation_diagnostics(session: Session) -> dict[str, Any]:
         .where(Paper.chunk_extraction_generation_id == Paper.extraction_generation_id)
         .where(Paper.public_index_generation_id == Paper.chunk_generation_id)
         .where(Chunk.extraction_generation_id == Paper.extraction_generation_id)
-    ).one()
+        ).one()
     return {
         "total_recommendation_runs": None,
         "total_recommendations_generated": None,
@@ -954,7 +960,9 @@ def recommendation_diagnostics(session: Session) -> dict[str, Any]:
         "raw_papers_with_chunks": None,
         "default_provider": DEFAULT_PROVIDER,
         "last_recommendation_timestamp": None,
-        "scope": "public",
+        "scope": "technical_demo" if demo_preview else "public",
+        "demo_preview": demo_preview,
+        "corpus_access_mode": "unreviewed_local_demo_preview" if demo_preview else "approved_public_projection",
     }
 
 

@@ -35,6 +35,22 @@ def test_full_reproduction_enters_explicit_offline_worker_for_extraction() -> No
     assert "export TTLAB_SERVICE_ROLE=offline_worker" not in script
 
 
+def test_local_demo_launcher_scopes_preparation_to_offline_worker() -> None:
+    script = (ROOT / "scripts" / "run_everything.sh").read_text(encoding="utf-8")
+    preparation_stage = """TTLAB_SERVICE_ROLE=offline_worker \\
+    TTLAB_SYNC_EXECUTION_MODE=offline_single_writer \\
+    PYTHONPATH=backend \\
+    \"$PYTHON\" -m app.demo.prepare_demo \"${PREPARE_ARGS[@]}\""""
+
+    assert preparation_stage in script
+    assert "export TTLAB_SERVICE_ROLE=offline_worker" not in script
+    assert "TTLAB_DEMO_CORPUS_PREVIEW=true" in script
+    assert "TTLAB_OLLAMA_ALLOW_ALL_LOCAL_MODELS=true" in script
+    assert "-m uvicorn app.main:app --app-dir backend" in script
+    assert "wait_for_url \"Backend\" \"${BACKEND_URL}/health\" 120" in script
+    assert 'curl -fsS --connect-timeout 1 --max-time 3 "${BACKEND_URL}/health"' in script
+
+
 def test_full_reproduction_fails_loudly_without_tesseract() -> None:
     script = (ROOT / "scripts" / "reproduce_all.sh").read_text(encoding="utf-8")
 

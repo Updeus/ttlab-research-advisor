@@ -13,6 +13,8 @@ import type {
   ExtractionDiagnostics,
   GenerateArtifactsResponse,
   IngestionSyncStatus,
+  IdeaGenerationRequest,
+  IdeaGenerationResponse,
   LocalLlmStatus,
   Paper,
   PaperArtifact,
@@ -74,6 +76,11 @@ function authHeaders(): Record<string, string> {
   return reviewerToken ? { Authorization: `Bearer ${reviewerToken}` } : {};
 }
 
+function csrfHeaders(): Record<string, string> {
+  const token = document.cookie.split("; ").find((part) => part.startsWith("ttlab_admin_csrf="))?.split("=").slice(1).join("=");
+  return token ? { "X-CSRF-Token": decodeURIComponent(token) } : {};
+}
+
 function requestOnce<T>(requests: Map<string, Promise<T>>, key: string, requestFactory: () => Promise<T>): Promise<T> {
   const inFlight = requests.get(key);
   if (inFlight) return inFlight;
@@ -131,6 +138,7 @@ function formatErrorDetail(value: unknown): string {
 async function getJson<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: options.authenticated ? authHeaders() : undefined,
+    credentials: "include",
     signal: options.signal,
   });
   if (!response.ok) {
@@ -142,7 +150,8 @@ async function getJson<T>(path: string, options: RequestOptions = {}): Promise<T
 async function patchJson<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...authHeaders(), ...csrfHeaders() },
+    credentials: "include",
     body: JSON.stringify(body),
   });
   if (!response.ok) {
@@ -154,7 +163,8 @@ async function patchJson<T>(path: string, body: unknown): Promise<T> {
 async function postJson<T>(path: string, body: unknown = {}, options: RequestOptions = {}): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...(options.authenticated ? authHeaders() : {}) },
+    headers: { "Content-Type": "application/json", ...(options.authenticated ? authHeaders() : {}), ...csrfHeaders() },
+    credentials: "include",
     body: JSON.stringify(body),
     signal: options.signal,
   });
@@ -166,6 +176,96 @@ async function postJson<T>(path: string, body: unknown = {}, options: RequestOpt
 
 export function fetchPapers(signal?: AbortSignal): Promise<Paper[]> {
   return getJson<Paper[]>("/api/papers", { signal });
+}
+
+export type AdminIdentity = { user_id: string; username: string | null; display_name: string; active: boolean; must_change_password: boolean };
+export type AdminAuth = { authenticated: boolean; user: AdminIdentity; authentication_method?: string };
+export type FeatureStatus = { key: string; label: string; description: string; enabled: boolean; disabled_message: string | null };
+
+export function loginAdmin(username: string, password: string): Promise<AdminAuth> {
+  return postJson<AdminAuth>("/api/auth/login", { username, password });
+}
+
+export function fetchAdminIdentity(): Promise<AdminAuth> {
+  return getJson<AdminAuth>("/api/auth/me", { authenticated: true });
+}
+
+export async function logoutAdmin(): Promise<void> {
+  const response = await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", headers: csrfHeaders(), credentials: "include" });
+  if (!response.ok) throw await parseError(response, "/api/auth/logout");
+}
+
+export function fetchFeatures(): Promise<{ features: FeatureStatus[] }> {
+  return getJson<{ features: FeatureStatus[] }>("/api/features");
+}
+
+export type AdminControlSummary = { features: FeatureStatus[]; admin_count: number; corpus_import_available: boolean; corpus_import_blocker: string | null };
+export type AdminModel = { name: string; digest?: string; pinned: boolean; enabled: boolean; is_default: boolean; digest_matches: boolean };
+export type ManagedAdmin = AdminIdentity & { created_at?: string; last_login_at?: string | null };
+export type IngestionCandidate = { candidate_id: string; title: string; source_url: string | null; pdf_url: string | null; comparison_status: string; import_status: string; updated_at: string };
+
+export function fetchAdminControlSummary(): Promise<AdminControlSummary> {
+  return getJson<AdminControlSummary>("/api/admin/control/summary", { authenticated: true });
+}
+
+export function updateFeature(key: string, enabled: boolean): Promise<{ feature: FeatureStatus }> {
+  return patchJson<{ feature: FeatureStatus }>(`/api/admin/control/features/${encodeURIComponent(key)}`, { enabled });
+}
+
+export function fetchAdminModels(): Promise<{ provider_reachable: boolean; warnings: string[]; items: AdminModel[] }> {
+  return getJson<{ provider_reachable: boolean; warnings: string[]; items: AdminModel[] }>("/api/admin/control/models", { authenticated: true });
+}
+
+export function pinInstalledModels(currentPassword?: string): Promise<{ pinned: string[]; count: number }> {
+  return postJson<{ pinned: string[]; count: number }>("/api/admin/control/models/pin-installed", { current_password: currentPassword || null }, { authenticated: true });
+}
+
+export function fetchManagedAdmins(): Promise<{ items: ManagedAdmin[] }> {
+  return getJson<{ items: ManagedAdmin[] }>("/api/admin/control/admins", { authenticated: true });
+}
+
+export function createManagedAdmin(username: string, displayName: string, currentPassword: string): Promise<{ user: ManagedAdmin; temporary_password: string; shown_once: boolean }> {
+  return postJson("/api/admin/control/admins", { username, display_name: displayName, current_password: currentPassword }, { authenticated: true });
+}
+
+export function fetchIngestionCandidates(): Promise<{ items: IngestionCandidate[]; import_available: boolean; import_blocker: string | null }> {
+  return getJson("/api/admin/control/ingestion-candidates", { authenticated: true });
+}
+
+export function changeAdminPassword(currentPassword: string, newPassword: string): Promise<{ changed: boolean }> {
+  return postJson("/api/auth/password", { current_password: currentPassword, new_password: newPassword }, { authenticated: true });
+}
+
+export type BulkApprovalPreview = {
+  operation_id: string;
+  preview_hash: string;
+  eligible_count: number;
+  blocked_count: number;
+  approval_mode: "eligible" | "catch_all";
+};
+
+export function previewBulkApproval(approvalMode: "eligible" | "catch_all" = "eligible"): Promise<BulkApprovalPreview> {
+  return postJson("/api/admin/control/bulk/preview", { approval_mode: approvalMode }, { authenticated: true });
+}
+
+export function executeBulkApproval(operationId: string, previewHash: string): Promise<{ approved_count: number; blocked: unknown[] }> {
+  return postJson("/api/admin/control/bulk/execute", { operation_id: operationId, preview_hash: previewHash }, { authenticated: true });
+}
+
+export type PublicationBatchPreview = { operation_id: string; preview_hash: string; eligible_count: number; blocked_count: number };
+
+export function previewEligiblePublication(): Promise<PublicationBatchPreview> {
+  return postJson<PublicationBatchPreview>("/api/admin/control/publication/preview", {}, { authenticated: true });
+}
+
+export function publishEligiblePapers(operationId: string, previewHash: string, attestationNote: string, currentPassword?: string): Promise<{ published_count: number; blocked: unknown[] }> {
+  return postJson("/api/admin/control/publication/execute", {
+    operation_id: operationId,
+    preview_hash: previewHash,
+    rights_attested: true,
+    attestation_note: attestationNote,
+    current_password: currentPassword || null,
+  }, { authenticated: true });
 }
 
 export function fetchPaper(paperId: string, signal?: AbortSignal): Promise<Paper> {
@@ -203,6 +303,7 @@ export async function askTtlab(request: AskRequest, signal?: AbortSignal): Promi
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
     signal,
+    credentials: "include",
   });
   if (!response.ok) {
     throw await parseError(response, "/api/ask");
@@ -222,12 +323,17 @@ export function fetchLatestLlmBenchmark(): Promise<Record<string, unknown>> {
   return getJson<Record<string, unknown>>("/api/llms/benchmark/latest");
 }
 
+export function generateIdeas(request: IdeaGenerationRequest, signal?: AbortSignal): Promise<IdeaGenerationResponse> {
+  return postJson<IdeaGenerationResponse>("/api/recommendations/ideas", request, { signal });
+}
+
 export async function recommendExtensions(request: ExtensionFinderRequest, signal?: AbortSignal): Promise<ExtensionFinderResponse> {
   const response = await fetch(`${API_BASE}/api/recommendations/extensions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
     signal,
+    credentials: "include",
   });
   if (!response.ok) {
     throw await parseError(response, "/api/recommendations/extensions");
@@ -246,7 +352,8 @@ export function fetchPaperArtifacts(paperId: string): Promise<PaperArtifact[]> {
 export async function generatePaperArtifacts(paperId: string, overwrite = false): Promise<GenerateArtifactsResponse> {
   const response = await fetch(`${API_BASE}/api/papers/${paperId}/artifacts/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...authHeaders(), ...csrfHeaders() },
+    credentials: "include",
     body: JSON.stringify({
       artifact_types: ["paper_intelligence_bundle", "podcast_script"],
       provider: "auto",

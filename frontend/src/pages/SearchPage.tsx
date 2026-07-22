@@ -23,6 +23,7 @@ type SearchResult = {
 };
 
 export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps) {
+  const demoPreview = papers.some((paper) => paper.demo_preview);
   const [query, setQuery] = useState("RAG academic research");
   const [mode, setMode] = useState<SearchMode>("keyword");
   const [limit, setLimit] = useState(10);
@@ -93,7 +94,7 @@ export function SearchPage({ papers, onSelectPaper, onNotify }: SearchPageProps)
       <div className="section-heading">
         <h2>Search Source Chunks</h2>
       </div>
-      <p className="notice">Search runs only across approved public papers with cleared rights, searchable access, and eligible extracted text. Metadata-only catalogue records are excluded.</p>
+      <p className="notice">{demoPreview ? "Local demo preview: search uses technically eligible extracted papers that may still require publication and rights review." : "Search runs only across approved public papers with cleared rights, searchable access, and eligible extracted text. Metadata-only catalogue records are excluded."}</p>
 
       <form className="search-toolbar" aria-busy={loading} onSubmit={(event) => { event.preventDefault(); runSearch(); }}>
         <input

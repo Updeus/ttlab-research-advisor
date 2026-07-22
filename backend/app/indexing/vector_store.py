@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -17,8 +18,10 @@ from app.indexing.embedder import (
     cosine_similarity,
     default_index_path,
     get_provider,
+    index_current_pointer_path,
     index_artifacts_available,
     load_validated_index,
+    manifest_path_for,
 )
 from app.models import Chunk, Paper
 
@@ -34,6 +37,61 @@ class VectorSearchContext:
     generation_source: str
     payload: dict[str, Any]
     provider: EmbeddingProvider
+
+
+_CONTEXT_CACHE_LOCK = threading.Lock()
+_CONTEXT_CACHE: dict[tuple[str, Path], tuple[tuple[object, ...], VectorSearchContext]] = {}
+
+
+def clear_vector_search_context_cache() -> None:
+    with _CONTEXT_CACHE_LOCK:
+        _CONTEXT_CACHE.clear()
+
+
+def cached_vector_search_context(
+    session: Session,
+    *,
+    provider_name: str = DEFAULT_PROVIDER,
+    index_path: Path | None = None,
+) -> VectorSearchContext:
+    canonical = canonical_provider_name(provider_name)
+    resolved_path = (index_path or default_index_path(canonical)).resolve()
+    signature = index_commit_signature(resolved_path)
+    if signature is None:
+        raise FileNotFoundError(f"{canonical} index is unavailable")
+    key = (canonical, resolved_path)
+    with _CONTEXT_CACHE_LOCK:
+        cached = _CONTEXT_CACHE.get(key)
+        if cached is not None and cached[0] == signature:
+            return cached[1]
+    context = load_vector_search_context(session, provider_name=canonical, index_path=resolved_path)
+    final_signature = index_commit_signature(resolved_path)
+    if final_signature is None:
+        raise FileNotFoundError(f"{canonical} index became unavailable while loading")
+    with _CONTEXT_CACHE_LOCK:
+        _CONTEXT_CACHE[key] = (final_signature, context)
+    return context
+
+
+def index_commit_signature(index_path: Path) -> tuple[object, ...] | None:
+    """Cheap cache identity for an atomically committed index generation."""
+
+    pointer = index_current_pointer_path(index_path)
+    if pointer.is_file():
+        stat = pointer.stat()
+        return ("pointer", stat.st_mtime_ns, stat.st_size)
+    manifest = manifest_path_for(index_path)
+    if index_path.is_file() and manifest.is_file():
+        index_stat = index_path.stat()
+        manifest_stat = manifest.stat()
+        return (
+            "legacy",
+            index_stat.st_mtime_ns,
+            index_stat.st_size,
+            manifest_stat.st_mtime_ns,
+            manifest_stat.st_size,
+        )
+    return None
 
 
 def load_vector_search_context(
@@ -92,45 +150,51 @@ def search_vector_store(
         payload = context.payload
         provider = context.provider
     else:
-        payload = None
-        provider = None
-    if not index_artifacts_available(resolved_path):
-        return [], [
-            (
-                "The learned-dense index is unavailable; no vector results were returned."
-                if canonical == "dense"
-                else "The feature-hashing index is unavailable; no vector results were returned."
-            )
-        ]
-
-    if payload is None or provider is None:
-        # A present-but-inconsistent index is a data-integrity defect, not a normal
-        # provider outage. Raise so startup/evaluation callers cannot use it.
-        payload, _report = load_validated_index(
-            session,
-            index_path=resolved_path,
-            provider_name=canonical,
-        )
         try:
-            provider = get_provider(canonical, dimensions=int(payload.get("dimensions") or 0) or None)
+            resolved_context = cached_vector_search_context(
+                session,
+                provider_name=canonical,
+                index_path=resolved_path,
+            )
+            payload = resolved_context.payload
+            provider = resolved_context.provider
+        except FileNotFoundError:
+            return [], [
+                (
+                    "The learned-dense index is unavailable; no vector results were returned."
+                    if canonical == "dense"
+                    else "The feature-hashing index is unavailable; no vector results were returned."
+                )
+            ]
         except DenseProviderUnavailable:
             return [], ["The learned-dense provider is unavailable; no vector results were returned."]
 
     query_vector = provider.embed(query)
-    scored: list[tuple[float, dict[str, Any]]] = []
+    scored_records: list[tuple[float, dict[str, Any]]] = []
     for record in payload.get("records", []):
         score = cosine_similarity(query_vector, record.get("embedding", []))
         if score <= 0:
             continue
+        scored_records.append((score, record))
+
+    # Embedding similarity is independent of database metadata. Rank the
+    # in-memory index first, then hydrate only enough rows to satisfy top_k.
+    # The previous implementation performed Chunk and Paper lookups for every
+    # positive-scoring embedding (hundreds in the demo corpus) before dropping
+    # almost all of them, which made dense search appear to hang on SQLite.
+    scored_records.sort(key=lambda item: item[0], reverse=True)
+    results: list[dict[str, Any]] = []
+    for score, record in scored_records:
         chunk = session.get(Chunk, record["chunk_id"])
         if chunk is None or not chunk_matches(chunk, paper_id=paper_id, section=section):
             continue
         paper = session.get(Paper, chunk.paper_id)
         if not paper_matches(paper, author=author, year=year):
             continue
-        scored.append((score, build_vector_result(chunk, paper, score, canonical)))
-    scored.sort(key=lambda item: item[0], reverse=True)
-    return [result for _score, result in scored[:top_k]], []
+        results.append(build_vector_result(chunk, paper, score, canonical))
+        if len(results) >= top_k:
+            break
+    return results, []
 
 
 def chunk_matches(chunk: Chunk, *, paper_id: str | None, section: str | None) -> bool:

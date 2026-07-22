@@ -9,14 +9,16 @@ from app.config import Settings
 from app.ingestion import sync as sync_module
 from app.ingestion.sync import (
     acquire_sync_lease,
+    execute_ttlab_discovery_check,
     execute_ttlab_sync,
     get_sync_state,
+    ingestion_sync_status,
     release_sync_lease,
     request_manual_sync,
 )
 from app.ingestion import sync_worker as sync_worker_module
 from app.ingestion.sync_worker import next_scheduled_run, run_worker, scheduled_sync_due
-from app.models import IngestionRun, Paper
+from app.models import IngestionCandidate, IngestionRun, Paper
 
 
 def build_engine():
@@ -61,7 +63,7 @@ def test_daily_schedule_waits_until_due_and_runs_at_most_once_per_boundary() -> 
     settings = offline_worker_settings(sync_enabled=True, sync_cron="0 2 * * *", sync_timezone="UTC")
     with Session(engine) as session:
         assert not scheduled_sync_due(settings, session, datetime(2026, 7, 20, 1, 0, tzinfo=UTC))
-        assert not scheduled_sync_due(settings, session, datetime(2026, 7, 20, 3, 0, tzinfo=UTC))
+        assert scheduled_sync_due(settings, session, datetime(2026, 7, 20, 3, 0, tzinfo=UTC))
         state, _accepted = request_manual_sync(session, "admin")
         state.manual_requested_at = None
         state.manual_requested_by = None
@@ -234,8 +236,8 @@ def test_empty_discovery_fails_without_replacing_existing_corpus(tmp_path) -> No
     assert state is None
 
 
-def test_disabled_worker_exits_before_loop_or_database_mutation(monkeypatch, capsys) -> None:
-    settings = offline_worker_settings(sync_enabled=True)
+def test_discovery_worker_starts_and_runs_in_isolated_mode(monkeypatch, capsys) -> None:
+    settings = offline_worker_settings(sync_enabled=True, sync_run_on_startup=True)
     calls = {"create": 0, "execute": 0, "sleep": 0}
     monkeypatch.setattr(
         sync_worker_module,
@@ -244,18 +246,67 @@ def test_disabled_worker_exits_before_loop_or_database_mutation(monkeypatch, cap
     )
     monkeypatch.setattr(
         sync_worker_module,
-        "execute_ttlab_sync",
-        lambda *_args, **_kwargs: calls.__setitem__("execute", calls["execute"] + 1),
+        "execute_ttlab_discovery_check",
+        lambda *_args, **_kwargs: calls.__setitem__("execute", calls["execute"] + 1) or {"status": "succeeded"},
     )
+    monkeypatch.setattr(sync_worker_module, "scheduled_sync_due", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(sync_worker_module, "update_next_scheduled_at", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(sync_worker_module, "get_sync_state", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
         sync_worker_module.time,
         "sleep",
-        lambda *_args, **_kwargs: calls.__setitem__("sleep", calls["sleep"] + 1),
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(KeyboardInterrupt()),
     )
 
-    run_worker(settings)
+    try:
+        run_worker(settings)
+    except KeyboardInterrupt:
+        calls["sleep"] += 1
     output = capsys.readouterr().out
 
-    assert calls == {"create": 0, "execute": 0, "sleep": 0}
-    assert '"event": "sync_worker_disabled"' in output
-    assert '"reason": "atomic_generation_promotion_not_implemented"' in output
+    assert calls == {"create": 1, "execute": 1, "sleep": 1}
+    assert '"event": "sync_worker_started"' in output
+
+
+def test_api_status_reports_shared_discovery_switch_without_claiming_api_is_worker() -> None:
+    engine = build_engine()
+    settings = Settings(sync_enabled=True, service_role="api", sync_execution_mode="disabled")
+    with Session(engine) as session:
+        status = ingestion_sync_status(session, settings)
+
+    assert status["enabled"] is True
+    assert status["discovery_check_available"] is True
+    assert status["current_process_is_discovery_worker"] is False
+
+
+def test_misconfigured_worker_exits_before_opening_database(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        sync_worker_module,
+        "create_db_and_tables",
+        lambda: (_ for _ in ()).throw(AssertionError("database should not be opened")),
+    )
+    run_worker(Settings(service_role="api", sync_execution_mode="disabled"))
+    assert '"event": "sync_worker_not_started"' in capsys.readouterr().out
+
+
+def test_discovery_check_stages_candidates_without_mutating_active_corpus(tmp_path) -> None:
+    engine = build_engine()
+    settings = offline_worker_settings(sync_seed_path=tmp_path / "discovery.json")
+    with Session(engine) as session:
+        session.add(Paper(paper_id="existing", title="Existing paper"))
+        session.commit()
+        result = execute_ttlab_discovery_check(
+            session,
+            settings=settings,
+            discoverer=lambda _url, _pages, _check: [discovered_record()],
+        )
+        candidate = session.exec(select(IngestionCandidate)).one()
+        existing = session.get(Paper, "existing")
+        discovered = session.get(Paper, "scheduled-paper")
+
+    assert result["status"] == "succeeded"
+    assert result["active_corpus_changed"] is False
+    assert candidate.title == "Scheduled Research Paper"
+    assert candidate.comparison_status == "new"
+    assert existing is not None
+    assert discovered is None

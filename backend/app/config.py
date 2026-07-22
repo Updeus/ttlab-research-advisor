@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # Ollama tags are mutable.  A model is runnable only when an operator pins
     # its exact digest here (model name -> 64-hex digest or sha256:<digest>).
     ollama_allowed_model_digests: dict[str, str] = {}
+    ollama_allow_all_local_models: bool = False
     ollama_timeout_seconds: float = 20.0
     ollama_num_ctx: int = 4096
     ollama_keep_alive: str = "10m"
@@ -31,6 +32,7 @@ class Settings(BaseSettings):
     # production may not.
     security_mode: Literal["local_demo", "production"] = "local_demo"
     allow_insecure_local_demo: bool = False
+    demo_corpus_preview: bool = False
     auth_actors_json: str = "[]"
     trusted_hosts: list[str] = ["localhost", "127.0.0.1", "testserver"]
     public_base_url: str | None = None
@@ -73,6 +75,14 @@ class Settings(BaseSettings):
     @property
     def project_root(self) -> Path:
         return Path(__file__).resolve().parents[2]
+
+    @property
+    def all_local_ollama_models_enabled(self) -> bool:
+        return bool(
+            self.security_mode == "local_demo"
+            and self.allow_insecure_local_demo
+            and self.ollama_allow_all_local_models
+        )
 
     @field_validator("sync_cron")
     @classmethod

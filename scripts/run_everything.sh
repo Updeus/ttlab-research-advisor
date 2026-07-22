@@ -193,7 +193,10 @@ if ((PREPARE)); then
   PREPARE_ARGS=(--limit "$LIMIT")
   ((SKIP_DOWNLOADS)) && PREPARE_ARGS+=(--skip-downloads)
   ((SKIP_ARTIFACTS)) && PREPARE_ARGS+=(--skip-artifacts)
-  PYTHONPATH=backend "$PYTHON" -m app.demo.prepare_demo "${PREPARE_ARGS[@]}"
+  TTLAB_SERVICE_ROLE=offline_worker \
+    TTLAB_SYNC_EXECUTION_MODE=offline_single_writer \
+    PYTHONPATH=backend \
+    "$PYTHON" -m app.demo.prepare_demo "${PREPARE_ARGS[@]}"
 else
   log "Skipping demo preparation."
 fi
@@ -216,7 +219,7 @@ wait_for_url() {
   local url="$2"
   local attempts="${3:-45}"
   for ((i = 1; i <= attempts; i++)); do
-    if curl -fsS "$url" >/dev/null 2>&1; then
+    if curl -fsS --connect-timeout 1 --max-time 2 "$url" >/dev/null 2>&1; then
       log "$label is ready at $url"
       return 0
     fi
@@ -241,7 +244,7 @@ ensure_ollama() {
     return 0
   fi
 
-  if curl -fsS "$tags_url" >/dev/null 2>&1; then
+  if curl -fsS --connect-timeout 1 --max-time 3 "$tags_url" >/dev/null 2>&1; then
     log "Ollama already running at ${OLLAMA_URL}; reusing it."
     return 0
   fi
@@ -264,20 +267,22 @@ if ((SERVE)); then
 
   ensure_ollama
 
-  if curl -fsS "${BACKEND_URL}/health" >/dev/null 2>&1; then
+  if curl -fsS --connect-timeout 1 --max-time 3 "${BACKEND_URL}/health" >/dev/null 2>&1; then
     log "Backend already running at ${BACKEND_URL}; reusing it."
   else
     log "Starting backend at ${BACKEND_URL} in explicit insecure loopback demo mode..."
     log "Admin mutations in this demo process are not production-authenticated."
     TTLAB_SECURITY_MODE=local_demo \
       TTLAB_ALLOW_INSECURE_LOCAL_DEMO=true \
+      TTLAB_DEMO_CORPUS_PREVIEW=true \
+      TTLAB_OLLAMA_ALLOW_ALL_LOCAL_MODELS=true \
       TTLAB_OLLAMA_BASE_URL="$OLLAMA_URL" \
-      PYTHONPATH=backend "$PYTHON" -m uvicorn app.main:app --reload --app-dir backend --host 127.0.0.1 --port "$BACKEND_PORT" &
+      PYTHONPATH=backend "$PYTHON" -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port "$BACKEND_PORT" &
     STARTED_PIDS+=("$!")
-    wait_for_url "Backend" "${BACKEND_URL}/health"
+    wait_for_url "Backend" "${BACKEND_URL}/health" 120
   fi
 
-  if curl -fsS "$FRONTEND_URL" >/dev/null 2>&1; then
+  if curl -fsS --connect-timeout 1 --max-time 3 "$FRONTEND_URL" >/dev/null 2>&1; then
     log "Frontend already running at ${FRONTEND_URL}; reusing it."
   else
     log "Starting frontend at ${FRONTEND_URL}..."

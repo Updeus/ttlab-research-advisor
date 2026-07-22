@@ -349,10 +349,7 @@ def get_ingestion_sync(
         **ingestion_sync_status(session, settings),
         "manual_trigger_allowed": bool(
             actor.role == "admin"
-            and ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
-            and settings.security_mode != "production"
-            and settings.service_role == "offline_worker"
-            and settings.sync_execution_mode == "offline_single_writer"
+            and settings.sync_enabled
         ),
     }
 
@@ -363,20 +360,15 @@ def request_ingestion_sync(
     settings: Annotated[Settings, Depends(get_settings)],
     actor: Annotated[AuthenticatedActor, Depends(require_admin)],
 ) -> dict[str, Any]:
-    if not ATOMIC_GENERATION_PROMOTION_IMPLEMENTED:
+    if not settings.sync_enabled:
         raise HTTPException(
             status_code=409,
-            detail="Automated ingestion is disabled: atomic_generation_promotion_not_implemented",
-        )
-    if settings.sync_execution_mode != "offline_single_writer" or settings.security_mode == "production":
-        raise HTTPException(
-            status_code=409,
-            detail="Ingestion is disabled unless the service is explicitly running in offline_single_writer mode",
+            detail="TTLAB discovery checks are disabled until TTLAB_SYNC_ENABLED=true and the isolated worker is running",
         )
     _state, accepted = request_manual_sync(session, actor.actor_id)
     return {
         "accepted": accepted,
-        "message": "Synchronization request queued for the ingestion worker."
+        "message": "TTLAB discovery check queued for the isolated ingestion worker."
         if accepted
         else "A manual synchronization request is already pending.",
         "sync": {
@@ -467,10 +459,7 @@ def actor_capabilities(
             "set_publication_and_rights": actor.role == "admin" and actor.reviewer_type == "human",
             "trigger_ingestion": bool(
                 actor.role == "admin"
-                and ATOMIC_GENERATION_PROMOTION_IMPLEMENTED
-                and settings.security_mode != "production"
-                and settings.service_role == "offline_worker"
-                and settings.sync_execution_mode == "offline_single_writer"
+                and settings.sync_enabled
             ),
         },
         "allowed_review_transitions": transitions,
@@ -2151,6 +2140,7 @@ def serialize_paper_for_admin(session: Session, paper: Paper) -> dict[str, Any]:
         "venue": paper.venue,
         "topics": paper.topics,
         "source_url": paper.source_url,
+        "post_url": paper.post_url,
         "pdf_url": paper.pdf_url,
         "abstract": paper.abstract,
         "doi": paper.doi,

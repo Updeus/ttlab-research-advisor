@@ -95,13 +95,19 @@ describe("admin ingestion synchronization", () => {
       if (path === "/api/admin/overview") return json(overview);
       if (path === "/api/admin/publication-preview/papers") return json(publicationPreview);
       if (path === "/api/admin/capabilities") return json(humanAdminCapabilities);
+      if (path === "/api/admin/control/summary") return json({ features: [], admin_count: 1, corpus_import_available: false, corpus_import_blocker: "atomic_generation_promotion_not_implemented" });
+      if (path === "/api/admin/control/models") return json({ provider_reachable: true, warnings: [], items: [] });
+      if (path === "/api/admin/control/admins") return json({ items: [{ user_id: "admin@example.test", username: "admin", display_name: "Admin", active: true, must_change_password: false }] });
+      if (path === "/api/admin/control/ingestion-candidates") return json({ items: [], import_available: false, import_blocker: "atomic_generation_promotion_not_implemented" });
+      if (path === "/api/admin/control/publication/preview" && init?.method === "POST") return json({ operation_id: "publish-op", preview_hash: "a".repeat(64), eligible_count: 1, blocked_count: 0 });
+      if (path === "/api/admin/control/publication/execute" && init?.method === "POST") return json({ published_count: 1, blocked: [] });
       if (path === "/api/admin/ingestion-sync" && init?.method !== "POST") return json(syncStatus);
       if (path === "/api/admin/review-queue") return json({ total: 0, limit: 50, offset: 0, items: [] });
       if (path === "/api/admin/review-events") return json({ total: 0, limit: 50, offset: 0, items: [] });
       if (path === "/api/admin/ingestion-sync/request" && init?.method === "POST") {
         return json({
           accepted: true,
-          message: "Synchronization request queued for the ingestion worker.",
+          message: "TTLAB discovery check queued for the isolated ingestion worker.",
           sync: { ...syncStatus, manual_request_pending: true, manual_requested_at: "2026-07-20T12:00:00Z" },
         }, { status: 202 });
       }
@@ -110,7 +116,7 @@ describe("admin ingestion synchronization", () => {
 
     render(<AdminReviewPage papers={[]} onSelectPaper={vi.fn()} onNotify={notify} />);
 
-    expect(await screen.findByRole("heading", { name: "TTLAB publication synchronization" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Check TTLAB for new publications" })).toBeInTheDocument();
     expect(screen.getByText("Daily schedule: 0 2 * * * (America/La_Paz).")).toBeInTheDocument();
     expect(screen.getByText(/7\/21\/2026/)).toBeInTheDocument();
 
@@ -130,14 +136,30 @@ describe("admin ingestion synchronization", () => {
     expect(screen.getByText(/never used as a fallback for public Papers/)).toBeInTheDocument();
     await user.click(overviewTab);
 
-    await user.click(screen.getByRole("button", { name: "Request synchronization now" }));
+    await user.click(screen.getByRole("button", { name: "Check for new publications now" }));
 
     await waitFor(() => expect(screen.getByRole("button", { name: "Synchronization queued" })).toBeDisabled());
-    expect(notify).toHaveBeenCalledWith("Synchronization request queued for the ingestion worker.", "success");
+    expect(notify).toHaveBeenCalledWith("TTLAB discovery check queued for the isolated ingestion worker.", "success");
     const request = fetchMock.mock.calls.find(([input]) => String(input).includes("/api/admin/ingestion-sync/request"));
     expect(request?.[1]).toMatchObject({
       method: "POST",
       headers: expect.objectContaining({ Authorization: `Bearer ${"a".repeat(32)}` }),
+    });
+
+    await user.click(screen.getByRole("button", { name: "Preview publishable papers" }));
+    expect(await screen.findByLabelText("Current password for publication")).toBeInTheDocument();
+    await user.click(screen.getByLabelText(/I attest TTLAB has the right/));
+    await user.type(screen.getByLabelText("Attestation record"), "Approved by the TTLAB publication authority.");
+    await user.type(screen.getByLabelText("Current password for publication"), "admin password");
+    await user.click(screen.getByRole("button", { name: "Attest and publish eligible papers" }));
+    await waitFor(() => {
+      const publishRequest = fetchMock.mock.calls.find(([input, requestInit]) =>
+        String(input).includes("/api/admin/control/publication/execute") && requestInit?.method === "POST",
+      );
+      expect(JSON.parse(String(publishRequest?.[1]?.body))).toMatchObject({
+        attestation_note: "Approved by the TTLAB publication authority.",
+        current_password: "admin password",
+      });
     });
   });
 
@@ -164,7 +186,7 @@ describe("admin ingestion synchronization", () => {
     });
 
     render(<AdminReviewPage papers={[paper as never]} onSelectPaper={vi.fn()} />);
-    expect(await screen.findByRole("heading", { name: "TTLAB publication synchronization" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Check TTLAB for new publications" })).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Paper Metadata" }));
 
     const yearInput = screen.getByLabelText("Year");

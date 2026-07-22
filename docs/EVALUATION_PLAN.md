@@ -110,6 +110,18 @@ or anonymous public projection.
 - Evidence: `data/evaluation/recommendation_profiles_v1.jsonl` and
   `artifacts/phase4/recommendation_proxy_v1/`.
 
+### Conversational idea-generation regression set
+
+- `data/evaluation/idea_generation_cases_v1.jsonl` contains four formative
+  prompts covering a likely paper match, agriculture, an out-of-corpus interest,
+  and a multi-turn scope refinement.
+- Review checks cover always returning one to three ideas, valid/absent citations
+  as appropriate, fact-versus-suggestion separation, bounded MVPs, actionable
+  evaluation, and novelty/supervision caution.
+- This is regression scaffolding, not a gold dataset or evidence that students
+  find the ideas useful. Live model outputs require a pinned Ollama digest and
+  separate human/supervisor review before any effectiveness claim.
+
 ### Audit-baseline evidence retained
 
 The independent audit at `b561fa73...`/`corpus-04a010207327069a` recorded a
@@ -255,7 +267,8 @@ emit `not run` v2 macros and are not final-readiness builds.
 ## Legacy scaffold files
 
 `questions.sample.jsonl`, `qa_questions.sample.jsonl`, the older
-`extension_eval_cases.jsonl`, `artifact_eval_cases.jsonl`, and blank human
+`extension_eval_cases.jsonl`, `artifact_eval_cases.jsonl`,
+`idea_generation_cases_v1.jsonl`, and blank human
 review templates remain useful examples/regression scaffolds. They are not the
 source of the reported silver/proxy results and must not be cited as gold or
 human validation. The authoritative research artifacts are the versioned

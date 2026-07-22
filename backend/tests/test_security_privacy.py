@@ -12,13 +12,14 @@ import httpx
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
+from starlette.requests import Request
 from sqlalchemy import text
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.config import Settings, get_settings
-from app.api.admin import admin_review_lock, admin_review_lock_path, serialize_admin_review_requests
+from app.api.admin import actor_capabilities, admin_review_lock, admin_review_lock_path, serialize_admin_review_requests
 from app.db import get_session
 from app.indexing.chunker import canonical_chunks_sha256, db_chunk_payload
 from app.ingestion.pdf_downloader import DownloadRecord, download_pdfs, validate_remote_pdf_url
@@ -26,7 +27,7 @@ from app.ingestion.pdf_parser import extract_pdf_text, safe_output_path
 from app.main import app, readiness_index_checks
 from app.middleware import PublicGenerationConcurrencyMiddleware, PublicRateLimitMiddleware
 from app.models import Chunk, Paper, PaperArtifact, RAGAnswer, ReviewEvent, ThesisRecommendation
-from app.security import parse_actor_records, validate_security_configuration
+from app.security import get_current_actor, parse_actor_records, validate_security_configuration
 
 # Obvious deterministic fixtures, never deployment credentials.
 ADMIN_TOKEN = "TEST_ONLY_ADMIN_" + ("a" * 32)
@@ -76,6 +77,36 @@ def offline_worker_security_settings() -> Settings:
             "sync_execution_mode": "offline_single_writer",
         }
     )
+
+
+def test_loopback_demo_actor_can_use_full_human_review_workflow() -> None:
+    settings = Settings(
+        allow_insecure_local_demo=True,
+        demo_corpus_preview=True,
+    )
+    request = Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "scheme": "http",
+            "path": "/api/admin/capabilities",
+            "raw_path": b"/api/admin/capabilities",
+            "query_string": b"",
+            "headers": [],
+            "client": ("127.0.0.1", 41234),
+            "server": ("127.0.0.1", 8000),
+        }
+    )
+    request.state.request_id = "demo-test"
+    with Session(build_security_engine()) as session:
+        actor = get_current_actor(request, None, settings, session)
+    payload = actor_capabilities(actor, settings)
+
+    assert payload["actor"]["local_demo_bypass"] is True
+    assert payload["actor"]["reviewer_type"] == "human"
+    assert payload["capabilities"]["approve_or_reject"] is True
+    assert payload["capabilities"]["set_publication_and_rights"] is True
+    assert payload["capabilities"]["trigger_ingestion"] is False
 
 
 def build_security_engine():
@@ -179,16 +210,15 @@ def test_actor_configuration_accepts_only_hashed_unique_records() -> None:
         parse_actor_records(duplicate)
 
 
-def test_production_configuration_fails_closed_without_admin_or_https() -> None:
-    with pytest.raises(ValueError, match="active environment-configured admin"):
-        validate_security_configuration(
-            Settings(
-                security_mode="production",
-                cors_origins=["https://advisor.example"],
-                trusted_hosts=["advisor.example"],
-                public_base_url="https://advisor.example",
-            )
+def test_production_configuration_accepts_database_admins_and_requires_https() -> None:
+    validate_security_configuration(
+        Settings(
+            security_mode="production",
+            cors_origins=["https://advisor.example"],
+            trusted_hosts=["advisor.example"],
+            public_base_url="https://advisor.example",
         )
+    )
     with pytest.raises(ValueError, match="https TTLAB_PUBLIC_BASE_URL"):
         validate_security_configuration(
             Settings(
@@ -215,7 +245,7 @@ def test_admin_routes_require_token_enforce_roles_and_attribute_events() -> None
         assert client.post("/api/admin/ingestion-sync/request", headers=auth(REVIEWER_TOKEN)).status_code == 403
         queued_sync = client.post("/api/admin/ingestion-sync/request", headers=auth(ADMIN_TOKEN))
         assert queued_sync.status_code == 409
-        assert "atomic_generation_promotion_not_implemented" in str(queued_sync.json()["detail"])
+        assert "TTLAB_SYNC_ENABLED=true" in str(queued_sync.json()["detail"])
         assert client.get("/api/admin/ingestion-sync", headers=auth(ADMIN_TOKEN)).json()[
             "manual_trigger_allowed"
         ] is False
@@ -555,7 +585,14 @@ def test_public_artifacts_hide_review_workspace_and_noneligible_evidence() -> No
     try:
         client = TestClient(app)
         public_draft = client.get("/api/papers/secure-paper/artifacts/public_summary")
-        assert public_draft.status_code == 404
+        assert public_draft.status_code == 200
+        assert public_draft.json()["effective_text"] == "Generated public summary"
+        assert public_draft.json()["effective_json"] == {"text": "Generated public summary"}
+        assert public_draft.json()["review_status"] == "needs_review"
+        assert public_draft.json()["provenance"]["approved_version"] is None
+        assert "Unapproved correction" not in json.dumps(public_draft.json())
+        assert "Private reviewer note" not in json.dumps(public_draft.json())
+        assert any("not been approved" in warning for warning in public_draft.json()["warnings"])
 
         protected_preview = client.get(
             "/api/admin/publication-preview/papers/secure-paper",
@@ -594,6 +631,11 @@ def test_public_artifacts_hide_review_workspace_and_noneligible_evidence() -> No
             "citations": [],
         }
         assert correction.json()["artifact"]["corrected_text"] == "Approved canonical correction"
+
+        public_before_approval = client.get("/api/papers/secure-paper/artifacts/public_summary")
+        assert public_before_approval.status_code == 200
+        assert public_before_approval.json()["effective_text"] == "Generated public summary"
+        assert "Approved canonical correction" not in json.dumps(public_before_approval.json())
 
         approved = client.patch(
             "/api/admin/artifacts/draft-artifact/review",

@@ -13,6 +13,8 @@ import type {
   ExtractionDiagnostics,
   GenerateArtifactsResponse,
   IngestionSyncStatus,
+  IdeaGenerationRequest,
+  IdeaGenerationResponse,
   LocalLlmStatus,
   Paper,
   PaperArtifact,
@@ -234,8 +236,16 @@ export function changeAdminPassword(currentPassword: string, newPassword: string
   return postJson("/api/auth/password", { current_password: currentPassword, new_password: newPassword }, { authenticated: true });
 }
 
-export function previewBulkApproval(): Promise<{ operation_id: string; preview_hash: string; eligible_count: number; blocked_count: number }> {
-  return postJson("/api/admin/control/bulk/preview", {}, { authenticated: true });
+export type BulkApprovalPreview = {
+  operation_id: string;
+  preview_hash: string;
+  eligible_count: number;
+  blocked_count: number;
+  approval_mode: "eligible" | "catch_all";
+};
+
+export function previewBulkApproval(approvalMode: "eligible" | "catch_all" = "eligible"): Promise<BulkApprovalPreview> {
+  return postJson("/api/admin/control/bulk/preview", { approval_mode: approvalMode }, { authenticated: true });
 }
 
 export function executeBulkApproval(operationId: string, previewHash: string): Promise<{ approved_count: number; blocked: unknown[] }> {
@@ -311,6 +321,10 @@ export function fetchLocalLlms(): Promise<LocalLlmStatus> {
 
 export function fetchLatestLlmBenchmark(): Promise<Record<string, unknown>> {
   return getJson<Record<string, unknown>>("/api/llms/benchmark/latest");
+}
+
+export function generateIdeas(request: IdeaGenerationRequest, signal?: AbortSignal): Promise<IdeaGenerationResponse> {
+  return postJson<IdeaGenerationResponse>("/api/recommendations/ideas", request, { signal });
 }
 
 export async function recommendExtensions(request: ExtensionFinderRequest, signal?: AbortSignal): Promise<ExtensionFinderResponse> {

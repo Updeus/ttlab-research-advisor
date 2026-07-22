@@ -38,12 +38,13 @@ present it as production authentication.
    and partial/unsupported warnings. State that runtime `grounded` is not a
    correctness label and that the offline QA study found low answer-point
    coverage and failed unanswerable abstentions.
-5. **Thesis Extension Finder (90 seconds).** Enter interests, skills, time,
-   project type, data constraints, difficulty, and avoid-topics. Toggle the
-   evidence-only alternative, then show the full output's separate facts,
-   explicit/inferred gap, new suggestion, MVP/stretch, risks, skills, data, and
-   evaluation plan. Do not call it supervisor assignment or validated
-   feasibility.
+5. **Idea Generator (90 seconds).** Confirm that the approved default Ollama
+   model is ready, then describe interests and skills conversationally. Show the
+   coaching response, idea cards, MVP, skills, evaluation method, and any related
+   paper background. Follow up with “make the first idea smaller.” Explain that
+   no-match prompts still receive general suggestions, conversations are not
+   saved, paper links are inspiration rather than novelty evidence, and an
+   Ollama outage produces a retry state rather than another-provider fallback.
 6. **Paper intelligence (60 seconds).** Show a cited bundle and text podcast
    script. Identify `ai_reviewed` versus `needs_reprocess`, support labels, and
    suggestions. There is no audio/TTS.

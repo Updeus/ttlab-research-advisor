@@ -585,7 +585,14 @@ def test_public_artifacts_hide_review_workspace_and_noneligible_evidence() -> No
     try:
         client = TestClient(app)
         public_draft = client.get("/api/papers/secure-paper/artifacts/public_summary")
-        assert public_draft.status_code == 404
+        assert public_draft.status_code == 200
+        assert public_draft.json()["effective_text"] == "Generated public summary"
+        assert public_draft.json()["effective_json"] == {"text": "Generated public summary"}
+        assert public_draft.json()["review_status"] == "needs_review"
+        assert public_draft.json()["provenance"]["approved_version"] is None
+        assert "Unapproved correction" not in json.dumps(public_draft.json())
+        assert "Private reviewer note" not in json.dumps(public_draft.json())
+        assert any("not been approved" in warning for warning in public_draft.json()["warnings"])
 
         protected_preview = client.get(
             "/api/admin/publication-preview/papers/secure-paper",
@@ -624,6 +631,11 @@ def test_public_artifacts_hide_review_workspace_and_noneligible_evidence() -> No
             "citations": [],
         }
         assert correction.json()["artifact"]["corrected_text"] == "Approved canonical correction"
+
+        public_before_approval = client.get("/api/papers/secure-paper/artifacts/public_summary")
+        assert public_before_approval.status_code == 200
+        assert public_before_approval.json()["effective_text"] == "Generated public summary"
+        assert "Approved canonical correction" not in json.dumps(public_before_approval.json())
 
         approved = client.patch(
             "/api/admin/artifacts/draft-artifact/review",

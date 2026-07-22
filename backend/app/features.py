@@ -10,7 +10,7 @@ FEATURE_DEFINITIONS: dict[str, dict[str, str]] = {
     "papers": {"label": "Paper catalogue", "description": "Browse paper metadata and source text."},
     "search": {"label": "Search", "description": "Keyword, hybrid, and semantic retrieval."},
     "ask": {"label": "Ask TTLAB", "description": "Citation-grounded questions over approved papers."},
-    "finder": {"label": "Thesis Extension Finder", "description": "Rank papers and propose grounded extensions."},
+    "finder": {"label": "Idea Generator", "description": "Generate Ollama-assisted thesis ideas with optional paper inspiration."},
     "explorer": {"label": "Topic and author explorer", "description": "Explore reviewed topic, author, and paper links."},
     "artifacts": {"label": "Summaries and podcast scripts", "description": "View and generate paper intelligence artifacts."},
     "evaluation": {"label": "Evaluation dashboard", "description": "View retrieval and grounding evaluation evidence."},

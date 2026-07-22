@@ -44,10 +44,10 @@ import { AdminReviewPage } from "./pages/AdminReviewPage";
 import { AskPage } from "./pages/AskPage";
 import { Dashboard } from "./pages/Dashboard";
 import { EvaluationDashboardPage } from "./pages/EvaluationDashboardPage";
+import { IdeaGeneratorPage } from "./pages/IdeaGeneratorPage";
 import { PaperBrowser } from "./pages/PaperBrowser";
 import { PaperDetail } from "./pages/PaperDetail";
 import { SearchPage } from "./pages/SearchPage";
-import { ThesisExtensionFinder } from "./pages/ThesisExtensionFinder";
 import { TopicAuthorExplorer } from "./pages/TopicAuthorExplorer";
 import type { Paper, ServiceStatus, Stats } from "./types/paper";
 
@@ -66,7 +66,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/papers", label: "Papers", shortLabel: "Papers", icon: Library, feature: "papers", count: (stats, papers) => String(stats?.papers ?? papers) },
   { path: "/search", label: "Search", shortLabel: "Search", icon: Search, feature: "search", count: (stats) => String(stats?.searchable_chunks ?? 0) },
   { path: "/ask", label: "Ask TTLAB", shortLabel: "Ask", icon: MessageCircleQuestion, feature: "ask", count: () => null },
-  { path: "/extensions", label: "Thesis Extension Finder", shortLabel: "Extensions", icon: Lightbulb, feature: "finder", count: () => null },
+  { path: "/extensions", label: "Idea Generator", shortLabel: "Ideas", icon: Lightbulb, feature: "finder", count: () => null },
   { path: "/explorer", label: "Topic/Author Explorer", shortLabel: "Explorer", icon: Compass, feature: "explorer", count: (stats) => String(stats?.topic_count ?? 0) },
   { path: "/admin", label: "Admin Control", shortLabel: "Admin", icon: ShieldCheck, adminOnly: true, count: () => null },
   { path: "/evaluation", label: "Evaluation", shortLabel: "Evaluation", icon: ClipboardCheck, feature: "evaluation", count: (stats) => String(Object.values(stats?.evaluation_files_present ?? {}).filter(Boolean).length) },
@@ -197,7 +197,7 @@ export function App() {
         ) : null}
       </main>
       <footer className="app-footer">
-        <p>Generated answers and suggestions require source checking and human review. Public profile inputs are sent only for the current request.</p>
+        <p>Generated answers and suggestions require source checking and human review. Idea Generator conversations are sent only for the current request and are not saved by the public endpoint.</p>
       </footer>
       <ToastStack messages={toasts} onDismiss={(id) => setToasts((current) => current.filter((toast) => toast.id !== id))} />
     </div>
@@ -232,7 +232,7 @@ function AppRoutes({
       <Route path="/search" element={<SearchPage papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/ask" element={<AskPage papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/ask/:paperId" element={<AskRoute papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
-      <Route path="/extensions" element={<ThesisExtensionFinder papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
+      <Route path="/extensions" element={<IdeaGeneratorPage papers={papers} onSelectPaper={openPaper} onNotify={notify} />} />
       <Route path="/explorer" element={<TopicAuthorExplorer onSelectPaper={openPaper} />} />
       <Route path="/explorer/topics" element={<TopicAuthorExplorer initialTab="topics" onSelectPaper={openPaper} />} />
       <Route path="/explorer/topics/:topicId" element={<ExplorerTopicRoute onSelectPaper={openPaper} />} />
@@ -486,7 +486,7 @@ function titleForPath(pathname: string): string {
   if (pathname === "/papers") return "Paper Browser";
   if (pathname.startsWith("/ask")) return "Ask TTLAB";
   if (pathname === "/search") return "Search";
-  if (pathname === "/extensions") return "Thesis Extension Finder";
+  if (pathname === "/extensions") return "Idea Generator";
   if (pathname.startsWith("/explorer/topics")) return "Topic Explorer";
   if (pathname.startsWith("/explorer/authors")) return "Author Explorer";
   if (pathname === "/explorer") return "Topic and Author Explorer";

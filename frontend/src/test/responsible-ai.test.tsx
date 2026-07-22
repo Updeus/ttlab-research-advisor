@@ -498,7 +498,7 @@ describe("evidence and responsible-AI interfaces", () => {
     expect(fetchMock).toHaveBeenCalled();
   });
 
-  it("fails closed when an artifact has generated content but no approved effective version", async () => {
+  it("shows the current generated artifact publicly with an explicit unreviewed warning", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input));
       if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
@@ -507,8 +507,8 @@ describe("evidence and responsible-AI interfaces", () => {
         artifact_id: "artifact-needs-review",
         paper_id: paper.paper_id,
         artifact_type: "paper_intelligence_bundle",
-        generated_json: intelligenceBundle("MUST NOT BE PUBLIC"),
-        effective_json: null,
+        generated_json: intelligenceBundle("CURRENT GENERATED DRAFT"),
+        effective_json: intelligenceBundle("CURRENT GENERATED DRAFT"),
         citations: [],
         grounding_status: "grounded",
         generation_status: "generated",
@@ -523,8 +523,39 @@ describe("evidence and responsible-AI interfaces", () => {
 
     render(<PaperDetail paper={paper as never} onBack={() => undefined} />);
     expect(await screen.findByText("Loaded source chunk")).toBeInTheDocument();
-    expect(screen.getByText("Paper intelligence is awaiting approval")).toBeInTheDocument();
-    expect(screen.queryByText("MUST NOT BE PUBLIC")).not.toBeInTheDocument();
+    expect(screen.getByText("CURRENT GENERATED DRAFT")).toBeInTheDocument();
+    expect(screen.getByText(/Public AI-generated draft/)).toBeInTheDocument();
+    expect(screen.getByText(/Current generated version/)).toBeInTheDocument();
+    expect(screen.queryByText("Paper intelligence is awaiting approval")).not.toBeInTheDocument();
+  });
+
+  it("uses a generated artifact payload when an effective projection is absent", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
+      if (url.pathname.endsWith("/chunks")) return json([]);
+      if (url.pathname.endsWith("/artifacts")) return json([{
+        artifact_id: "artifact-generated-default",
+        paper_id: paper.paper_id,
+        artifact_type: "paper_intelligence_bundle",
+        generated_json: intelligenceBundle("GENERATED DEFAULT CONTENT"),
+        effective_json: null,
+        citations: [],
+        grounding_status: "partial",
+        generation_status: "generated",
+        warnings: [],
+        review_status: "needs_review",
+        provenance: { provider: "offline", model: "fixture", generated_at: "2026-01-01T00:00:00Z", approved_version: null, correction_fields: [] },
+        created_at: "2026-01-01T00:00:00Z",
+      }]);
+      if (url.pathname.endsWith("/related")) return json([]);
+      return json({}, { status: 404 });
+    });
+
+    render(<PaperDetail paper={paper as never} onBack={() => undefined} />);
+
+    expect(await screen.findByText("GENERATED DEFAULT CONTENT")).toBeInTheDocument();
+    expect(screen.queryByText(/awaiting approval/i)).not.toBeInTheDocument();
   });
 });
 

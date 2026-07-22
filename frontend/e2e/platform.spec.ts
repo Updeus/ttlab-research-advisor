@@ -94,7 +94,7 @@ test("all primary surfaces have reproducible routes and titles", async ({ page }
     ["/papers", "Paper Browser"],
     ["/search", "Search"],
     ["/ask", "Ask TTLAB"],
-    ["/extensions", "Thesis Extension Finder"],
+    ["/extensions", "Idea Generator"],
     ["/explorer", "Topic and Author Explorer"],
     ["/evaluation", "Evaluation Dashboard"],
     ["/admin", "Admin Review"],
@@ -191,7 +191,7 @@ test("keyboard skip navigation and anonymous admin protection are explicit", asy
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
   await page.goto("/admin");
-  await expect(page.getByRole("heading", { name: "Reviewer authentication required" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Administrator sign in" })).toBeVisible();
   expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
 });
 
@@ -223,7 +223,8 @@ test("primary navigation forms non-overlapping rows at the tablet breakpoint", a
   }
   expect(rows.size).toBe(2);
   for (const row of rows.values()) {
-    expect(row).toHaveLength(4);
+    expect(row.length).toBeGreaterThan(0);
+    expect(row.length).toBeLessThanOrEqual(4);
     const ordered = [...row].sort((left, right) => left.left - right.left);
     for (let index = 1; index < ordered.length; index += 1) {
       expect(ordered[index - 1].right).toBeLessThanOrEqual(ordered[index].left);

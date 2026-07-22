@@ -95,6 +95,12 @@ describe("admin ingestion synchronization", () => {
       if (path === "/api/admin/overview") return json(overview);
       if (path === "/api/admin/publication-preview/papers") return json(publicationPreview);
       if (path === "/api/admin/capabilities") return json(humanAdminCapabilities);
+      if (path === "/api/admin/control/summary") return json({ features: [], admin_count: 1, corpus_import_available: false, corpus_import_blocker: "atomic_generation_promotion_not_implemented" });
+      if (path === "/api/admin/control/models") return json({ provider_reachable: true, warnings: [], items: [] });
+      if (path === "/api/admin/control/admins") return json({ items: [{ user_id: "admin@example.test", username: "admin", display_name: "Admin", active: true, must_change_password: false }] });
+      if (path === "/api/admin/control/ingestion-candidates") return json({ items: [], import_available: false, import_blocker: "atomic_generation_promotion_not_implemented" });
+      if (path === "/api/admin/control/publication/preview" && init?.method === "POST") return json({ operation_id: "publish-op", preview_hash: "a".repeat(64), eligible_count: 1, blocked_count: 0 });
+      if (path === "/api/admin/control/publication/execute" && init?.method === "POST") return json({ published_count: 1, blocked: [] });
       if (path === "/api/admin/ingestion-sync" && init?.method !== "POST") return json(syncStatus);
       if (path === "/api/admin/review-queue") return json({ total: 0, limit: 50, offset: 0, items: [] });
       if (path === "/api/admin/review-events") return json({ total: 0, limit: 50, offset: 0, items: [] });
@@ -138,6 +144,22 @@ describe("admin ingestion synchronization", () => {
     expect(request?.[1]).toMatchObject({
       method: "POST",
       headers: expect.objectContaining({ Authorization: `Bearer ${"a".repeat(32)}` }),
+    });
+
+    await user.click(screen.getByRole("button", { name: "Preview publishable papers" }));
+    expect(await screen.findByLabelText("Current password for publication")).toBeInTheDocument();
+    await user.click(screen.getByLabelText(/I attest TTLAB has the right/));
+    await user.type(screen.getByLabelText("Attestation record"), "Approved by the TTLAB publication authority.");
+    await user.type(screen.getByLabelText("Current password for publication"), "admin password");
+    await user.click(screen.getByRole("button", { name: "Attest and publish eligible papers" }));
+    await waitFor(() => {
+      const publishRequest = fetchMock.mock.calls.find(([input, requestInit]) =>
+        String(input).includes("/api/admin/control/publication/execute") && requestInit?.method === "POST",
+      );
+      expect(JSON.parse(String(publishRequest?.[1]?.body))).toMatchObject({
+        attestation_note: "Approved by the TTLAB publication authority.",
+        current_password: "admin password",
+      });
     });
   });
 

@@ -30,7 +30,8 @@ permitted catalogue/PDF sources
   -> retrieval and explicit reranking configuration
        |-> Search
        |-> Ask TTLAB -> answer/citation verifier
-       |-> evidence-only or full Extension Finder
+       |-> Ollama-only conversational Idea Generator
+       |-> retained evidence-only or full Extension Finder backend
        |-> paper intelligence / podcast text
        |-> controlled topics / author evidence / related papers
   -> SQLModel/SQLite + generated artifacts + append-only review events
@@ -140,6 +141,12 @@ and payload identity they consume.
 - `intelligence/extension_recommender.py` provides an evidence-only mode and a
   full structured Finder. The full path separates paper-supported facts,
   explicit/inferred/not-found gaps, and newly generated suggestions.
+- `intelligence/idea_generator.py` builds a bounded multi-turn retrieval query,
+  classifies whether paper evidence is applicable, and requests one to three
+  schema-validated ideas from the approved default Ollama model. It validates
+  model-supplied source aliases against retrieved chunks and never invokes an
+  offline or external fallback. No-match requests remain useful general
+  suggestions with empty citations.
 - `intelligence/recommendation_verifier.py` checks citations, gap labels, data
   warnings, skills gaps, and timeline risk.
 - `intelligence/paper_artifact_generator.py` produces cited public/technical
@@ -149,7 +156,10 @@ and payload identity they consume.
   there is no audio/TTS pipeline.
 - `intelligence/topic_explorer.py` applies the retained controlled lexical
   vocabulary, derives author-topic evidence only from eligible publication
-  authorship, and explains related-paper scores.
+  authorship, and explains related-paper scores. Public bibliographic author
+  cards are derived from already-public papers and do not require separate
+  identity approval; unresolved status remains visible, while rejected,
+  invalid, and merged identities are excluded.
 - `intelligence/llm_provider.py` keeps deterministic offline extraction as the
   default path. Optional Ollama use requires an allowlisted model name and exact
   service-reported SHA-256 digest, checked before and after generation. Because
@@ -159,6 +169,9 @@ and payload identity they consume.
   incomplete OpenAI stub is not a supported provider.
 
 The platform never treats a generated extension as paper-stated future work.
+Idea Generator paper citations are background/inspiration, not evidence that a
+new proposal is novel or feasible. Its public history is request-scoped React
+state and is not persisted by the API.
 Potential researcher fit is a bibliographic discovery hint, not confirmation of
 availability, endorsement, expertise beyond the corpus, or supervision.
 
@@ -172,8 +185,11 @@ rejection, and `needs_reprocess` where applicable.
 Corrections and review decisions are separate endpoints. Saving a correction
 creates an attributed event and reopens the item at `needs_review`; it cannot be
 approved in the same request. Public artifact serialization uses corrected
-content only after a subsequent human-admin approval. Actor capabilities and
-allowed transitions are returned explicitly so clients do not guess policy.
+content only after a subsequent human-admin approval. The current generated
+artifact is publicly readable before approval with an explicit unreviewed AI
+draft warning; private reviewer notes and pending corrections remain protected.
+Actor capabilities and allowed transitions are returned explicitly so clients
+do not guess policy.
 
 Review events record item/action, prior/new state, actor ID/name/type/role,
 request ID, notes/diff, timestamp, previous-event hash, and event hash. SQLite
@@ -280,8 +296,10 @@ requests are transient. History/item routes are protected.
 
 ### Paper artifacts
 
-Public reads require approved metadata, cleared rights, searchable access for
-source evidence, and an approved effective artifact state.
+Public artifact reads require approved paper metadata and cleared public rights.
+The current generated version does not require artifact approval, but is labeled
+with its review and grounding status. An approved correction replaces the
+generated version only after the separate human review transition.
 Generating an artifact for one paper requires reviewer authorization; batch
 generation requires admin. Payloads retain provider/model/time, support labels,
 source chunk IDs/citations, grounding, warnings, and review state.
@@ -340,6 +358,10 @@ does not use cookies; exact CORS, HTTPS, token secrecy, and authorization apply.
 /evaluation
 /admin
 ```
+
+`/extensions` is the public Idea Generator chat. The legacy structured Finder
+API remains at `/api/recommendations/extensions` for compatibility and retained
+evaluation evidence, but it is not linked from public navigation.
 
 The interface preserves browser history, reload/deep links, route titles,
 focus restoration, current-link state, a skip link, a deterministic 404, and

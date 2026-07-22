@@ -110,12 +110,13 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
 
   const bundleArtifact = artifacts.find((artifact) => artifact.artifact_type === "paper_intelligence_bundle");
   const podcastArtifact = artifacts.find((artifact) => artifact.artifact_type === "podcast_script");
-  const bundlePayload = bundleArtifact?.effective_json;
-  const podcastPayload = podcastArtifact?.effective_json;
+  const bundlePayload = bundleArtifact?.effective_json ?? bundleArtifact?.generated_json;
+  const podcastPayload = podcastArtifact?.effective_json ?? podcastArtifact?.generated_json;
   const bundle = isPaperBundle(bundlePayload) ? bundlePayload : null;
   const podcast = isPodcastScript(podcastPayload) ? podcastPayload : null;
   const latestArtifact = bundle ? bundleArtifact : podcast ? podcastArtifact : undefined;
-  const hasPendingArtifact = artifacts.length > 0 && !bundle && !podcast;
+  const artifactNeedsReview = Boolean(latestArtifact && latestArtifact.review_status !== "approved");
+  const hasUnreadableArtifact = artifacts.length > 0 && !bundle && !podcast;
 
   function generateArtifacts() {
     const overwrite = artifacts.length > 0;
@@ -230,6 +231,11 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
       <p className="notice notice--warning">
         {bundle?.generated_notice ?? "These outputs are AI-assisted and source-cited where possible. Grounding status reports structural citations and weak lexical overlap, not entailment or factual correctness; check every source before use."}
       </p>
+      {artifactNeedsReview ? (
+        <p className="notice notice--warning">
+          Public AI-generated draft: this current version is available without administrator approval and has not been verified by a human reviewer.
+        </p>
+      ) : null}
       {artifactLoading && (bundle || podcast) ? <InlineProgress label="Refreshing paper intelligence while keeping the current artifacts visible..." /> : null}
       {artifactError ? <p className="notice notice--error">{artifactError}</p> : null}
       {latestArtifact ? (
@@ -239,7 +245,7 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
             <StatusBadge label={latestArtifact.grounding_status} tone={latestArtifact.grounding_status === "grounded" ? "good" : "warn"} />
           </div>
           <span>Provider/model: {latestArtifact.provenance?.provider ?? latestArtifact.provider ?? "unavailable"} / {latestArtifact.provenance?.model ?? latestArtifact.model ?? "unavailable"}</span>
-          {latestArtifact.provenance ? <span>Approved version: {latestArtifact.provenance.approved_version}</span> : null}
+          {latestArtifact.provenance?.approved_version ? <span>Approved version: {latestArtifact.provenance.approved_version}</span> : <span>Current generated version · not human-reviewed</span>}
           {latestArtifact.provenance?.generated_at || latestArtifact.created_at ? (
             <span>Generated: {new Date(latestArtifact.provenance?.generated_at ?? latestArtifact.created_at ?? "").toLocaleString()}</span>
           ) : null}
@@ -274,9 +280,9 @@ export function PaperDetail({ paper, onBack, onSelectPaper, onAskPaper, onNotify
         </div>
       ) : (
         <EmptyState
-          title={hasPendingArtifact ? "Paper intelligence is awaiting approval" : "No paper intelligence artifacts yet"}
-          body={hasPendingArtifact
-            ? "Generated content is withheld from this public view until a permitted human administrator approves its current version. Review it in the protected Admin workspace."
+          title={hasUnreadableArtifact ? "Paper intelligence could not be displayed" : "No paper intelligence artifacts yet"}
+          body={hasUnreadableArtifact
+            ? "The current generated artifact has an incomplete or unsupported payload. Regenerate it to restore the public paper-intelligence view."
             : "Generate artifacts after chunks are available to show summaries, limitations, extensions, skills, evaluation plans, and podcast script text."}
         />
       )}

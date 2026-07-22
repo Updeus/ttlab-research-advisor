@@ -4,6 +4,7 @@ import {
   fetchPapers,
   generatePaperArtifacts,
   patchAdminPaper,
+  previewBulkApproval,
   recommendExtensions,
   reviewGraphRecord,
   setReviewerToken,
@@ -83,5 +84,22 @@ describe("API request boundaries", () => {
 
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ overwrite: false });
     expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body))).toMatchObject({ overwrite: true });
+  });
+
+  it("requests the explicit catch-all bulk approval mode", async () => {
+    const token = "a".repeat(32);
+    setReviewerToken(token);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(() => json({
+      operation_id: "catch-all-op",
+      preview_hash: "a".repeat(64),
+      eligible_count: 3,
+      blocked_count: 2,
+      approval_mode: "catch_all",
+    }));
+
+    await previewBulkApproval("catch_all");
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({ approval_mode: "catch_all" });
+    expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get("Authorization")).toBe(`Bearer ${token}`);
   });
 });

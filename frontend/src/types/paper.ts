@@ -406,6 +406,59 @@ export type LocalLlmStatus = {
   model_policy?: "all_installed_local_models" | "pinned_digest_only";
 };
 
+export type IdeaChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export type IdeaGenerationRequest = {
+  message: string;
+  history: IdeaChatMessage[];
+};
+
+export type GeneratedIdea = {
+  title: string;
+  research_question: string;
+  summary: string;
+  why_it_fits: string;
+  mvp_scope: string;
+  skills: string[];
+  evaluation_plan: string;
+  basis: "paper_informed" | "general_suggestion";
+  source_chunk_ids: string[];
+};
+
+export type IdeaCitation = {
+  paper_id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  chunk_id: string;
+  section: string | null;
+  page_start: number | null;
+  page_end: number | null;
+  snippet: string;
+  score: number;
+  source_url: string | null;
+  pdf_url: string | null;
+};
+
+export type IdeaGenerationResponse = {
+  message_id: string;
+  reply: string;
+  paper_match_status: "matched" | "none";
+  ideas: GeneratedIdea[];
+  citations: IdeaCitation[];
+  provider: "ollama";
+  model: string;
+  generation_metadata: Record<string, unknown>;
+  runtime_provenance: Record<string, unknown>;
+  warnings: string[];
+  created_at: string;
+  demo_preview?: boolean;
+  corpus_access_mode?: "approved_public_projection" | "unreviewed_local_demo_preview";
+};
+
 export type ExtensionFinderRequest = {
   interests: string;
   skills: string[];
@@ -612,7 +665,7 @@ export type PaperArtifact = {
     provider: string;
     model: string;
     generated_at: string;
-    approved_version: "generated" | "corrected" | string;
+    approved_version: "generated" | "corrected" | string | null;
     correction_fields: string[];
   };
   warnings: string[];
@@ -676,6 +729,8 @@ export type AdminPublicationPreviewPaper = {
   year: number | null;
   venue: string | null;
   topics: string[];
+  source_url?: string | null;
+  post_url?: string | null;
   pdf_text_status: string;
   corpus_eligibility_status: string;
   corpus_exclusion_reason: string | null;

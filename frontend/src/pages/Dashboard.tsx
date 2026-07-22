@@ -34,7 +34,7 @@ export function Dashboard({ stats, papers }: DashboardProps) {
     { label: "Feature-hashing baseline", value: stats?.feature_hashing_indexed_chunks ?? 0, note: stats?.index_health.feature_hashing.projection_status ?? "status unavailable" },
     { label: "Dense semantic", value: stats?.dense_indexed_chunks ?? 0, note: stats?.index_health.dense.projection_status ?? "status unavailable" },
     { label: "Ask answers", value: "Not published" },
-    { label: "Extension ideas", value: "Not published" },
+    { label: "Idea Generator", value: "Ollama only", note: "session-only student chat" },
     { label: "Papers with artifacts", value: "Not published" },
     { label: "Podcast scripts", value: "Not published" },
   ];

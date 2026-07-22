@@ -16,6 +16,7 @@ logger = logging.getLogger("ttlab.api")
 
 PUBLIC_GENERATION_PATHS = {
     ("POST", "/api/ask"),
+    ("POST", "/api/recommendations/ideas"),
     ("POST", "/api/recommendations/extensions"),
 }
 

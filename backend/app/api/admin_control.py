@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlmodel import Session, func, select
 
-from app.admin_accounts import create_admin_user, public_admin, verify_password
+from app.admin_accounts import SENSITIVE_CONFIRMATION_MINUTES, aware, create_admin_user, public_admin, verify_password
 from app.api.admin import (
     apply_review_metadata,
     artifact_correction_blockers,
@@ -29,7 +29,7 @@ from app.db import get_session
 from app.features import FEATURE_DEFINITIONS, feature_payload, set_feature
 from app.intelligence.local_llms import list_ollama_models
 from app.models import Author, AuthorAlias, AuthorTopic, IngestionCandidate, Paper, PaperArtifact, PaperTopic, RAGAnswer, ThesisRecommendation, Topic
-from app.models.admin import AdminUser, BulkOperation, OllamaModelPolicy
+from app.models.admin import AdminSession, AdminUser, BulkOperation, OllamaModelPolicy
 from app.publication import content_generation_diagnostics
 from app.security import AuthenticatedActor, require_admin
 
@@ -77,6 +77,7 @@ class ModelUpdate(BaseModel):
 
 class BulkPreviewRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    approval_mode: Literal["eligible", "catch_all"] = "eligible"
     item_types: list[Literal[
         "papers", "extractions", "authors", "aliases", "topics", "paper_topics",
         "author_topics", "artifacts", "answers", "recommendations",
@@ -114,9 +115,25 @@ def current_admin(session: Session, actor: AuthenticatedActor) -> AdminUser | No
 def require_recent_password(session: Session, actor: AuthenticatedActor, password: str | None) -> None:
     if actor.local_demo_bypass:
         return
+    verified_at = aware(actor.password_verified_at)
+    if (
+        actor.auth_method == "session"
+        and verified_at is not None
+        and verified_at >= now() - timedelta(minutes=SENSITIVE_CONFIRMATION_MINUTES)
+    ):
+        return
     user = current_admin(session, actor)
     if user is None or not password or not verify_password(user, password):
-        raise HTTPException(status_code=403, detail="Current administrator password is required")
+        raise HTTPException(
+            status_code=403,
+            detail="Re-enter your current administrator password; the previous confirmation is older than 15 minutes",
+        )
+    if actor.session_digest:
+        admin_session = session.get(AdminSession, actor.session_digest)
+        if admin_session is not None:
+            admin_session.password_verified_at = now()
+            session.add(admin_session)
+            session.commit()
 
 
 @router.get("/summary")
@@ -331,7 +348,12 @@ def update_model(
     return {"model_name": row.model_name, "enabled": row.enabled, "is_default": row.is_default, "digest": row.digest}
 
 
-def bulk_candidates(session: Session, requested: list[str]) -> dict[str, Any]:
+def bulk_candidates(
+    session: Session,
+    requested: list[str],
+    *,
+    approval_mode: Literal["eligible", "catch_all"] = "eligible",
+) -> dict[str, Any]:
     eligible: list[dict[str, str]] = []
     blocked: list[dict[str, object]] = []
 
@@ -343,10 +365,23 @@ def bulk_candidates(session: Session, requested: list[str]) -> dict[str, Any]:
 
     if "papers" in requested:
         for item in session.exec(select(Paper)).all():
-            consider("paper", item.paper_id, item.review_status, [] if item.title.strip() and item.authors else ["title_or_authors_missing"])
+            blockers = (
+                ["missing_pdf"]
+                if approval_mode == "catch_all" and item.pdf_text_status == "missing_pdf"
+                else []
+                if approval_mode == "catch_all" or (item.title.strip() and item.authors)
+                else ["title_or_authors_missing"]
+            )
+            consider("paper", item.paper_id, item.review_status, blockers)
     if "extractions" in requested:
         for item in session.exec(select(Paper)).all():
-            blockers = [] if item.pdf_text_status == "extracted" and item.chunk_count > 0 and not item.ocr_review_required else ["extraction_or_chunks_not_ready"]
+            blockers = (
+                ["missing_pdf"]
+                if approval_mode == "catch_all" and item.pdf_text_status == "missing_pdf"
+                else []
+                if approval_mode == "catch_all" or (item.pdf_text_status == "extracted" and item.chunk_count > 0 and not item.ocr_review_required)
+                else ["extraction_or_chunks_not_ready"]
+            )
             consider("extraction", item.paper_id, item.extraction_review_status, blockers)
     for requested_key, kind, model, status_attr, id_attr, blocker_fn in (
         ("authors", "author", Author, "identity_review_status", "id", author_approval_blockers),
@@ -359,12 +394,22 @@ def bulk_candidates(session: Session, requested: list[str]) -> dict[str, Any]:
     ):
         if requested_key in requested:
             for item in session.exec(select(model)).all():
-                consider(kind, str(getattr(item, id_attr)), str(getattr(item, status_attr)), list(blocker_fn(session, item)))
+                blockers = [] if approval_mode == "catch_all" else list(blocker_fn(session, item))
+                consider(kind, str(getattr(item, id_attr)), str(getattr(item, status_attr)), blockers)
     if "answers" in requested:
         for item in session.exec(select(RAGAnswer)).all():
-            blockers = [] if item.grounding_status != "unsupported" and item.citations_json else ["answer_not_grounded_or_cited"]
+            blockers = (
+                []
+                if approval_mode == "catch_all" or (item.grounding_status != "unsupported" and item.citations_json)
+                else ["answer_not_grounded_or_cited"]
+            )
             consider("rag_answer", item.answer_id, item.review_status, blockers)
-    snapshot = {"eligible": eligible, "blocked": blocked, "requested_item_types": requested}
+    snapshot = {
+        "eligible": eligible,
+        "blocked": blocked,
+        "requested_item_types": requested,
+        "approval_mode": approval_mode,
+    }
     snapshot_hash = hashlib.sha256(json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return {**snapshot, "preview_hash": snapshot_hash, "eligible_count": len(eligible), "blocked_count": len(blocked)}
 
@@ -375,10 +420,10 @@ def preview_bulk(
     session: Annotated[Session, Depends(get_session)],
     actor: Annotated[AuthenticatedActor, Depends(require_admin)],
 ) -> dict[str, object]:
-    preview = bulk_candidates(session, payload.item_types)
+    preview = bulk_candidates(session, payload.item_types, approval_mode=payload.approval_mode)
     operation = BulkOperation(
         operation_id=str(uuid4()),
-        operation_type="approve_all_eligible",
+        operation_type="approve_all_except_missing_pdfs" if payload.approval_mode == "catch_all" else "approve_all_eligible",
         preview_hash=str(preview["preview_hash"]),
         request_json=payload.model_dump(),
         preview_json=preview,
@@ -402,7 +447,12 @@ def execute_bulk(
     expires = operation.expires_at.replace(tzinfo=UTC) if operation.expires_at.tzinfo is None else operation.expires_at
     if operation.status != "previewed" or expires <= now():
         raise HTTPException(status_code=409, detail="Bulk preview expired or was already used")
-    fresh = bulk_candidates(session, list(operation.request_json.get("item_types") or []))
+    approval_mode = str(operation.request_json.get("approval_mode") or "eligible")
+    fresh = bulk_candidates(
+        session,
+        list(operation.request_json.get("item_types") or []),
+        approval_mode="catch_all" if approval_mode == "catch_all" else "eligible",
+    )
     if payload.preview_hash != operation.preview_hash or fresh["preview_hash"] != operation.preview_hash:
         raise HTTPException(status_code=409, detail="Review state changed; create a fresh preview")
     approved: list[dict[str, str]] = []
@@ -418,6 +468,11 @@ def execute_bulk(
         "rag_answer": (RAGAnswer, "review_status"),
         "thesis_recommendation": (ThesisRecommendation, "review_status"),
     }
+    audit_note = (
+        "Approved by catch-all operation; missing-PDF papers were excluded."
+        if approval_mode == "catch_all"
+        else "Approved in bulk readiness operation."
+    )
     for target in fresh["eligible"]:
         kind, item_id = str(target["item_type"]), str(target["item_id"])
         model, status_attr = model_map[kind]
@@ -427,15 +482,15 @@ def execute_bulk(
         previous = str(getattr(item, status_attr))
         setattr(item, status_attr, "approved")
         if kind == "extraction":
-            item.extraction_reviewer_notes = "Approved in bulk readiness operation."
+            item.extraction_reviewer_notes = audit_note
             item.extraction_reviewed_at = now()
             item.extraction_reviewed_by = actor.actor_id
         elif kind == "author":
-            item.identity_review_notes = "Approved in bulk readiness operation."
+            item.identity_review_notes = audit_note
             item.identity_reviewed_at = now()
             item.identity_reviewed_by = actor.actor_id
         else:
-            apply_review_metadata(item, "approved", "Approved in bulk readiness operation.", actor)
+            apply_review_metadata(item, "approved", audit_note, actor)
         if hasattr(item, "updated_at"):
             item.updated_at = now()
         event = create_review_event(
@@ -445,7 +500,7 @@ def execute_bulk(
             action="bulk_approved",
             previous_status=previous,
             new_status="approved",
-            notes="Approved in bulk readiness operation.",
+            notes=audit_note,
             diff={status_attr: {"before": previous, "after": "approved"}, "bulk_operation_id": operation.operation_id},
             actor=actor,
         )

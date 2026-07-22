@@ -6,6 +6,7 @@ import ipaddress
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Annotated, Literal
 from urllib.parse import urlparse
 
@@ -68,6 +69,8 @@ class AuthenticatedActor:
     auth_method: str = "bearer"
     username: str | None = None
     must_change_password: bool = False
+    session_digest: str | None = None
+    password_verified_at: datetime | None = None
 
 
 bearer_scheme = HTTPBearer(
@@ -282,6 +285,8 @@ def get_current_actor(
                     auth_method="session",
                     username=user.username,
                     must_change_password=user.must_change_password,
+                    session_digest=session_record.session_digest,
+                    password_verified_at=session_record.password_verified_at,
                 ),
             )
     if credentials is None:

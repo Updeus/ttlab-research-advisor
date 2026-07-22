@@ -2140,6 +2140,7 @@ def serialize_paper_for_admin(session: Session, paper: Paper) -> dict[str, Any]:
         "venue": paper.venue,
         "topics": paper.topics,
         "source_url": paper.source_url,
+        "post_url": paper.post_url,
         "pdf_url": paper.pdf_url,
         "abstract": paper.abstract,
         "doi": paper.doi,

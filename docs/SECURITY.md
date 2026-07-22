@@ -48,6 +48,11 @@ one-time temporary password created in Admin Control; the account must change it
 before administrative mutations. Administrators cannot deactivate themselves or
 the final active account.
 
+A successful login also confirms the password for sensitive model, account, and
+publication actions for 15 minutes. After that window, the affected dashboard
+panel asks for the current password again and refreshes the confirmation window.
+The publication authority/rights note is an audit justification, not a password.
+
 ## Creating bearer actors
 
 Generate a separate random 256-bit token per actor. Never use a password or a

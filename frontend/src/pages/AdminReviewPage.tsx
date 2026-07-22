@@ -266,6 +266,7 @@ export function AdminReviewPage({ papers, onSelectPaper, onNotify, onDataChanged
       {activeTab === "overview" ? (
         <AdminOverviewPanel
           overview={overview}
+          publicationPreview={publicationPreview}
           syncStatus={syncStatus}
           loading={loading}
           requestingSync={requestingSync}
@@ -395,13 +396,15 @@ function AdminControlPanel({ onComplete, onError }: { onComplete: (message: stri
   const [candidates, setCandidates] = useState<IngestionCandidate[]>([]);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState("");
-  const [bulkPreview, setBulkPreview] = useState<{ operation_id: string; preview_hash: string; eligible_count: number; blocked_count: number } | null>(null);
+  const [bulkPreview, setBulkPreview] = useState<{ operation_id: string; preview_hash: string; eligible_count: number; blocked_count: number; approval_mode: "eligible" | "catch_all" } | null>(null);
+  const [catchAllConfirmed, setCatchAllConfirmed] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [newDisplayName, setNewDisplayName] = useState("");
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
   const [publicationPreview, setPublicationPreview] = useState<{ operation_id: string; preview_hash: string; eligible_count: number; blocked_count: number } | null>(null);
   const [rightsAttested, setRightsAttested] = useState(false);
   const [attestationNote, setAttestationNote] = useState("");
+  const [publicationPassword, setPublicationPassword] = useState("");
   const [controlError, setControlError] = useState<string | null>(null);
 
   function refreshControl() {
@@ -452,17 +455,51 @@ function AdminControlPanel({ onComplete, onError }: { onComplete: (message: stri
       </div>
       <div>
         <h3>Batch approvals</h3>
-        <p>Preview is mandatory. Items with missing metadata, incomplete extraction, ungrounded answers, or inconsistent corrections stay blocked.</p>
+        <p>Preview is mandatory. Use the normal readiness approval, or the catch-all action to approve every review item except papers and extractions whose PDF status is missing.</p>
         {!bulkPreview ? (
-          <BusyButton busy={busy === "preview"} busyLabel="Checking blockers…" onClick={() => {
-            setBusy("preview");
-            previewBulkApproval().then(setBulkPreview).catch(onError).finally(() => setBusy(""));
-          }}>Preview eligible approvals</BusyButton>
+          <div className="admin-action-row">
+            <BusyButton busy={busy === "preview"} busyLabel="Checking blockers…" onClick={() => {
+              setBusy("preview");
+              previewBulkApproval("eligible").then(setBulkPreview).catch(onError).finally(() => setBusy(""));
+            }}>Preview eligible approvals</BusyButton>
+            <BusyButton variant="danger" busy={busy === "preview-catch-all"} busyLabel="Building catch-all preview…" onClick={() => {
+              setBusy("preview-catch-all");
+              setCatchAllConfirmed(false);
+              previewBulkApproval("catch_all").then(setBulkPreview).catch(onError).finally(() => setBusy(""));
+            }}>Preview Approve All</BusyButton>
+          </div>
         ) : (
-          <div className="notice">
+          <div className={bulkPreview.approval_mode === "catch_all" ? "notice notice--warning" : "notice"}>
             <p><strong>{bulkPreview.eligible_count}</strong> eligible; <strong>{bulkPreview.blocked_count}</strong> blocked and unchanged.</p>
-            <BusyButton busy={busy === "approve"} busyLabel="Approving…" onClick={() => run("approve", () => executeBulkApproval(bulkPreview.operation_id, bulkPreview.preview_hash), "Eligible review items approved in one audited operation.")}>Approve eligible items</BusyButton>
-            <button className="link-button" onClick={() => setBulkPreview(null)}>Discard preview</button>
+            {bulkPreview.approval_mode === "catch_all" ? (
+              <>
+                <p><strong>Warning:</strong> this bypasses normal metadata, grounding, correction, and dependency blockers. Only missing-PDF papers and their extraction reviews remain unapproved.</p>
+                <label className="admin-control-row">
+                  <input type="checkbox" checked={catchAllConfirmed} onChange={(event) => setCatchAllConfirmed(event.target.checked)} />
+                  <span><strong>I understand this approves all other current review items.</strong></span>
+                </label>
+              </>
+            ) : null}
+            <div className="admin-action-row">
+              <BusyButton
+                variant={bulkPreview.approval_mode === "catch_all" ? "danger" : "primary"}
+                disabled={bulkPreview.approval_mode === "catch_all" && !catchAllConfirmed}
+                busy={busy === "approve"}
+                busyLabel="Approving…"
+                onClick={() => run(
+                  "approve",
+                  () => executeBulkApproval(bulkPreview.operation_id, bulkPreview.preview_hash).then((result) => {
+                    setBulkPreview(null);
+                    setCatchAllConfirmed(false);
+                    return result;
+                  }),
+                  bulkPreview.approval_mode === "catch_all"
+                    ? "All current review items except missing-PDF papers were approved in one audited operation."
+                    : "Eligible review items approved in one audited operation.",
+                )}
+              >{bulkPreview.approval_mode === "catch_all" ? "Approve Everything Except Missing PDFs" : "Approve eligible items"}</BusyButton>
+              <button className="link-button" onClick={() => { setBulkPreview(null); setCatchAllConfirmed(false); }}>Discard preview</button>
+            </div>
           </div>
         )}
       </div>
@@ -499,8 +536,11 @@ function AdminControlPanel({ onComplete, onError }: { onComplete: (message: stri
             <label><input type="checkbox" checked={rightsAttested} onChange={(event) => setRightsAttested(event.target.checked)} /> I attest TTLAB has the right to expose these papers and their indexed text.</label>
             <label htmlFor="rights-attestation-note">Attestation record</label>
             <textarea id="rights-attestation-note" minLength={10} required value={attestationNote} onChange={(event) => setAttestationNote(event.target.value)} placeholder="State the authority or rights basis for publication." />
-            <BusyButton disabled={!rightsAttested || attestationNote.trim().length < 10} busy={busy === "publish"} busyLabel="Publishing…" onClick={() => run("publish", () => publishEligiblePapers(publicationPreview.operation_id, publicationPreview.preview_hash, attestationNote, password).then((result) => { setPassword(""); setPublicationPreview(null); setRightsAttested(false); setAttestationNote(""); return result; }), "Eligible papers published with an audited rights attestation.")}>Attest and publish eligible papers</BusyButton>
-            <button className="link-button" onClick={() => { setPublicationPreview(null); setRightsAttested(false); setAttestationNote(""); }}>Discard preview</button>
+            <label htmlFor="publication-current-password">Current password for publication</label>
+            <input id="publication-current-password" type="password" autoComplete="current-password" value={publicationPassword} onChange={(event) => setPublicationPassword(event.target.value)} />
+            <p className="field-help">A recent login already counts. Re-enter your password here only if the server says the 15-minute confirmation has expired.</p>
+            <BusyButton disabled={!rightsAttested || attestationNote.trim().length < 10} busy={busy === "publish"} busyLabel="Publishing…" onClick={() => run("publish", () => publishEligiblePapers(publicationPreview.operation_id, publicationPreview.preview_hash, attestationNote, publicationPassword).then((result) => { setPublicationPassword(""); setPublicationPreview(null); setRightsAttested(false); setAttestationNote(""); return result; }), "Eligible papers published with an audited rights attestation.")}>Attest and publish eligible papers</BusyButton>
+            <button className="link-button" onClick={() => { setPublicationPreview(null); setRightsAttested(false); setAttestationNote(""); setPublicationPassword(""); }}>Discard preview</button>
           </div>
         )}
       </div>
@@ -663,6 +703,7 @@ function PublicationDecisionCard({
 
 function AdminOverviewPanel({
   overview,
+  publicationPreview,
   syncStatus,
   loading,
   requestingSync,
@@ -670,6 +711,7 @@ function AdminOverviewPanel({
   capabilities,
 }: {
   overview: AdminOverview | null;
+  publicationPreview: AdminPublicationPreview | null;
   syncStatus: IngestionSyncStatus | null;
   loading: boolean;
   requestingSync: boolean;
@@ -690,6 +732,9 @@ function AdminOverviewPanel({
   if (!overview) {
     return <EmptyState title="Admin overview is not available yet" body="Start the backend and refresh this local demo page." />;
   }
+  const missingPdfPapers = (publicationPreview?.items ?? []).filter(
+    (paper) => paper.pdf_text_status === "missing_pdf",
+  );
   return (
     <>
       <article className="admin-card ingestion-sync-card" aria-labelledby="ingestion-sync-title">
@@ -772,6 +817,38 @@ function AdminOverviewPanel({
           <Metric label="Recommendations needing review" value={overview.thesis_recommendations.needs_review ?? 0} />
           <Metric label="Review events" value={overview.total_review_events} />
           <Metric label="Chunks" value={overview.total_chunks} />
+        </div>
+      </section>
+
+      <section className="admin-card" aria-labelledby="missing-pdf-papers-title">
+        <div className="section-heading section-heading--compact">
+          <div>
+            <p className="eyebrow">TTLAB website records</p>
+            <h2 id="missing-pdf-papers-title">Papers missing PDFs</h2>
+          </div>
+          <StatusBadge label={`${missingPdfPapers.length} papers`} tone={missingPdfPapers.length ? "warn" : "good"} />
+        </div>
+        <p className="field-help">These publications exist in the TTLAB catalogue but do not currently have a PDF attached. Open the TTLAB page to locate or correct the source document.</p>
+        <div className="paper-list paper-list--compact">
+          {missingPdfPapers.map((paper) => {
+            const ttlabUrl = paper.post_url || paper.source_url;
+            return (
+              <article className="review-row" key={paper.paper_id}>
+                <div>
+                  <div className="paper-card__meta">
+                    <span>{paper.year ?? "Year unavailable"}</span>
+                    <span>{paper.pdf_unavailability_reason ?? "PDF not attached"}</span>
+                  </div>
+                  <h3>{paper.title}</h3>
+                  <p>{paper.authors.join(", ") || "Authors need review"}</p>
+                </div>
+                {ttlabUrl ? <a className="action-link" href={ttlabUrl} target="_blank" rel="noreferrer">Open TTLAB page</a> : <span className="field-help">TTLAB link unavailable</span>}
+              </article>
+            );
+          })}
+          {!missingPdfPapers.length ? (
+            <EmptyState title="No TTLAB papers are missing PDFs" body="Every current catalogue record has a PDF source attached." />
+          ) : null}
         </div>
       </section>
 

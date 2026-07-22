@@ -401,6 +401,33 @@ def test_demo_explorer_shows_unreviewed_graph_without_public_approval() -> None:
     assert isinstance(related, list)
 
 
+def test_public_explorer_lists_unreviewed_bibliographic_authors_from_public_papers() -> None:
+    engine = build_explorer_engine()
+    with Session(engine) as session:
+        rebuild_topic_index(session)
+        approve_explorer_graph(session)
+        for author in session.exec(select(Author)).all():
+            author.identity_status = "unresolved"
+            author.review_status = "needs_review"
+            author.identity_review_status = "needs_review"
+            session.add(author)
+        session.commit()
+
+    with Session(engine) as session:
+        authors = list_authors(session)
+        overview = explorer_overview(session)
+        author = authors["items"][0]
+        detail = author_detail(session, author["author_id"])
+
+    assert authors["total"] > 0
+    assert author["paper_count"] > 0
+    assert author["identity_review_status"] == "needs_review"
+    assert overview["top_authors"]
+    assert overview["author_count"] == authors["total"]
+    assert detail is not None
+    assert detail["papers"]
+
+
 def test_demo_prepare_helper_is_idempotent_in_skip_mode(monkeypatch) -> None:
     engine = build_explorer_engine()
     monkeypatch.setattr(

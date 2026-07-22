@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+
+import pytest
+from fastapi import HTTPException
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 from starlette.requests import Request
@@ -10,6 +14,7 @@ from app.admin_accounts import (
     create_admin_user,
     resolve_admin_session,
 )
+from app.api.admin_control import require_recent_password
 from app.config import Settings
 from app.features import ensure_feature_settings, set_feature
 from app.security import get_current_actor, get_optional_actor
@@ -91,6 +96,25 @@ def test_local_admin_session_csrf_feature_control_and_account_creation() -> None
         )
         assert optional_actor is not None
         assert optional_actor.actor_id == user.user_id
+
+        # A fresh authenticated login is sufficient for a sensitive action;
+        # the UI must not immediately demand the same password again.
+        require_recent_password(session, actor, None)
+
+        stored_session = session.get(type(_record), _record.session_digest)
+        assert stored_session is not None
+        stored_session.password_verified_at = datetime.now(UTC) - timedelta(minutes=16)
+        session.add(stored_session)
+        session.commit()
+        stale_actor = get_current_actor(
+            request_with_cookies("PATCH", raw_session, raw_csrf),
+            None,
+            settings,
+            session,
+        )
+        with pytest.raises(HTTPException, match="older than 15 minutes"):
+            require_recent_password(session, stale_actor, None)
+        require_recent_password(session, stale_actor, "correct horse battery staple")
 
         features = ensure_feature_settings(session)
         assert all(item.enabled for item in features)

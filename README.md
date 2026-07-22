@@ -6,7 +6,7 @@ platform.**
 Developed as an MSc Data Science project, this platform ingests and inspects
 TTLAB publications, searches full-paper content, answers questions with paper/
 chunk/page evidence, discovers publication-derived topics and authors, and
-generates explicitly labeled thesis-extension suggestions and paper-
+generates explicitly labeled Ollama-assisted thesis ideas, structured thesis-extension suggestions, and paper-
 intelligence drafts. It extends *Automating the
 Collection, Display, Summarization and Podcasting of Academic Research* beyond
 metadata and abstracts into full-text retrieval, source-traceable RAG,
@@ -38,8 +38,12 @@ claim is correct, complete, novel, feasible, or supervisor-approved.
   source links, citation pruning, requested/configured/effective provider
   provenance, and transient public requests by default. Automated source checks
   are capped at `support_unverified`; they do not assert entailment.
-- Thesis Extension Finder with an evidence-only alternative and separate paper
-  facts, paper-stated future work, inferred gaps, and system suggestions.
+- Ollama-only Idea Generator chat that uses related approved paper chunks when
+  available and still returns clearly labeled general suggestions when no close
+  paper match exists. Public conversations are transient page/request state.
+- A retained structured Thesis Extension Finder backend with an evidence-only
+  alternative and separate paper facts, paper-stated future work, inferred gaps,
+  and system suggestions; it is no longer the public `/extensions` interface.
 - Public/technical summaries, contributions, methods, limitations, future work,
   skills/evaluation plans, and text-only podcast scripts.
 - Publication-derived Topic/Author Explorer and explainable related-paper links.
@@ -232,7 +236,7 @@ The launcher binds locally and opts into a clearly labeled insecure demo admin
 bypass. Responses carry `X-TTLAB-Insecure-Demo: true`. Never enable this bypass
 in production. In this loopback-only mode all interactive product screens use a
 clearly labeled preview of the technically eligible corpus: Dashboard, Paper
-Browser, Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer,
+    Browser, Search, Ask TTLAB, Idea Generator, Topic/Author Explorer,
 related papers, generated summaries/podcast scripts, Evaluation, and Admin
 review. Draft artifacts and graph links remain visibly labeled with their review
 status; enabling the demo does not rewrite stored publication or rights decisions.
@@ -245,6 +249,19 @@ actor exists.
 
 ### Administrator setup and control center
 
+For an authenticated local stack with real administrator passwords, Ollama,
+the backend, and a built frontend bundle, run:
+
+```bash
+./scripts/start_authenticated_stack.sh
+```
+
+The launcher creates the first `jarod` administrator interactively only when no
+administrator exists. It reuses healthy services, starts missing ones on
+loopback, reports `/ready`, and stops only processes it started when interrupted.
+This is an authenticated local deployment for demonstrations; strict public
+production still requires the HTTPS proxy and controls in `docs/DEPLOYMENT.md`.
+
 Create the first production administrator before starting the API:
 
 ```bash
@@ -256,6 +273,9 @@ administrators can be created in **Admin Control**; each temporary password is
 shown once and must be changed at first sign-in. The control center also provides
 persistent public-feature switches, exact-digest Ollama controls, preview-before-
 execute bulk approval, review blockers, and the protected TTLAB discovery trigger.
+The explicitly confirmed catch-all approval bypasses normal review blockers but
+still excludes papers and extraction reviews whose PDF status is `missing_pdf`;
+every changed record retains an audited bulk-operation event.
 Disabled features disappear from public navigation and their APIs return a stable
 `503 feature_disabled` response while admin diagnostics remain accessible.
 
@@ -354,6 +374,24 @@ remaining operator controls.
 
 ## Use the intelligence features
 
+Open `/extensions` in the frontend for the Idea Generator. It uses the
+administrator-approved default Ollama model; students cannot select a provider
+or model. Each successful turn returns conversational guidance plus one to three
+idea cards. When retrieval finds an applicable paper, the response exposes its
+bounded source passage as background. When retrieval finds no defensible match,
+Ollama still proposes general directions without paper citations. The public
+endpoint does not save the conversation, and it never falls back to another
+provider: an unavailable or invalid Ollama response produces an explicit retry
+state.
+
+Direct API example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/recommendations/ideas \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"I know Python and want an agriculture thesis idea.","history":[]}'
+```
+
 Ask a question:
 
 ```bash
@@ -397,8 +435,9 @@ model tag but not an immutable digest. In that case the output is honestly
 attributed to the tag with `generation_time_digest_verified=false`; the
 pre/post checks narrow tag-swap risk but are not a generation-time digest
 attestation. If the service or configured digest is unavailable, the
-application records the requested/configured/effective provider and explicit
-offline fallback reason. The historical QA study contains no Ollama quality or
+Ask TTLAB records the requested/configured/effective provider and explicit
+offline fallback reason. Idea Generator is intentionally stricter: it returns a
+retryable error instead of using the extractive provider. The historical QA study contains no Ollama quality or
 latency comparison because the service was unavailable.
 
 ## Evaluation and reproduction
@@ -523,6 +562,7 @@ projection and include:
 
 - `GET /health`, `GET /ready`, `GET /api/stats`
 - `GET /api/papers`, `GET /api/papers/{paper_id}`
+- `GET /api/papers/{paper_id}/artifacts` (current generated versions are public and explicitly labeled when not human-reviewed)
 - `GET /api/search?q=RAG&mode=dense`
 - `POST /api/ask`
 - `POST /api/recommendations/extensions`

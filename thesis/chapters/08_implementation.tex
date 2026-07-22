@@ -5,13 +5,13 @@
 
 FastAPI registers public and protected routers; SQLModel maps entities to SQLite. Startup rejects authoritative indexes whose active generation, corpus, configuration, file hash, role, or coverage is invalid. \texttt{/health} reports liveness; \texttt{/ready} separately reports database, retrieval, public-projection, and deployment controls without exposing local paths.
 
-RAG answers retain question, answer, retrieved evidence/citations, provider/model/configuration, corpus/retrieval identity, grounding/support states, warnings, timestamps, and review metadata. Recommendations retain the profile, ranked evidence, gap/suggestion boundary, scope, skills/data/risk/evaluation fields, provenance, and review state. Public serializers omit technical hashes, paths, private notes, and restricted evidence.
+RAG answers retain question, answer, retrieved evidence/citations, provider/model/configuration, corpus/retrieval identity, grounding/support states, warnings, timestamps, and review metadata. Structured recommendations retain the profile, ranked evidence, gap/suggestion boundary, scope, skills/data/risk/evaluation fields, provenance, and review state. Public Idea Generator turns are request-scoped: the response retains provider/model, prompt/configuration hashes, corpus/retrieval identity, source chunks, basis, warnings, and time, but the endpoint does not persist the conversation. Public serializers omit technical hashes, paths, private notes, and restricted evidence.
 
 \section{Retrieval modes}
 
 Keyword retrieval uses SQLite FTS5 and its \texttt{bm25()} rank, with a deterministic token-frequency fallback. Feature hashing maps lower-cased alphanumeric tokens through signed SHA-256 buckets into 256 L2-normalised dimensions. Learned dense retrieval uses the pinned \texttt{all-MiniLM-L6-v2} encoder and 384-dimensional L2-normalised vectors. Long chunks are encoded as overlapping 254-token windows, mean pooled, and renormalised. Query/chunk similarity is cosine similarity.
 
-The heuristic hybrid combines normalised keyword/vector scores with metadata, section, evidence, topic, and diversity terms; historical tuning selected keyword 0.10 and dense 0.80 on development MRR. APIs expose four accurately named modes and source/freshness diagnostics. Public retrieval applies the independent publication projection before fusion and rejects stale chunk bytes, generations, or publication state rather than substitute technical rows.
+The heuristic hybrid combines normalised keyword/vector scores with metadata, section, evidence, topic, and diversity terms; historical tuning selected keyword 0.10 and dense 0.80 on development MRR. APIs expose four accurately named modes and source/freshness diagnostics. The dense runtime caches a validated matrix by atomic pointer/manifest signature, ranks vectors before hydrating only the selected SQLite rows, and invalidates the cache when the active generation changes. Public retrieval applies the independent production projection before fusion and rejects stale chunk bytes, generations, or publication state. A loopback-only demo preview is a separately labelled configuration, not a silent fallback.
 
 \begin{figure}[htbp]
 \centering
@@ -24,7 +24,7 @@ The heuristic hybrid combines normalised keyword/vector scores with metadata, se
 
 \Cref{fig:rag-workflow} traces Ask. A fixed evidence-coverage rule abstains before composition when a question is not answerable; explicit paper scope handles referential wording. The reproducible provider is offline extraction. Claim decomposition prunes unused citations and records \texttt{support\_unverified} until atomic review, so locator validity cannot silently become entailment.
 
-The optional Ollama adapter requires an allowlisted tag/digest, rejects pre/post digest drift, and claims generation-time digest verification only when the response reports it; otherwise it records a mutable-tag limitation. Provider failure yields a visible extractive fallback. The historical service was unavailable, so no model-quality or latency comparison is claimed.
+The optional Ask adapter requires the effective Ollama policy, rejects pre/post digest drift, and claims generation-time digest verification only when the response reports it; otherwise it records a mutable-tag limitation. Provider failure yields a visible extractive fallback. Paper-scoped Ask augments generic referential prompts with the selected paper title before retrieval. The historical service was unavailable, so no model-quality or latency comparison is claimed.
 
 The verifier checks identifiers, generation membership, exact current chunk bytes, page locators, fields, and lexical overlap. Its status is structural grounding; AI-silver review assesses support, citation choice, coverage, and abstention separately.
 
@@ -34,6 +34,16 @@ The verifier checks identifiers, generation membership, exact current chunk byte
 \caption[Search and RAG workflow.]{Search and RAG workflow. All retrieval modes preserve source locators; structural verification is distinct from claim-level support review.}
 \label{fig:rag-workflow}
 \end{figure}
+
+\section{Conversational Idea Generator}
+
+The current public \codepath{/extensions} route is a conversational Idea Generator rather than the structured Finder form. A request contains a message of at most 2,000 characters plus at most twelve prior user/assistant turns and 6,000 history characters. The backend builds a query from the current message and up to three recent user turns, runs keyword retrieval at depth twelve, applies the fixed answerability gate, and retains at most six unique paper sources. The conversation remains browser/request state and is not written to recommendation history.
+
+The local model must return one to three schema-validated ideas containing a title, research question, summary, fit rationale, MVP, skills, evaluation plan, and source aliases. The prompt explicitly prohibits novelty, guaranteed-feasibility, and supervisor-endorsement claims. Every alias is resolved only against the retrieved evidence map. Invalid labels are replaced and warned; an idea with at least one valid alias is \texttt{paper\_informed}, otherwise it is a \texttt{general\_suggestion}. A cited paper therefore supplies background or inspiration, not proof that the proposal is novel, feasible, or supported by that paper.
+
+Idea generation is intentionally strict: it uses the approved local Ollama provider and does not silently fall back to extraction or an external service. Production requires an approved tag/digest; an explicit local demo may permit installed models while recording the observed digest. The service checks identity before and after generation, requests JSON-schema output, makes one bounded repair attempt, returns a retryable 503 when the provider/identity is unavailable, and returns a retryable 502 after two invalid structured responses. Runtime provenance records corpus scope, retrieval strategy, source chunks, prompt-template/configuration hashes, provider/model identity, digest attestation state, and timestamp.
+
+This feature was implemented after the frozen v1/v2 evaluations. Four source-derived formative prompts exercise RAG, agriculture, out-of-corpus, and multi-turn scoping behavior, while backend and frontend tests verify schemas, alias filtering, provenance, no-match labeling, failure states, and transient UI behavior. They are regression fixtures rather than gold judgments and do not establish live-model quality, usefulness, novelty, or feasibility.
 
 \section{Thesis Extension Finder}
 
@@ -82,13 +92,13 @@ Failure states distinguish over-constraint, unavailable index, no approved publi
 
 The explorer uses a controlled \TopicVocabularyCount{}-label taxonomy with source evidence; a dense prototype provides comparison. Author-topic scores use eligible technical publications, while anonymous serialization applies the public projection and never falls back to hidden relations. Related-paper ranking combines shared topics/authors, metadata, lexical overlap, and optional vectors.
 
-The deterministic artifact generator produces public and technical summaries, contributions, methods, limitations, future work, suggested extensions, skills, evaluation plans, and text podcast scripts. Fact, inference, and suggestion types are explicit. The Phase 4 review processed every \GeneratedRagAnswerCount{} historical RAG answers, \GeneratedRecommendationCount{} recommendation runs, and \GeneratedArtifactCount{} artifacts. It regenerated evidence-safe artifacts/recommendations where configuration was sufficient; historical RAG configuration was insufficient, so those \GeneratedNeedsReprocessCount{} records were preserved and marked \texttt{needs\_reprocess}. A disposable replay created \GeneratedReviewEventCount{} new hash-chained events, reused \GeneratedReviewReusedCount{} existing output-version events, and verified \GeneratedReviewVerifiedEventCount{} events without mutating the live database. A second pass changed \GeneratedReviewSecondPassChangedCount{} rows, demonstrating idempotence within that replay boundary.
+The deterministic artifact generator produces public and technical summaries, contributions, methods, limitations, future work, suggested extensions, skills, evaluation plans, and text podcast scripts. Fact, inference, and suggestion types are explicit. Unreviewed generated artifacts may be shown only with an explicit unreviewed-AI warning; corrected replacements enter the public projection only after approval. The Phase 4 review processed every \GeneratedRagAnswerCount{} historical RAG answers, \GeneratedRecommendationCount{} recommendation runs, and \GeneratedArtifactCount{} artifacts. It regenerated evidence-safe artifacts/recommendations where configuration was sufficient; historical RAG configuration was insufficient, so those \GeneratedNeedsReprocessCount{} records were preserved and marked \texttt{needs\_reprocess}. A disposable replay created \GeneratedReviewEventCount{} new hash-chained events, reused \GeneratedReviewReusedCount{} existing output-version events, and verified \GeneratedReviewVerifiedEventCount{} events without mutating the live database. A second pass changed \GeneratedReviewSecondPassChangedCount{} rows, demonstrating idempotence within that replay boundary.
 
 \section{Frontend and evidence communication}
 
-The route-based frontend provides all principal public and protected routes. Screens expose source locators, provider/time, grounding/review, freshness, generated notices, and empty/error/retry/offline states. Public emptiness is labelled as an approval/rights boundary; Evaluation separates historical from identity-bound current evidence. Profiles are transient, and automated tests cover semantics, focus, reduced motion, alternatives, and responsive layouts.
+The route-based frontend provides all principal public and protected routes. Screens expose source locators, provider/model/time, grounding/review, freshness, generated notices, and empty/error/retry/offline states. Feature switches remove disabled routes from navigation while the corresponding API returns a stable \texttt{503 feature\_disabled} response; protected diagnostics remain available. Production public emptiness is labelled as an approval/rights boundary, and local-demo previews carry a persistent insecure-demo warning. Evaluation separates historical from identity-bound current evidence. Profiles and Idea Generator turns are transient, and automated tests cover semantics, focus, reduced motion, alternatives, and responsive layouts.
 
-Public and protected routes deliberately have different data lifecycles. Ask and Finder send one transient request and do not expose history endpoints. Admin Review is rendered only after a reviewer token is entered; the token is held in module/page memory, attached only to protected requests, and is never written to local or session storage. Reloading clears it. This browser behavior supplements---but does not replace---the backend's bearer validation and role checks.
+Public and protected routes deliberately have different data lifecycles. Ask, structured Finder, and Idea Generator calls are transient and expose no public history. Admin Control uses a local account session: the opaque session token is HttpOnly, the readable CSRF cookie is echoed only on state-changing requests, and the browser never receives the password hash. Service bearer actors remain supported for scoped automation. The protected interface exposes review queues plus feature switches, admin-account state, local-model inventory/digest policy, bulk preview/execute, publication preview/execute, and ingestion-sync controls according to actor capability.
 
 \section{Frontend, API, failure, and test traceability}
 
@@ -110,19 +120,19 @@ UI-01 & Search exposes active mode, snippets, locators, scores, and index warnin
 \addlinespace
 UI-02 & Ask identifies generated/transient content, citations, pages, provider, structural grounding, and no-citation state & \codepath{POST /api/ask}; Ask route & \codepath{backend/tests/test\_ask.py}; citation and fallback assertions in frontend tests \\
 \addlinespace
-UI-03 & Finder echoes constraints, offers evidence-only/full modes, separates facts/suggestions, and retries failed requests & \codepath{POST /api/recommendations/extensions}; Finder route & \codepath{test\_extension\_recommender.py}; frontend responsible-AI/E2E scenarios \\
+UI-03 & Idea Generator separates paper-informed/general ideas, validates displayed citations, retains provenance, and exposes retryable provider/schema failures & \codepath{POST /api/recommendations/ideas}; Idea Generator route & \codepath{test\_idea\_generator.py}; frontend Idea Generator tests \\
 \addlinespace
 UI-04 & Topic/author relations expose source-derived qualification, aliases, evidence, related papers, and empty states & explorer overview/topic/author/related endpoints & \codepath{test\_topic\_explorer.py}; explorer frontend tests \\
 \addlinespace
 UI-05 & Evaluation reports dataset/reviewer boundary and negative findings; missing artefact is ``not run'' rather than zero & \codepath{GET /api/evaluation/dashboard}; Evaluation route & evaluation API tests; dashboard component assertions \\
 \addlinespace
-UI-06 & Anonymous users cannot access review queues/history/mutations; invalid/expired credentials fail visibly & protected recommendation/history and \codepath{/api/admin/**}; protected route shell & \codepath{test\_security\_privacy.py}; API-client error/auth tests \\
+UI-06 & Anonymous users cannot access review queues/history/mutations; invalid/expired sessions, bearer actors, or CSRF values fail visibly & protected history and \codepath{/api/admin/**}; Admin Control login/session shell & \codepath{test\_admin\_auth\_control.py}; security/API-client tests \\
 \addlinespace
-UI-07 & Review supports queue filters, evidence preview, correction, actor-typed transitions, and event history & admin overview/queue/patch/events endpoints; Admin route & \codepath{test\_admin\_evaluation.py}; admin component tests \\
+UI-07 & Admin Control supports review, feature/model/account controls, preview-bound bulk/publication operations, and ingestion status & admin overview/control/queue/events endpoints; Admin Control route & admin-auth, bulk-approval, ingestion-sync, and component tests \\
 \addlinespace
 UI-08 & AI actors cannot issue human states; event rows cannot be updated/deleted; correction reopens review & admin review/correction endpoints and persistence layer & role, immutability, correction tests in \codepath{test\_security\_privacy.py} \\
 \addlinespace
-UI-09 & Public question/profile values are request-scoped and not written to history/log output & Ask/Finder transient endpoints; browser memory & non-persistence/redacted-log probes in \codepath{test\_security\_privacy.py} \\
+UI-09 & Public question/profile/conversation values are request-scoped and not written to history/log output & Ask/Finder/ideas transient endpoints; browser memory & non-persistence, Idea Generator, and redacted-log tests \\
 \addlinespace
 UI-10 & Keyboard/semantic labels, visible focus, reduced motion, table/chart alternatives, and responsive layouts remain testable & shared components and every primary route & component accessibility suite plus browser checks at 360, 768, 1024, and 1440 pixels \\
 \bottomrule
@@ -131,28 +141,24 @@ UI-10 & Keyboard/semantic labels, visible focus, reduced motion, table/chart alt
 
 This mapping clarifies the residual human boundary. Automated checks can detect a missing label, hidden focus, unauthorized status code, persistence regression, or absent warning. They cannot establish whether a student understands the distinction between inferred gap and paper-stated future work, whether a screen reader workflow is efficient, or whether a supervisor considers an extension feasible. Those outcomes belong to a later ethics-approved study and independent accessibility assessment.
 
-The requirement--API--test mapping remains the authoritative behavioural evidence. \Cref{fig:interface-governance-evidence} adds two bounded visual records of the implemented evidence boundary. In the Finder state, the fixed synthetic form profile was not sent to the API, diagnostics returned zero publicly searchable papers and chunks, and the action remained disabled. The technical evaluation corpus was not substituted for the empty public projection. In the protected Admin state, a service reviewer can see only aggregate workload counts; the interface identifies the actor type and states that human approval is unavailable. The capture used a physical SQLite snapshot, exact copied indexes, a browser firewall that rejected mutation methods, and before/after source hashes. Its manifest is retained at \codepath{thesis/figures/screenshots/governance-capture-manifest.json} and binds the images to clean commit \codepath{9a274b82d0f7fa68952369d5ec68565b0a93cbb1}.
+The requirement--API--test mapping remains the authoritative behavioural evidence. \Cref{fig:idea-generator-interface,fig:admin-control-interface} add two deterministic visual fixtures of the current interface contract. The Idea Generator fixture shows the conversational prompt, explicit transient-input notice, paper-informed/general distinction, citations, and model/provenance area. The Admin fixture shows authenticated Admin Control navigation and the preview-before-mutation operational boundary. Network responses contain synthetic fixture data and no real student profile, corpus passage, credentials, approval decision, or mutation. The capture manifest at \codepath{thesis/figures/screenshots/governance-capture-manifest.json} records the product-source commit, viewport, scenario labels, screenshot hashes, and this evidential limitation.
 
 \begin{figure}[p]
   \centering
-  \begin{subfigure}{0.98\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figures/screenshots/finder-public-projection-empty.png}
-    \caption{Finder with a transient synthetic profile, zero public evidence, and fail-closed recommendation action.}
-  \end{subfigure}
-  \vspace{4mm}
+  \includegraphics[width=0.96\linewidth,height=0.72\textheight,keepaspectratio]{figures/screenshots/idea-generator-current.png}
+  \caption{Deterministic Idea Generator fixture showing transient conversation and explicit paper-informed/general evidence boundaries. It demonstrates the visible implementation contract only; it is not live-model output, usability evidence, human review, novelty, or feasibility evidence.}
+  \label{fig:idea-generator-interface}
+\end{figure}
 
-  \begin{subfigure}{0.98\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figures/screenshots/admin-governance-shell-current.png}
-    \caption{Protected aggregate governance view for a service reviewer without human-approval authority.}
-  \end{subfigure}
-  \caption{Current interface evidence for public fail-closed behavior and protected review boundaries. The images demonstrate visible implementation state only; they are not usability evidence, an accessibility conformance result, a human review, a semantic-correctness result, an ethics approval, or a document-rights decision.}
-  \label{fig:interface-governance-evidence}
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=0.96\linewidth,height=0.72\textheight,keepaspectratio]{figures/screenshots/admin-control-current.png}
+  \caption{Deterministic authenticated Admin Control fixture showing operational status and preview-bound actions. It is not accessibility conformance, human approval, security certification, ethics approval, or a document-rights decision.}
+  \label{fig:admin-control-interface}
 \end{figure}
 
 The screenshots are therefore illustrative implementation evidence, not substitutes for the route, failure-state, and assistive-technology checks. The executable contracts in Appendix~\ref{app:schema-api} keep those distinctions inspectable.
 
 \section{Generated-output governance and deployment boundary}
 
-Admin mutations require authenticated roles; production fails closed without HTTPS and an admin actor, and AI actors cannot issue human states. A process-local primitive lock safely spans FastAPI worker-thread handoff, while a database-scoped no-follow file lock serializes review-event mutation/hash/commit across local processes. Neither is distributed consensus. Automatic sync remains disabled until whole-snapshot promotion exists. TLS termination, identity, distributed limiting, monitoring, backup, and incident operations remain deployment responsibilities.
+Admin mutations require authenticated roles and CSRF for session actors; production fails closed without HTTPS and an admin actor, and AI actors cannot issue human states. Bulk review and publication first persist an actor-bound preview hash with a ten-minute expiry; execution recomputes the candidate state and returns conflict rather than apply a stale preview. Catch-all review still excludes missing-PDF records. A process-local primitive lock safely spans FastAPI worker-thread handoff, while a database-scoped no-follow file lock serializes review-event mutation/hash/commit across local processes. Neither is distributed consensus. The dedicated sync worker can stage and process scheduled candidates, but whole-corpus atomic promotion remains fail-closed. TLS termination, institutional identity, distributed limiting, monitoring, backup, and incident operations remain deployment responsibilities.

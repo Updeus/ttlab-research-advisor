@@ -103,18 +103,18 @@ The metadata/identity migration removed the malformed `Click to View` author rec
 - SQLite/SQLModel entities and additive compatibility migrations: `backend/app/db.py`, `backend/app/models/`.
 - Deterministic discovery/import, allowlisted safe PDF acquisition, native/OCR-aware parsing, section/page chunking: `backend/app/ingestion/`, `backend/app/indexing/chunker.py`.
 - Keyword, feature-hashing, learned-dense, and hybrid retrieval with manifest validation: `backend/app/indexing/`.
-- Offline extractive and optional local Ollama QA, structural citation verifier, deterministic artifact/podcast text generation, evidence-only/full recommendation, controlled topics, and author relations: `backend/app/intelligence/`.
+- Offline extractive and optional local Ollama QA, structural citation verifier, deterministic artifact/podcast text generation, evaluated evidence-only/full Finder, conversational Idea Generator, controlled topics, and author relations: `backend/app/intelligence/`.
 - Retrieval, QA, recommendation, topic/author, section, generated-output, external-sanity, and performance evaluation: `backend/app/evaluation/`, `data/evaluation/`.
 
 ### Frontend
 
-The React/Vite/TypeScript application has deep-linkable Dashboard, Paper Browser/Detail, Search, Ask TTLAB, Thesis Extension Finder, Topic/Author Explorer, Evaluation Dashboard, and protected Admin Review routes. Relevant surfaces expose source paper/chunk/page/section/snippet, provider/model/time, review status/type, grounding warnings, index/data/evaluation freshness, generated-content notices, and evidence-only alternatives. Loading, empty, error, retry, stale, and offline-provider states are explicit.
+The React/Vite/TypeScript application has deep-linkable Dashboard, Paper Browser/Detail, Search, Ask TTLAB, conversational Idea Generator, Topic/Author Explorer, Evaluation Dashboard, and protected Admin Control routes. The structured Finder remains an evaluated compatibility endpoint rather than the current public form. Relevant surfaces expose source paper/chunk/page/section/snippet, provider/model/time, review status/type, grounding warnings, index/data/evaluation freshness, generated-content notices, and paper-informed/general distinctions. Loading, empty, error, retry, stale, feature-disabled, and offline-provider states are explicit.
 
-Automated frontend evidence covers component/integration behavior, accessibility, primary-route E2E flows, keyboard operation, admin protection, and horizontal-overflow checks at 360, 768, 1024, and 1440 pixels. Screenshots are stored under `thesis/figures/screenshots/` and are used only as implementation evidence. The governance capture script stages, but never directly promotes, a fail-closed public Finder state and an aggregate protected Admin state from a physical database snapshot and exact copied indexes. The promoted `finder-public-projection-empty.png` and `admin-governance-shell-current.png` are bound by `governance-capture-manifest.json` to clean commit `9a274b82d0f7fa68952369d5ec68565b0a93cbb1`; the manifest records source guards, exact PNG hashes and dimensions, zero mutation requests, empty browser storage, and no record-level Admin content. Older route screenshots remain historical/manual captures unless their own committed provenance says otherwise.
+Automated frontend evidence covers component/integration behavior, accessibility, primary-route E2E flows, keyboard operation, admin protection, and horizontal-overflow checks at 360, 768, 1024, and 1440 pixels. Screenshots are stored under `thesis/figures/screenshots/` and are used only as implementation evidence. The deterministic `idea-generator-current.png` and `admin-control-current.png` captures use synthetic network fixtures containing no student, source-corpus, credential, or approval data. `governance-capture-manifest.json` binds their hashes, dimensions, product-source commit, and scenario limitations. They demonstrate visible contracts, not live-model output, public effectiveness, human review, usability, or rights approval.
 
 ### Privacy, authentication, and review
 
-Student profile inputs are transient and not persisted by public recommendation requests. Public generation is transient; persisted histories and mutations require reviewer/admin authentication. Bearer tokens are environment configured as SHA-256 digests; no default secret is committed. Production mode requires HTTPS, explicit hosts/origins, and an active admin actor, and rejects insecure local-demo bypass.
+Student profile inputs and Idea Generator conversation turns are transient and not persisted by public requests. Local administrators use Argon2id passwords, HttpOnly SameSite sessions, CSRF validation, idle/absolute expiry, lockout, and forced replacement of temporary passwords. Environment-digested service bearer actors remain available for bounded automation; no default secret is committed. Production mode requires HTTPS, explicit hosts/origins, an active admin actor, and the approved public projection. An explicit loopback-only demo may preview technically eligible records with persistent warnings but does not change publication or rights state.
 
 Review actors carry ID, display name, role, reviewer type, and request ID. AI reviewers cannot issue human `reviewed`, `approved`, or `rejected` states. Review events record the prior/new state, field diff, prior hash, event hash, actor, and time.
 
@@ -166,7 +166,13 @@ misses, three incorrect-citation cases, and three unanswerable false positives.
 High local support therefore does not imply complete or appropriately scoped
 answers.
 
-The Ollama CLI version 0.21.2 was present, but the configured service refused version/tags/process requests. No model tag, digest, quantisation, answer quality, or latency comparison is invented.
+The Ollama CLI version 0.21.2 was present during the frozen evaluation, but the configured service refused version/tags/process requests. No model tag, digest, quantisation, answer quality, or latency comparison is invented for that run.
+
+## Post-evaluation Idea Generator and administration evidence
+
+After the frozen v1/v2 evaluations, the public `/extensions` route became a conversational Idea Generator backed by `POST /api/recommendations/ideas`. It bounds the message/history, retrieves at most six unique paper sources, applies the fixed answerability gate, requires one to three schema-valid ideas, validates every source alias, labels ideas `paper_informed` or `general_suggestion`, and records provider/model, digest state, prompt/configuration hashes, retrieval/corpus identity, source chunks, warnings, and time. It uses the approved local Ollama path without silent external/extractive fallback. Four formative prompts cover RAG, agriculture, out-of-corpus, and multi-turn scope cases. These cases and automated tests are engineering evidence only; they do not establish recommendation quality, novelty, feasibility, supervisor fit, or student usefulness.
+
+Admin Control adds local accounts and sessions, feature/model/account controls, review queues, ingestion status, and actor-bound preview/execute operations. Bulk and publication execution recompute a ten-minute preview hash and fail on actor, expiry, reuse, or state drift before mutation; catch-all approval excludes missing-PDF papers. Review events remain attributed and append-only. These controls do not replace institutional identity, legal review, or production operations.
 
 ## Recommendation proxy evaluation
 
@@ -261,9 +267,11 @@ pdftoppm -png build/thesis.pdf tmp/pdfs/thesis
 ```
 
 The pre-candidate layout verification produced an 86-page A4 PDF before the
-prospective remediation-v2 package was executed. The current exact-candidate
-`build/thesis.pdf` is 88 A4 pages with 38 cited bibliography entries; the IEEE
-paper is six Letter pages with 21 cited entries. Source/manuscript preflight,
+prospective remediation-v2 package was executed. The focused synchronization
+build, which adds current Idea Generator/Admin Control treatment and selected
+executable contracts, produces `build/thesis.pdf` at 97 A4 pages with 38 cited
+bibliography entries; the IEEE paper remains six Letter pages with 21 cited
+entries. Source/manuscript preflight,
 `qpdf --check`, embedded-font inspection, LaTeX-log checks, and page-by-page
 visual inspection are recorded in
 `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`. The PDFs are not tagged,
@@ -277,7 +285,9 @@ Every generated evidence manifest records its own committed base and tree rather
 - No human participants or independent human assessors were used; educational usefulness, usability, and trust are not established.
 - Retrieval, QA, recommendation, topic, section, and generated-output judgments are AI-reviewed silver evidence from one declared reviewer process.
 - The retrieval test contains only 20 cases and one unanswerable case; label/corpus-selection uncertainty is not represented in bootstrap CIs.
-- QA is limited to the offline extractive provider because Ollama was unavailable.
+- Frozen QA evaluation is limited to the offline extractive provider because
+  Ollama was unavailable during that run; the later Idea Generator's local-model
+  path has contract tests but no transferred QA effectiveness result.
 - Recommendation feasibility and novelty require project-specific human confirmation.
 - Thirty-six catalog records lack eligible text, two PDF identities require confirmation, 199 eligible chunks have unknown sections, and thirteen possible author merges remain unresolved.
 - OCR is implemented as an optional path but was not exercised by the frozen corpus.

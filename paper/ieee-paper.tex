@@ -10,6 +10,7 @@
 \usepackage{cite}
 \usepackage{url}
 \usepackage{microtype}
+\usepackage{listings}
 % The default submission profile preserves metadata but emits neither bookmarks
 % nor clickable annotations. Define \PaperReviewLinks before inputting this file
 % only for an internal, link-enabled review copy.
@@ -26,13 +27,13 @@
 \input{generated/topic_error_rows}
 
 \hypersetup{
-  pdftitle={\paperTitle},
+  pdftitle={\paperPdfTitle},
   pdfauthor={\paperAuthor},
   pdfsubject={\paperSubject},
   pdfkeywords={\paperKeywords}
 }
 \AtBeginDocument{\special{pdf:docinfo <<
-  /Title (\paperTitle)
+  /Title (\paperPdfTitle)
   /Author (\paperAuthor)
   /Subject (\paperSubject)
   /Keywords (\paperKeywords)
@@ -49,6 +50,26 @@
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \setlength{\emergencystretch}{2em}
 \setlength{\tabcolsep}{3.2pt}
+\lstdefinestyle{evidencecode}{
+  language=Python,
+  basicstyle=\ttfamily\scriptsize,
+  numbers=left,
+  numberstyle=\tiny\color{Slate},
+  stepnumber=1,
+  numbersep=4pt,
+  frame=single,
+  rulecolor=\color{Slate!60},
+  backgroundcolor=\color{PaleBlue!45},
+  breaklines=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  xleftmargin=1.25em,
+  framexleftmargin=0.9em,
+  aboveskip=3pt,
+  belowskip=3pt,
+  captionpos=b
+}
 
 \title{\paperTitle}
 \author{\IEEEauthorblockN{\paperAuthor}
@@ -58,21 +79,21 @@
 \maketitle
 
 \begin{abstract}
-Publication lists expose outputs but do not answer full-text questions or help students formulate bounded, evidence-linked projects. We present an engineering case study of the TTLAB Research Intelligence Platform, whose central Thesis Extension Finder separates source facts, paper-stated future work, inferred gaps, and generated suggestions. The platform exposes corpus identity, provider metadata, evidence locators, uncertainty, and append-only review events. Historical v1 evaluation found strong lexical retrieval but weak citation targeting, answer completeness, abstention, and recommendation-feasibility evidence. A prospectively frozen remediation-v2 package is \VTwoPackageStatus{} and binds code, a frozen technical corpus, configurations, raw outputs, and a deterministic validator. Its \VTwoEvidenceTier{} held-out results report answerability precision \VTwoQAAnswerabilityPrecision{} (CI \VTwoQAAnswerabilityPrecisionCi), exact-locator citation precision \VTwoQACitationLocatorPrecision{} (\VTwoQACitationLocatorPrecisionCi), and a Finder Hit@3 change of \VTwoFinderHitAtThreeDelta{} (\VTwoFinderHitAtThreeDeltaCi). Known-positive topic recall is \VTwoTopicKnownPositiveRecall{} (\VTwoTopicKnownPositiveRecallCi); OCR character error on a deterministic fixture is \VTwoOCRCharacterErrorRate{}. These metrics concern a \VTwoEvaluationScope{} corpus; the public projection was exercised: \VTwoPublicProjectionExercised{}, and it may legitimately be empty until rights and review gates are satisfied. Source traceability means inspectable locators and provenance, not entailment or factual correctness. No recruited participants or independent human validation establish advisory usefulness, novelty, feasibility, or supervisor fit.
+Publication lists expose outputs but do not answer full-text questions or help students formulate bounded, evidence-linked projects. We present an engineering case study of the TTLAB Research Intelligence Platform, combining content summarization, citation-bearing question answering, an evaluated structured Thesis Extension Finder, and a post-evaluation conversational Idea Generator. The latter validates model source aliases, distinguishes paper-informed ideas from general suggestions, and records local-model and retrieval provenance; it does not establish novelty or feasibility. Historical v1 evaluation found strong lexical retrieval but weak citation targeting, answer completeness, abstention, and recommendation-feasibility evidence. A prospectively frozen remediation-v2 package is \VTwoPackageStatus{} and binds code, a frozen technical corpus, configurations, raw outputs, and a deterministic validator. Its \VTwoEvidenceTier{} held-out results report answerability precision \VTwoQAAnswerabilityPrecision{} (CI \VTwoQAAnswerabilityPrecisionCi), exact-locator citation precision \VTwoQACitationLocatorPrecision{} (\VTwoQACitationLocatorPrecisionCi), and a Finder Hit@3 change of \VTwoFinderHitAtThreeDelta{} (\VTwoFinderHitAtThreeDeltaCi). Known-positive topic recall is \VTwoTopicKnownPositiveRecall{} (\VTwoTopicKnownPositiveRecallCi); OCR character error on a deterministic fixture is \VTwoOCRCharacterErrorRate{}. These metrics concern a \VTwoEvaluationScope{} corpus and do not evaluate the newer Idea Generator. Source traceability means inspectable locators and provenance, not entailment or factual correctness. No recruited participants or independent human validation establish advisory usefulness, novelty, feasibility, or supervisor fit.
 \end{abstract}
 
 \begin{IEEEkeywords}
-research intelligence, scholarly search, retrieval-augmented generation, recommendation, source traceability, reproducibility
+research intelligence, content summarization, idea generation, retrieval-augmented generation, source traceability, reproducibility
 \end{IEEEkeywords}
 
 \section{Introduction}
 Large scholarly indexes connect papers and people \cite{giles1998citeseer,tang2008arnetminer,priem2022openalex}, while recommender and expert-finding research supports content/profile matching \cite{beel2016researchpaper,balog2006formal}. A laboratory archive has a narrower but less forgiving problem: missing PDFs, uncertain identities, generated advice, and incomplete review must remain visible instead of being hidden behind a polished search box.
 
-The TTLAB precursor collected and displayed publications, generated lay summaries and notifications, and supported manual podcast preparation; evaluated full-text RAG was future work \cite{narine2025automating}. We extend it with full-paper ingestion, page-aware retrieval, citation-returning question answering, thesis-extension suggestions, topic/author exploration, and correction records. The Thesis Extension Finder is the central product contribution. It ranks evidence-bearing papers before adding an explicitly generated project proposal; it cannot establish novelty, data access, workload, or researcher availability.
+The TTLAB precursor collected and displayed publications, generated lay summaries and notifications, and supported manual podcast preparation; evaluated full-text RAG was future work \cite{narine2025automating}. We extend it with full-paper ingestion, content summarization, page-aware retrieval, citation-returning question answering, thesis-extension support, topic/author exploration, and correction records. The evaluated structured Finder ranks evidence-bearing papers before adding a labelled proposal. The current public Idea Generator instead supports bounded conversation and one to three schema-validated directions, but neither mode can establish novelty, data access, workload, or researcher availability.
 
 Here \emph{source-traceable} means that an output retains paper, chunk, page/section, provider/model, time, warning, and review-state locators. Traceability is not entailment, completeness, factual correctness, feasibility, or endorsement. This distinction governs both the application and the claims below.
 
-Three questions organize the study: \textbf{RQ1}, can a heterogeneous archive become an internally consistent corpus and how do retrieval modes compare; \textbf{RQ2}, how strong are evidence-linked answers, extension suggestions, topics, and author links under their stated constructs; and \textbf{RQ3}, how reproducible, reviewable, and responsibly bounded is the artefact? Contributions are a hash-bound corpus/index contract; a modular, evidence-first platform; a prospective source-derived protocol plus preserved negative historical evidence; and a sanitized reproduction boundary. No recruited participants were used, so usefulness and supervisor suitability remain untested.
+Three questions organize the study: \textbf{RQ1}, can a heterogeneous archive become an internally consistent corpus and how do retrieval modes compare; \textbf{RQ2}, how strong are evidence-linked answers, extension suggestions, topics, and author links under their stated constructs; and \textbf{RQ3}, how reproducible, reviewable, and responsibly bounded is the artefact? Contributions are a hash-bound corpus/index contract; a modular, evidence-first platform with typed idea-generation boundaries; a prospective source-derived protocol plus preserved negative historical evidence; and a sanitized reproduction boundary. No recruited participants were used, so usefulness and supervisor suitability remain untested.
 
 \section{Related Work}
 Scholarly discovery systems progressed from autonomous citation indexing to literature/author graphs and open entity catalogues \cite{giles1998citeseer,tang2008arnetminer,priem2022openalex}. Their scale is useful for discovery, but a small institutional system must also expose why a paper was included, which file supplied a passage, whether an identity is confirmed, and whether generated material has been reviewed. Research-paper recommendation surveys likewise show that methods, user models, and evaluation protocols vary widely \cite{beel2016researchpaper}; an evidence match is not the same as a feasible supervisory recommendation. Expert-finding models infer expertise from documents \cite{balog2006formal}, so our author links are deliberately phrased as publication-derived associations rather than availability or endorsement.
@@ -85,7 +106,7 @@ RAG conditions generation on retrieved evidence \cite{lewis2020rag}, and later w
 \subsection{Units, Corpus, and Evidence Boundary}
 The study combines design-science-oriented artefact construction with controlled offline evaluation. Units are papers/chunks for corpus integrity; queries for retrieval; atomic claims, citation links, and expected answer points for QA; synthetic profiles and ranked paper sets for recommendation; papers/labels for topics; and executable stages for performance. TTLAB authorized the project and corpus use, but that is neither ethics-board approval nor blanket third-party redistribution permission.
 
-Design decisions were mapped to observable failures. Deterministic import and hash-checked indexes address silent corpus drift; page locators and typed evidence address unverifiable generation; evidence-only Finder output addresses users who do not want generated advice; append-only review events address untraceable correction; and explicit unavailable states address missing providers or PDFs. Each mechanism is evaluated at the narrowest valid unit instead of treating a passing user-interface test as retrieval evidence or a citation count as faithfulness.
+Design decisions were mapped to observable failures. Deterministic import and hash-checked indexes address silent corpus drift; page locators and typed evidence address unverifiable generation; evidence-only Finder output addresses users who do not want generated advice; validated aliases and a general-suggestion state bound conversational ideas; append-only review events address untraceable correction; and explicit unavailable states address missing providers or PDFs. Each mechanism is evaluated at the narrowest valid unit instead of treating a passing user-interface test as retrieval evidence or a citation count as faithfulness.
 
 The historical v1 snapshot starts with \PaperCatalogCount{} records and \PaperPdfCount{} available PDFs. A paper enters technical experiments only when metadata, a permitted PDF, extracted text, and title/content checks agree. Table~\ref{tab:corpus} shows that boundary: \PaperEligiblePaperCount{} papers and \PaperEligibleChunkCount{} of \PaperRawChunkCount{} chunks were eligible; \PaperNoTextCount{} records needed text/review, \PaperMismatchCount{} PDFs were mismatches, and \PaperUnknownChunkCount{} eligible chunks retained an Unknown section instead of a forced label. A \PaperSectionCaseCount{}-case AI-silver check measured \PaperSectionAccuracy{} section accuracy.
 
@@ -126,16 +147,16 @@ Topics use \VTwoTopicTestCases{} source-derived, known-positive test cases. Beca
 \begin{figure*}[t]
 \centering
 \resizebox{0.96\textwidth}{!}{\input{figures/traceable_workflows}}
-\FigureDescription{A question or transient student profile is retrieved against eligible chunks. Paper, chunk, and page evidence feeds an extractive answer or paper-fact record. Only the finder adds a separately labelled suggestion. Verification adds warnings before evidence, provenance, and review state return to the user. An evidence-only path bypasses suggestions.}
-\caption{Unified Ask/Finder evidence flow. Evidence-only output and system suggestions remain distinct.}
+\FigureDescription{A question, structured profile, or bounded idea conversation is retrieved against eligible chunks. Evidence feeds an answer, paper-fact record, or source-aware idea. The structured Finder retains an evidence-only path; the Idea Generator validates aliases and marks unmatched output as a general suggestion. Warnings and provenance return to the user.}
+\caption{Ask, structured Finder, and conversational Idea Generator evidence flow.}
 \label{fig:workflow}
 \end{figure*}
 
-Figures~\ref{fig:architecture} and \ref{fig:workflow} summarize the implementation. The React interface provides papers, search, Ask, Finder, topic/author, evaluation, and protected review routes. It renders freshness, provider, warning, review state, citations, and evidence-only alternatives, including explicit empty, unavailable, and retry states. FastAPI separates public reads and transient generation from authenticated mutations; exact origins/hosts, bounded requests, safe file/URL handling, redacted logs, and append-only attributed review events are enforced. Profile inputs are non-persistent by default.
+Figures~\ref{fig:architecture} and \ref{fig:workflow} summarize the implementation. The React interface provides papers, search, Ask, Idea Generator, topic/author, evaluation, and protected Admin Control routes; the structured Finder remains an evaluated backend mode. It renders freshness, provider/model/time, warnings, review state, citations, and explicit empty, unavailable, and retry states. FastAPI separates public reads and transient generation from session/role-protected mutations; exact origins/hosts, bounded requests, safe file/URL handling, redacted logs, and append-only attributed review events are enforced. Public question, profile, and conversation inputs are non-persistent by default.
 
-Page-aware extraction distinguishes blank, scanned, and mixed pages. Search returns mode, score components, pages, sections, freshness, and the active corpus identity. Runtime grounding checks locator presence and weak lexical overlap, not entailment. The answerer extracts bounded sentences. Finder first constructs source-backed baseline work, paper-stated future work, and an explicitly inferred gap; only then may it add a labelled suggestion with assumptions, MVP, stretch scope, skills, data, risk, and evaluation.
+Page-aware extraction distinguishes blank, scanned, and mixed pages. Search returns mode, score components, pages, sections, freshness, and the active corpus identity. Runtime grounding checks locator presence and weak lexical overlap, not entailment. The answerer extracts bounded sentences. Finder first constructs source-backed baseline work, paper-stated future work, and an explicitly inferred gap; only then may it add a labelled suggestion. The Idea Generator retrieves at most six distinct paper sources, applies the fixed answerability gate, validates a one-to-three-idea JSON schema, and converts unrecognised aliases into an explicit unverified-source phrase. Ideas without a valid alias are marked \texttt{general\_suggestion}; cited papers are background, not novelty evidence.
 
-Technical eligibility is not publication approval. Public routes use a stricter projection requiring rights clearance, review, publication state, and an aligned public index generation; they never substitute the technical corpus. Consequently the public projection at the audited/remediated snapshot may be empty. The remediation evaluation uses only the technical boundary and is not evidence of public behavior. The optional Ollama provider did not contribute historical v1 results, so no response, digest, or latency comparison was invented.
+Technical eligibility is not publication approval. Production public routes use a stricter projection requiring rights clearance, review, publication state, and an aligned public index generation. An explicit loopback-only demo may preview technically eligible records with visible insecure-demo and rights warnings; it does not change publication decisions. The remediation evaluation uses only the technical boundary and is not evidence of public behavior. Ollama did not contribute historical v1 or remediation-v2 results, so no response, quality, digest, or latency comparison was invented for those experiments; current runtime code performs pre/post digest checks and records incomplete response attestation.
 
 \subsection{Evidence Contracts and Failure Semantics}
 Derived state is generation-addressed. Extraction records bind exact PDF bytes; chunk records bind the extraction generation and exact UTF-8 text; each authoritative index manifest binds the ordered eligible source identities and active configuration. Reconciliation validates that chain before rebuilding. Index files are written as immutable generations, and the active pointer changes only after database status is committed. A bounded demo build cannot target the authoritative index. Startup and requests fail closed on a missing, partial, stale, or differently scoped manifest rather than silently falling back to another corpus.
@@ -155,12 +176,31 @@ Surface & Evidence retained & Does not establish \\
 \midrule
 Search & corpus, chunk, rank, mode & relevance truth \\
 Ask & claim, locator, warning & entailment/correctness \\
-Finder & fact, gap type, suggestion & novelty/feasibility \\
+Finder/ideas & fact, basis, suggestion & novelty/feasibility \\
 Topics/authors & source links, review state & expertise/availability \\
 Review & actor type, event chain & human approval by AI \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+The post-evaluation Idea Generator enforces the evidence boundary in \texttt{idea\_generator.py}. After aliases are checked against retrieved chunks, Listing~\ref{lst:idea-boundary} preserves only validated chunk identifiers and gives every other idea the \texttt{general\_suggestion} basis. This prevents an invented alias from becoming a displayed citation; it does not validate the idea itself.
+
+\begin{lstlisting}[style=evidencecode,float=t,caption={Abridged Idea Generator evidence boundary.},label={lst:idea-boundary}]
+if invalid_aliases:
+    response_warnings.append(
+        "Model source labels outside retrieved evidence were replaced."
+    )
+valid_aliases = list(dict.fromkeys(valid_aliases))
+ideas.append({
+    **draft_payload,
+    "basis": ("paper_informed" if valid_aliases
+              else "general_suggestion"),
+    "source_chunk_ids": [
+        str(alias_to_result[a].get("chunk_id") or "")
+        for a in valid_aliases
+    ],
+})
+\end{lstlisting}
 
 \section{Results}
 \subsection{RQ1: Historical v1 Corpus and Retrieval}
@@ -232,11 +272,7 @@ OCR fixture character error & \VTwoOCRCharacterErrorRate & -- \\
 Table~\ref{tab:prospective-results} is populated only from the validated package. Ask metrics test the fixed answerability gate and exact frozen locators; they do not establish factual correctness or entailment. Comparison of historical strict coverage \PaperQaAnswerCoverage{} (\PaperQaAnswerCoverageCi) with \VTwoQAAnswerPointCoverage{} (\VTwoQAAnswerPointCoverageCi) is descriptive and non-paired because the protocols use distinct frozen cases. The paired Finder delta is reported without a superiority claim, while template checks establish a data-contract property rather than project usefulness. Topic recall applies only to listed known positives; other predictions remain unadjudicated. OCR character error applies only to the deterministic fixture. All are \VTwoEvidenceTier{} technical-corpus judgments without human validation. Author links remain publication-derived associations, unresolved identities remain separate, and AI review events cannot confer human approval.
 
 \subsection{RQ3: Reproduction and Operational Boundary}
-The historical v1 local profile measured \PaperPerformanceStageCount{} stages with process-cold and warm repetitions at concurrency one and \PaperPerformanceFailedSamples{} recorded failures. ``Cold'' means a fresh process; OS caches were not flushed, and this is neither load nor capacity evidence. An external harness reacquired \PaperExternalDocumentCount{} pinned CC BY JATS/XML papers and obtained \PaperExternalTopOneCount{}/\PaperExternalDocumentCount{} fixed lexical top-one matches; that establishes format compatibility and trivial discrimination only, not cross-domain quality or PDF ingestion.
-
-\input{generated/performance_summary}
-
-Table~\ref{tab:performance} selects representative stages; omitted repetitions remain in the hashed raw record. Network discovery dominates variability, dense indexing dominates local compute/memory, and warm/cold differences are workload-specific. No concurrency sweep, cache flush, or saturation test was conducted. The prospective package records source commit \texttt{\VTwoEvaluationSourceCommitPrefix{}}, corpus snapshot \texttt{\VTwoCorpusSnapshotId{}}, raw outputs, configuration, environment lock, and post-run validation attestation. Reproduction rebuilds allowed derived state, runs tests/evaluations, compiles manuscripts, preflights PDFs, creates a restricted-content-free bundle, and emits checksums. Exact full-corpus reruns still require lawful access to local PDFs and the pinned dense model.
+The historical v1 local profile measured \PaperPerformanceStageCount{} process-cold/warm stages at concurrency one with \PaperPerformanceFailedSamples{} failures. Network discovery dominated variability and dense indexing dominated local compute/memory; OS caches were not flushed, so these medians are neither load nor capacity evidence. An external harness reacquired \PaperExternalDocumentCount{} pinned CC BY JATS/XML papers and obtained \PaperExternalTopOneCount{}/\PaperExternalDocumentCount{} fixed lexical top-one matches; that establishes format compatibility and trivial discrimination only, not cross-domain quality or PDF ingestion. The prospective package records source commit \texttt{\VTwoEvaluationSourceCommitPrefix{}}, corpus snapshot \texttt{\VTwoCorpusSnapshotId{}}, raw outputs, configuration, environment lock, and validation attestation. Exact full-corpus reruns still require lawful PDF and pinned-model access.
 
 \section{Discussion, Threats, and Ethics}
 The principal result is an evidence boundary, not a new ranking algorithm. Historical v1 showed that complete indexing and extractive support could coexist with weak citation choice, answer completeness, abstention, and Finder feasibility. The prospective measures narrow those constructs to a fixed answerability gate, exact source locators, paired recommendation ranks, known-positive topics, and a pipeline fixture. They do not erase the historical failures or convert contract conformance into benefit. Human studies must test usefulness, novelty, workload, and trust.
@@ -246,18 +282,18 @@ The historical retrieval evidence makes keyword the defensible default for that 
 
 QA therefore needs a multi-dimensional result state. A response can be source-derived but answer the wrong intent, cite an off-target passage, omit expected points, or answer when evidence is insufficient. The interface separates answerability, claim support, citation use, and completeness, and does not project aggregate scores onto a live answer. If the fixed gate fails, ranked evidence or an explicit unsupported state is safer than composed text.
 
-Finder needs the analogous boundary. Ranking a paper can be justified by passages, interests, and stated constraints; proposing a thesis adds novelty, access, workload, skills, and evaluation assumptions the corpus cannot settle. The record distinguishes baseline work, paper-stated future work, inferred gap, and system suggestion. Evidence-only mode bypasses suggestions; full mode exposes assumptions and risks rather than a hidden suitability score. The historical feasibility failures and unfilled ranks motivate a supervisor checklist, not more assertive prose. No recommendation is supervisor-approved until an authorized human records that state.
+Idea generation needs the analogous boundary. Ranking a paper can be justified by passages, interests, and stated constraints; proposing a thesis adds novelty, access, workload, skills, and evaluation assumptions the corpus cannot settle. The structured Finder distinguishes baseline work, paper-stated future work, inferred gap, and suggestion, while its evidence-only mode bypasses generation. The conversational Idea Generator instead reports a validated paper-informed/general basis and requires supervisor and literature review. Its four formative regression prompts and contract tests are not a quality or usefulness evaluation. No recommendation is supervisor-approved until an authorized human records that state.
 
-Administrative review is an append-only evidence event rather than a silent overwrite. Events bind actor type, prior/new states, rationale, time, target hash, and chain hash. AI actors can mark AI-reviewed or needs-reprocess states but cannot impersonate human approval. Historical answers that cannot be exactly regenerated retain that limitation, and ambiguous identities remain unmerged.
+Administrative review is an append-only evidence event rather than a silent overwrite. Local admin accounts use Argon2id, HttpOnly sessions, CSRF validation, expiry and lockout; service actors remain available for bounded automation. Bulk approval and publication require an actor-bound, ten-minute preview hash and reject changed state before appending review events. AI actors can mark AI-reviewed or needs-reprocess states but cannot impersonate human approval. These controls are local-application safeguards, not an institutional identity or production-operations claim.
 
 The external smoke test and performance profile answer deployment questions only narrowly. The former shows that three licensed XML documents can enter the chunk contract and be separated by obvious lexical queries; it does not validate another discipline, language, or PDF path. The latter identifies expensive stages for a single local operator but offers no arrival-rate, tail-latency-under-load, or capacity evidence. Production planning must add representative traffic, concurrent users, failure injection, monitoring, and recovery tests without reusing these single-user medians as service-level objectives.
 
-Construct validity is limited by AI-silver labels, source-derived positive-only topics, synthetic-profile proxies, and a fixture rather than corpus OCR. One AI procedure performs both shuffled passes, so correlated error remains and intervals exclude label uncertainty. Historical internal validity is limited by small test sets, one retrieval unanswerable, descriptive ablations, and a deterministic answerer; prospective cases remain small and source-derived. External validity is limited to one English-language laboratory snapshot and local hardware. Reproducibility remains bounded by lawful PDF/model access, network discovery, and OS caches.
+Construct validity is limited by AI-silver labels, source-derived positive-only topics, synthetic-profile proxies, and a fixture rather than corpus OCR. One AI procedure performs both shuffled passes, so correlated error remains and intervals exclude label uncertainty. Historical internal validity is limited by small test sets, one retrieval unanswerable, descriptive ablations, and a deterministic answerer; prospective cases remain small and source-derived. The post-evaluation Idea Generator has contract tests but no live-model quality, novelty, feasibility, or human-usefulness study. External validity is limited to one English-language laboratory snapshot and local hardware. Reproducibility remains bounded by lawful PDF/model access, network discovery, and OS caches.
 
-TTLAB authorized project and corpus use. No participants were recruited and no ethics approval or exemption is claimed. Authorization does not transfer redistribution rights: PDFs, live database, derived text, secrets, model caches, and private prompts are excluded from the sanitized release. Public deployment additionally requires authenticated review, controlled origins, rate limits, monitoring, correction paths, backups, and accessibility validation. Datasheet, model-card, and risk-management practices inform disclosure \cite{gebru2021datasheets,mitchell2019modelcards,tabassi2023airmf}. Codex/LLM assistance covered code, silver-label preparation, analysis, and editing; it was not a human assessor. The current Tectonic PDF is intentionally not claimed as tagged PDF or PDF/UA; figure descriptions remain in source for a capable venue toolchain.
+TTLAB authorized project and corpus use. No participants were recruited and no ethics approval or exemption is claimed. Authorization does not transfer redistribution rights: PDFs, live database, derived text, secrets, model caches, and private prompts are excluded from the sanitized release. Public deployment additionally requires authenticated review, controlled origins, rate limits, monitoring, correction paths, backups, and accessibility validation. Datasheet, model-card, and risk-management practices inform disclosure \cite{gebru2021datasheets,mitchell2019modelcards,tabassi2023airmf}. OpenAI Codex supported repository inspection, test and silver-label preparation, targeted implementation, and focused editing; it was not a human assessor, and the author retained responsibility for design, interpretation, verification, and the manuscript. The current Tectonic PDF is intentionally not claimed as tagged PDF or PDF/UA; figure descriptions remain in source for a capable venue toolchain.
 
 \section{Availability and Conclusion}
-The sanitized bundle contains code, permitted metadata, sanitized experimental records, configurations, figure sources, manifests, hashes, and reproduction instructions. It excludes restricted content and is not the publisher package. Historical v1 negative and null findings remain alongside the \VTwoPackageStatus{} prospective evidence rather than being overwritten. The newer results apply to a \VTwoEvaluationScope{} corpus, with public projection exercised: \VTwoPublicProjectionExercised{}. Technical evaluation is therefore not public behavior. The artefact is a source-traceable research-intelligence prototype, not a validated academic advisor: human utility, identity decisions, PDF rights, deployment controls, and venue compliance remain external validations.
+The sanitized bundle contains code, permitted metadata, sanitized experimental records, configurations, figure sources, manifests, hashes, and reproduction instructions. It excludes restricted content and is not the publisher package. Historical v1 negative and null findings remain alongside the \VTwoPackageStatus{} prospective evidence rather than being overwritten. The newer results apply to a \VTwoEvaluationScope{} corpus, with public projection exercised: \VTwoPublicProjectionExercised{}. The subsequently implemented Idea Generator demonstrates a traceable, failure-explicit software contract, not measured advisory improvement. The artefact is a source-traceable research-intelligence prototype, not a validated academic advisor: human utility, identity decisions, PDF rights, deployment controls, and venue compliance remain external validations.
 
 \bibliographystyle{IEEEtran}
 \IEEEtriggeratref{16}

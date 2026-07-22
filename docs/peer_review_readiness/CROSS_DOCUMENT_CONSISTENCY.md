@@ -31,7 +31,7 @@ measurement is not silently relabeled as a measurement of the delivery branch.
 | Frontend verification | 67 tests passed; production build passed; 9 E2E scenarios passed. These are engineering evidence, not effectiveness. |
 | Backend verification | 407/407 collected tests passed across 43 files in eight 60-second-bounded shards; zero failures, errors, or skips; 168.16 s summed pytest runtime. |
 | IEEE paper | 6 Letter pages including references; 21 cited bibliography entries |
-| Thesis | 88 A4 pages; 38 bibliography entries |
+| Thesis | 97 A4 pages; 38 bibliography entries |
 | PDF accessibility | Both rendered PDFs report `Tagged: no`; neither manuscript claims PDF/UA or WCAG conformance |
 
 ## Revision and artifact map
@@ -43,22 +43,26 @@ measurement is not silently relabeled as a measurement of the delivery branch.
 | Historical full performance profile | `73092e48...` | Valid historical engineering profile only |
 | Prospective v2 QA/Finder/topic/OCR package | `0d4b9bd...` | Prospectively evaluated implementation source; later delivery edits are packaging, manuscript, validation, and reporting work unless a new evaluation says otherwise |
 | V2 final package | Manifest `bdc8e8b...`; attestation `f6d320bc...` | Frozen validated package; packaging recovery did not reexecute cases, alter labels, or rescore metrics |
-| Governance screenshots | Clean commit `9a274b82...`; manifest tree `11cd8c5f...` | Historical/delimited implementation captures. `finder-public-projection-empty.png` and `admin-governance-shell-current.png` must not be described as current-delivery captures |
+| Governance screenshots | Historical clean commit `9a274b82...`; current deterministic fixture manifest `thesis/figures/screenshots/governance-capture-manifest.json` | `finder-public-projection-empty.png` and `admin-governance-shell-current.png` remain historical/delimited. `idea-generator-current.png` and `admin-control-current.png` are current-interface fixtures driven by synthetic API responses at source commit `e4618a6...`; neither set is evaluation or user-study evidence. |
 | Final PDFs and validation | Delivery branch after `0d4b9bd...` | Current presentation/verification artifacts; they consume frozen generated evidence without changing its evaluated source identity |
 
-The screenshot boundary is especially important. The governance manifest records
-zero searchable papers and chunks, zero mutation requests, empty browser
-storage, and aggregate-only Admin content at commit `9a274b82...`. Other older
-route screenshots remain historical/manual captures unless a separate manifest
-proves otherwise. Screenshots are implementation evidence, not user-study,
-evaluation, human-review, or public-approval evidence.
+The screenshot boundary is especially important. The historical governance
+capture records zero searchable papers and chunks, zero mutation requests, empty
+browser storage, and aggregate-only Admin content at commit `9a274b82...`. The
+current manifest records two deterministic fixtures rendered by the real
+frontend at commit `e4618a6...` with synthetic network responses: the
+conversational Idea Generator evidence boundary and authenticated Admin Control
+preview boundary. The fixtures contain no real student profile, corpus passage,
+credential, approval, or mutation. Screenshots are implementation evidence, not
+user-study, evaluation, human-review, or public-approval evidence.
 
 ## Consistency findings
 
 | Area | Application/raw evidence | Documentation and manuscripts | Final consistency conclusion |
 |---|---|---|---|
 | Product identity | Dashboard, papers, search, Ask, Finder, explorer, evaluation, and review surfaces exist | README, thesis, and paper consistently call it a research-intelligence platform | Consistent; the project is not reduced to a chatbot |
-| Central feature | Finder ranks evidence-bearing papers and separates fact, stated future work, inferred gap, and suggestion | Both manuscripts foreground Finder and retain its limitations | Consistent implementation boundary; no validated-advisor claim |
+| Central feature | The evaluated structured Finder ranks evidence-bearing papers and separates fact, stated future work, inferred gap, and suggestion; the current public Idea Generator provides bounded conversation and schema-validated, source-aware directions | Both manuscripts distinguish the evaluated Finder from the post-evaluation Idea Generator and retain the Finder's adverse/null evidence | Consistent revision and construct boundary; Idea Generator contract tests do not establish novelty, feasibility, usefulness, or validated advice |
+| Idea Generator API and route | `POST /api/recommendations/ideas` backs the public `/extensions` conversation; it bounds history, retrieves at most six paper sources, validates source aliases, distinguishes `paper_informed` from `general_suggestion`, and records provider/model/retrieval provenance | Paper and thesis describe the same limits and explicitly exclude the feature from v1/v2 effectiveness results | Consistent current capability; formative cases and automated tests are engineering evidence only |
 | Technical versus public scope | 96 papers/719 chunks are technically eligible; public projection is empty | Thesis/paper explicitly state that technical eligibility is not publication approval and v2 is not public behavior | Consistent fail-closed boundary; human approval and rights clearance remain external |
 | Corpus counts | 134 records, 98 PDFs, 96 eligible papers, 735 raw/719 eligible chunks, two mismatches, 199 unknown sections | Generated macros populate both manuscripts from repository evidence | Numerically consistent; negative data-quality counts are retained |
 | Index terminology | 256-dimensional feature hashing is lexical; 384-dimensional MiniLM is learned dense | Code/UI/docs/manuscripts distinguish the two | Consistent; feature hashing is not mislabeled as learned semantic retrieval |
@@ -73,13 +77,14 @@ evaluation, human-review, or public-approval evidence.
 | OCR | CER/WER 0 comes from one generated raster fixture with exact repeatability | Manuscripts call it a fixture/pipeline exercise | Consistent; no scanned-corpus prevalence or corpus OCR-quality claim |
 | Authors | Identity links are publication-derived; possible merges remain unresolved | Manuscripts deny expertise, endorsement, availability, and author validation | Consistent conservative identity boundary |
 | Generated review | AI events are attributed, append-only, hash chained, and cannot create human approval | Both manuscripts say AI review is not human review | Consistent governance boundary |
-| Student-profile privacy | Public Ask/Finder profiles are transient/non-persistent by default | Docs and manuscripts state minimization | Consistent engineering control; not a formal privacy certification |
+| Student-profile privacy | Public Ask, Finder profiles, and Idea Generator turns are transient/non-persistent by default | Docs and manuscripts state minimization | Consistent engineering control; not a formal privacy certification |
 | Provider/model provenance | Dense revision is pinned; v2 provider boundary is recorded | Manuscripts disclose model/provider/revision limits | Consistent; optional provider availability is not invented |
 | Performance | Historical source `73092e48...` records 17 stages/102 successful samples on CPU | Paper/thesis explicitly call it historical, single-host, concurrency-one evidence | Consistent; no production capacity or GPU claim |
-| Public screenshot | Manifested at `9a274b82...`, public projection empty | Thesis evidence text discloses the historical capture boundary | Consistent only when caption/prose retains that commit boundary |
+| Interface screenshots | Historical capture at `9a274b82...` retains the empty public projection; current synthetic fixtures at `e4618a6...` show Idea Generator and Admin Control contracts | Thesis captions and evidence text disclose both revision and synthetic-fixture boundaries | Consistent only while neither image is presented as public-content, user-study, approval, or effectiveness evidence |
+| Administrative access | Local administrator accounts use Argon2id credentials, HttpOnly SameSite sessions, CSRF checks, expiry/lockout and forced temporary-password replacement; scoped service actors support automation | Paper, thesis, and current project evidence describe session-protected Admin Control and preview-bound mutations | Consistent engineering boundary; no production security certification follows |
 | Engineering verification | Frontend 67 tests/build/9 E2E; backend 407/407 across eight bounded shards | Manuscripts do not turn counts into scientific effectiveness | Consistent engineering evidence; no effectiveness claim follows |
 | Paper length/references | Built PDF is 6 Letter pages; BBL has 21 entries | Paper validator and final report use the same counts | Meets the stated at-most-six-page and approximate-20-reference constraints without a quality inference |
-| Thesis length/references | Built PDF is 88 A4 pages; BBL has 38 entries | Thesis validator/final report use the same counts | Meets the at-least-75-page constraint; page count alone is not substantive-quality evidence |
+| Thesis length/references | Built PDF is 97 A4 pages; BBL has 38 entries | Thesis validator/final report use the same counts | Meets the requested at-least-80-page constraint; page count alone is not substantive-quality evidence |
 | PDF metadata/accessibility | Titles/authors/subjects/keywords are populated; both PDFs are untagged | Sources include figure descriptions and explicitly deny PDF/UA/WCAG conformance | Consistent limitation; venue-specific tagged-PDF remediation remains external/toolchain-dependent |
 | V2 package/reproduction | 17 versionable files validate against manifest/attestation; three rights-sensitive full-raw files remain restricted | Availability text excludes restricted content and requires lawful local access for exact full-corpus reruns | Consistent reproducibility/rights boundary |
 | TTLAB authorization | Project/corpus use is authorized; no participants or institution approval record exists | Both manuscripts deny ethics approval/exemption and blanket redistribution rights | Consistent conservative wording; submission/rights decisions remain human-required |
@@ -99,6 +104,9 @@ evaluation, human-review, or public-approval evidence.
   0.846154, false-positive rate is 1.0, and abstention is zero.
 - The prospective Finder comparison is adverse to full mode, not evidence that
   suggestions improve ranking.
+- The conversational Idea Generator is a post-evaluation capability with
+  contract tests and formative cases; no v1/v2 effectiveness metric transfers to
+  it.
 - Positive-only topic labels do not support precision/F1; the OCR result is
   fixture-only.
 - Technical evaluation did not exercise the empty public projection.

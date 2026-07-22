@@ -25,8 +25,9 @@ BIBLIOGRAPHY = THESIS_ROOT / "references.bib"
 PAPER_PDF = ROOT / "build" / "ieee-paper.pdf"
 THESIS_PDF = ROOT / "build" / "thesis.pdf"
 PAPER_MAX_PAGES = 6
-THESIS_MIN_PAGES = 75
+THESIS_MIN_PAGES = 80
 PAPER_REFERENCE_TARGET = range(18, 23)
+EXPECTED_PAPER_TITLE = "An AI-Based Platform for Content Summarization and Idea Generation using a Research Lab’s Output"
 PAPER_GENERATED_MACROS = ROOT / "paper" / "generated" / "metrics.tex"
 PAPER_GENERATED_MANIFEST = ROOT / "paper" / "generated" / "manifest.json"
 THESIS_GENERATED_MACROS = ROOT / "thesis" / "generated" / "evidence_macros.tex"
@@ -282,6 +283,9 @@ def source_checks(*, allow_v2_not_run: bool = False) -> tuple[list[str], dict[st
         "paper": "\n".join(sources[path] for path in _authored_sources(paper_tex_sources())),
         "thesis": "\n".join(sources[path] for path in _authored_sources(thesis_tex_sources())),
     }
+    paper_config = (ROOT / "paper" / "conference-config.tex").read_text(encoding="utf-8")
+    if EXPECTED_PAPER_TITLE not in paper_config:
+        errors.append("paper canonical PDF title does not match the required exact title")
     v2_report = _v2_source_checks(
         errors,
         manuscript_groups,
@@ -374,8 +378,12 @@ def pdf_checks() -> tuple[list[str], dict[str, Any]]:
         except ValueError:
             pages = 0
         errors.extend(manuscript_constraint_errors(label, pages))
+        if label == "paper" and pages != PAPER_MAX_PAGES:
+            errors.append(f"paper must use exactly {PAPER_MAX_PAGES} pages; found {pages}")
         if required_size.casefold() not in info.get("Page size", "").casefold():
             errors.append(f"{label} page size is not {required_size}: {info.get('Page size', 'missing')}")
+        if label == "paper" and info.get("Title", "").strip() != EXPECTED_PAPER_TITLE:
+            errors.append("paper PDF metadata title does not match the required exact title")
         for field in ("Title", "Author", "Subject", "Keywords"):
             if not info.get(field, "").strip():
                 errors.append(f"{label} PDF metadata field is empty: {field}")

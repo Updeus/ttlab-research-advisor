@@ -4,8 +4,7 @@ The project has progressed beyond the earlier eight-phase demo description.
 Authoritative current status is maintained in
 `docs/peer_review_readiness/FINAL_READINESS_REPORT.md`; executed methods and evidence are in
 [`METHODOLOGY.md`](METHODOLOGY.md) and
-[`EVALUATION_PROTOCOL.md`](EVALUATION_PROTOCOL.md). `FINAL_STATUS.md` is a
-superseded historical-v1 checkpoint, not current checkout status.
+[`EVALUATION_PROTOCOL.md`](EVALUATION_PROTOCOL.md).
 
 ## Current implemented state
 

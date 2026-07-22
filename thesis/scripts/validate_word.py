@@ -39,7 +39,7 @@ SUBJECT = (
 
 REQUIRED_HEADINGS = {
     "Abstract",
-    "Statement of Scope and AI Assistance",
+    "Statement of Scope and External Assistance",
     "Table of Contents",
     "List of Figures",
     "List of Tables",
@@ -81,11 +81,18 @@ EXPECTED_FIGURES = {
 EXPECTED_TABLES = {
     "Table 2.1.",
     "Table 3.1.",
+    "Table 4.1.",
+    "Table 5.1.",
+    "Table 5.2.",
+    "Table 8.1.",
+    "Table 8.2.",
     "Table 9.1.",
     "Table 10.1.",
     "Table 10.2.",
     "Table 10.3.",
     "Table 10.4.",
+    "Table 10.5.",
+    "Table 10.6.",
     "Table A.1.",
     "Table B.1.",
     "Table C.1.",
@@ -166,7 +173,7 @@ def render_check(docx: Path, keep_dir: Path | None) -> dict[str, object]:
     info = parse_pdfinfo(pdf)
     page_count = int(info.get("Pages", "0"))
     page_size = info.get("Page size", "")
-    if not (65 <= page_count <= 85):
+    if not (80 <= page_count <= 110):
         raise RuntimeError(f"Unexpected Word-render page count: {page_count}")
     if "595" not in page_size or "841" not in page_size:
         raise RuntimeError(f"Word render is not A4: {page_size}")
@@ -236,15 +243,15 @@ def validate(docx: Path, render: bool, render_dir: Path | None) -> dict[str, obj
         and all(node.get("descr", "").startswith("Figure ") for node in drawing_properties),
         "Every figure must have meaningful embedded alternative text",
     )
-    fail(errors, tables == 11, f"Expected 11 editable tables, found {tables}")
+    fail(errors, tables == 18, f"Expected 18 editable tables, found {tables}")
     fail(errors, len(figure_captions) == 11, "Expected 11 figure captions")
-    fail(errors, len(table_captions) == 11, "Expected 11 table captions")
+    fail(errors, len(table_captions) == 18, "Expected 18 table captions")
     fail(errors, len(bibliography) == 38, "Expected 38 IEEE bibliography entries")
     fail(errors, equations >= 2, "Expected at least two display equations")
-    fail(errors, len(by_style.get("SourceCode", [])) == 4, "Expected four code listings")
-    fail(errors, len(by_style.get("DefinitionTerm", [])) == 25, "Definition-list labels were lost")
+    fail(errors, len(by_style.get("SourceCode", [])) == 11, "Expected eleven code listings")
+    fail(errors, len(by_style.get("DefinitionTerm", [])) == 29, "Definition-list labels were lost")
     fail(errors, len(heading1) == 24, f"Expected 24 Heading 1 paragraphs, found {len(heading1)}")
-    fail(errors, len(heading2) == 85, f"Expected 85 Heading 2 paragraphs, found {len(heading2)}")
+    fail(errors, len(heading2) == 98, f"Expected 98 Heading 2 paragraphs, found {len(heading2)}")
     normalized_heading1 = {re.sub(r"^\d+", "", heading) for heading in heading1}
     fail(
         errors,
@@ -317,7 +324,13 @@ def validate(docx: Path, render: bool, render_dir: Path | None) -> dict[str, obj
         if not rows:
             continue
         first_cells = [text_of(cell) for cell in rows[0].findall(qn("w", "tc"))]
-        if first_cells == ["RQ", "Method", "Evidence", "Result", "Conclusion"]:
+        if first_cells == [
+            "RQ",
+            "Method",
+            "Authoritative evidence",
+            "Principal result",
+            "Bounded conclusion",
+        ]:
             traceability_table = table
             break
     fail(errors, traceability_table is not None, "Traceability table is missing")
@@ -330,7 +343,7 @@ def validate(docx: Path, render: bool, render_dir: Path | None) -> dict[str, obj
         ]
         fail(
             errors,
-            rq_values == ["1", "2", "3", "4", "5"],
+            rq_values == ["1", "2", "3", "4", "5", "6", "7"],
             f"Traceability RQ identifiers are incomplete: {rq_values}",
         )
         first_cells = rows[0].findall(qn("w", "tc")) if rows else []

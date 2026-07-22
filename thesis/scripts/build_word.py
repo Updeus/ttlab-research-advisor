@@ -49,7 +49,8 @@ SUBJECT = (
 )
 KEYWORDS = (
     "research intelligence, information retrieval, retrieval-augmented "
-    "generation, scholarly recommendation, responsible AI, reproducibility"
+    "generation, idea generation, scholarly recommendation, responsible AI, "
+    "reproducibility"
 )
 
 FIGURE_SOURCES = (
@@ -227,6 +228,8 @@ def parse_aux_labels() -> dict[str, str]:
         "fig:recommendation-workflow",
         "fig:ui-evidence",
         "fig:ui-evaluation",
+        "fig:idea-generator-interface",
+        "fig:admin-control-interface",
         "fig:evaluation-workflow",
         "tab:stakeholders",
         "tab:rq-plan",
@@ -240,6 +243,7 @@ def parse_aux_labels() -> dict[str, str]:
         "tab:schema-summary",
         "tab:api-summary",
         "app:traceability",
+        "app:schema-api",
     }
     missing = sorted(required - labels.keys())
     if missing:
@@ -326,7 +330,7 @@ def human_reference(label: str, number: str) -> str:
 
 
 def resolve_cross_references(text: str, labels: dict[str, str]) -> str:
-    pattern = re.compile(r"\\(?:c|C)ref\{([^}]+)\}")
+    clever_pattern = re.compile(r"\\(?:c|C)ref\{([^}]+)\}")
 
     def replacement(match: re.Match[str]) -> str:
         names = [item.strip() for item in match.group(1).split(",")]
@@ -342,7 +346,18 @@ def resolve_cross_references(text: str, labels: dict[str, str]) -> str:
             return " and ".join(rendered)
         return ", ".join(rendered[:-1]) + ", and " + rendered[-1]
 
-    return pattern.sub(replacement, text)
+    text = clever_pattern.sub(replacement, text)
+
+    plain_pattern = re.compile(r"\\ref\{([^}]+)\}")
+
+    def plain_replacement(match: re.Match[str]) -> str:
+        name = match.group(1).strip()
+        number = labels.get(name)
+        if number is None:
+            raise ValueError(f"No compiled cross-reference value for {name}")
+        return f"\\hyperref[{name}]{{{number}}}"
+
+    return plain_pattern.sub(plain_replacement, text)
 
 
 def prefix_caption(block: str, label: str, labels: dict[str, str]) -> str:
@@ -994,7 +1009,13 @@ def finish_docx(path: Path) -> None:
                 ensure_child(trpr, qn("w", "tblHeader"))
         if rows:
             header = [paragraph_text(cell) for cell in rows[0].findall(qn("w", "tc"))]
-            if header == ["RQ", "Method", "Evidence", "Result", "Conclusion"]:
+            if header == [
+                "RQ",
+                "Method",
+                "Authoritative evidence",
+                "Principal result",
+                "Bounded conclusion",
+            ]:
                 grid = table.find(qn("w", "tblGrid"))
                 grid_columns = grid.findall(qn("w", "gridCol")) if grid is not None else []
                 if len(grid_columns) == 5:

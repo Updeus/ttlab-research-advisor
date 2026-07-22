@@ -3,7 +3,7 @@
 
 \section{Layered architecture}
 
-The four layers (\cref{fig:thesis-architecture}) are a React route UI; FastAPI public-projection/protected APIs and security; ingestion, retrieval, selective QA, recommendation, discovery, review and evaluation logic; and SQLite plus immutable local generations. Only protected/local evaluation may select the technical corpus explicitly.
+The four layers (\cref{fig:thesis-architecture}) are a React route UI; FastAPI public-projection/protected APIs and security; ingestion, retrieval, selective QA, structured recommendation, conversational idea generation, discovery, review and evaluation logic; and SQLite plus immutable local generations. Production routes use the approved public projection. Only protected evaluation or an explicitly labelled loopback demo may select technically eligible records.
 
 \begin{figure}[htbp]
 \centering
@@ -14,7 +14,7 @@ The four layers (\cref{fig:thesis-architecture}) are a React route UI; FastAPI p
 
 \section{Design principles}
 
-Six principles govern the design. First, derived index state is authoritative only when its manifest and active generation pointer match the current corpus. Second, technical eligibility never implies publication or redistribution approval. Third, source facts and generated interpretation use distinct fields and labels. Fourth, AI review has a distinct \texttt{ai\_reviewed} state and cannot create human approval. Fifth, public requests are privacy-minimised and administrative mutations are authenticated. Sixth, missing dependencies or evidence produce explicit unavailable, stale, partial, \texttt{support\_unverified}, or needs-reprocess states instead of silent success.
+Seven principles govern the design. First, derived index state is authoritative only when its manifest and active generation pointer match the current corpus. Second, technical eligibility never implies publication or redistribution approval. Third, source facts, paper-informed ideas, and general suggestions use distinct fields and labels. Fourth, AI review has a distinct \texttt{ai\_reviewed} state and cannot create human approval. Fifth, public requests are privacy-minimised and administrative mutations are authenticated. Sixth, model and retrieval identity are recorded at generation time. Seventh, missing dependencies or evidence produce explicit unavailable, stale, partial, \texttt{support\_unverified}, or needs-reprocess states instead of silent success.
 
 \section{Persistence and traceability model}
 
@@ -31,10 +31,10 @@ Six principles govern the design. First, derived index state is authoritative on
 
 Each vector manifest binds the corpus and ordered chunks/hashes to provider/model/revision, dimension/normalisation, configuration/code/index hashes, role, and completeness. A rebuild validates an immutable generation, commits matching database status, then atomically moves the current pointer; failure leaves the prior pointer active. Demo indexes cannot target the canonical location, and validators reject missing, partial, stale, or mismatched state.
 
-Feature hashing is a 256-dimensional signed lexical projection, not learned semantics. Dense retrieval pins \texttt{all-MiniLM-L6-v2} revision \texttt{826711e...a1def9}, its artifact hash, 384 dimensions, normalization, CPU/window pooling, and license. Optional Ollama tags are allowlisted by digest and checked before/after generation; absent response attestation is recorded as a mutable-tag limitation.
+Feature hashing is a 256-dimensional signed lexical projection, not learned semantics. Dense retrieval pins \texttt{all-MiniLM-L6-v2} revision \texttt{826711e...a1def9}, its artifact hash, 384 dimensions, normalization, CPU/window pooling, and license. Production Ollama use requires an approved model/digest. An explicit local-demo policy may permit installed models while still checking the observed digest before and after generation; absent response attestation is recorded as a mutable-tag limitation.
 
 \section{Security and privacy boundaries}
 
-Public reads/generation are separate from technical evaluation and protected mutations. Public metadata requires human approval, published state and cleared rights; searchable text also requires approved extraction/current public generation. No audited record met the full predicate, so anonymous evidence routes fail closed. Environment-digested bearer credentials, production HTTPS/host/CORS checks, role restrictions, size/rate limits, redaction, SSRF/redirect controls, and PDF limits address principal threats.
+Public reads/generation are separate from technical evaluation and protected mutations. Production metadata requires human approval, published state and cleared rights; searchable text also requires approved extraction/current public generation. No audited record met the full predicate, so production evidence routes fail closed. Local administrators authenticate with Argon2id passwords and HttpOnly, SameSite sessions; a readable CSRF cookie must match the mutation header. Idle/absolute expiry, lockout, forced temporary-password replacement, role restrictions, production HTTPS/host/CORS checks, size/rate limits, redaction, SSRF/redirect controls, and PDF limits address principal threats. Environment-digested bearer service actors remain available for bounded automation.
 
-Student interests, skills, time, constraints, and topic preferences remain client-side/in-request and are not persisted by default. Public generated-output serializers omit private reviewer notes and draft corrections. This minimisation reduces privacy risk but does not replace an institutional privacy review for a deployed service.
+Student interests, skills, time, constraints, topic preferences, and Idea Generator conversation turns remain client-side/in-request and are not persisted by default. Public generated-output serializers omit private reviewer notes and draft corrections. This minimisation reduces privacy risk but does not replace an institutional privacy review for a deployed service.

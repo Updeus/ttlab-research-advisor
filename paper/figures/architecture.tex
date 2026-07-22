@@ -3,9 +3,9 @@
   layer/.style={draw=Navy, rounded corners=1.5pt, thick, align=left, inner sep=3.2pt, text width=0.91\textwidth, font=\scriptsize},
   arr/.style={-{Latex[length=1.6mm]}, thick, draw=Slate}
 ]
-  \node[layer, fill=PaleBlue] (ui) {\textbf{React presentation and responsible-AI UX:} route-based Dashboard, Papers, Search, Ask, Extension Finder, Topic/Author Explorer, Evaluation, and protected Admin; source snippets, provenance, review/freshness states, transient profile handling.};
-  \node[layer, below=of ui, fill=PaleTeal, draw=Teal!80!black] (api) {\textbf{FastAPI and security boundary:} public read/transient generation; authenticated reviewer/admin mutations; request limits, rate control, exact CORS/hosts, redacted logs, readiness, and append-only attributed review events.};
-  \node[layer, below=of api, fill=PaleGold, draw=Gold!80!black] (logic) {\textbf{Research services:} deterministic ingestion and page-aware chunking; keyword, hashing, pinned dense, and hybrid retrieval; extractive or local-model QA; evidence-only and full recommendations; topics, generated artefacts, and offline evaluation.};
+  \node[layer, fill=PaleBlue] (ui) {\textbf{React presentation and responsible-AI UX:} Dashboard, Papers, Search, Ask, conversational Idea Generator, Topic/Author Explorer, Evaluation, and protected Admin Control; provenance, review/freshness states, transient inputs.};
+  \node[layer, below=of ui, fill=PaleTeal, draw=Teal!80!black] (api) {\textbf{FastAPI and security boundary:} public read/transient generation; session/role-protected mutations; feature switches, request controls, CSRF, redacted logs, readiness, and append-only attributed review events.};
+  \node[layer, below=of api, fill=PaleGold, draw=Gold!80!black] (logic) {\textbf{Research services:} deterministic ingestion and page-aware chunking; keyword, hashing, pinned dense, and hybrid retrieval; extractive/local-model QA; structured Finder and source-aware ideas; topics, artefacts, and offline evaluation.};
   \node[layer, below=of logic, fill=gray!8, draw=Slate] (data) {\textbf{Authoritative evidence state:} SQLite entities plus local permitted source files; atomic index files and hash-validated manifests; versioned silver labels, raw rankings/claims/reviews, experiment configurations, checksums, and sanitized release artefacts.};
   \draw[arr] (ui) -- node[right,font=\tiny]{bounded JSON/HTTP} (api);
   \draw[arr] (api) -- (logic);

@@ -20,6 +20,15 @@ The result is suitable for **close supervisor review**. It is not a declaration
 of formal-submission readiness, public-deployment readiness, human validation,
 research-ethics approval, or third-party PDF redistribution permission.
 
+Post-report implementation note: the later current branch adds a conversational
+Idea Generator, local administrator sessions, Admin Control operations,
+feature/model controls, labelled loopback demo preview, dense-runtime caching,
+and paper-scoped Ask augmentation. The structured Finder remains the evaluated
+recommendation mode; its results are not transferred to the Idea Generator.
+These additions are contract-tested engineering changes, not new scientific
+effectiveness evidence. The synchronized manuscripts preserve all negative v1/v2
+findings and state this post-evaluation boundary explicitly.
+
 ## 1. Executive disposition
 
 The audit opened 67 issues. The final disposition is 61 fixed, one partially
@@ -29,7 +38,8 @@ answer-point coverage of 0.135802 remains in both manuscripts, and the new
 prospective result does not establish a causal improvement.
 
 The hard manuscript constraints are now met: the IEEE paper is six Letter pages
-including 21 references, and the thesis is 88 A4 pages including 38 references.
+including 21 references, and the synchronized thesis is 97 A4 pages including
+38 references.
 The additional thesis content is substantive methodology, architecture,
 implementation, frontend, evaluation, error-analysis, governance, and
 reproducibility material rather than blank-page or spacing inflation.
@@ -53,7 +63,7 @@ available to supervise it.
 | Environment-required | 3 | 3 environment-blocked | Repository prerequisites are narrowed; production infrastructure remains external |
 | Paper pages | 8 | 6 | At-most-six-page requirement met without changing IEEE margins or body font |
 | Paper cited references | 29 | 21 | Within the documented approximate 18--22 target |
-| Thesis pages | 74 | 88 | At least 75 substantive pages |
+| Thesis pages | 74 | 97 | At least 80 substantive pages after focused current-platform synchronization |
 | Thesis bibliography entries | 32 shared entries at baseline | 38 thesis entries | Final bibliography count from `build/thesis.bbl` |
 | Backend tests | 255 passed | 407/407 passed across 43 files in eight bounded shards | Zero failures, errors, or skips; engineering evidence only |
 | Frontend tests | 20 in 6 files | 67 passed | Includes route, state, review, contract, and automated accessibility checks |
@@ -126,9 +136,9 @@ machine-readable register.
 ## 4. Evaluation evidence and scientific boundary
 
 All labels in this section are source-derived AI-silver judgments. The audit
-baseline at `b561fa73...`/`corpus-04a...` remains preserved in `BASELINE.md`,
-`AUDIT_REPORT.md`, the remediation matrix's original evidence, and the dated
-project-evidence log. The current manuscripts instead consume a separately
+baseline at `b561fa73...`/`corpus-04a...` remains preserved in the remediation
+matrix's original evidence, the dated project-evidence log, and Git history.
+The current manuscripts instead consume a separately
 reexecuted v1-form evidence set at source `73092e48...`/`corpus-f463...`, plus
 the prospective v2 package. The audit-baseline QA run had 400 claims, citation
 correctness 0.625, citation utilisation 0.592, coverage 11/81, and 0/4
@@ -350,18 +360,19 @@ establish complete WCAG conformance or usability with assistive technology.
 
 ### Thesis
 
-- Final PDF: 88 A4 pages.
+- Final synchronized PDF: 97 A4 pages.
 - Bibliography: 38 `\\bibitem` entries.
 - `qpdf --check` passed; fonts are embedded; no Type 3 fonts were observed.
-- The post-fix build log contains no undefined citation/reference, missing
-  figure, LaTeX fatal error, missing-character, or overfull-box finding.
-- All 88 pages were rendered and inspected through six contact sheets, with
-  individual inspection of the front matter, contents/lists, changed results
-  pages, architecture/flow figures, frontend screenshots, code/schema/API
-  listings, traceability appendix, reproducibility appendix, bibliography, and
-  final page. No blank-page inflation, clipping, overlapping objects, unreadable
-  added table/listing, or missing final-page content was observed. Normal partial
-  pages at chapter boundaries remain.
+- The synchronized build log contains no undefined citation/reference, missing
+  figure, LaTeX fatal error, or missing-character finding. It retains one
+  negligible 0.137-pt overfull box and no material overfull box above 1 pt.
+- The synchronized PDF was rendered and inspected at the front matter,
+  contents/lists, changed chapters, both current-interface fixtures, every new
+  code listing, the traceability/reproducibility appendices, bibliography, and
+  final page. The earlier 88-page candidate had already received an all-page
+  contact-sheet inspection. No blank-page inflation, clipping, overlapping
+  objects, unreadable added table/listing, or missing final-page content was
+  observed. Normal partial pages at chapter boundaries remain.
 
 Both PDFs report `Tagged: no`. The repository therefore makes no tagged-PDF,
 PDF/UA, or complete document-accessibility claim. Figure descriptions remain in
@@ -456,14 +467,14 @@ Consequently:
 
 | Gate | Result |
 |---|---|
-| Remediation-v2 `--versionable-only` validation | PASS; 17 files, 18 QA, 10 Finder, 12 topic IDs/splits exact |
-| Backend test suite | PASS; 407/407 collected tests across 43 files in eight 60-second-bounded shards; 0 failures/errors/skips; 168.16 s summed pytest runtime |
-| Frontend tests | PASS; 67 |
+| Remediation-v2 `--versionable-only` validation | Historical candidate PASS; the later synchronized checkout now stops with `versionable package validator/environment identity drift` because its dependency/validator identity differs from the frozen v2 receipt. The v2 package and metrics were not rewritten. |
+| Backend test suite | Historical candidate PASS: 407/407. Current synchronized checkout: a 131-second full run produced 418 pass/12 fail; the two synchronization-test failures were repaired and pass in a six-test targeted run, while the remaining ten current-product/frozen-identity failures were independently reproduced. No application behavior was changed in this manuscript-only pass. |
+| Frontend tests | Historical candidate PASS: 67. Current focused Idea Generator/Admin run PASS: 6/6; the monolithic current run reached its 180-second cap without a result and was stopped. |
 | Frontend build | PASS |
 | Frontend E2E | PASS; 9 |
 | Frontend high-level dependency audit | PASS; 0 reported vulnerabilities |
-| Paper build/validator | PASS; 6 pages, 21 references |
-| Thesis frozen assets/build/validator | PASS; 88 pages, 38 references, no material overfull box |
+| Paper direct compile/PDF checks | PASS; exact requested title, 6 pages, 21 references. `make paper` currently stops at the frozen-v2 identity gate above before compilation. |
+| Thesis direct compile and editable-Word validation | PASS; 97 PDF pages, 38 references, 11 figures, 18 editable Word tables, and 11 code listings. `make thesis-assets-frozen` currently stops at the same frozen-v2 identity gate. |
 | PDF structural checks | PASS for both PDFs |
 | Rendered visual inspection | PASS with the limitations in Section 7 |
 | Documentation validation | PASS; 45 Markdown files, 22 local links, zero errors |

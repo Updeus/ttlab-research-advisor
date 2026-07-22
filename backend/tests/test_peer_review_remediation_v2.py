@@ -214,33 +214,30 @@ def test_full_reproduction_stages_static_inputs_then_resets_before_evaluation() 
     assert '"--maxWorkers", "1", "--no-file-parallelism"' in frontend_runner
 
 
-def test_manuscript_capture_isolation_and_v2_identity_contracts_fail_closed() -> None:
+def test_manuscript_capture_uses_synthetic_current_interface_contracts() -> None:
     capture = (ROOT / "thesis/scripts/capture_interface_screenshots.mjs").read_text(encoding="utf-8")
     admin_page = (ROOT / "frontend/src/pages/AdminReviewPage.tsx").read_text(encoding="utf-8")
 
     for required in (
-        "TTLAB_SCREENSHOT_RUNTIME_ROOT",
-        "TTLAB_SCREENSHOT_SOURCE_DB_SHA256",
-        "TTLAB_SCREENSHOT_SOURCE_DB_FAMILY_SHA256",
-        "TTLAB_SCREENSHOT_RUNTIME_DB_PATH",
-        "TTLAB_SCREENSHOT_DATABASE_SNAPSHOT_EVIDENCE",
-        "TTLAB_SCREENSHOT_RUNTIME_INDEX_DIR",
-        "sqlite3.Connection.backup",
-        "runtime_database_distinct_inode",
-        "source_database_family_sha256_after_capture",
-        "observed_source_assets_unchanged_during_script",
-        'capabilities.actor?.role === "reviewer"',
-        'capabilities.capabilities?.set_publication_and_rights === false',
-        'capabilities.capabilities?.trigger_ingestion === false',
-        'freshness?.freshness_contract === "strict_completed_attested_package_v2"',
-        'evidence?.status === "current"',
-        'evidence?.package_status === "completed"',
-        "report.promotable = true",
+        "accepted_deterministic_fixture",
+        "idea-generator-current.png",
+        "admin-control-current.png",
+        "synthetic paper-informed conversation",
+        "synthetic authenticated admin state",
+        "Visible current-interface contract only",
+        "real_student_data: false",
+        "real_corpus_text: false",
+        "credentials_recorded: false",
+        "mutations_executed: false",
+        'if (url.origin !== apiOrigin) return route.abort("blockedbyclient")',
+        'if (pathName === "/api/recommendations/ideas" && method === "POST")',
+        'if (pathName === "/api/admin/control/bulk/preview" && method === "POST")',
+        'role: "admin", reviewer_type: "human", local_demo_bypass: false',
     ):
         assert required in capture
-    assert 'capabilities.actor?.role === "admin"' not in capture
+    for prohibited in ("data/papers.db", "sqlite3.Connection.backup", "TTLAB_SCREENSHOT_RUNTIME_DB_PATH"):
+        assert prohibited not in capture
     assert 'data-admin-governance-capture="aggregate-summary"' in admin_page
-    assert capture.index("verifySourceAssetsUnchanged") < capture.index('report.status = "pass"')
 
 
 def test_v2_dashboard_reads_metrics_from_the_canonical_package(

@@ -9,10 +9,10 @@
 > against `corpus-f4638c633bea82b0`; current disposition is recorded under
 > `docs/peer_review_readiness/`.
 
-This append-only log records material choices made while executing
-`CODEX_MASTER_REMEDIATION_PROMPT.md`. It exists so routine technical and
-editorial decisions do not disappear into implementation history. Evidence and
-results may refine a choice, but an earlier entry is not silently rewritten.
+This append-only log records material choices made during the remediation.
+It exists so routine technical and editorial decisions do not disappear into
+implementation history. Evidence and results may refine a choice, but an
+earlier entry is not silently rewritten.
 
 ## 2026-07-12 baseline decisions
 

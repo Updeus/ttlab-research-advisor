@@ -23,7 +23,6 @@ DEFAULT_OUTPUT_ROOT = ROOT / "build/releases"
 INCLUDED_TOP_LEVEL = {
     ".gitignore",
     "AGENTS.md",
-    "AUTHOR_REVIEW.md",
     "Makefile",
     "README.md",
     "artifacts",

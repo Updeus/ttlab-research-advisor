@@ -118,5 +118,4 @@ Potential future extensions outside the current evidence include:
 
 See `docs/METHODOLOGY.md` for the executed study and
 `docs/peer_review_readiness/FINAL_READINESS_REPORT.md` for the current closure
-state. `docs/FINAL_STATUS.md` is retained only as a superseded historical-v1
-checkpoint.
+state.

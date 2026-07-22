@@ -42,11 +42,11 @@ Group & Purpose & Access \\
 papers & approved statistics, browse/detail, extraction and artifact views & public projection \\
 search & projection-filtered retrieval; technical scope exists only in protected/local code & public projection \\
 ask & transient public generation; technical evaluation/persisted history separated & public projection; protected/local technical \\
-recommendations & transient evidence-only/full output over approved public evidence & public projection \\
+recommendations & transient conversational ideas plus retained structured Finder compatibility/history & public projection; protected Finder history \\
 topics/authors & approved explorer relations; technical rebuild separated & public projection; protected rebuild \\
-artifacts & public reviewed-safe output; generation/review operations & mixed public/protected \\
+artifacts & generated output with explicit unreviewed/approved state; generation/review operations & mixed public/protected \\
 evaluation & evaluation state, corpus/index freshness, and public-safe results & public read \\
-admin & review queues, mutations, events, corrections & reviewer/admin bearer \\
+authentication/admin & local sessions and service actors; queues, feature/model/account/sync controls, preview-bound mutations, events, corrections & protected reviewer/admin \\
 health/readiness & liveness and database/index completeness state & public read \\
 \bottomrule
 \end{tabularx}
@@ -60,7 +60,7 @@ FastAPI's generated OpenAPI document is available only in local-demo mode. Produ
 
 \section{Representative executable contracts}
 
-The following abridged listings show the implementation points behind the Finder, review, and privacy claims. They preserve operative field names and assertions while omitting imports, defaults not relevant to the claim, and test setup. The repository paths named in each explanation are authoritative; these excerpts are explanatory, not a second implementation.
+The following abridged listings show the implementation points behind the structured Finder, conversational Idea Generator, local-model identity, preview-bound administration, review, and privacy claims. They preserve operative field names and assertions while omitting imports, defaults not relevant to the claim, and test setup. The repository paths named in each explanation are authoritative; these excerpts are explanatory, not a second implementation.
 
 \begingroup
 \lstset{aboveskip=0.35em,belowskip=0.35em}
@@ -103,6 +103,91 @@ def extension_recommendation_history(
 \end{lstlisting}
 
 \noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/api/recommendations.py}; the prefix yields \codepath{POST /api/recommendations/extensions}. \textbf{Rationale:} separate public advice from review history. \textbf{Input/output:} a validated profile returns a transient recommendation; a reviewer-authenticated read returns serialized stored records. \textbf{Failure:} public history access is rejected and public generation cannot request persistence. \textbf{Trace:} RQ4/RQ7 and UI-03, UI-06, UI-09.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged source-aware Idea Generator orchestration.}]
+retrieval = retrieve(session, retrieval_query,
+                     mode="keyword", top_k=12,
+                     include_text=True, scope=retrieval_scope)
+answerability = assess_answerability(retrieval_query,
+                                      retrieval["results"])
+matched = [row for row in retrieval["results"]
+           if row["chunk_id"] in answerability["relevant_chunk_ids"]]
+source_rows, alias_to_result = build_source_rows(matched)
+model_output, metadata, warnings = generate_strict_ollama_output(
+    build_idea_prompt(request, source_rows), settings=settings)
+
+valid_aliases = [a for a in draft.source_aliases
+                 if a in alias_to_result]
+idea = {
+    **draft.model_dump(exclude={"source_aliases"}),
+    "basis": "paper_informed" if valid_aliases
+             else "general_suggestion",
+    "source_chunk_ids": [alias_to_result[a]["chunk_id"]
+                         for a in valid_aliases],
+}
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/intelligence/idea\_generator.py}. \textbf{Rationale:} ensure conversational ideas cannot turn an invented label into evidence. \textbf{Input/output:} bounded conversation plus an approved retrieval scope becomes one to three typed ideas, citations, warnings, and runtime provenance. \textbf{Failure:} unmatched output remains a general suggestion; invalid aliases are replaced and warned; provider/schema failures are explicit. \textbf{Trace:} RQ4/RQ7 and UI-03/UI-09.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged strict schema and local-model identity checks.}]
+for attempt in range(2):
+    raw, metadata, warnings = call_strict_ollama(
+        provider, repair_prompt if attempt else prompt, schema)
+    try:
+        output = IdeaModelOutput.model_validate_json(raw)
+        metadata["structured_output_repair_attempted"] = bool(attempt)
+        return output, metadata, warnings
+    except ValueError:
+        continue
+raise IdeaGenerationFailure("ollama_invalid_output",
+                            "invalid idea format twice",
+                            status_code=502)
+
+preflight_digest = verify_ollama_model_digest(
+    provider.base_url, provider.model, provider.expected_digest)
+response = httpx.post(f"{provider.base_url}/api/generate",
+                      json=payload, timeout=provider.timeout)
+identity = verify_ollama_generation_identity(
+    response.json(), configured_model=provider.model,
+    expected_digest=preflight_digest)
+postflight_digest = verify_ollama_model_digest(
+    provider.base_url, provider.model, provider.expected_digest)
+if postflight_digest != preflight_digest:
+    raise ValueError("model identity changed during generation")
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/intelligence/idea\_generator.py}. \textbf{Rationale:} bind generated structures to an observed approved local model and a typed response. \textbf{Input/output:} prompt, JSON schema, and model policy yield validated output plus digest/provenance metadata. \textbf{Failure:} unavailable or drifting identity returns a retryable unavailable state; two malformed responses return a retryable bad-gateway state. A stable tag without response-reported digest remains explicitly not fully attested. \textbf{Trace:} RQ6/RQ7 and the provider-integrity requirement.
+
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged actor-bound preview/execute transaction.}]
+preview = bulk_candidates(session, payload.item_types,
+                          approval_mode=payload.approval_mode)
+operation = BulkOperation(
+    operation_id=str(uuid4()),
+    preview_hash=preview["preview_hash"],
+    request_json=payload.model_dump(),
+    requested_by=actor.actor_id,
+    expires_at=now() + timedelta(minutes=10))
+session.add(operation)
+session.commit()
+
+operation = session.get(BulkOperation, payload.operation_id)
+fresh = bulk_candidates(session,
+                        operation.request_json["item_types"])
+if (operation.requested_by != actor.actor_id
+        or operation.expires_at <= now()
+        or payload.preview_hash != operation.preview_hash
+        or fresh["preview_hash"] != operation.preview_hash):
+    raise HTTPException(409, "create a fresh preview")
+
+event = create_review_event(
+    session, item_type=kind, item_id=item_id,
+    action="bulk_approved", previous_status=previous,
+    new_status="approved", actor=actor)
+session.add(event)
+session.commit()
+\end{lstlisting}
+
+\noindent\textbf{Contract.} \textbf{Path:} \codepath{backend/app/api/admin\_control.py}. \textbf{Rationale:} prevent an administrator from approving a candidate set that changed after inspection. \textbf{Input/output:} an actor-scoped preview produces a ten-minute operation and deterministic hash; execution recomputes state before applying attributed events. \textbf{Failure:} missing, expired, reused, actor-mismatched, or stale previews return conflict without mutation; catch-all review excludes missing-PDF papers. \textbf{Trace:} RQ5/RQ7 and UI-06--UI-08.
 
 \begin{lstlisting}[language=Python,basicstyle=\ttfamily\footnotesize,caption={Abridged review-event schema.}]
 class ReviewEvent(SQLModel, table=True):

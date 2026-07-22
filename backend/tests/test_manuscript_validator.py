@@ -34,9 +34,9 @@ def test_paper_page_and_reference_boundaries() -> None:
 
 
 def test_thesis_minimum_page_boundary() -> None:
-    assert VALIDATOR.manuscript_constraint_errors("thesis", 75) == []
-    assert "below the hard 75-page minimum" in VALIDATOR.manuscript_constraint_errors(
-        "thesis", 74
+    assert VALIDATOR.manuscript_constraint_errors("thesis", 80) == []
+    assert "below the hard 80-page minimum" in VALIDATOR.manuscript_constraint_errors(
+        "thesis", 79
     )[0]
 
 

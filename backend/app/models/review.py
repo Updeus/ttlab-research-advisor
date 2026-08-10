@@ -71,6 +71,15 @@ class ReviewEvent(SQLModel, table=True):
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+class ReviewChainHead(SQLModel, table=True):
+    """Singleton serialization point for the managed PostgreSQL review chain."""
+
+    chain_id: int = Field(default=1, primary_key=True)
+    review_event_id: Optional[str] = None
+    event_hash: Optional[str] = None
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
 PREVENT_REVIEW_EVENT_UPDATE = DDL(
     """
     CREATE TRIGGER IF NOT EXISTS prevent_review_event_update

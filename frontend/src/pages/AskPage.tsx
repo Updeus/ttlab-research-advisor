@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 
-import { askTtlab, fetchAskDiagnostics, fetchLocalLlms, isAbortError } from "../api/client";
+import { askTtlab, fetchAskDiagnostics, fetchGenerationStatus, fetchLocalLlms, isAbortError } from "../api/client";
 import { askSourceAnchor, askSourceNumber, CitedAnswer } from "../components/CitedAnswer";
 import { BusyButton, EmptyState, InlineProgress, ListSkeleton } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
-import type { AskDiagnostics, AskRequest, AskResponse, LocalLlmModel, LocalLlmStatus, Paper, SearchMode } from "../types/paper";
+import type { AskDiagnostics, AskRequest, AskResponse, GenerationStatus, LocalLlmModel, LocalLlmStatus, Paper, SearchMode } from "../types/paper";
 import { isSearchablePublicPaper } from "../utils/publication";
 
 type AskPageProps = {
@@ -27,25 +27,34 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
   const [audience, setAudience] = useState("general");
   const [mode, setMode] = useState<SearchMode>("keyword");
   const [topK, setTopK] = useState(5);
-  const [provider, setProvider] = useState("offline_extractive");
+  const [provider, setProvider] = useState("auto");
   const [selectedModel, setSelectedModel] = useState("qwen3:4b-instruct-2507-q4_K_M");
   const [selectedPaperId, setSelectedPaperId] = useState(initialPaperId ?? "");
   const [result, setResult] = useState<AskResult | null>(null);
   const [failedRequest, setFailedRequest] = useState<AskRequest | null>(null);
   const [diagnostics, setDiagnostics] = useState<AskDiagnostics | null>(null);
   const [llmStatus, setLlmStatus] = useState<LocalLlmStatus | null>(null);
+  const [generationStatus, setGenerationStatus] = useState<GenerationStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const requestSequence = useRef(0);
   const requestController = useRef<AbortController | null>(null);
 
-  function loadStatus() {
+  async function loadStatus() {
     setStatusError(null);
-    Promise.allSettled([fetchAskDiagnostics(), fetchLocalLlms()])
-      .then(([askResult, llmResult]) => {
+    const [askResult, generationResult] = await Promise.allSettled([fetchAskDiagnostics(), fetchGenerationStatus()]);
         if (askResult.status === "fulfilled") setDiagnostics(askResult.value);
         else setDiagnostics(null);
+        if (generationResult.status === "fulfilled") {
+          setGenerationStatus(generationResult.value);
+          setProvider("auto");
+        } else {
+          setGenerationStatus(null);
+        }
+        const llmResult = generationResult.status === "fulfilled" && generationResult.value.model_selection_enabled
+          ? await Promise.resolve(fetchLocalLlms()).then((value) => ({ status: "fulfilled" as const, value })).catch((reason) => ({ status: "rejected" as const, reason }))
+          : { status: "rejected" as const, reason: null };
         if (llmResult.status === "fulfilled") {
           const llmRows = llmResult.value;
           setLlmStatus(llmRows);
@@ -58,14 +67,12 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
           if (!(llmRows.generation_available ?? llmRows.available) || !llmRows.models.some((model) => model.installed && (model.usable ?? true))) {
             setProvider("offline_extractive");
           }
-        } else {
+        } else if (generationResult.status !== "fulfilled" || generationResult.value.model_selection_enabled) {
           setLlmStatus(null);
-          setProvider("offline_extractive");
         }
-        if (askResult.status === "rejected" || llmResult.status === "rejected") {
+        if (askResult.status === "rejected" || generationResult.status === "rejected") {
           setStatusError("Some Ask/provider diagnostics could not be loaded.");
         }
-      });
   }
 
   useEffect(() => {
@@ -142,7 +149,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
         <h2>Ask TTLAB</h2>
       </div>
       <p className="notice">
-        Privacy: your question and paper scope are sent for this request only. The public endpoint does not save them to Ask history. Do not enter confidential or personal data.
+        Privacy: {generationStatus?.privacy_notice ?? "your question and paper scope are sent for this request only."} The public endpoint does not save them to Ask history. Do not enter confidential or personal data.
       </p>
       <p className="notice">
         {demoPreview
@@ -183,7 +190,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
               </option>
             ))}
           </select>
-          <select aria-label="Answer provider" value={provider} onChange={(event) => setProvider(event.target.value)}>
+          {generationStatus?.model_selection_enabled !== false ? <><select aria-label="Answer provider" value={provider} onChange={(event) => setProvider(event.target.value)}>
             <option value="ollama" disabled={llmStatus !== null && !llmGenerationAvailable}>Local Ollama{llmStatus !== null && !llmGenerationAvailable ? (allInstalledModelsAllowed ? " (no installed model)" : " (no digest-verified model)") : ""}</option>
             <option value="offline_extractive">Offline extractive</option>
             <option value="auto">Auto fallback</option>
@@ -199,7 +206,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
                 {modelLabel(model)}
               </option>
             ))}
-          </select>
+          </select></> : <span className="llm-managed-provider">{generationStatus?.display_name ?? "Managed provider"}</span>}
           <BusyButton busy={loading} busyLabel="Asking..." icon={<Send size={16} aria-hidden="true" />} onClick={() => submitQuestion()} disabled={!question.trim()}>
             Ask
           </BusyButton>
@@ -217,7 +224,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
         </div>
       ) : null}
 
-      {selectedModelInfo ? (
+      {generationStatus?.model_selection_enabled !== false && selectedModelInfo ? (
         <div className="llm-model-strip">
           <span className={`llm-signal llm-signal--${selectedModelInfo.color}`}>{selectedModelInfo.quality_tier.replaceAll("_", " ")}</span>
           <strong>{selectedModelInfo.name}</strong>

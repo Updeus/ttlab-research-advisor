@@ -406,6 +406,18 @@ export type LocalLlmStatus = {
   model_policy?: "all_installed_local_models" | "pinned_digest_only";
 };
 
+export type GenerationStatus = {
+  runtime_profile: "local" | "gcp";
+  provider: string;
+  display_name: string;
+  configured: boolean;
+  location?: string;
+  model: string;
+  model_selection_enabled: boolean;
+  external_processing: boolean;
+  privacy_notice: string;
+};
+
 export type IdeaChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -449,7 +461,7 @@ export type IdeaGenerationResponse = {
   paper_match_status: "matched" | "none";
   ideas: GeneratedIdea[];
   citations: IdeaCitation[];
-  provider: "ollama";
+  provider: string;
   model: string;
   generation_metadata: Record<string, unknown>;
   runtime_provenance: Record<string, unknown>;

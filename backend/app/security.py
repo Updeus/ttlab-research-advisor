@@ -115,7 +115,7 @@ def validate_security_configuration(settings: Settings) -> None:
         raise ValueError("PDF page and redirect limits must be non-negative and usable")
     if not settings.allowed_pdf_hosts:
         raise ValueError("TTLAB_ALLOWED_PDF_HOSTS must contain at least one explicit host")
-    supported_providers = {"offline_extractive", "ollama"}
+    supported_providers = {"offline_extractive", "ollama", "vertex_gemini"}
     if not settings.allowed_llm_providers or not set(settings.allowed_llm_providers).issubset(supported_providers):
         raise ValueError("TTLAB_ALLOWED_LLM_PROVIDERS contains an unsupported provider")
     if settings.default_llm_provider not in settings.allowed_llm_providers:

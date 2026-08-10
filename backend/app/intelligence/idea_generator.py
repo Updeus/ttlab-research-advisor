@@ -15,6 +15,8 @@ from app.config import Settings
 from app.indexing.retriever import RetrievalScope, retrieve
 from app.intelligence.llm_provider import (
     OllamaProvider,
+    VertexGeminiProvider,
+    classify_vertex_failure,
     clean_evidence_text,
     extract_ollama_metrics,
     get_ollama_model_digest,
@@ -129,7 +131,7 @@ def generate_ideas(
     source_rows, alias_to_result = build_source_rows(matched_results)
     matched_results = list(alias_to_result.values())
     prompt = build_idea_prompt(request, source_rows)
-    model_output, provider_metadata, provider_warnings = generate_strict_ollama_output(
+    model_output, provider_name, provider_metadata, provider_warnings = generate_strict_output(
         prompt,
         settings=settings,
     )
@@ -222,7 +224,7 @@ def generate_ideas(
         "paper_match_status": "matched" if matched_results else "none",
         "ideas": ideas,
         "citations": citations,
-        "provider": "ollama",
+        "provider": provider_name,
         "model": str(provider_metadata["effective_model"]),
         "generation_metadata": generation_metadata,
         "warnings": dedupe(response_warnings),
@@ -237,9 +239,9 @@ def generate_ideas(
             "history_character_limit": MAX_HISTORY_CHARS,
             "source_limit": MAX_SOURCES,
             "output_schema": "idea_model_output_v1",
-            "provider_policy": "strict_ollama_no_fallback",
+            "provider_policy": "strict_structured_generation_no_fallback",
         },
-        provider="ollama",
+        provider=provider_name,
         model=response["model"],
         generated_at=created_at,
         retrieval_mode="keyword",
@@ -359,6 +361,77 @@ def build_idea_prompt(request: IdeaGenerationRequest, sources: list[dict[str, st
     )
 
 
+def generate_strict_output(
+    prompt: str,
+    *,
+    settings: Settings,
+) -> tuple[IdeaModelOutput, str, dict[str, Any], list[str]]:
+    provider_name = settings.default_llm_provider.strip().lower()
+    if provider_name == "vertex_gemini":
+        return generate_strict_vertex_output(prompt, settings=settings)
+    if "ollama" in {value.strip().lower() for value in settings.allowed_llm_providers}:
+        provider_name = "ollama"
+    if provider_name != "ollama":
+        raise IdeaGenerationFailure(
+            "generation_provider_unavailable",
+            "Conversational idea generation requires an enabled structured-generation provider.",
+            status_code=503,
+        )
+    output, metadata, warnings = generate_strict_ollama_output(prompt, settings=settings)
+    return output, "ollama", metadata, warnings
+
+
+def generate_strict_vertex_output(
+    prompt: str,
+    *,
+    settings: Settings,
+) -> tuple[IdeaModelOutput, str, dict[str, Any], list[str]]:
+    # Vertex receives the Pydantic class via response_schema; duplicating the
+    # JSON schema in prompt text can reduce structured-output quality.
+    prompt = prompt.rsplit("\n\nJSON schema:\n", 1)[0]
+    try:
+        provider = VertexGeminiProvider(
+            requested_provider="vertex_gemini",
+            configured_provider="vertex_gemini",
+            settings=settings,
+        )
+    except (ValueError, RuntimeError, OSError) as exc:
+        raise IdeaGenerationFailure(
+            "generation_provider_unavailable",
+            "Google Gemini on Vertex AI is not configured or available.",
+            status_code=503,
+        ) from exc
+    for attempt in range(2):
+        active_prompt = prompt
+        if attempt:
+            active_prompt += (
+                "\n\nThe previous output was invalid. Return a fresh complete response matching the configured schema."
+            )
+        try:
+            output, metadata = provider.generate_structured(active_prompt, IdeaModelOutput)
+            # Deliberately validate a second time at the application boundary.
+            validated = IdeaModelOutput.model_validate(output.model_dump())
+            metadata["structured_output_schema"] = "idea_model_output_v1"
+            metadata["structured_output_repair_attempted"] = bool(attempt)
+            return validated, "vertex_gemini", metadata, []
+        except ValueError:
+            continue
+        except Exception as exc:
+            reason = classify_vertex_failure(exc)
+            if reason == "vertex_invalid_response":
+                continue
+            raise IdeaGenerationFailure(
+                "generation_provider_unavailable",
+                "Google Gemini on Vertex AI could not generate ideas. Retry after the managed provider recovers.",
+                status_code=503,
+            ) from exc
+    raise IdeaGenerationFailure(
+        "generation_invalid_output",
+        "The generation provider returned an invalid idea format twice. Retry the request.",
+        status_code=502,
+    )
+
+
 def generate_strict_ollama_output(
     prompt: str,
     *,
@@ -372,8 +445,8 @@ def generate_strict_ollama_output(
         )
     except (ValueError, OSError) as exc:
         raise IdeaGenerationFailure(
-            "ollama_unavailable",
-            "The approved Ollama model is not available. Start Ollama or enable and pin an installed model, then retry.",
+            "generation_provider_unavailable",
+            "The approved local generation provider is not available. Start it or enable and pin an installed model, then retry.",
             status_code=503,
         ) from exc
 
@@ -391,15 +464,15 @@ def generate_strict_ollama_output(
             raw, metadata, warnings = call_strict_ollama(provider, active_prompt, schema)
         except httpx.HTTPError as exc:
             raise IdeaGenerationFailure(
-                "ollama_unavailable",
-                "Ollama could not generate a response. Check the local service and retry.",
+                "generation_provider_unavailable",
+                "The local generation provider could not generate a response. Check the service and retry.",
                 status_code=503,
             ) from exc
         except ValueError as exc:
             if "identity" in str(exc).lower() or "digest" in str(exc).lower() or "installed" in str(exc).lower():
                 raise IdeaGenerationFailure(
-                    "ollama_unavailable",
-                    "The Ollama model identity could not be verified. Recheck the pinned model and retry.",
+                    "generation_provider_unavailable",
+                    "The local model identity could not be verified. Recheck the pinned model and retry.",
                     status_code=503,
                 ) from exc
             raw = ""
@@ -413,8 +486,8 @@ def generate_strict_ollama_output(
         except (ValueError, json.JSONDecodeError):
             continue
     raise IdeaGenerationFailure(
-        "ollama_invalid_output",
-        "Ollama returned an invalid idea format twice. Retry the request.",
+        "generation_invalid_output",
+        "The generation provider returned an invalid idea format twice. Retry the request.",
         status_code=502,
     )
 

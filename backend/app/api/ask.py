@@ -25,7 +25,7 @@ class AskRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=20)
     audience: str = Field(default="general", min_length=1, max_length=80)
     max_words: int = Field(default=250, ge=50, le=600)
-    provider: Literal["auto", "offline_extractive", "ollama"] = "auto"
+    provider: Literal["auto", "offline_extractive", "ollama", "vertex_gemini"] = "auto"
     model: str | None = Field(default=None, max_length=200)
     paper_id: str | None = Field(default=None, max_length=200)
 
@@ -36,6 +36,11 @@ def ask(
     session: Annotated[Session, Depends(get_session)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, object]:
+    if not settings.public_provider_selection and (request.provider != "auto" or request.model):
+        raise HTTPException(
+            status_code=400,
+            detail="Provider and model overrides are disabled for public requests in this runtime profile",
+        )
     if request.provider != "auto" and request.provider not in settings.allowed_llm_providers:
         raise HTTPException(status_code=400, detail="Requested LLM provider is not enabled")
     demo_preview = local_demo_corpus_preview_enabled(settings)

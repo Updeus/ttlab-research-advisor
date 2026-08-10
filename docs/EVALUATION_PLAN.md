@@ -1,5 +1,9 @@
 # Evaluation Plan and Execution Status
 
+## Managed-profile reevaluation
+
+PostgreSQL `ts_rank_cd` does not reproduce SQLite FTS5 BM25 ordering, so retrieval and QA evaluation must be rerun against the imported managed corpus. Gemini composition and GCP load behavior are separate unvalidated conditions: do not transfer local/Ollama findings or claim quality/scalability until held-out QA, citation review, restart/scale persistence, and load tests are recorded. Retain all negative results and forced-provider-failure fallback evidence.
+
 This document is the concise plan/status view. Metric definitions, confidence
 interval procedures, exact results, and evidence paths are in
 [`EVALUATION_PROTOCOL.md`](EVALUATION_PROTOCOL.md). The research design is in

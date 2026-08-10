@@ -1,5 +1,11 @@
 # Security Guide
 
+## GCP identity boundary
+
+Managed inference uses Application Default Credentials from the Cloud Run API service identity; API keys are not accepted or configured. Only that identity receives Vertex AI User. The maintenance identity may write corpus/index objects and access Cloud SQL but has no Vertex role; the API has read-only bucket access. Buckets enforce uniform access, public-access prevention, versioning, retention, and lifecycle policy.
+
+Generation telemetry is limited to provider/model/version where returned, region, finish/safety state, token usage, latency, SDK version, hashes of prompts/configuration, and fallback reason. Prompts, questions, retrieved passages, credentials, and raw provider responses must not be logged. Public GCP requests cannot override the server provider or model.
+
 ## Security modes
 
 `TTLAB_SECURITY_MODE=local_demo` is the default. It changes documentation and

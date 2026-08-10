@@ -1,7 +1,9 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, HTTPException, Response, status
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import text
@@ -20,7 +22,13 @@ from app.api.papers import router as papers_router
 from app.api.recommendations import router as recommendations_router
 from app.api.search import router as search_router
 from app.config import get_settings
-from app.db import create_db_and_tables, engine, sqlite_integrity_diagnostics
+from app.db import (
+    close_managed_engine,
+    create_db_and_tables,
+    engine,
+    sqlite_integrity_diagnostics,
+    verify_database_revision,
+)
 from app.indexing.embedder import (
     DEFAULT_INDEX_PATH,
     DENSE_INDEX_PATH,
@@ -32,6 +40,7 @@ from app.indexing.embedder import (
 from app.indexing.dense_runtime import dense_runtime_diagnostics, warm_dense_provider
 from app.indexing.keyword_search import diagnostics as keyword_diagnostics
 from app.indexing.vector_store import cached_vector_search_context
+from app.storage import refresh_gcs_vector_generation
 from app.middleware import (
     PublicGenerationConcurrencyMiddleware,
     PublicRateLimitMiddleware,
@@ -54,8 +63,22 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     validate_security_configuration(settings)
-    create_db_and_tables()
+    try:
+        create_db_and_tables()
+    except RuntimeError:
+        if not settings.is_gcp:
+            raise
+        # Keep /health available for revision diagnostics while /ready remains
+        # fail-closed. No DB-dependent initialization may run in this state.
+        try:
+            yield
+        finally:
+            close_managed_engine()
+        return
     validate_admin_runtime_configuration(settings)
+    if settings.is_gcp:
+        refresh_gcs_vector_generation(DEFAULT_INDEX_PATH, settings)
+        refresh_gcs_vector_generation(DENSE_INDEX_PATH, settings)
     dense_index_ready = False
     with Session(engine) as session:
         ensure_feature_settings(session)
@@ -71,7 +94,10 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         if dense_runtime_diagnostics()["state"] == "ready":
             with Session(engine) as session:
                 cached_vector_search_context(session, provider_name=DENSE_PROVIDER, index_path=DENSE_INDEX_PATH)
-    yield
+    try:
+        yield
+    finally:
+        close_managed_engine()
 
 
 app = FastAPI(
@@ -104,6 +130,8 @@ app.add_middleware(
 app.add_middleware(
     PublicRateLimitMiddleware,
     requests_per_minute=settings.public_generation_requests_per_minute,
+    managed_postgres=settings.is_gcp,
+    hash_salt=settings.rate_limit_hash_salt,
 )
 app.add_middleware(
     SecurityHeadersMiddleware,
@@ -130,6 +158,7 @@ def root() -> dict[str, str]:
     return {
         "service": settings.app_name,
         "status": "ok",
+        "runtime_profile": settings.runtime_profile,
         "security_mode": settings.security_mode,
         "admin_authentication": "insecure_local_demo_bypass"
         if settings.security_mode == "local_demo" and settings.allow_insecure_local_demo
@@ -165,6 +194,8 @@ def readiness(response: Response) -> dict[str, object]:
         "dense_index": {"required": False, "ready": False, "status": "unknown"},
     }
     try:
+        if settings.is_gcp:
+            verify_database_revision(engine, settings.expected_database_revision)
         with Session(engine) as session:
             session.exec(text("SELECT 1"))
             checks["database"] = True
@@ -231,3 +262,19 @@ def public_index_check(
         "indexed_chunks": int(indexed or 0),
         "eligible_chunks": int(report.get("eligible_chunks") or 0),
     }
+
+
+if settings.serve_frontend:
+    frontend_dist = settings.frontend_dist_dir
+    if not frontend_dist.is_absolute():
+        frontend_dist = settings.project_root / frontend_dist
+    assets = frontend_dist / "assets"
+    if not (frontend_dist / "index.html").is_file() or not assets.is_dir():
+        raise RuntimeError("TTLAB_SERVE_FRONTEND requires a compiled frontend distribution")
+    app.mount("/assets", StaticFiles(directory=assets), name="frontend-assets")
+
+    @app.get("/{frontend_path:path}", include_in_schema=False)
+    def spa_fallback(frontend_path: str) -> FileResponse:
+        if frontend_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found")
+        return FileResponse(frontend_dist / "index.html")

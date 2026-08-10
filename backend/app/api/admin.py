@@ -120,6 +120,11 @@ def serialize_admin_review_requests(
 ):  # type: ignore[no-untyped-def]
     """Hold a process and database-scoped lock across read/mutate/hash/commit."""
 
+    if settings.is_gcp:
+        # Managed mode serializes the hash chain with SELECT FOR UPDATE in the
+        # same database transaction as the reviewed-object mutation.
+        yield
+        return
     with _ADMIN_REVIEW_THREAD_LOCK:
         with admin_review_lock(settings):
             yield
@@ -1564,12 +1569,26 @@ def create_review_event(
     diff: dict[str, Any],
     actor: AuthenticatedActor,
 ) -> ReviewEvent:
-    latest_event = session.exec(
-        select(ReviewEvent).order_by(desc(ReviewEvent.created_at), desc(ReviewEvent.review_event_id)).limit(1)
-    ).first()
+    from app.models import ReviewChainHead
+
+    managed = session.get_bind().dialect.name == "postgresql"
+    chain_head = None
+    if managed:
+        chain_head = session.exec(
+            select(ReviewChainHead).where(ReviewChainHead.chain_id == 1).with_for_update()
+        ).one_or_none()
+        if chain_head is None:
+            chain_head = ReviewChainHead(chain_id=1)
+            session.add(chain_head)
+            session.flush()
+        previous_event_hash = chain_head.event_hash
+    else:
+        latest_event = session.exec(
+            select(ReviewEvent).order_by(desc(ReviewEvent.created_at), desc(ReviewEvent.review_event_id)).limit(1)
+        ).first()
+        previous_event_hash = latest_event.event_hash if latest_event else None
     created_at = utc_now()
     review_event_id = str(uuid.uuid4())
-    previous_event_hash = latest_event.event_hash if latest_event else None
     event_hash = ReviewEvent.calculate_hash(
         review_event_id=review_event_id,
         previous_event_hash=previous_event_hash,
@@ -1587,7 +1606,7 @@ def create_review_event(
         diff_json=diff,
         created_at=created_at,
     )
-    return ReviewEvent(
+    event = ReviewEvent(
         review_event_id=review_event_id,
         item_type=item_type,
         item_id=item_id,
@@ -1605,6 +1624,12 @@ def create_review_event(
         event_hash=event_hash,
         created_at=created_at,
     )
+    if chain_head is not None:
+        chain_head.review_event_id = review_event_id
+        chain_head.event_hash = event_hash
+        chain_head.updated_at = created_at
+        session.add(chain_head)
+    return event
 
 
 def enforce_review_transition(

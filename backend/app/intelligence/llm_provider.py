@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.metadata
 import json
 import re
+import time
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
@@ -34,6 +36,12 @@ class LLMProvider(Protocol):
         max_words: int = 250,
     ) -> LLMAnswerDraft:
         ...
+
+
+class VertexGenerationError(RuntimeError):
+    def __init__(self, message: str, metadata: dict[str, Any]) -> None:
+        super().__init__(message)
+        self.metadata = metadata
 
 
 class OfflineExtractiveProvider:
@@ -379,6 +387,233 @@ class OllamaProvider:
             return fallback
 
 
+class VertexGeminiProvider:
+    """Grounded Vertex AI generation using ADC and the Cloud Run service identity."""
+
+    provider = "vertex_gemini"
+
+    def __init__(
+        self,
+        model_name: str | None = None,
+        *,
+        requested_provider: str = "vertex_gemini",
+        configured_provider: str = "vertex_gemini",
+        settings: Settings | None = None,
+    ) -> None:
+        self.settings = settings or get_settings()
+        if not self.settings.google_cloud_project:
+            raise ValueError("TTLAB_GOOGLE_CLOUD_PROJECT is required for Vertex Gemini")
+        self.model = model_name or self.settings.gemini_default_model
+        if self.model not in set(self.settings.gemini_allowed_models):
+            raise ValueError(f"Vertex Gemini model '{self.model}' is not allowlisted")
+        self.requested_provider = requested_provider
+        self.configured_provider = configured_provider
+        self.requested_model = model_name
+
+    def _client(self) -> tuple[Any, Any]:
+        try:
+            from google import genai
+            from google.genai import types
+        except ImportError as exc:
+            raise RuntimeError("google-genai is not installed") from exc
+        client = genai.Client(
+            vertexai=True,
+            project=self.settings.google_cloud_project,
+            location=self.settings.google_cloud_location,
+            http_options=types.HttpOptions(
+                api_version="v1",
+                timeout=int(self.settings.gemini_timeout_seconds * 1_000),
+            ),
+        )
+        return client, types
+
+    def resolution_metadata(
+        self,
+        *,
+        fallback_reason: str | None = None,
+        fallback_exception_class: str | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "requested_provider": self.requested_provider,
+            "configured_provider": self.configured_provider,
+            "effective_provider": self.provider if fallback_reason is None else "offline_extractive",
+            "requested_model": self.requested_model,
+            "configured_model": self.model,
+            "effective_model": self.model if fallback_reason is None else OfflineExtractiveProvider.model,
+            "region": self.settings.google_cloud_location,
+            "fallback_used": fallback_reason is not None,
+            "fallback_reason": fallback_reason,
+            "fallback_exception_class": fallback_exception_class,
+        }
+
+    def generate_answer(
+        self,
+        question: str,
+        context_chunks: list[dict[str, Any]],
+        audience: str = "general",
+        max_words: int = 250,
+    ) -> LLMAnswerDraft:
+        if not context_chunks:
+            return self._fallback(
+                question,
+                context_chunks,
+                audience,
+                max_words,
+                reason="no_context_chunks",
+            )
+        prompt = build_ollama_prompt(question, context_chunks, audience=audience, max_words=max_words)
+        config_payload = {
+            "temperature": 0.1,
+            "top_p": 0.9,
+            "max_output_tokens": max(256, min(max_words * 4, 2_048)),
+        }
+        prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        config_hash = hashlib.sha256(
+            json.dumps(config_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        started = time.perf_counter()
+        client: Any | None = None
+        try:
+            client, types = self._client()
+            response = client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=types.GenerateContentConfig(**config_payload),
+            )
+            response_metadata = {
+                "response_id": getattr(response, "response_id", None),
+                "model_version": getattr(response, "model_version", None),
+                "finish_and_safety": vertex_finish_and_safety(response),
+                "token_usage": vertex_token_usage(response),
+            }
+            if vertex_response_blocked(response_metadata["finish_and_safety"]):
+                raise VertexGenerationError("Vertex generation was blocked by safety policy", response_metadata)
+            answer = clean_markup(str(response.text or "")).strip()
+            if not answer:
+                raise ValueError("Vertex Gemini returned an empty response")
+            return LLMAnswerDraft(
+                answer_text=answer,
+                provider=self.provider,
+                model=str(getattr(response, "model_version", None) or self.model),
+                prompt_metadata={
+                    "audience": audience,
+                    "context_chunk_count": len(context_chunks),
+                    "max_words": max_words,
+                    "provider_resolution": self.resolution_metadata(),
+                    "region": self.settings.google_cloud_location,
+                    **response_metadata,
+                    "latency_ms": round((time.perf_counter() - started) * 1_000, 2),
+                    "sdk_version": package_version("google-genai"),
+                    "prompt_template_version": PROMPT_TEMPLATE_VERSION,
+                    "prompt_sha256": prompt_hash,
+                    "generation_config_sha256": config_hash,
+                },
+            )
+        except Exception as exc:
+            reason = classify_vertex_failure(exc)
+            return self._fallback(
+                question,
+                context_chunks,
+                audience,
+                max_words,
+                reason=reason,
+                exception=exc,
+                upstream_metadata={
+                    "attempted_provider": self.provider,
+                    "attempted_model": self.model,
+                    "region": self.settings.google_cloud_location,
+                    "latency_ms": round((time.perf_counter() - started) * 1_000, 2),
+                    "sdk_version": package_version("google-genai"),
+                    "attempted_prompt_template_version": PROMPT_TEMPLATE_VERSION,
+                    "attempted_prompt_sha256": prompt_hash,
+                    "attempted_generation_config_sha256": config_hash,
+                    **(
+                        exc.metadata
+                        if isinstance(exc, VertexGenerationError)
+                        else {}
+                    ),
+                },
+            )
+        finally:
+            if client is not None:
+                client.close()
+
+    def generate_structured(self, prompt: str, schema: type[Any]) -> tuple[Any, dict[str, Any]]:
+        config_payload = {"temperature": 0.3, "top_p": 0.9, "max_output_tokens": 2_400}
+        prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        config_hash = hashlib.sha256(
+            json.dumps(config_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        started = time.perf_counter()
+        client, types = self._client()
+        try:
+            response = client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    **config_payload,
+                    response_mime_type="application/json",
+                    response_schema=schema,
+                ),
+            )
+            response_safety = vertex_finish_and_safety(response)
+            if vertex_response_blocked(response_safety):
+                raise VertexGenerationError(
+                    "Vertex generation was blocked by safety policy",
+                    {
+                        "response_id": getattr(response, "response_id", None),
+                        "model_version": getattr(response, "model_version", None),
+                        "finish_and_safety": response_safety,
+                        "token_usage": vertex_token_usage(response),
+                    },
+                )
+            parsed = getattr(response, "parsed", None)
+            if parsed is None:
+                raise ValueError("Vertex Gemini did not return parsed structured output")
+            output = schema.model_validate(parsed)
+            return output, {
+                "effective_model": str(getattr(response, "model_version", None) or self.model),
+                "region": self.settings.google_cloud_location,
+                "response_id": getattr(response, "response_id", None),
+                "model_version": getattr(response, "model_version", None),
+                "finish_and_safety": vertex_finish_and_safety(response),
+                "token_usage": vertex_token_usage(response),
+                "latency_ms": round((time.perf_counter() - started) * 1_000, 2),
+                "sdk_version": package_version("google-genai"),
+                "prompt_template_version": "idea-generator-v1",
+                "prompt_sha256": prompt_hash,
+                "generation_config_sha256": config_hash,
+                "provider_resolution": self.resolution_metadata(),
+            }
+        finally:
+            client.close()
+
+    def _fallback(
+        self,
+        question: str,
+        context_chunks: list[dict[str, Any]],
+        audience: str,
+        max_words: int,
+        *,
+        reason: str,
+        exception: Exception | None = None,
+        upstream_metadata: dict[str, Any] | None = None,
+    ) -> LLMAnswerDraft:
+        fallback = OfflineExtractiveProvider(
+            requested_provider=self.requested_provider,
+            configured_provider=self.configured_provider,
+            requested_model=self.requested_model,
+            configured_model=self.model,
+            fallback_reason=reason,
+            fallback_exception_class=type(exception).__name__ if exception else None,
+            upstream_metadata=upstream_metadata,
+        ).generate_answer(question, context_chunks, audience, max_words)
+        fallback.warnings.append(
+            f"Vertex Gemini could not produce a usable grounded answer; used offline extractive fallback ({reason})."
+        )
+        return fallback
+
+
 def get_provider(
     provider_name: str = "auto",
     model_name: str | None = None,
@@ -397,7 +632,7 @@ def get_provider(
         raise ValueError(f"LLM provider '{normalized}' is not in TTLAB_ALLOWED_LLM_PROVIDERS")
     if normalized == "offline_extractive":
         if model_name:
-            raise ValueError("A model override is supported only for the pinned Ollama provider")
+            raise ValueError("A model override is not supported by the offline extractive provider")
         return OfflineExtractiveProvider(
             requested_provider=requested,
             configured_provider=normalized,
@@ -410,21 +645,95 @@ def get_provider(
             configured_provider=normalized,
             settings=settings,
         )
+    if normalized == "vertex_gemini":
+        return VertexGeminiProvider(
+            model_name=model_name,
+            requested_provider=requested,
+            configured_provider=normalized,
+            settings=settings,
+        )
     raise ValueError(f"Unknown LLM provider: {provider_name}")
 
 
 def external_provider_available(settings: Settings | None = None) -> bool:
     settings = settings or get_settings()
+    allowed_providers = {provider.strip().lower() for provider in settings.allowed_llm_providers}
+    if "vertex_gemini" in allowed_providers and settings.google_cloud_project:
+        return True
     from app.ollama_policy import effective_ollama_policy
 
     allowed, _default, _source = effective_ollama_policy(settings)
     return bool(
-        "ollama" in {provider.strip().lower() for provider in settings.allowed_llm_providers}
+        "ollama" in allowed_providers
         and (
             allowed
             or settings.all_local_ollama_models_enabled
         )
     )
+
+
+def package_version(name: str) -> str | None:
+    try:
+        return importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def classify_vertex_failure(exc: Exception) -> str:
+    text = f"{type(exc).__name__} {exc}".lower()
+    if "safety" in text or "blocked" in text or "prohibited" in text:
+        return "vertex_safety_block"
+    if "quota" in text or "resourceexhausted" in text or "429" in text:
+        return "vertex_quota_exhausted"
+    if "timeout" in text or "deadline" in text:
+        return "vertex_timeout"
+    if isinstance(exc, ValueError):
+        return "vertex_invalid_response"
+    return "vertex_service_unavailable"
+
+
+def vertex_token_usage(response: Any) -> dict[str, Any]:
+    usage = getattr(response, "usage_metadata", None)
+    if usage is None:
+        return {}
+    if hasattr(usage, "model_dump"):
+        return usage.model_dump(exclude_none=True)
+    return {}
+
+
+def vertex_finish_and_safety(response: Any) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for candidate in list(getattr(response, "candidates", None) or []):
+        ratings = []
+        for rating in list(getattr(candidate, "safety_ratings", None) or []):
+            ratings.append(
+                {
+                    "category": str(getattr(rating, "category", "")),
+                    "probability": str(getattr(rating, "probability", "")),
+                    "blocked": bool(getattr(rating, "blocked", False)),
+                }
+            )
+        rows.append(
+            {
+                "finish_reason": str(getattr(candidate, "finish_reason", "")),
+                "safety_ratings": ratings,
+            }
+        )
+    feedback = getattr(response, "prompt_feedback", None)
+    if feedback is not None and getattr(feedback, "block_reason", None):
+        rows.append({"prompt_block_reason": str(feedback.block_reason)})
+    return rows
+
+
+def vertex_response_blocked(rows: list[dict[str, Any]]) -> bool:
+    for row in rows:
+        if row.get("prompt_block_reason"):
+            return True
+        if "SAFETY" in str(row.get("finish_reason") or "").upper():
+            return True
+        if any(bool(rating.get("blocked")) for rating in row.get("safety_ratings") or []):
+            return True
+    return False
 
 
 def verify_ollama_model_digest(

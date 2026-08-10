@@ -189,6 +189,16 @@ export function installBaseFetchMock() {
       feature_hashing_index: { status: "ready", projection_status: "public_projection_ready", indexed_chunks: 1, public_eligible_chunks: 1, underlying_index_status: "ready", underlying_representation_valid: true, underlying_error_count: 0, last_indexed_at: "2026-01-01T00:00:00Z", classification: "lexical_feature_hashing" },
       dense_index: { status: "missing", projection_status: "underlying_index_not_ready", indexed_chunks: 0, public_eligible_chunks: 1, underlying_index_status: "missing", underlying_representation_valid: false, underlying_error_count: 0, last_indexed_at: null },
     });
+    if (url.pathname === "/api/llms/status") return json({
+      runtime_profile: "local",
+      provider: "ollama",
+      display_name: "Local Ollama",
+      configured: true,
+      model: "qwen-test:4b",
+      model_selection_enabled: true,
+      external_processing: false,
+      privacy_notice: "Generation stays on the configured local runtime.",
+    });
     if (url.pathname === "/api/llms/local") return json({
       available: false,
       base_url: "",

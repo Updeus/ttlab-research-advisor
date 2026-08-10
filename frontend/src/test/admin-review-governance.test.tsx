@@ -138,7 +138,7 @@ describe("admin governance and completeness", () => {
     const user = userEvent.setup();
     setReviewerToken("a".repeat(32));
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       const common = baseResponse(url.pathname);
       if (common) return common;
       if (url.pathname === "/api/admin/review-queue") return json({ total: 0, limit: 50, offset: 0, items: [] });
@@ -164,7 +164,7 @@ describe("admin governance and completeness", () => {
     const requests: Array<Record<string, unknown>> = [];
     setReviewerToken("a".repeat(32));
     vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       const common = baseResponse(url.pathname, humanCapabilities);
       if (common) return common;
       if (url.pathname === "/api/admin/review-queue") return json({ total: 0, limit: 50, offset: 0, items: [] });
@@ -200,7 +200,7 @@ describe("admin governance and completeness", () => {
     const requests: Array<{ path: string; body: Record<string, unknown> }> = [];
     setReviewerToken("a".repeat(32));
     vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       const common = baseResponse(url.pathname);
       if (common) return common;
       if (url.pathname === "/api/admin/review-queue") {
@@ -258,7 +258,7 @@ describe("admin governance and completeness", () => {
     });
     setReviewerToken("a".repeat(32));
     vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       const common = baseResponse(url.pathname, humanCapabilities);
       if (common) return common;
       if (url.pathname === "/api/admin/review-queue") return json({ total: 1, limit: 50, offset: 0, items: [artifactQueueItem()] });
@@ -326,7 +326,7 @@ describe("admin governance and completeness", () => {
     const requestedUrls: string[] = [];
     setReviewerToken("a".repeat(32));
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       requestedUrls.push(url.href);
       const common = baseResponse(url.pathname, humanCapabilities);
       if (common) return common;
@@ -408,7 +408,7 @@ describe("admin governance and completeness", () => {
     setReviewerToken("a".repeat(32));
     const requests: Array<Record<string, unknown>> = [];
     vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       const common = baseResponse(url.pathname, humanCapabilities);
       if (common) return common;
       if (url.pathname === "/api/admin/review-queue") return json({ total: 1, limit: 50, offset: 0, items: [item] });

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import math
 import time
@@ -123,11 +124,20 @@ class PublicRateLimitMiddleware:
 
     LIMITED_PATHS = PUBLIC_GENERATION_PATHS
 
-    def __init__(self, app: ASGIApp, requests_per_minute: int) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        requests_per_minute: int,
+        *,
+        managed_postgres: bool = False,
+        hash_salt: str | None = None,
+    ) -> None:
         self.app = app
         self.requests_per_minute = requests_per_minute
         self._requests: dict[str, deque[float]] = defaultdict(deque)
         self._lock = asyncio.Lock()
+        self.managed_postgres = managed_postgres
+        self.hash_salt = hash_salt or ""
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http" or (scope.get("method", ""), scope.get("path", "")) not in self.LIMITED_PATHS:
@@ -136,6 +146,19 @@ class PublicRateLimitMiddleware:
         client = scope.get("client")
         client_host = str(client[0]) if client else "unknown"
         key = f"{client_host}:{scope.get('path')}"
+        if self.managed_postgres:
+            digest = hashlib.sha256(f"{self.hash_salt}:{key}".encode("utf-8")).hexdigest()
+            allowed = await asyncio.to_thread(self._admit_postgres, digest)
+            if not allowed:
+                response = JSONResponse(
+                    {"detail": "Public generation rate limit exceeded"},
+                    status_code=429,
+                    headers={"Retry-After": "60"},
+                )
+                await response(scope, receive, send)
+                return
+            await self.app(scope, receive, send)
+            return
         now = time.monotonic()
         async with self._lock:
             bucket = self._requests[key]
@@ -151,6 +174,24 @@ class PublicRateLimitMiddleware:
                 return
             bucket.append(now)
         await self.app(scope, receive, send)
+
+    def _admit_postgres(self, bucket_key: str) -> bool:
+        from sqlalchemy import text
+
+        from app.db import engine
+
+        statement = text(
+            "INSERT INTO public_rate_limit_bucket(bucket_key, window_start, request_count) "
+            "VALUES (:key, date_trunc('minute', CURRENT_TIMESTAMP), 1) "
+            "ON CONFLICT (bucket_key) DO UPDATE SET "
+            "request_count = CASE WHEN public_rate_limit_bucket.window_start = date_trunc('minute', CURRENT_TIMESTAMP) "
+            "THEN public_rate_limit_bucket.request_count + 1 ELSE 1 END, "
+            "window_start = date_trunc('minute', CURRENT_TIMESTAMP) "
+            "RETURNING request_count"
+        )
+        with engine.begin() as connection:
+            count = int(connection.execute(statement, {"key": bucket_key}).scalar_one())
+        return count <= self.requests_per_minute
 
 
 class PublicGenerationConcurrencyMiddleware:
@@ -264,7 +305,11 @@ class SecurityHeadersMiddleware:
                 if (
                     path.startswith("/api/admin")
                     or "/history" in path
-                    or path in {"/api/ask", "/api/recommendations/extensions"}
+                    or path in {
+                        "/api/ask",
+                        "/api/recommendations/extensions",
+                        "/api/recommendations/ideas",
+                    }
                     or (path.startswith("/api/ask/") and not path.endswith("/diagnostics"))
                     or (
                         path.startswith("/api/recommendations/extensions/")

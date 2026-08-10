@@ -18,13 +18,47 @@ def _ensure_sqlite_parent(database_url: str) -> None:
 
 
 settings = get_settings()
-_ensure_sqlite_parent(settings.database_url)
-engine = create_engine(
-    settings.database_url,
-    connect_args={"check_same_thread": False}
-    if settings.database_url.startswith("sqlite")
-    else {},
-)
+
+
+def build_engine(runtime_settings=settings) -> Engine:
+    if not runtime_settings.is_gcp:
+        _ensure_sqlite_parent(runtime_settings.database_url)
+        return create_engine(
+            runtime_settings.database_url,
+            connect_args={"check_same_thread": False}
+            if runtime_settings.database_url.startswith("sqlite")
+            else {},
+        )
+    try:
+        from google.cloud.sql.connector import Connector, IPTypes
+    except ImportError as exc:  # pragma: no cover - exercised in the GCP image
+        raise RuntimeError("Cloud SQL Python Connector is required in the GCP runtime") from exc
+    connector = Connector(refresh_strategy="LAZY")
+    ip_type = IPTypes.PRIVATE if runtime_settings.cloud_sql_ip_type == "private" else IPTypes.PUBLIC
+
+    def get_connection():  # type: ignore[no-untyped-def]
+        return connector.connect(
+            runtime_settings.cloud_sql_instance,
+            "pg8000",
+            user=runtime_settings.cloud_sql_iam_user,
+            db=runtime_settings.cloud_sql_database,
+            enable_iam_auth=True,
+            ip_type=ip_type,
+        )
+
+    target = create_engine(
+        "postgresql+pg8000://",
+        creator=get_connection,
+        pool_size=runtime_settings.database_pool_size,
+        max_overflow=runtime_settings.database_max_overflow,
+        pool_recycle=runtime_settings.database_pool_recycle_seconds,
+        pool_pre_ping=True,
+    )
+    setattr(target, "_ttlab_cloud_sql_connector", connector)
+    return target
+
+
+engine = build_engine()
 
 
 def install_sqlite_connection_pragmas(target_engine: Engine) -> None:
@@ -74,9 +108,35 @@ def initialize_sqlite_durability(target_engine: Engine = engine) -> str:
 
 
 def create_db_and_tables() -> None:
+    if settings.is_gcp:
+        verify_database_revision(engine, settings.expected_database_revision)
+        return
     initialize_sqlite_durability(engine)
     SQLModel.metadata.create_all(engine)
     ensure_sqlite_schema()
+
+
+def verify_database_revision(target_engine: Engine, expected_revision: str) -> None:
+    """Fail readiness/startup when managed schema migrations are not at head."""
+
+    try:
+        with target_engine.connect() as connection:
+            revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+    except Exception as exc:
+        raise RuntimeError("Managed database migration revision could not be verified") from exc
+    if str(revision) != expected_revision:
+        raise RuntimeError(
+            f"Managed database revision is {revision!s}; expected {expected_revision}. Run the migration job first."
+        )
+
+
+def close_managed_engine() -> None:
+    if not settings.is_gcp:
+        return
+    engine.dispose()
+    connector = getattr(engine, "_ttlab_cloud_sql_connector", None)
+    if connector is not None:
+        connector.close()
 
 
 def ensure_sqlite_schema() -> None:
@@ -87,6 +147,9 @@ def ensure_sqlite_schema() -> None:
         "pdf_unavailability_detail": "VARCHAR",
         "extracted_json_path": "VARCHAR",
         "extracted_text_path": "VARCHAR",
+        "pdf_storage_uri": "VARCHAR",
+        "extracted_json_storage_uri": "VARCHAR",
+        "extracted_text_storage_uri": "VARCHAR",
         "extraction_generation_id": "VARCHAR",
         "extraction_input_pdf_sha256": "VARCHAR",
         "extraction_config_sha256": "VARCHAR",

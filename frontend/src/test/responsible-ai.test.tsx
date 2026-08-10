@@ -173,6 +173,18 @@ const extractionDiagnostics = {
   chunk_count: 1,
 } satisfies ExtractionDiagnostics;
 
+const localGenerationStatus = {
+  runtime_profile: "local",
+  provider: "ollama",
+  display_name: "Local Ollama",
+  configured: true,
+  location: "local",
+  model: "qwen3:4b-instruct-2507-q4_K_M",
+  model_selection_enabled: true,
+  external_processing: false,
+  privacy_notice: "your question and paper scope are sent for this request only.",
+};
+
 describe("evidence and responsible-AI interfaces", () => {
   it("does not report dense search unavailable before diagnostics finish loading", () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise<Response>(() => undefined));
@@ -187,7 +199,7 @@ describe("evidence and responsible-AI interfaces", () => {
       feature_hashing: { ...indexDiagnostics.feature_hashing, projection_status: "public_projection_ready", underlying_index_status: "ready" },
     };
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname === "/api/search/diagnostics") return json(projected);
       return json({}, { status: 404 });
     });
@@ -201,8 +213,9 @@ describe("evidence and responsible-AI interfaces", () => {
 
   it("keeps Ollama disabled without a digest-verified model and labels protected diagnostics", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname === "/api/ask/diagnostics") return json(askDiagnostics);
+      if (url.pathname === "/api/llms/status") return json(localGenerationStatus);
       if (url.pathname === "/api/llms/local") return json({
         available: true,
         generation_available: false,
@@ -227,7 +240,7 @@ describe("evidence and responsible-AI interfaces", () => {
 
   it("labels protected Finder history instead of rendering null as a count", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname.endsWith("/extensions/diagnostics")) return json({ searchable_chunks: 1, searchable_papers: 1, total_recommendation_runs: null, total_recommendations_generated: null, grounded_runs: null, partial_runs: null, unsupported_runs: null, default_provider: "offline_deterministic", last_recommendation_timestamp: null });
       return json({}, { status: 404 });
     });
@@ -239,7 +252,7 @@ describe("evidence and responsible-AI interfaces", () => {
 
   it("fails closed without submitting when the public Finder projection is empty", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname.endsWith("/extensions/diagnostics")) return json({ searchable_chunks: 0, searchable_papers: 0, total_recommendation_runs: null, total_recommendations_generated: null, grounded_runs: null, partial_runs: null, unsupported_runs: null, default_provider: "offline_deterministic", last_recommendation_timestamp: null });
       return json({}, { status: 404 });
     });
@@ -249,13 +262,13 @@ describe("evidence and responsible-AI interfaces", () => {
     expect(await screen.findByText("No papers are approved for public Finder recommendations yet")).toBeInTheDocument();
     expect(screen.getByText(/Reviewer-only technical prototype evidence is not substituted/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Find Thesis Extensions" })).toBeDisabled();
-    expect(fetchMock.mock.calls.filter(([input]) => new URL(String(input)).pathname === "/api/recommendations/extensions")).toHaveLength(0);
+    expect(fetchMock.mock.calls.filter(([input]) => new URL(String(input), window.location.origin).pathname === "/api/recommendations/extensions")).toHaveLength(0);
   });
 
   it("shows distinct index modes, freshness, source passage IDs, and retryable search evidence", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname === "/api/search/diagnostics") return json(indexDiagnostics);
       if (url.pathname === "/api/search") return json(searchPayload("RAG", "keyword"));
       return json({}, { status: 404 });
@@ -270,7 +283,7 @@ describe("evidence and responsible-AI interfaces", () => {
     await user.type(searchInput, "precision retrieval{Enter}");
     expect(await screen.findByText("Chunk paper-1-0001")).toBeInTheDocument();
     expect(screen.getAllByText("A source-grounded passage about retrieval.").length).toBeGreaterThan(0);
-    expect(fetchMock.mock.calls.filter(([input]) => new URL(String(input)).pathname === "/api/search")).toHaveLength(1);
+    expect(fetchMock.mock.calls.filter(([input]) => new URL(String(input), window.location.origin).pathname === "/api/search")).toHaveLength(1);
     await user.clear(searchInput);
     await user.type(searchInput, "edited after submission");
     expect(screen.getByText(/Results for “precision retrieval”/)).toBeInTheDocument();
@@ -280,7 +293,7 @@ describe("evidence and responsible-AI interfaces", () => {
     const user = userEvent.setup();
     const pending: Array<(response: Response) => void> = [];
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname === "/api/search/diagnostics") return json(indexDiagnostics);
       if (url.pathname === "/api/search") return new Promise<Response>((resolve) => pending.push(resolve));
       return json({}, { status: 404 });
@@ -310,7 +323,7 @@ describe("evidence and responsible-AI interfaces", () => {
   it("echoes a transient profile and exposes the evidence-only finder baseline", async () => {
     const user = userEvent.setup();
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname.endsWith("/extensions/diagnostics")) return json({ searchable_chunks: 1, searchable_papers: 1, total_recommendation_runs: 0, total_recommendations_generated: 0, grounded_runs: 0, partial_runs: 0, unsupported_runs: 0, default_provider: "offline_deterministic", last_recommendation_timestamp: null });
       if (url.pathname === "/api/search") return json(searchPayload("profile", "hybrid", [hybridSourceResult]));
       return json({}, { status: 404 });
@@ -329,8 +342,9 @@ describe("evidence and responsible-AI interfaces", () => {
   it("marks a public Ask answer transient and renders citation provenance", async () => {
     const user = userEvent.setup();
     vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname === "/api/ask/diagnostics") return json(askDiagnostics);
+      if (url.pathname === "/api/llms/status") return json(localGenerationStatus);
       if (url.pathname === "/api/llms/local") return json({ available: false, base_url: "http://localhost:11434", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: ["Ollama unavailable"] });
       if (url.pathname === "/api/ask" && init?.method === "POST") return json({
         answer_id: "answer-1",
@@ -396,11 +410,12 @@ describe("evidence and responsible-AI interfaces", () => {
 
   it("disables learned dense retrieval while its local model warms up", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname === "/api/ask/diagnostics") return json({
         ...askDiagnostics,
         dense_provider: { state: "warming", started_at: "2026-01-01T00:00:00Z", ready_at: null, elapsed_seconds: null },
       });
+      if (url.pathname === "/api/llms/status") return json(localGenerationStatus);
       if (url.pathname === "/api/llms/local") return json({ available: false, base_url: "", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: [] });
       return json({}, { status: 404 });
     });
@@ -420,8 +435,9 @@ describe("evidence and responsible-AI interfaces", () => {
       chunk_count: 0,
     };
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname === "/api/ask/diagnostics") return json(askDiagnostics);
+      if (url.pathname === "/api/llms/status") return json(localGenerationStatus);
       if (url.pathname === "/api/llms/local") return json({ available: false, base_url: "", default_model: "none", model_count: 0, models: [], recommended_pulls: [], benchmark: null, warnings: [] });
       return json({}, { status: 404 });
     });
@@ -438,7 +454,7 @@ describe("evidence and responsible-AI interfaces", () => {
   it("replaces Finder output atomically when switching between advisor and evidence-only modes", async () => {
     const user = userEvent.setup();
     vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname.endsWith("/extensions/diagnostics")) return json({ searchable_chunks: 1, searchable_papers: 1, total_recommendation_runs: 0, total_recommendations_generated: 0, grounded_runs: 0, partial_runs: 0, unsupported_runs: 0, default_provider: "offline_deterministic", last_recommendation_timestamp: null });
       if (url.pathname === "/api/recommendations/extensions" && init?.method === "POST") return json({
         recommendation_id: "run-1",
@@ -471,7 +487,7 @@ describe("evidence and responsible-AI interfaces", () => {
 
   it("renders only the approved effective artifact payload on public paper detail", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
       if (url.pathname.endsWith("/chunks")) return json([{ chunk_id: "paper-1-0001", paper_id: paper.paper_id, chunk_index: 0, page_start: 1, page_end: 1, section: "Summary", snippet: "Loaded source chunk", text: "Loaded source chunk", char_count: 19, word_count: 3, token_count_estimate: 4, source_hash: "fixture" }]);
       if (url.pathname.endsWith("/artifacts")) return json([{
@@ -500,7 +516,7 @@ describe("evidence and responsible-AI interfaces", () => {
 
   it("shows the current generated artifact publicly with an explicit unreviewed warning", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
       if (url.pathname.endsWith("/chunks")) return json([{ chunk_id: "paper-1-0001", paper_id: paper.paper_id, chunk_index: 0, page_start: 1, page_end: 1, section: "Summary", snippet: "Loaded source chunk", text: "Loaded source chunk", char_count: 19, word_count: 3, token_count_estimate: 4, source_hash: "fixture" }]);
       if (url.pathname.endsWith("/artifacts")) return json([{
@@ -531,7 +547,7 @@ describe("evidence and responsible-AI interfaces", () => {
 
   it("uses a generated artifact payload when an effective projection is absent", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = new URL(String(input));
+      const url = new URL(String(input), window.location.origin);
       if (url.pathname.endsWith("/extraction")) return json(extractionDiagnostics);
       if (url.pathname.endsWith("/chunks")) return json([]);
       if (url.pathname.endsWith("/artifacts")) return json([{

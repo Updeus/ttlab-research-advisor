@@ -1,5 +1,7 @@
 # Local Ollama Provider Boundary
 
+This document covers `TTLAB_RUNTIME_PROFILE=local`. The local Ollama and offline-extractive paths remain supported. `TTLAB_RUNTIME_PROFILE=gcp` does not call Ollama; its public API fixes provider selection to `auto`, resolves managed composition to Vertex Gemini, and keeps the same local dense encoder/retrieval algorithms baked into the container. See [GCP and Vertex Gemini Deployment](GCP_DEPLOYMENT.md).
+
 Ollama is an optional local answer composer for Ask TTLAB and the required
 generation provider for the public Idea Generator in the TTLAB Research
 Intelligence Platform. Retrieval and public-source eligibility are decided

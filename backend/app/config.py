@@ -3,16 +3,27 @@ from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     app_name: str = "TTLAB Research Intelligence Platform"
+    runtime_profile: Literal["local", "gcp"] = "local"
     database_url: str = "sqlite:///./data/papers.db"
+    cloud_sql_instance: str | None = None
+    cloud_sql_database: str = "advisor"
+    cloud_sql_iam_user: str | None = None
+    cloud_sql_ip_type: Literal["public", "private"] = "public"
+    database_pool_size: int = Field(default=5, ge=1, le=32)
+    database_max_overflow: int = Field(default=2, ge=0, le=32)
+    database_pool_recycle_seconds: int = Field(default=1_800, ge=60, le=86_400)
+    expected_database_revision: str = "20260810_01"
     admin_review_lock_dir: Path = Path("data/runtime/review_locks")
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     frontend_url: str = "http://127.0.0.1:5173"
+    serve_frontend: bool = False
+    frontend_dist_dir: Path = Path("frontend_dist")
     ttlab_publications_url: str = "https://lab.tt/index.php/category/pub/"
     ollama_base_url: str = "http://localhost:11434"
     ollama_default_model: str = "qwen3:4b-instruct-2507-q4_K_M"
@@ -23,6 +34,18 @@ class Settings(BaseSettings):
     ollama_timeout_seconds: float = 20.0
     ollama_num_ctx: int = 4096
     ollama_keep_alive: str = "10m"
+    google_cloud_project: str | None = None
+    google_cloud_location: str = "global"
+    gemini_default_model: str = "gemini-3.5-flash"
+    gemini_allowed_models: list[str] = ["gemini-3.5-flash"]
+    gemini_timeout_seconds: float = Field(default=30.0, gt=0, le=180)
+    public_provider_selection: bool = True
+    storage_backend: Literal["local_fs", "gcs"] = "local_fs"
+    gcs_bucket: str | None = None
+    gcs_index_prefix: str = "indexes"
+    gcs_index_refresh_seconds: int = Field(default=60, ge=5, le=3_600)
+    index_root: Path = Path("data/indexes")
+    cloud_cache_dir: Path = Path("/tmp/ttlab")
     dense_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     dense_embedding_revision: str = "826711e54e001c83835913827a843d8dd0a1def9"
     dense_embedding_device: str = "cpu"
@@ -38,12 +61,13 @@ class Settings(BaseSettings):
     public_base_url: str | None = None
     max_request_bytes: int = 1_048_576
     public_generation_requests_per_minute: int = 20
+    rate_limit_hash_salt: str | None = None
     public_generation_max_concurrency: int = Field(default=2, ge=1, le=32)
     public_generation_max_queue: int = Field(default=4, ge=0, le=128)
     public_generation_queue_timeout_seconds: float = Field(default=2.0, gt=0, le=60)
     api_worker_count: int = Field(default=1, ge=1, le=128)
     allowed_llm_providers: list[str] = ["offline_extractive", "ollama"]
-    default_llm_provider: Literal["offline_extractive", "ollama"] = "offline_extractive"
+    default_llm_provider: Literal["offline_extractive", "ollama", "vertex_gemini"] = "offline_extractive"
 
     # Downloader controls are an operator-maintained allowlist.  Hosts outside
     # this list are never contacted by the PDF downloader.
@@ -83,6 +107,43 @@ class Settings(BaseSettings):
             and self.allow_insecure_local_demo
             and self.ollama_allow_all_local_models
         )
+
+    @property
+    def is_gcp(self) -> bool:
+        return self.runtime_profile == "gcp"
+
+    @model_validator(mode="after")
+    def validate_runtime_profile(self) -> "Settings":
+        if self.gemini_default_model not in self.gemini_allowed_models:
+            raise ValueError("TTLAB_GEMINI_DEFAULT_MODEL must be present in TTLAB_GEMINI_ALLOWED_MODELS")
+        if self.runtime_profile != "gcp":
+            return self
+        missing: list[str] = []
+        if not self.cloud_sql_instance:
+            missing.append("TTLAB_CLOUD_SQL_INSTANCE")
+        if not self.cloud_sql_iam_user:
+            missing.append("TTLAB_CLOUD_SQL_IAM_USER")
+        if not self.google_cloud_project:
+            missing.append("TTLAB_GOOGLE_CLOUD_PROJECT")
+        if self.storage_backend != "gcs" or not self.gcs_bucket:
+            missing.append("TTLAB_STORAGE_BACKEND=gcs and TTLAB_GCS_BUCKET")
+        if missing:
+            raise ValueError("GCP runtime profile is missing: " + ", ".join(missing))
+        if self.security_mode != "production":
+            raise ValueError("TTLAB_RUNTIME_PROFILE=gcp requires TTLAB_SECURITY_MODE=production")
+        if self.database_url.startswith("sqlite"):
+            raise ValueError("TTLAB_RUNTIME_PROFILE=gcp cannot use SQLite")
+        if self.service_role == "api" and self.default_llm_provider != "vertex_gemini":
+            raise ValueError("The GCP API requires TTLAB_DEFAULT_LLM_PROVIDER=vertex_gemini")
+        if self.service_role == "api" and "vertex_gemini" not in {
+            value.strip().lower() for value in self.allowed_llm_providers
+        }:
+            raise ValueError("The GCP API must allow vertex_gemini")
+        if self.public_provider_selection:
+            raise ValueError("TTLAB_RUNTIME_PROFILE=gcp requires TTLAB_PUBLIC_PROVIDER_SELECTION=false")
+        if not self.rate_limit_hash_salt or len(self.rate_limit_hash_salt) < 32:
+            raise ValueError("TTLAB_RUNTIME_PROFILE=gcp requires a 32-character TTLAB_RATE_LIMIT_HASH_SALT")
+        return self
 
     @field_validator("sync_cron")
     @classmethod

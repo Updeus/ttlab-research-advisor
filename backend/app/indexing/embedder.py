@@ -25,6 +25,7 @@ except ImportError:  # pragma: no cover - surfaced as an explicit unsupported to
 from sqlmodel import Session, select
 
 from app.db import create_db_and_tables, engine
+from app.config import get_settings
 from app.io_utils import fsync_directory
 from app.models import Chunk, Paper
 
@@ -32,10 +33,15 @@ FEATURE_HASHING_PROVIDER = "feature_hashing"
 DENSE_PROVIDER = "dense"
 DEFAULT_PROVIDER = FEATURE_HASHING_PROVIDER
 DEFAULT_DIMENSIONS = 256
-DEFAULT_INDEX_PATH = Path("data/indexes/feature_hashing_embeddings.json")
-LEGACY_INDEX_PATH = Path("data/indexes/hashing_embeddings.json")
-DENSE_INDEX_PATH = Path("data/indexes/dense_embeddings.json")
-DEMO_INDEX_PATH = Path("data/indexes/demo/feature_hashing_embeddings.json")
+_INDEX_ROOT = (
+    get_settings().cloud_cache_dir / "indexes"
+    if get_settings().is_gcp
+    else get_settings().index_root
+)
+DEFAULT_INDEX_PATH = _INDEX_ROOT / "feature_hashing_embeddings.json"
+LEGACY_INDEX_PATH = _INDEX_ROOT / "hashing_embeddings.json"
+DENSE_INDEX_PATH = _INDEX_ROOT / "dense_embeddings.json"
+DEMO_INDEX_PATH = _INDEX_ROOT / "demo/feature_hashing_embeddings.json"
 MANIFEST_SCHEMA_VERSION = 1
 NORMALIZATION = "l2"
 

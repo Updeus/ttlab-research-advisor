@@ -24,6 +24,7 @@ from app.indexing.embedder import (
     manifest_path_for,
 )
 from app.models import Chunk, Paper
+from app.storage import refresh_gcs_vector_generation
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,7 @@ def cached_vector_search_context(
 ) -> VectorSearchContext:
     canonical = canonical_provider_name(provider_name)
     resolved_path = (index_path or default_index_path(canonical)).resolve()
+    refresh_gcs_vector_generation(resolved_path)
     signature = index_commit_signature(resolved_path)
     if signature is None:
         raise FileNotFoundError(f"{canonical} index is unavailable")

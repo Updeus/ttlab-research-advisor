@@ -152,7 +152,7 @@ export function installGraphAdminFetch(
   options: { total?: number } = {},
 ) {
   return vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-    const url = new URL(String(input));
+    const url = new URL(String(input), window.location.origin);
     if (url.pathname === "/api/admin/overview") return json(overview);
     if (url.pathname === "/api/admin/publication-preview/papers") return json(preview);
     if (url.pathname === "/api/admin/capabilities") return json(humanCapabilities);

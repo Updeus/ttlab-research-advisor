@@ -10,11 +10,12 @@ FEATURE_DEFINITIONS: dict[str, dict[str, str]] = {
     "papers": {"label": "Paper catalogue", "description": "Browse paper metadata and source text."},
     "search": {"label": "Search", "description": "Keyword, hybrid, and semantic retrieval."},
     "ask": {"label": "Ask TTLAB", "description": "Citation-grounded questions over approved papers."},
-    "finder": {"label": "Idea Generator", "description": "Generate Ollama-assisted thesis ideas with optional paper inspiration."},
+    "finder": {"label": "Idea Generator", "description": "Generate provider-backed thesis ideas with optional paper inspiration."},
     "explorer": {"label": "Topic and author explorer", "description": "Explore reviewed topic, author, and paper links."},
     "artifacts": {"label": "Summaries and podcast scripts", "description": "View and generate paper intelligence artifacts."},
     "evaluation": {"label": "Evaluation dashboard", "description": "View retrieval and grounding evaluation evidence."},
     "ollama": {"label": "Local Ollama generation", "description": "Allow approved local models for generation."},
+    "generation": {"label": "Managed generation status", "description": "Expose the configured generation-provider status."},
 }
 
 
@@ -80,5 +81,5 @@ def feature_for_path(path: str) -> str | None:
     if path.startswith("/api/evaluation"):
         return "evaluation"
     if path.startswith("/api/llms"):
-        return "ollama"
+        return "ollama" if path.startswith("/api/llms/local") else "generation"
     return None

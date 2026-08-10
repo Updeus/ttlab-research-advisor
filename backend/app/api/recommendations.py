@@ -30,12 +30,19 @@ def create_ideas(
     session: Annotated[Session, Depends(get_session)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, object]:
-    if "ollama" not in {provider.strip().lower() for provider in settings.allowed_llm_providers}:
+    provider_name = settings.default_llm_provider.strip().lower()
+    if provider_name != "vertex_gemini" and "ollama" in {
+        provider.strip().lower() for provider in settings.allowed_llm_providers
+    }:
+        provider_name = "ollama"
+    if provider_name not in {"ollama", "vertex_gemini"} or provider_name not in {
+        provider.strip().lower() for provider in settings.allowed_llm_providers
+    }:
         raise HTTPException(
             status_code=503,
             detail={
-                "code": "ollama_unavailable",
-                "message": "Ollama idea generation is not enabled. Enable the approved local provider and retry.",
+                "code": "generation_provider_unavailable",
+                "message": "Conversational idea generation is not enabled for the configured provider.",
                 "retryable": True,
             },
         )

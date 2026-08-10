@@ -578,6 +578,8 @@ anonymous request parameter.
 
 ## Security, privacy, accessibility, and release
 
+The repository supports an explicit `local` or `gcp` runtime profile. Local mode retains SQLite, local files, offline extraction, and optional Ollama. The GCP profile uses Cloud Run, Cloud SQL PostgreSQL, private Cloud Storage, and Google Gemini on Vertex AI for Ask TTLAB and conversational idea generation only; provider/model overrides are disabled on public managed requests. See [GCP and Vertex Gemini Deployment](docs/GCP_DEPLOYMENT.md) for Terraform, snapshot migration, staged release, and rollback instructions.
+
 - [Frontend requirements](docs/FRONTEND_REQUIREMENTS.md)
 - [Security](docs/SECURITY.md)
 - [Threat model](docs/THREAT_MODEL.md)

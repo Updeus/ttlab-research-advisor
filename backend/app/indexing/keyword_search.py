@@ -49,6 +49,7 @@ STOPWORDS = {
 }
 
 KEYWORD_PROVIDER = "sqlite_fts5_bm25"
+POSTGRES_KEYWORD_PROVIDER = "postgresql_simple_tsvector_ts_rank_cd"
 KEYWORD_CONFIG = {
     "provider": KEYWORD_PROVIDER,
     "tokenizer": "sqlite_fts5_default_unicode61",
@@ -85,6 +86,8 @@ def supports_fts5(session: Session) -> bool:
     """Detect FTS5 without creating/dropping schema objects on a read path."""
 
     try:
+        if session.get_bind().dialect.name != "sqlite":
+            return False
         enabled = session.execute(text("SELECT sqlite_compileoption_used('ENABLE_FTS5')")).scalar_one()
         return bool(enabled)
     except Exception:
@@ -95,6 +98,27 @@ def supports_fts5(session: Session) -> bool:
 def rebuild_keyword_index(session: Session) -> dict[str, Any]:
     chunks = eligible_chunks(session)
     corpus = corpus_descriptor(session, chunks)
+    if session.get_bind().dialect.name == "postgresql":
+        metadata = postgres_keyword_metadata(corpus, len(chunks))
+        session.execute(
+            text(
+                "INSERT INTO keyword_index_manifest(manifest_id, payload, updated_at) "
+                "VALUES (1, CAST(:payload AS JSONB), CURRENT_TIMESTAMP) "
+                "ON CONFLICT (manifest_id) DO UPDATE SET payload=EXCLUDED.payload, updated_at=EXCLUDED.updated_at"
+            ),
+            {"payload": json.dumps(metadata, sort_keys=True)},
+        )
+        session.commit()
+        return {
+            "fts_available": True,
+            "indexed_chunks": len(chunks),
+            "eligible_chunks": len(chunks),
+            "eligible_papers": corpus["eligible_paper_count"],
+            "corpus_snapshot_id": corpus["snapshot_id"],
+            "corpus_snapshot_hash": corpus["snapshot_hash"],
+            "completeness_status": "complete",
+            "last_indexed_at": metadata["created_at"],
+        }
     fts_available = supports_fts5(session)
     if fts_available:
         session.exec(
@@ -146,6 +170,9 @@ def rebuild_keyword_index(session: Session) -> dict[str, Any]:
 
 
 def keyword_index_count(session: Session) -> int:
+    if session.get_bind().dialect.name == "postgresql":
+        metadata = keyword_index_metadata(session)
+        return int((metadata or {}).get("indexed_chunk_count") or 0)
     if not supports_fts5(session):
         return session.exec(select(Chunk)).all().__len__()
     try:
@@ -155,6 +182,15 @@ def keyword_index_count(session: Session) -> int:
 
 
 def keyword_index_metadata(session: Session) -> dict[str, Any] | None:
+    if session.get_bind().dialect.name == "postgresql":
+        try:
+            payload = session.execute(
+                text("SELECT payload FROM keyword_index_manifest WHERE manifest_id=1")
+            ).scalar_one_or_none()
+        except Exception:
+            session.rollback()
+            return None
+        return dict(payload) if isinstance(payload, dict) else None
     try:
         rows = session.execute(text("SELECT key, value FROM chunk_fts_metadata")).all()
     except Exception:
@@ -180,6 +216,15 @@ def search_keyword(
     terms = tokenize(query)
     if not terms:
         return []
+    if session.get_bind().dialect.name == "postgresql":
+        health = diagnostics(session)
+        if health["status"] == "invalid":
+            raise KeywordIndexIntegrityError("; ".join(health["errors"]))
+        if keyword_index_metadata(session) is None:
+            return search_fallback(session, terms, top_k=top_k, filters=filters)
+        return search_postgres_fts(
+            session, terms, top_k=max(top_k * 3, top_k), filters=filters
+        )[:top_k]
     if supports_fts5(session):
         metadata = keyword_index_metadata(session)
         health = diagnostics(session)
@@ -214,6 +259,32 @@ def search_fts(
         params={"query": match_query, "limit": top_k},
     ).all()
     chunk_scores = {row[0]: 1.0 / (1.0 + abs(float(row[1] or 0.0))) for row in rows}
+    chunks = chunks_by_id(session, list(chunk_scores))
+    return [
+        build_keyword_result(chunk, chunk_scores[chunk.chunk_id], terms)
+        for chunk in chunks
+        if matches_filters(chunk, filters)
+    ]
+
+
+def search_postgres_fts(
+    session: Session,
+    terms: list[str],
+    *,
+    top_k: int,
+    filters: SearchFilters,
+) -> list[dict[str, Any]]:
+    query = " | ".join(terms)
+    rows = session.execute(
+        text(
+            "SELECT chunk_id, ts_rank_cd(to_tsvector('simple', coalesce(text, '')), "
+            "to_tsquery('simple', :query)) AS rank_score "
+            "FROM chunk WHERE to_tsvector('simple', coalesce(text, '')) @@ to_tsquery('simple', :query) "
+            "ORDER BY rank_score DESC, chunk_id LIMIT :limit"
+        ),
+        {"query": query, "limit": top_k},
+    ).all()
+    chunk_scores = {str(row[0]): float(row[1] or 0.0) for row in rows}
     chunks = chunks_by_id(session, list(chunk_scores))
     return [
         build_keyword_result(chunk, chunk_scores[chunk.chunk_id], terms)
@@ -358,10 +429,16 @@ def diagnostics(session: Session) -> dict[str, Any]:
             errors.append("FTS rows exist without authoritative chunk_fts_metadata.")
     else:
         stored_corpus = metadata.get("corpus") or {}
-        if metadata.get("provider") != KEYWORD_PROVIDER:
+        expected_provider = (
+            POSTGRES_KEYWORD_PROVIDER
+            if session.get_bind().dialect.name == "postgresql"
+            else KEYWORD_PROVIDER
+        )
+        expected_config = keyword_config(session)
+        if metadata.get("provider") != expected_provider:
             errors.append("FTS provider metadata is missing or incorrect.")
         if metadata.get("configuration_hash") != hashlib.sha256(
-            json.dumps(KEYWORD_CONFIG, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            json.dumps(expected_config, sort_keys=True, separators=(",", ":")).encode("utf-8")
         ).hexdigest():
             errors.append("FTS configuration hash does not match runtime configuration.")
         if stored_corpus.get("snapshot_hash") != current_corpus["snapshot_hash"]:
@@ -377,7 +454,7 @@ def diagnostics(session: Session) -> dict[str, Any]:
             errors.append("FTS row count does not equal eligible chunk count.")
         status = "invalid" if errors else "ready"
     return {
-        "fts_available": supports_fts5(session),
+        "fts_available": session.get_bind().dialect.name == "postgresql" or supports_fts5(session),
         "keyword_indexed_chunks": indexed,
         "eligible_chunks": total_chunks,
         "eligible_papers": current_corpus["eligible_paper_count"],
@@ -386,10 +463,47 @@ def diagnostics(session: Session) -> dict[str, Any]:
         "corpus_snapshot_hash": current_corpus["snapshot_hash"],
         "stored_corpus_snapshot_hash": (metadata or {}).get("corpus", {}).get("snapshot_hash"),
         "completeness_status": (metadata or {}).get("completeness_status", "missing"),
-        "provider": KEYWORD_PROVIDER,
+        "provider": (
+            POSTGRES_KEYWORD_PROVIDER
+            if session.get_bind().dialect.name == "postgresql"
+            else KEYWORD_PROVIDER
+        ),
         "errors": errors,
         "total_chunks": total_chunks,
         "status": status,
+    }
+
+
+def keyword_config(session: Session) -> dict[str, Any]:
+    if session.get_bind().dialect.name == "postgresql":
+        return {
+            "provider": POSTGRES_KEYWORD_PROVIDER,
+            "dictionary": "simple",
+            "query_operator": "OR",
+            "ranker": "ts_rank_cd",
+            "index": "GIN expression over chunk.text",
+        }
+    return KEYWORD_CONFIG
+
+
+def postgres_keyword_metadata(corpus: dict[str, Any], count: int) -> dict[str, Any]:
+    config = {
+        "provider": POSTGRES_KEYWORD_PROVIDER,
+        "dictionary": "simple",
+        "query_operator": "OR",
+        "ranker": "ts_rank_cd",
+        "index": "GIN expression over chunk.text",
+    }
+    return {
+        "provider": POSTGRES_KEYWORD_PROVIDER,
+        "configuration": config,
+        "configuration_hash": hashlib.sha256(
+            json.dumps(config, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest(),
+        "corpus": corpus,
+        "indexed_chunk_count": count,
+        "completeness_status": "complete",
+        "created_at": utc_now_iso(),
     }
 
 

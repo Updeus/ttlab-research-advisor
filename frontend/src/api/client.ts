@@ -12,6 +12,7 @@ import type {
   ExtensionFinderResponse,
   ExtractionDiagnostics,
   GenerateArtifactsResponse,
+  GenerationStatus,
   IngestionSyncStatus,
   IdeaGenerationRequest,
   IdeaGenerationResponse,
@@ -35,7 +36,7 @@ import type {
   ServiceStatus,
 } from "../types/paper";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 let reviewerToken = "";
 const topicDetailInFlight = new Map<string, Promise<TopicDetail>>();
@@ -273,7 +274,7 @@ export function fetchPaper(paperId: string, signal?: AbortSignal): Promise<Paper
 }
 
 export function fetchServiceStatus(): Promise<ServiceStatus> {
-  return getJson<ServiceStatus>("");
+  return getJson<ServiceStatus>("/");
 }
 
 export function fetchStats(): Promise<Stats> {
@@ -317,6 +318,10 @@ export function fetchAskDiagnostics(): Promise<AskDiagnostics> {
 
 export function fetchLocalLlms(): Promise<LocalLlmStatus> {
   return getJson<LocalLlmStatus>("/api/llms/local");
+}
+
+export function fetchGenerationStatus(): Promise<GenerationStatus> {
+  return getJson<GenerationStatus>("/api/llms/status");
 }
 
 export function fetchLatestLlmBenchmark(): Promise<Record<string, unknown>> {

@@ -1,0 +1,39 @@
+substitutions:
+  _REGION: us-east1
+  _SERVICE: ttlab-advisor-api
+  _MIGRATION_JOB: ttlab-advisor-migrate
+  _REPOSITORY: ttlab-advisor
+steps:
+  - name: node:22-bookworm-slim
+    dir: frontend
+    entrypoint: bash
+    args: ["-c", "npm ci && npm run test:unit && npm run build"]
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "--tag", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/app:$COMMIT_SHA", "."]
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - >-
+        docker run --rm
+        -v /workspace:/workspace
+        -w /workspace
+        -e TTLAB_SERVE_FRONTEND=false
+        -e PYTHONPATH=backend
+        ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/app:$COMMIT_SHA
+        python -m pytest
+  - name: gcr.io/cloud-builders/docker
+    args: ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/app:$COMMIT_SHA"]
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
+    entrypoint: bash
+    args:
+      - scripts/release_gcp.sh
+      - $PROJECT_ID
+      - ${_REGION}
+      - ${_SERVICE}
+      - ${_MIGRATION_JOB}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/app:$COMMIT_SHA
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/app:$COMMIT_SHA
+options:
+  logging: CLOUD_LOGGING_ONLY

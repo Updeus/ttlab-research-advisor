@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from typing import Any, Optional
 
 from sqlalchemy import Column, TypeDecorator, VARCHAR
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -14,14 +15,21 @@ class JSONEncodedValue(TypeDecorator):
     impl = VARCHAR
     cache_ok = True
 
-    def process_bind_param(self, value: Any, dialect: Any) -> str:
+    def load_dialect_impl(self, dialect: Any) -> Any:
+        return dialect.type_descriptor(JSONB()) if dialect.name == "postgresql" else dialect.type_descriptor(VARCHAR())
+
+    def process_bind_param(self, value: Any, dialect: Any) -> Any:
         if value is None:
-            return "[]"
+            value = []
+        if dialect.name == "postgresql":
+            return value
         return json.dumps(value)
 
     def process_result_value(self, value: Any, dialect: Any) -> Any:
         if not value:
             return []
+        if isinstance(value, (dict, list)):
+            return value
         try:
             return json.loads(value)
         except (json.JSONDecodeError, TypeError) as exc:
@@ -44,6 +52,7 @@ class Paper(SQLModel, table=True):
     post_url: Optional[str] = Field(default=None, index=True)
     pdf_url: Optional[str] = None
     local_pdf_path: Optional[str] = None
+    pdf_storage_uri: Optional[str] = None
     pdf_unavailability_reason: Optional[str] = Field(default=None, index=True)
     pdf_unavailability_detail: Optional[str] = None
     doi: Optional[str] = None
@@ -55,6 +64,8 @@ class Paper(SQLModel, table=True):
     pdf_text_status: str = "missing_pdf"
     extracted_json_path: Optional[str] = None
     extracted_text_path: Optional[str] = None
+    extracted_json_storage_uri: Optional[str] = None
+    extracted_text_storage_uri: Optional[str] = None
     # Immutable generation links for the source -> extraction -> chunks ->
     # public-index approval chain. Legacy rows remain fail closed until the
     # deterministic workers reconcile these fields.

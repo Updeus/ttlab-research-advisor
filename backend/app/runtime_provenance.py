@@ -118,6 +118,7 @@ def sanitize_provider_resolution(value: Any) -> dict[str, Any] | None:
         "fallback_used",
         "fallback_reason",
         "fallback_exception_class",
+        "region",
     }
     return {key: value.get(key) for key in sorted(allowed) if key in value}
 

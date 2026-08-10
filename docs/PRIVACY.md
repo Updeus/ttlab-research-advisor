@@ -1,5 +1,9 @@
 # Privacy Notice and Data Handling
 
+## Vertex AI processing
+
+In the GCP profile, Ask TTLAB questions and the retrieved TTLAB passages used as evidence are processed by Google Gemini on Vertex AI. Conversational Idea Generator messages and retrieved paper passages are also processed there. The application does not enable Google Search grounding, URL context, or other Gemini tools. The UI exposes this boundary before submission. Do not submit confidential or personal data; institutional approval, retention terms, residency requirements, and Google Cloud contract controls remain deployment prerequisites.
+
 ## Plain-language notice
 
 The platform searches TTLAB publications and generates source-linked answers

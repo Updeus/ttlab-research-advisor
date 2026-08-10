@@ -188,7 +188,7 @@ def test_strict_generator_never_falls_back_when_ollama_policy_is_unavailable(mon
     with pytest.raises(IdeaGenerationFailure) as exc_info:
         generate_strict_ollama_output("prompt", settings=Settings())
 
-    assert exc_info.value.code == "ollama_unavailable"
+    assert exc_info.value.code == "generation_provider_unavailable"
     assert exc_info.value.status_code == 503
 
 
@@ -224,7 +224,7 @@ def test_public_api_returns_stable_retryable_ollama_error(monkeypatch) -> None:
 
     def fail_generation(*_args, **_kwargs):
         raise IdeaGenerationFailure(
-            "ollama_unavailable",
+            "generation_provider_unavailable",
             "Ollama could not generate a response.",
             status_code=503,
         )
@@ -246,7 +246,7 @@ def test_public_api_returns_stable_retryable_ollama_error(monkeypatch) -> None:
 
     assert response.status_code == 503
     assert response.json()["detail"] == {
-        "code": "ollama_unavailable",
+        "code": "generation_provider_unavailable",
         "message": "Ollama could not generate a response.",
         "retryable": True,
     }

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Sparkles } from "lucide-react";
 
-import { ApiError, fetchLocalLlms, generateIdeas, isAbortError } from "../api/client";
+import { ApiError, fetchGenerationStatus, fetchLocalLlms, generateIdeas, isAbortError } from "../api/client";
 import { InlineProgress } from "../components/UiPrimitives";
 import type { ToastTone } from "../components/UiPrimitives";
 import type {
   IdeaChatMessage,
   IdeaGenerationResponse,
-  LocalLlmStatus,
+  GenerationStatus,
   Paper,
 } from "../types/paper";
 
@@ -30,7 +30,7 @@ const STARTER_PROMPTS = [
 export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGeneratorPageProps) {
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ChatTurn[]>([]);
-  const [status, setStatus] = useState<LocalLlmStatus | null>(null);
+  const [status, setStatus] = useState<GenerationStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -40,16 +40,27 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
   const sequence = useRef(0);
   const composerRef = useRef<HTMLTextAreaElement>(null);
 
-  function loadStatus() {
+  async function loadStatus() {
     setStatusLoading(true);
     setStatusError(null);
-    fetchLocalLlms()
-      .then(setStatus)
-      .catch((error: unknown) => {
-        setStatus(null);
-        setStatusError(error instanceof Error ? error.message : "Ollama status is unavailable.");
-      })
-      .finally(() => setStatusLoading(false));
+    try {
+      const generation = await fetchGenerationStatus();
+      if (generation.provider === "ollama") {
+        const local = await fetchLocalLlms();
+        setStatus({
+          ...generation,
+          configured: Boolean(local.generation_available ?? local.available),
+          model: local.default_model || generation.model,
+        });
+      } else {
+        setStatus(generation);
+      }
+    } catch (error: unknown) {
+      setStatus(null);
+      setStatusError(error instanceof Error ? error.message : "Generation-provider status is unavailable.");
+    } finally {
+      setStatusLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -57,9 +68,9 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
     return () => requestController.current?.abort();
   }, []);
 
-  const ollamaReady = Boolean(status?.generation_available ?? status?.available);
-  const defaultModel = status?.default_model && status.default_model !== "none"
-    ? status.default_model
+  const providerReady = Boolean(status?.configured);
+  const defaultModel = status?.model && status.model !== "none"
+    ? status.model
     : "approved default model";
 
   function submit() {
@@ -69,8 +80,8 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
       composerRef.current?.focus();
       return;
     }
-    if (!ollamaReady) {
-      setGenerationError("Ollama is not ready. Check the local service and retry its status first.");
+    if (!providerReady) {
+      setGenerationError("The configured generation provider is not ready. Retry its status first.");
       return;
     }
 
@@ -102,7 +113,7 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
         const unavailable = error instanceof ApiError && [502, 503].includes(error.status);
         const messageText = error instanceof Error ? error.message : "Idea generation failed.";
         setGenerationError(messageText);
-        if (unavailable) setStatus((current) => current ? { ...current, generation_available: false } : current);
+        if (unavailable) setStatus((current) => current ? { ...current, configured: false } : current);
         onNotify?.(messageText, "error");
       })
       .finally(() => {
@@ -128,7 +139,7 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
     <section className="page-section idea-generator" aria-labelledby="idea-generator-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Ollama-only student ideation</p>
+          <p className="eyebrow">Grounded student ideation</p>
           <h2 id="idea-generator-title">Idea Generator</h2>
         </div>
         {turns.length ? <button className="action-button action-button--secondary" onClick={newConversation}>New conversation</button> : null}
@@ -138,16 +149,18 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
         These are generated candidate directions, not claims of novelty, guaranteed feasibility, or supervisor approval. Related papers provide background or inspiration; they do not prove that an idea is new.
       </p>
       <p className="notice">
-        Privacy: this conversation stays in page memory and is sent only with the current request. Refreshing or choosing New conversation clears it. Do not enter confidential or personal data.
+        Privacy: this conversation stays in page memory and is sent only with the current request. {status?.privacy_notice} Refreshing or choosing New conversation clears it. Do not enter confidential or personal data.
       </p>
 
       <div className="llm-model-strip" role="status" aria-live="polite">
-        <span className={`llm-signal llm-signal--${ollamaReady ? "green" : "red"}`}>
-          {statusLoading ? "Checking" : ollamaReady ? "Ready" : "Unavailable"}
+        <span className={`llm-signal llm-signal--${providerReady ? "green" : "red"}`}>
+          {statusLoading ? "Checking" : providerReady ? "Ready" : "Unavailable"}
         </span>
         <strong>{defaultModel}</strong>
-        <span>{ollamaReady ? "Approved local Ollama model" : "No approved Ollama model can generate right now"}</span>
-        {!ollamaReady && !statusLoading ? (
+        <span>{providerReady
+          ? (status?.provider === "ollama" ? "Approved local Ollama model" : status?.display_name ?? "Configured generation provider")
+          : (status?.provider === "ollama" ? "No approved Ollama model can generate right now" : "No configured provider can generate right now")}</span>
+        {!providerReady && !statusLoading ? (
           <button className="link-button" onClick={loadStatus}><RefreshCw size={15} aria-hidden="true" /> Retry status</button>
         ) : null}
       </div>
@@ -183,13 +196,13 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
             <p>{pendingMessage}</p>
           </article>
         ) : null}
-        {loading ? <InlineProgress label="Ollama is developing thesis directions" /> : null}
+        {loading ? <InlineProgress label="The configured provider is developing thesis directions" /> : null}
       </div>
 
       {generationError ? (
         <div className="notice notice--error" role="alert">
           <p>{generationError}</p>
-          <button className="link-button" onClick={() => { loadStatus(); composerRef.current?.focus(); }}>Check Ollama and retry</button>
+          <button className="link-button" onClick={() => { loadStatus(); composerRef.current?.focus(); }}>Check provider and retry</button>
         </div>
       ) : null}
 
@@ -207,8 +220,8 @@ export function IdeaGeneratorPage({ papers, onSelectPaper, onNotify }: IdeaGener
           aria-describedby="idea-message-help"
         />
         <div className="idea-composer__actions">
-          <small id="idea-message-help">The configured default Ollama model is used automatically. No other AI provider is called.</small>
-          <button className="action-button" type="submit" disabled={loading || statusLoading || !ollamaReady || !draft.trim()}>
+          <small id="idea-message-help">The deployment-configured provider and model are used automatically.</small>
+          <button className="action-button" type="submit" disabled={loading || statusLoading || !providerReady || !draft.trim()}>
             <Sparkles size={16} aria-hidden="true" /> Generate ideas
           </button>
         </div>
@@ -273,7 +286,7 @@ function AssistantTurn({ response, papers, onSelectPaper }: { response: IdeaGene
           <ul>{response.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
         </details>
       ) : null}
-      <p className="idea-model-note">Generated locally with {response.model}. Review the literature and discuss shortlisted ideas with a supervisor.</p>
+      <p className="idea-model-note">Generated with {response.provider.replaceAll("_", " ")} ({response.model}). Review the literature and discuss shortlisted ideas with a supervisor.</p>
     </article>
   );
 }

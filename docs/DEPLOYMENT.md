@@ -1,5 +1,7 @@
 # Deployment Runbook
 
+For the managed Cloud Run/Cloud SQL/Cloud Storage profile and Vertex Gemini release flow, see [GCP and Vertex Gemini Deployment](GCP_DEPLOYMENT.md). The local deployment documented below remains supported and is not silently converted by selecting an inference provider.
+
 ## Status and boundary
 
 The repository contains a local/demo FastAPI/React system. No public production

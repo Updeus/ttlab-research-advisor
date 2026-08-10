@@ -1,5 +1,13 @@
 # System Design
 
+## Runtime profiles and managed generation
+
+`TTLAB_RUNTIME_PROFILE` separates local persistence/deployment assumptions from inference selection. Local mode retains SQLite, SQLite FTS5, local immutable index generations, Ollama, and offline extraction. GCP mode uses Cloud SQL PostgreSQL, PostgreSQL `simple` full-text search with a GIN expression index and persisted corpus manifest, private Cloud Storage, and request-time TTL refresh of checksum-verified immutable vector generations cached under `/tmp`.
+
+The provider abstraction includes `vertex_gemini`. Managed Ask composition retains the same answerability, citations, claim-support, and provenance checks and falls back to offline extraction on managed-provider failure. The conversational Idea Generator uses provider-neutral structured generation with Pydantic schema enforcement and no fabricated fallback. Deterministic summaries, podcasts, Finder recommendations, embeddings, and retrieval modes are unchanged.
+
+PostgreSQL review mutations serialize on a singleton chain-head row with `SELECT FOR UPDATE`; the reviewed record, appended hash event, and advanced head share one transaction. Database triggers reject review-event update/delete operations. Anonymous managed generation uses a salted actor/IP hash in an atomic PostgreSQL minute bucket plus bounded per-instance concurrency.
+
 ## Design intent
 
 The TTLAB Research Intelligence Platform is a bounded local-first system that

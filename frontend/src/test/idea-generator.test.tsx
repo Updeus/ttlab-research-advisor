@@ -61,6 +61,32 @@ function ideaResponse({ matched = true } = {}) {
 describe("Ollama Idea Generator", () => {
   beforeEach(() => installBaseFetchMock());
 
+  it("shows the managed Vertex provider and its privacy boundary", async () => {
+    const fetchMock = vi.mocked(globalThis.fetch);
+    const base = fetchMock.getMockImplementation();
+    expect(base).toBeDefined();
+    fetchMock.mockImplementation((input, init) => {
+      const url = requestUrl(input);
+      if (url.pathname === "/api/llms/status") return json({
+        runtime_profile: "gcp",
+        provider: "vertex_gemini",
+        display_name: "Google Gemini on Vertex AI",
+        configured: true,
+        location: "global",
+        model: "gemini-3.5-flash",
+        model_selection_enabled: false,
+        external_processing: true,
+        privacy_notice: "The question and retrieved TTLAB passages are processed by Google Vertex AI.",
+      });
+      return base!(input, init);
+    });
+
+    render(<MemoryRouter initialEntries={["/extensions"]}><App /></MemoryRouter>);
+    expect(await screen.findByText("Google Gemini on Vertex AI")).toBeInTheDocument();
+    expect(screen.getByText(/processed by Google Vertex AI/)).toBeInTheDocument();
+    expect(screen.getByText("gemini-3.5-flash")).toBeInTheDocument();
+  });
+
   it("replaces the Finder route and renders paper-informed chat cards", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(globalThis.fetch);

@@ -543,9 +543,10 @@ PDF corpus, running Ollama server, or downloaded embedding weights. This workflo
 checks the application; it does not deploy it or benchmark live model quality.
 
 The `archived_reproduction` marker identifies the completed v2 historical
-receipt check, which requires its original source/dependency identity. It is
+receipt check and its original-corpus database locator check. These require
+the archived source/dependency identity and restricted local corpus. They are
 excluded from current-app CI because later application changes legitimately
-differ from that frozen environment. Its validator and assertions remain intact;
+differ from that frozen environment. Their validators and assertions remain intact;
 run `python -m pytest -m archived_reproduction` from the matching archived
 reproduction checkout when validating that experiment.
 

@@ -393,7 +393,6 @@ def test_v2_protocol_is_source_first_and_splits_are_frozen() -> None:
     assert len(frozen["ask"]) == 18
     assert len(frozen["finder"]) == 10
     assert len(frozen["topics"]) == 12
-    runner.validate_sqlite_source_locators()
 
     qa_cases = runner.read_jsonl(runner.QA_PATH)
     negatives = [row for row in qa_cases if not row["expected_answerable"]]
@@ -407,9 +406,15 @@ def test_v2_protocol_is_source_first_and_splits_are_frozen() -> None:
     assert len([row for row in finder_cases if row["split"] == "test"]) == 5
 
 
+@pytest.mark.archived_reproduction
+def test_v2_archived_sqlite_source_locators_match_original_corpus() -> None:
+    runner = load_module("run_peer_review_remediation_v2.py", "peer_review_source_locators_v2")
+    runner.validate_sqlite_source_locators()
+
+
 def test_v2_protocol_retains_ai_silver_claim_boundary() -> None:
     validator = load_module("validate_peer_review_remediation_v2.py", "peer_review_validator_v2")
-    report = validator.validate_static()
+    report = validator.validate_static(require_database_locators=False)
     protocol = json.loads((EVALUATION_DIR / "peer_review_remediation_v2_protocol.json").read_text(encoding="utf-8"))
 
     assert report["status"] == "pass"
@@ -439,7 +444,7 @@ def test_v2_protocol_retains_ai_silver_claim_boundary() -> None:
     ] is False
 
 
-def test_v2_freeze_inventory_covers_backend_runtime_tree() -> None:
+def test_v2_freeze_inventory_covers_backend_runtime_tree(tmp_path: Path, monkeypatch) -> None:
     runner = load_module("run_peer_review_remediation_v2.py", "peer_review_freeze_inventory_v2")
     backend_python = set((ROOT / "backend" / "app").rglob("*.py"))
 
@@ -451,8 +456,16 @@ def test_v2_freeze_inventory_covers_backend_runtime_tree() -> None:
         "TTLAB_DEFAULT_LLM_PROVIDER": "offline_extractive",
     }
     runner.validate_output_separation()
+    # Exercise inventory behavior with local fixture files, independent of
+    # the operator's ignored corpus and extracted-text directories.
+    fixture_dirs = (tmp_path / "extracted_text", tmp_path / "chunks")
+    for directory in fixture_dirs:
+        directory.mkdir()
+        (directory / "fixture.json").write_text("{}", encoding="utf-8")
+        (directory / ".gitkeep").write_text("", encoding="utf-8")
+    monkeypatch.setattr(runner, "GENERATION_ARTIFACT_DIRS", fixture_dirs)
     generation_inputs = set(runner.generation_artifact_paths())
-    assert generation_inputs
+    assert generation_inputs == {directory / "fixture.json" for directory in fixture_dirs}
     assert generation_inputs.issubset(set(runner.frozen_input_paths()))
     assert any(path.parent.name == "extracted_text" for path in generation_inputs)
     assert any(path.parent.name == "chunks" for path in generation_inputs)

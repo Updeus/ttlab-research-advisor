@@ -273,6 +273,7 @@ if ((SERVE)); then
     log "Starting backend at ${BACKEND_URL} in explicit insecure loopback demo mode..."
     log "Admin mutations in this demo process are not production-authenticated."
     TTLAB_SECURITY_MODE=local_demo \
+      TTLAB_DEFAULT_LLM_PROVIDER="${TTLAB_DEFAULT_LLM_PROVIDER:-ollama}" \
       TTLAB_ALLOW_INSECURE_LOCAL_DEMO=true \
       TTLAB_DEMO_CORPUS_PREVIEW=true \
       TTLAB_OLLAMA_ALLOW_ALL_LOCAL_MODELS=true \

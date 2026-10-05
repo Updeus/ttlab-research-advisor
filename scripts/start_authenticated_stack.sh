@@ -82,6 +82,7 @@ if curl -fsS --connect-timeout 1 --max-time 3 "$BACKEND_URL/health" >/dev/null 2
 else
   log "Starting authenticated local backend..."
   TTLAB_SECURITY_MODE=local_demo \
+    TTLAB_DEFAULT_LLM_PROVIDER="${TTLAB_DEFAULT_LLM_PROVIDER:-ollama}" \
     TTLAB_ALLOW_INSECURE_LOCAL_DEMO=false \
     TTLAB_DEMO_CORPUS_PREVIEW=true \
     TTLAB_SERVICE_ROLE=api \

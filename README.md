@@ -393,6 +393,18 @@ curl -X POST http://127.0.0.1:8000/api/recommendations/ideas \
 
 Ask a question:
 
+In **Ask TTLAB**, select a paper to ask referential questions such as
+“Give me a summary of what this paper does.” The selected paper supplies the
+retrieval subject; polite summary instructions are not treated as research topics.
+Questions about a specific unrelated subject still pass through the source-match
+gate, and papers without eligible indexed chunks cannot produce grounded answers.
+**Local Ollama** is selected by default when a usable installed model is available;
+its model selector remains enabled. Both local launchers also default the backend
+provider to Ollama (override with `TTLAB_DEFAULT_LLM_PROVIDER` if needed).
+**Auto fallback** uses the configured provider/model policy rather than the model
+shown in that selector. Grouped source labels such as `[S3, S5]` resolve to separate
+paper/page links and retain their original retrieval positions during verification.
+
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.intelligence.rag_answerer ask \
   "Which TTLAB papers discuss RAG?" \

@@ -19,16 +19,22 @@ from app.runtime_provenance import build_runtime_provenance
 
 GENERIC_PAPER_SCOPE_TERMS = {
     "about",
+    "brief",
     "contribution",
     "contributions",
     "describe",
     "findings",
+    "give",
     "main",
     "paper",
+    "overview",
+    "please",
+    "provide",
     "say",
     "says",
     "summary",
     "summarize",
+    "summarise",
 }
 
 

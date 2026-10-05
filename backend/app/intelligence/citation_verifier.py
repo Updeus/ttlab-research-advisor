@@ -53,7 +53,15 @@ def verify_citations(
     claim_support: list[dict[str, Any]] = []
     used_chunk_ids: list[str] = []
     for claim in extract_claims(answer_text):
-        marker_values = _MARKER_RE.findall(claim)
+        marker_values = []
+        for marker in _MARKER_RE.findall(claim):
+            # Models also emit grouped prompt aliases, e.g. [S3, S5]. Keep
+            # their original retrieval numbering rather than reindexing the
+            # filtered list of citations returned after verification.
+            if re.fullmatch(r"\s*S\d+(?:\s*[,;]\s*S\d+)*\s*", marker, re.IGNORECASE):
+                marker_values.extend(value.strip().upper() for value in re.split(r"[,;]", marker))
+            else:
+                marker_values.append(marker)
         resolved_ids: list[str] = []
         for marker in marker_values:
             marker = marker.strip()

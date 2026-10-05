@@ -67,7 +67,11 @@ function renderInline(
   citedChunkIds: Set<string>,
   keyPrefix: string,
 ): ReactNode[] {
-  const normalized = text.replace(/\*\*(\[S\d+\])\*\*/gi, "$1");
+  const normalized = text
+    .replace(/\*\*(\[\s*S\d+(?:\s*[,;]\s*S\d+)*\s*\])\*\*/gi, "$1")
+    .replace(/\[\s*(S\d+(?:\s*[,;]\s*S\d+)*)\s*\]/gi, (_match, values: string) =>
+      values.split(/[,;]/).map((value) => `[${value.trim().toUpperCase()}]`).join(" "),
+    );
   return normalized
     .split(/(\[S\d+\]|\*\*[^*]+\*\*)/gi)
     .filter(Boolean)

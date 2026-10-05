@@ -27,7 +27,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
   const [audience, setAudience] = useState("general");
   const [mode, setMode] = useState<SearchMode>("keyword");
   const [topK, setTopK] = useState(5);
-  const [provider, setProvider] = useState("auto");
+  const [provider, setProvider] = useState("ollama");
   const [selectedModel, setSelectedModel] = useState("qwen3:4b-instruct-2507-q4_K_M");
   const [selectedPaperId, setSelectedPaperId] = useState(initialPaperId ?? "");
   const [result, setResult] = useState<AskResult | null>(null);
@@ -48,7 +48,7 @@ export function AskPage({ papers, onSelectPaper, onNotify, initialPaperId = null
         else setDiagnostics(null);
         if (generationResult.status === "fulfilled") {
           setGenerationStatus(generationResult.value);
-          setProvider("auto");
+          setProvider(generationResult.value.model_selection_enabled ? "ollama" : "auto");
         } else {
           setGenerationStatus(null);
         }

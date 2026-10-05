@@ -211,6 +211,24 @@ describe("evidence and responsible-AI interfaces", () => {
     expect(screen.queryByText(/search snapshot is incomplete or stale/)).not.toBeInTheDocument();
   });
 
+  it("defaults to Local Ollama when a usable installed model is available", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = new URL(String(input), window.location.origin);
+      if (url.pathname === "/api/ask/diagnostics") return json(askDiagnostics);
+      if (url.pathname === "/api/llms/status") return json(localGenerationStatus);
+      if (url.pathname === "/api/llms/local") return json({
+        available: true, generation_available: true, default_model: "local:test",
+        models: [{ name: "local:test", installed: true, usable: true, color: "yellow", quality_tier: "unvalidated", rationale: "Not evaluated" }],
+        warnings: [],
+      });
+      return json({}, { status: 404 });
+    });
+    render(<AskPage papers={[paper as never]} onSelectPaper={() => undefined} />);
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Local Ollama model" })).toHaveValue("local:test"));
+    expect(screen.getByRole("combobox", { name: "Answer provider" })).toHaveValue("ollama");
+    expect(screen.getByRole("combobox", { name: "Local Ollama model" })).toBeEnabled();
+  });
+
   it("keeps Ollama disabled without a digest-verified model and labels protected diagnostics", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = new URL(String(input), window.location.origin);

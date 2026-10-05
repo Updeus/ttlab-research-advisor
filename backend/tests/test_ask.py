@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Generator
 
+import pytest
+
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
@@ -226,6 +228,25 @@ def test_citation_verifier_marks_grounded_and_missing_citations() -> None:
     assert unsupported["grounding_status"] == "unsupported"
 
 
+@pytest.mark.parametrize("markers", ["[S3, S5]", "[S3; S5]", "[s3, s5]"])
+def test_grouped_source_aliases_resolve_original_retrieval_positions(markers: str) -> None:
+    chunks = [{"chunk_id": f"c{i}", "snippet": "Customer segmentation uses weighted eligibility for financial product recommendations."} for i in range(1, 6)]
+    citations = [{**chunk, "paper_id": "p1", "title": "Paper"} for chunk in chunks]
+    result = verify_citations(f"Customer segmentation uses weighted eligibility {markers}.", chunks, citations)
+    assert result["used_chunk_ids"] == ["c3", "c5"]
+    assert result["claim_support"][0]["cited_chunk_ids"] == ["c3", "c5"]
+    assert result["unsupported_claims"] == []
+    assert result["support_status"] == "support_unverified"
+
+
+def test_unknown_grouped_source_aliases_do_not_invent_citations() -> None:
+    chunks = [{"chunk_id": "c1", "snippet": "Customer segmentation uses weighted eligibility."}]
+    citations = [{**chunks[0], "paper_id": "p1", "title": "Paper"}]
+    result = verify_citations("Customer segmentation uses weighted eligibility [S3, S5].", chunks, citations)
+    assert result["used_chunk_ids"] == []
+    assert result["grounding_status"] == "unsupported"
+
+
 def test_rag_answerer_returns_citations_and_persists() -> None:
     session, _engine = build_ask_session()
     try:
@@ -319,6 +340,52 @@ def test_rag_answerer_supports_paper_specific_scope() -> None:
 
     assert response["paper_id"] == "rag-paper"
     assert {citation["paper_id"] for citation in response["citations"]} == {"rag-paper"}
+
+
+@pytest.mark.parametrize("question", [
+    "Give me a summary of what this paper does",
+    "Please provide a brief overview of this paper",
+    "Summarise this paper",
+])
+def test_scoped_summary_wording_uses_selected_paper(question: str) -> None:
+    session, _engine = build_ask_session()
+    try:
+        response = ask_question(
+            session, question, provider_name="offline_extractive", paper_id="rag-paper",
+        )
+    finally:
+        session.close()
+    assert response["retrieval_metadata"]["generic_paper_scope"] is True
+    assert response["answerability"]["reason"] == "explicit_paper_scope"
+    assert response["provider"] == "offline_extractive"
+    assert response["citations"]
+    assert {citation["paper_id"] for citation in response["citations"]} == {"rag-paper"}
+
+
+def test_scoped_summary_with_unrelated_subject_still_abstains() -> None:
+    session, _engine = build_ask_session()
+    try:
+        response = ask_question(
+            session, "Give me a summary of volcanic mineral policy",
+            provider_name="offline_extractive", paper_id="rag-paper",
+        )
+    finally:
+        session.close()
+    assert response["retrieval_metadata"]["generic_paper_scope"] is False
+    assert response["provider"] == "not_invoked"
+    assert response["citations"] == []
+
+
+def test_unscoped_summary_does_not_assume_a_selected_paper() -> None:
+    session, _engine = build_ask_session()
+    try:
+        response = ask_question(
+            session, "Give me a summary of what this paper does", provider_name="offline_extractive",
+        )
+    finally:
+        session.close()
+    assert response["provider"] == "not_invoked"
+    assert response["citations"] == []
 
 
 def test_rag_answerer_returns_unsupported_when_no_chunks() -> None:

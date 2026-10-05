@@ -2,3 +2,6 @@
 addopts = "-s"
 pythonpath = ["backend"]
 testpaths = ["backend/tests"]
+markers = [
+    "archived_reproduction: validates frozen historical experiment receipts against their original source/dependency environment, rather than the current app",
+]

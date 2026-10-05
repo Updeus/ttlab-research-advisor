@@ -522,16 +522,32 @@ outcomes.
 
 ## Verification
 
-Always-runnable engineering checks are:
+Current-app engineering checks are:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m pytest
+PYTHONPATH=backend .venv/bin/python -m pytest -m "not archived_reproduction"
 npm --prefix frontend test
 npm --prefix frontend run build
 npm --prefix frontend run test:e2e
 npm --prefix frontend audit --audit-level=high
 PYTHONPATH=backend .venv/bin/python -m app.demo.smoke_check
 ```
+
+[Platform CI](https://github.com/Updeus/ttlab-research-advisor/actions/workflows/ci.yml)
+runs on GitHub-hosted Ubuntu runners for pushes, pull requests, and manual runs.
+It tests the backend on Python 3.12 with a separate SQLite database, tests the
+frontend (including accessibility) on Node 20, builds the frontend, and checks
+the local launcher shell syntax. Test reports and the frontend build are retained
+as downloadable artifacts for seven days. It requires no project secrets, local
+PDF corpus, running Ollama server, or downloaded embedding weights. This workflow
+checks the application; it does not deploy it or benchmark live model quality.
+
+The `archived_reproduction` marker identifies the completed v2 historical
+receipt check, which requires its original source/dependency identity. It is
+excluded from current-app CI because later application changes legitimately
+differ from that frozen environment. Its validator and assertions remain intact;
+run `python -m pytest -m archived_reproduction` from the matching archived
+reproduction checkout when validating that experiment.
 
 Before the first accepted v2 confirmatory execution, layout-only manuscript
 checks are explicitly:

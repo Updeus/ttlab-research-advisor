@@ -401,7 +401,7 @@ def test_ollama_requires_digest_and_records_immutable_provenance(monkeypatch) ->
 
     monkeypatch.setattr("app.intelligence.llm_provider.httpx.get", fake_get)
     monkeypatch.setattr("app.intelligence.llm_provider.httpx.post", fake_post)
-    with pytest.raises(ValueError, match="not pinned"):
+    with pytest.raises(ValueError, match="not enabled with its current digest"):
         OllamaProvider("arbitrary:latest")
 
     draft = OllamaProvider("pinned:1").generate_answer(

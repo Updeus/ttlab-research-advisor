@@ -292,7 +292,7 @@ def test_material_author_and_paper_corrections_reset_dependent_link_approvals() 
     assert reset_recommendation is not None and reset_recommendation.review_status == "needs_reprocess"
 
 
-def test_reviewed_but_not_approved_graph_records_are_never_public() -> None:
+def test_unapproved_topic_links_stay_hidden_on_public_bibliographic_authors() -> None:
     engine = build_graph_engine()
     with Session(engine) as session:
         author = session.exec(select(Author)).one()
@@ -315,7 +315,12 @@ def test_reviewed_but_not_approved_graph_records_are_never_public() -> None:
         detail = author_detail(session, author.id)
 
     assert topics["total"] == 0
-    assert detail is None
+    # Bibliographic identity cards are derived from already-public papers.
+    # Their unapproved topic/alias links must remain private.
+    assert detail is not None
+    assert detail["topics"] == []
+    assert detail["aliases"] == []
+    assert detail["identity_review_status"] == "reviewed"
 
 
 def test_non_source_metadata_correction_invalidates_generated_outputs_without_resetting_rights() -> None:

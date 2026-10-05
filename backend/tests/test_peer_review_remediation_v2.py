@@ -1417,6 +1417,7 @@ def test_v2_ocr_fixture_is_raster_only_when_prepared() -> None:
         document.close()
 
 
+@pytest.mark.archived_reproduction
 def test_completed_v2_bundle_has_shuffled_passes_and_no_overclaim() -> None:
     manifest = ROOT / "artifacts" / "peer_review_remediation" / "v2" / "manifest_v2.json"
     if not manifest.exists():

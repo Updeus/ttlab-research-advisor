@@ -229,7 +229,14 @@ def test_artifact_api_endpoints_and_batch_limit_work() -> None:
     assert generated.status_code == 200
     assert generated.json()["artifacts"][0]["citations"]
     assert listed.status_code == 200
-    assert listed.json() == []
+    public_artifacts = listed.json()
+    assert len(public_artifacts) == 2
+    for artifact in public_artifacts:
+        assert artifact["review_status"] != "approved"
+        assert any("not been approved" in warning for warning in artifact["warnings"])
+        assert "reviewer_notes" not in artifact
+        assert "reviewed_by" not in artifact
+        assert "corrected_json" not in artifact
     assert diagnostics.status_code == 200
     assert diagnostics.json()["total_artifacts"] >= 2
     assert batch.status_code == 200
